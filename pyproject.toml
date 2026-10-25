@@ -1,0 +1,46 @@
+[project]
+name = "hindcast"
+version = "0.1.0"
+description = "Evidence-grounded AI investigations of infrastructure outages."
+readme = "README.md"
+license = "MIT"
+requires-python = "==3.15.*"
+dependencies = [
+    "azure-ai-projects==2.9.0",
+    "azure-identity==1.26.0",
+    "openai==3.37.0",
+    "ruamel-yaml==0.19.1",
+]
+
+# Exact pins. uv.lock records the full tree with hashes, and Dependabot
+# proposes the updates.
+[dependency-groups]
+dev = [
+    "pip-audit==2.10.1",
+    "pytest==9.1.1",
+    "ruff==0.17.2",
+    "yamllint==1.38.0",
+    "zizmor==1.31.1",
+]
+
+[tool.uv]
+required-version = "==0.13.5"
+# Not built or installed as a package yet: tests import from src/ directly.
+# The container image in the deployment phase decides how the app is packaged.
+package = false
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "--strict-markers"
+
+[tool.ruff]
+target-version = "py315"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "UP", "SIM", "S"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]

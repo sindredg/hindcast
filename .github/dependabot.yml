@@ -1,0 +1,26 @@
+# Version pins are exact, so something has to propose moving them. Nothing
+# merges automatically: each update is reviewed like any pull request.
+#
+# Not covered, because Dependabot cannot update them. These move by hand:
+#
+# - The uv version: pyproject.toml (required-version) and the setup-uv
+#   "version" input in the CI workflow.
+# - The Python version in .python-version.
+# - actionlint: version and checksum in the CI workflow.
+# - The runner image (ubuntu-26.04) in the CI workflow.
+version: 2
+
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+
+  # pyproject.toml and uv.lock move together; the lock keeps the hashes.
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      python:
+        patterns: ["*"]
