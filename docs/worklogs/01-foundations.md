@@ -76,6 +76,11 @@ The answers are scored with the rubric frozen in milestone 5.
 
 The rule, the five questions, and a hand count of nine timeline events were written before any run: [model selection](../../eval/model-selection/dev-outage-v1/README.md). The timeline calls (live, 2026-10-25) found all nine events for gpt-6-luna at low and medium effort and for gpt-6.1-sol at medium, with nothing added. The Foundry evaluation runs on the five questions are open.
 
+`sanitize_results.py` prepares a run's downloads for commit and `summarise_runs.py` applies the score part of the rule (commit `185e977`). Tested locally, before any run on this case:
+
+- `tests/test_model_selection.py`, 24 tests. Each of 23 one-line breaks of the two scripts made at least one test fail.
+- The downloads of an earlier evaluation run, with this case's status text put in place of that run's context at every encoding level: the leak check flagged 20 fields before sanitizing and none after, with no identifier left. The log excerpt matched one picked by hand for that run, and the summary reproduced the means recorded for it.
+
 ### Diagrams
 
 The [architecture page](../architecture/README.md) carries the as-built diagram and the prior-knowledge flow; the README carries the target architecture. Each passed the diagram skill's `self_check.py` and `verify-geometry.py`; `verify-geometry.py` reported a finding on a copy with a label moved onto a later node, so it can fail.
