@@ -1,0 +1,110 @@
+# Case registry: the outages Hindcast investigates and their source files.
+#
+# The source files are not committed: status pages and postmortems are the
+# providers' copyrighted pages. Each one is captured with
+# `python -m hindcast.capture` to data/sources/<case_id>/<filename> (ignored by
+# Git) and uploaded to Blob Storage at sources/<case_id>/<filename>. sha256 pins
+# the exact file and retrieved_at says when it was taken, so a changed upstream
+# copy fails verify_local_files instead of being read.
+#
+# kind status-updates is the evidence. kind postmortem is the answer key and
+# never reaches the investigator. Google Cloud's status snapshot also holds the
+# incident report entries Google adds after the outage; the evidence cut
+# removes them.
+#
+# title is the incident's public title on the status page, as the provider
+# wrote it.
+
+cases:
+  - case_id: cloudflare-2025-11-18
+    title: Cloudflare Global Network experiencing issues
+    provider: Cloudflare
+    role: showcase
+    sources:
+      - doc_id: cloudflare-status-2025-11-18
+        filename: cloudflare-status-2025-11-18.json
+        url: https://www.cloudflarestatus.com/api/v2/incidents/8gmgl950y3h7.json
+        licence: Copyright Cloudflare; not redistributed
+        attribution: Cloudflare status page
+        sha256: 95e7a2ef19cf8f5819703e809b65ec06e113c483842408b859644347c18b9a6f
+        retrieved_at: "2026-10-25T21:09:30Z"
+        kind: status-updates
+      - doc_id: cloudflare-postmortem-2025-11-18
+        filename: cloudflare-postmortem-2025-11-18.html
+        url: https://blog.cloudflare.com/18-november-2025-outage/
+        licence: Copyright Cloudflare; not redistributed
+        attribution: 'Cloudflare blog, "Cloudflare outage on November 18, 2025"'
+        sha256: e2f07ee36e46c93c1b1e252e986dfc63a20640980b74f7da48cb528d2814bfe5
+        retrieved_at: "2026-10-25T21:09:30Z"
+        kind: postmortem
+
+  - case_id: github-2026-08-17
+    title: Incident with GitHub.com
+    provider: GitHub
+    role: showcase
+    sources:
+      - doc_id: github-status-2026-08-17
+        filename: github-status-2026-08-17.json
+        url: https://www.githubstatus.com/api/v2/incidents/zkxwbgr0cnmx.json
+        licence: Copyright GitHub; not redistributed
+        attribution: GitHub status page
+        sha256: b626545baa6ce5598e2eceaea7581d3b2ba080da369eb6e3d5f095bbc858ca49
+        retrieved_at: "2026-10-25T21:09:31Z"
+        kind: status-updates
+      - doc_id: github-availability-2026-08
+        filename: github-availability-2026-08.html
+        url: https://github.blog/news-insights/company-news/github-availability-report-august-2026/
+        licence: Copyright GitHub; not redistributed
+        attribution: 'GitHub blog, "GitHub availability report: August 2026"'
+        sha256: 41f451eca678340f0434fd9896adc3e15bf34552e5162eeb9df417d87d1561a3
+        retrieved_at: "2026-10-25T21:09:32Z"
+        kind: postmortem
+
+  - case_id: google-cloud-2026-07-14
+    title: >-
+      Google Cloud VMware Engine (GCVE) Stretched Cluster customers are
+      experiencing zonal outages impacting network connectivity across multiple
+      regions.
+    provider: Google Cloud
+    role: showcase
+    sources:
+      - doc_id: google-cloud-status-2026-07-14
+        filename: google-cloud-status-2026-07-14.json
+        # Google has no per-incident JSON: the snapshot is this incident's entry
+        # in the feed, which holds recent incidents only.
+        url: https://status.cloud.google.com/incidents.json
+        licence: Copyright Google; not redistributed
+        attribution: Google Cloud Service Health, incident T8gmtofFSTGT5tbhyciF
+        sha256: d8dd46a1890dec9bf86bbb86dc2a4681641fcf0516730248652423b503025b25
+        retrieved_at: "2026-10-25T21:09:33Z"
+        kind: status-updates
+      - doc_id: google-cloud-report-2026-07-14
+        filename: google-cloud-report-2026-07-14.html
+        url: https://status.cloud.google.com/incidents/T8gmtofFSTGT5tbhyciF
+        licence: Copyright Google; not redistributed
+        attribution: Google Cloud Service Health, incident report
+        sha256: c33d2a6e2667816253e94bb49eb5b88b00e8c2eaf3b90579f1a40b21d1008545
+        retrieved_at: "2026-10-25T21:09:34Z"
+        kind: postmortem
+
+  - case_id: cloudflare-2026-02-20
+    title: Cloudflare is investigating connectivity issues
+    provider: Cloudflare
+    role: development
+    sources:
+      - doc_id: cloudflare-status-2026-02-20
+        filename: cloudflare-status-2026-02-20.json
+        url: https://www.cloudflarestatus.com/api/v2/incidents/kwy3dt82bwbt.json
+        licence: Copyright Cloudflare; not redistributed
+        attribution: Cloudflare status page
+        sha256: 9edd1b0134ac825fe6c566064140d85bd582eb1e412308d94765b15286cbc0f6
+        retrieved_at: "2026-10-25T21:09:34Z"
+        kind: status-updates
+      - doc_id: cloudflare-postmortem-2026-02-20
+        filename: cloudflare-postmortem-2026-02-20.html
+        url: https://blog.cloudflare.com/cloudflare-outage-february-20-2026/
+        licence: Copyright Cloudflare; not redistributed
+        attribution: 'Cloudflare blog, "Cloudflare outage on February 20, 2026"'
+        sha256: eabc2619b89f04b14ffb91b85aa739fce4e44cb2b054ff2ebcf51ed74c75e9be
+        retrieved_at: "2026-10-25T21:09:35Z"
+        kind: postmortem
