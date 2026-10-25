@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1000 464" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="current-architecture-title current-architecture-desc" id="current-architecture-root">
+        <title id="current-architecture-title">Hindcast as built: milestone 1</title>
+        <desc id="current-architecture-desc">On an operator workstation signed in with Entra ID, Hindcast's capture command reads the providers' status APIs and postmortem pages, the Azure CLI uploads the captured files to Blob Storage, Hindcast's code calls the two pinned model deployments through the Foundry project, and git reaches GitHub through pull requests; the project is connected to Application Insights, which the code does not use yet, and the Foundry resource and the storage account accept no keys.</desc>
+        <defs>
+      <style>#current-architecture-root { --color-paper:   #2d3142;
+      --color-ink:     #f5f5f5;
+      --color-muted:   #bfc0c0;
+      --color-accent:  #f08a59;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace; }
+      #current-architecture-root { font-family: var(--font-sans); color: var(--color-ink); }
+      #current-architecture-root .diagram-container { width: 100%; overflow-x: auto; }
+      #current-architecture-root .diagram-container { overflow-x: visible; }</style>
+          <marker id="current-architecture-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#bfc0c0"/></marker>
+          <marker id="current-architecture-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#f08a59"/></marker>
+          <marker id="current-architecture-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#739fdf"/></marker>
+        </defs>
+
+        <rect width="100%" height="100%" fill="#2d3142"/>
+
+        <!-- Zone (before arrows and nodes) -->
+        <rect x="632" y="104" width="328" height="120" rx="8" fill="#f5f5f5" fill-opacity="0.02" stroke="#f5f5f5" stroke-opacity="0.10" stroke-width="0.8"/>
+        <rect x="716" y="108" width="160" height="12" rx="2" fill="#2d3142"/>
+        <text x="796" y="117" fill="#949eb2" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">FOUNDRY RESOURCE · KEYS OFF</text>
+
+        <!-- Arrows -->
+        <line x1="200" y1="144" x2="304" y2="144" stroke="#739fdf" stroke-width="1.2" marker-end="url(#current-architecture-arrow-link)"/>
+        <line x1="504" y1="168" x2="664" y2="168" stroke="#f08a59" stroke-width="1.4" marker-end="url(#current-architecture-arrow-accent)"/>
+        <line x1="404" y1="208" x2="404" y2="304" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#current-architecture-arrow)"/>
+        <path d="M 304,192 H 128 Q 120,192 120,200 V 304" fill="none" stroke="#739fdf" stroke-width="1.2" marker-end="url(#current-architecture-arrow-link)"/>
+        <line x1="796" y1="200" x2="796" y2="304" stroke="#bfc0c0" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#current-architecture-arrow)"/>
+
+        <!-- Arrow labels -->
+        <rect x="224" y="124" width="56" height="12" rx="2" fill="#2d3142"/>
+        <text x="252" y="133" fill="#739fdf" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">CAPTURE</text>
+
+        <rect x="526" y="148" width="84" height="12" rx="2" fill="#2d3142"/>
+        <text x="568" y="157" fill="#f08a59" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">RESPONSES API</text>
+
+        <rect x="412" y="250" width="48" height="12" rx="2" fill="#2d3142"/>
+        <text x="436" y="259" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">UPLOAD</text>
+
+        <rect x="128" y="244" width="76" height="12" rx="2" fill="#2d3142"/>
+        <text x="166" y="253" fill="#739fdf" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">PULL REQUEST</text>
+
+        <rect x="804" y="256" width="60" height="12" rx="2" fill="#2d3142"/>
+        <text x="834" y="265" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">CONNECTED</text>
+
+        <!-- Node: provider sites (external) -->
+        <rect x="40" y="112" width="160" height="64" rx="6" fill="#2d3142"/>
+        <rect x="40" y="112" width="160" height="64" rx="6" fill="#f5f5f5" fill-opacity="0.03" stroke="#f5f5f5" stroke-opacity="0.30" stroke-width="1"/>
+        <rect x="48" y="120" width="24" height="12" rx="2" fill="none" stroke="#f5f5f5" stroke-opacity="0.30" stroke-width="0.8"/>
+        <text x="60" y="129" fill="#bfc0c0" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">WEB</text>
+        <text x="120" y="150" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Provider sites</text>
+        <text x="120" y="166" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">status APIs · blogs</text>
+
+        <!-- Node: operator workstation (focal) -->
+        <rect x="304" y="96" width="200" height="112" rx="6" fill="#2d3142"/>
+        <rect x="304" y="96" width="200" height="112" rx="6" fill="#f08a59" fill-opacity="0.10" stroke="#f08a59" stroke-width="1"/>
+        <rect x="312" y="104" width="32" height="12" rx="2" fill="none" stroke="#f08a59" stroke-opacity="0.50" stroke-width="0.8"/>
+        <text x="328" y="113" fill="#f08a59" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">HOST</text>
+        <text x="404" y="144" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Operator workstation</text>
+        <text x="404" y="164" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Hindcast code · Azure CLI</text>
+        <text x="404" y="180" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">capture command · git</text>
+        <text x="404" y="196" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Entra sign-in</text>
+
+        <!-- Node: Foundry project -->
+        <rect x="664" y="136" width="264" height="64" rx="6" fill="#2d3142"/>
+        <rect x="664" y="136" width="264" height="64" rx="6" fill="#393e53" stroke="#f5f5f5" stroke-width="1"/>
+        <rect x="672" y="144" width="32" height="12" rx="2" fill="none" stroke="#f5f5f5" stroke-opacity="0.40" stroke-width="0.8"/>
+        <text x="688" y="153" fill="#f5f5f5" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">PROJ</text>
+        <text x="796" y="172" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Foundry project</text>
+        <text x="796" y="188" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">gpt-6-luna · gpt-6.1-sol · pinned</text>
+
+        <!-- Node: GitHub (external) -->
+        <rect x="40" y="304" width="160" height="64" rx="6" fill="#2d3142"/>
+        <rect x="40" y="304" width="160" height="64" rx="6" fill="#f5f5f5" fill-opacity="0.03" stroke="#f5f5f5" stroke-opacity="0.30" stroke-width="1"/>
+        <rect x="48" y="312" width="24" height="12" rx="2" fill="none" stroke="#f5f5f5" stroke-opacity="0.30" stroke-width="0.8"/>
+        <text x="60" y="321" fill="#bfc0c0" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">GIT</text>
+        <text x="120" y="342" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">GitHub</text>
+        <text x="120" y="358" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">CI · ruleset</text>
+
+        <!-- Node: Blob Storage (store) -->
+        <rect x="320" y="304" width="168" height="64" rx="6" fill="#2d3142"/>
+        <rect x="320" y="304" width="168" height="64" rx="6" fill="#f5f5f5" fill-opacity="0.05" stroke="#bfc0c0" stroke-width="1"/>
+        <rect x="328" y="312" width="28" height="12" rx="2" fill="none" stroke="#bfc0c0" stroke-opacity="0.50" stroke-width="0.8"/>
+        <text x="342" y="321" fill="#bfc0c0" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">BLOB</text>
+        <text x="404" y="342" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Blob Storage</text>
+        <text x="404" y="358" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">sources · keys off</text>
+
+        <!-- Node: Application Insights (store) -->
+        <rect x="700" y="304" width="192" height="64" rx="6" fill="#2d3142"/>
+        <rect x="700" y="304" width="192" height="64" rx="6" fill="#f5f5f5" fill-opacity="0.05" stroke="#bfc0c0" stroke-width="1"/>
+        <rect x="708" y="312" width="36" height="12" rx="2" fill="none" stroke="#bfc0c0" stroke-opacity="0.50" stroke-width="0.8"/>
+        <text x="726" y="321" fill="#bfc0c0" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TRACE</text>
+        <text x="796" y="342" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Application Insights</text>
+        <text x="796" y="358" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Log Analytics</text>
+
+        <!-- Legend strip -->
+        <line x1="40" y1="408" x2="960" y2="408" stroke="#f5f5f5" stroke-opacity="0.10" stroke-width="0.8"/>
+        <text x="40" y="424" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+
+        <rect x="40" y="436" width="14" height="10" rx="2" fill="#f08a59" fill-opacity="0.10" stroke="#f08a59" stroke-width="1"/>
+        <text x="60" y="444" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">Workstation</text>
+
+        <rect x="144" y="436" width="14" height="10" rx="2" fill="#393e53" stroke="#f5f5f5" stroke-width="1"/>
+        <text x="164" y="444" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">Foundry service</text>
+
+        <rect x="256" y="436" width="14" height="10" rx="2" fill="#f5f5f5" fill-opacity="0.05" stroke="#bfc0c0" stroke-width="1"/>
+        <text x="276" y="444" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">Store</text>
+
+        <rect x="324" y="436" width="14" height="10" rx="2" fill="#f5f5f5" fill-opacity="0.03" stroke="#f5f5f5" stroke-opacity="0.30" stroke-width="1"/>
+        <text x="344" y="444" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">Outside Azure</text>
+
+        <line x1="432" y1="441" x2="460" y2="441" stroke="#739fdf" stroke-width="1.2" marker-end="url(#current-architecture-arrow-link)"/>
+        <text x="468" y="444" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">HTTPS outside Azure</text>
+
+        <line x1="576" y1="441" x2="604" y2="441" stroke="#bfc0c0" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#current-architecture-arrow)"/>
+        <text x="612" y="444" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">Connected, not used by the code yet</text>
+
+        <text x="960" y="424" fill="#949eb2" font-size="8.5" font-family="'Geist', sans-serif" text-anchor="end">Azure resources in Sweden Central · Entra tokens, no keys · traces use the Application Insights connection string</text>
+      </svg>
