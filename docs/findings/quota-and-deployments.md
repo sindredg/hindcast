@@ -18,7 +18,7 @@ Findings about model quota, deployment capacity, and version pinning.
 
 **Evidence:** tested live, 2026-10-25. Capacity of gpt-6-luna and gpt-6.1-sol changed from 62 to 50 in the portal; `az cognitiveservices account deployment list` then read capacity 50 and `versionUpgradeOption` `NoAutoUpgrade` for both. CLI and portal behaviour for the policy read from "Model versioning in Foundry Models" (updated 2026-07-24).
 
-**For Hindcast:** the Bicep deployment sets `versionUpgradeOption` explicitly. Left out, the policy reads as empty, which the documentation treats as "once the current version expires": the version then changes without a code change.
+**For Hindcast:** the Bicep templates in milestone 6 set `versionUpgradeOption` explicitly. Left out, the policy reads as empty, which the documentation treats as "once the current version expires": the version then changes without a code change.
 
 **Read more:** [Model versioning in Microsoft Foundry Models](https://learn.microsoft.com/azure/foundry/foundry-models/concepts/model-versions).
 

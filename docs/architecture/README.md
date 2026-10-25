@@ -47,4 +47,4 @@ The Foundry User role at project scope does not reach the resource endpoint, whe
 
 ## Pipeline
 
-GitHub Actions runs three jobs on every pull request: lint and tests (ruff, pytest), YAML and workflow checks (yamllint, zizmor, actionlint), and a dependency audit (pip-audit on the locked tree). `main` accepts changes only through a pull request with those checks passing and signed commits. The workflow is `.github/workflows/ci.yml`.
+GitHub Actions runs three jobs on every pull request and every push to `main`: lint and tests (ruff, pytest), YAML and workflow checks (yamllint, zizmor, actionlint), and a dependency audit (pip-audit on the locked tree). `main` accepts changes only through a pull request with those checks passing and signed commits. The workflow is `.github/workflows/ci.yml`.

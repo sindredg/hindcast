@@ -48,6 +48,6 @@ Findings about the providers' status pages and postmortems: what they keep, in w
 
 **Evidence:** read from the captured snapshot of incident `T8gmtofFSTGT5tbhyciF`, 2026-10-25.
 
-**For Hindcast:** the evidence cut drops report entries by type, and an entry type the rules do not know is dropped and listed ([decision 5](../decisions/0005-evidence-library-and-answer-key.md)). The incident page, which shows the report, is registered as the answer key.
+**For Hindcast:** the evidence cut in milestone 2 drops report entries by type, and drops and lists any entry type the rules do not know ([decision 5](../decisions/0005-evidence-library-and-answer-key.md)). The incident page, which shows the report, is registered as the answer key.
 
 **Read more:** [Google Cloud Service Health](https://status.cloud.google.com/).
