@@ -1,0 +1,5 @@
+{"query": "When did Cloudflare first say which customers were affected, and which were they?", "ground_truth": "At 19:09 UTC Cloudflare said a subset of BYOIP (bring your own IP) prefixes was affected."}
+{"query": "What could affected customers do themselves to restore service?", "ground_truth": "Readvertise their prefixes from the Cloudflare dashboard, offered from 19:20 UTC."}
+{"query": "What problem with that self-service fix did Cloudflare report, and when?", "ground_truth": "At 20:35 UTC some customers could not reload their IPs through the dashboard and Cloudflare was working on a fix; at 22:16 UTC the last subset of prefixes could not be mitigated by toggling advertisement on the dashboard."}
+{"query": "When were the remaining prefixes back in their previous state, and when was the incident resolved?", "ground_truth": "The remaining prefixes were restored at 23:38 UTC (monitoring), and the incident was marked resolved at 23:50 UTC."}
+{"query": "What change caused the prefixes to be withdrawn?", "ground_truth": "The status updates do not say what caused the withdrawal; the correct answer says so and does not guess."}
