@@ -48,6 +48,8 @@ All three listed every update in order, including the two that repeat earlier on
 | `compare_timeline.py` | One timeline call per deployment and effort; prints token usage. |
 | `check_quotes.py` | Checks that every quote in a run's answers appears word for word in the updates. Tested on hand-made rows in the portal's result format, not on a real run yet. |
 | `build_dataset.py` | Builds the upload file `data/sources/model-selection/dataset-dev-outage-v1.jsonl` (ignored by Git) by adding the status text as `context`. The status text is Cloudflare's and is not committed. |
+| `sanitize_results.py` | Turns one run's downloads into the files committed here. Every copy of the status text becomes `<context withheld>`, at every level of JSON encoding. Run and evaluation IDs and resource names become placeholders. The log keeps only the lines the findings cite. Writes nothing if a copy of the status text or an identifier is left. Tested on hand-made rows and on the downloads of an earlier evaluation run, not on these runs yet. |
+| `summarise_runs.py` | Prints each run's score per question and evaluator, the means, the answer and judge tokens, and the score part of the rule. Exit code 1 when the score part is not met or a score is missing. |
 
 ## Status
 
