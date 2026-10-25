@@ -9,7 +9,6 @@ One file per topic, one entry per finding, newest first. Each entry says what wa
 | Models, tokens, and rate limits | [models.md](models.md) |
 | Identity and access | [identity-and-access.md](identity-and-access.md) |
 | Quota and deployments | [quota-and-deployments.md](quota-and-deployments.md) |
-| Cloud evaluation | [evaluation.md](evaluation.md) |
 | Case sources | [sources.md](sources.md) |
 
 The model comparison and its results are in [decision 0012](../decisions/0012-models.md). Defects and open questions found along the way are GitHub issues; entries link to them.

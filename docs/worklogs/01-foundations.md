@@ -90,7 +90,7 @@ The [architecture page](../architecture/README.md) carries the as-built diagram 
 |---|---|---|
 | CI fails on lint, unpinned action, workflow, YAML, and vulnerable-dependency errors; each shown failing once | Tested locally; configured in CI | Break-test table above. CI runs the same checks with the same versions: `.github/workflows/ci.yml`, run `40233792968` |
 | `main` takes changes only through a pull request with passing checks and signed commits; secret scanning and push protection on | Tested live | Ruleset read-back, direct push refused with `GH013`, security settings read back |
-| Foundry project, deployments, and Blob Storage exist and are reached with Entra tokens; key access off | Tested live | Deployment list; calls through the project; `--auth-mode login` uploads and downloads; key listing and key use refused |
+| Foundry project, deployments, and Blob Storage exist and are reached with Entra tokens; key access off | Tested live; accepted gap for the Log Analytics workspace | Deployment list; calls through the project; `--auth-mode login` uploads and downloads; key listing and key use refused. The Log Analytics workspace behind Application Insights still accepts its shared keys: nothing uses them, and turning them off waits until traces flow and the change can be checked ([#2](https://github.com/sindredg/hindcast/issues/2)) |
 | Every source in the registry with URL, licence, attribution, retrieval time, and a matching SHA-256, locally and in Blob Storage | Tested locally and live | `verify_local_files` on the local files and on a fresh download; byte-flip break-test |
 | Prior-knowledge answers recorded before any evidence reaches a model | Tested live | Result files in `c8ff321`, collected from `30c180e` |
 | The investigator model meets the rule on the development outage | Open | Rule and questions written; Foundry evaluation runs not done yet |
@@ -105,6 +105,13 @@ Open.
 - The evidence ends before the update that marks an incident resolved: that update's time and status are kept and its text is withheld, because GitHub and Google Cloud put the cause there ([decision 0005](../decisions/0005-evidence-library-and-answer-key.md)).
 - Uploads are checked by downloading and hashing, because the Content-MD5 that `az storage blob show` returns repeats the value the upload sent.
 - Charts are registered in milestone 2, with the extraction that reads them.
+
+## Follow-up
+
+- [#1](https://github.com/sindredg/hindcast/issues/1): the newest actionlint release does not know the `ubuntu-26.04` runner label, so CI declares it.
+- [#2](https://github.com/sindredg/hindcast/issues/2): Log Analytics workspace keys, milestone 4.
+- [#3](https://github.com/sindredg/hindcast/issues/3): settings require search and embedding values before they exist, milestone 2.
+- [#4](https://github.com/sindredg/hindcast/issues/4): result files record the requested reasoning effort, not the one the response reports, milestone 5.
 
 ## Not verified
 
