@@ -38,7 +38,8 @@ def incident_snapshot(provider: str, incident_id: str, body: bytes) -> bytes:
     """The one incident from a status response, as canonical JSON.
 
     Only the incident is kept: the Statuspage response also carries the page's
-    own metadata, which changes on every fetch and would change the hash.
+    own metadata, whose updated_at moves whenever the provider changes anything
+    on its status page, which would change the hash of an unchanged incident.
     """
     data = json.loads(body)
     if provider == "Google Cloud":
