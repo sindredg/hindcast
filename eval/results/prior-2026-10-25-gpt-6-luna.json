@@ -1,0 +1,45 @@
+{
+  "check": "prior-knowledge",
+  "collected_at": "2026-10-25T21:15:01Z",
+  "deployment": "gpt-6-luna",
+  "model_name": "gpt-6-luna",
+  "model_version": "2026-09-22",
+  "reasoning_effort": "medium",
+  "prompt_path": "prompts/prior_knowledge.md",
+  "prompt_git_blob": "fb8005e0d49c961504c5cedf354fe8c7df348832",
+  "cases_path": "data/cases.yaml",
+  "cases_git_blob": "1c9b596a84cd8a03f495f47295180473f0f654f3",
+  "code_commit": "30c180e2c0c2af4d49963a4953dfc2a241495835",
+  "entries": [
+    {
+      "case_id": "cloudflare-2025-11-18",
+      "question": "What do you know about this Cloudflare incident: Cloudflare Global Network experiencing issues, on 18 November 2025? Describe what happened, in order, whether it was an attack, and the root cause and contributing factors that Cloudflare's own review found.",
+      "answer": "My recollection is that Cloudflare’s review traced the incident to an internal configuration/data pipeline problem, not an attack. I’m not confident enough to give a precise minute-by-minute timeline, but the sequence was:\n\n1. An internal database permissions change altered the results of a query used to build a Bot Management feature file. **I may not have the exact database-change detail right.**\n2. The generated file contained far more entries than expected—reportedly because the query returned duplicate rows—and was distributed to Cloudflare’s proxy fleet.\n3. The proxy software had a limit on the number of features it could handle. The oversized file exceeded that limit and caused proxy processes to fail, leading to widespread errors for traffic passing through Cloudflare.\n4. Cloudflare stopped or rolled back the bad configuration and restored service.\n\nCloudflare said the incident was **not caused by an attack**. The broad root cause was an unexpected database-query result producing an oversized configuration file. My recollection is that the proxy’s failure on an over-limit file, and insufficient checks to catch the oversized output before distribution, contributed to the impact. **I’m less certain that Cloudflare described those points in exactly those terms in its review.**",
+      "usage": {
+        "input_tokens": 150,
+        "cached_input_tokens": 0,
+        "output_tokens": 2805
+      }
+    },
+    {
+      "case_id": "github-2026-08-17",
+      "question": "What do you know about this GitHub incident: Incident with GitHub.com, on 17 August 2026? Describe what happened, in order, whether it was an attack, and the root cause and contributing factors that GitHub's own review found.",
+      "answer": "I don’t have reliable information about a specific GitHub.com incident on 17 August 2026 or GitHub’s review of it. I can’t give a verified timeline, say whether it was an attack, or identify its root cause or contributing factors. I don’t want to infer those details from other incidents.",
+      "usage": {
+        "input_tokens": 149,
+        "cached_input_tokens": 0,
+        "output_tokens": 368
+      }
+    },
+    {
+      "case_id": "google-cloud-2026-07-14",
+      "question": "What do you know about this Google Cloud incident: Google Cloud VMware Engine (GCVE) Stretched Cluster customers are experiencing zonal outages impacting network connectivity across multiple regions., on 14 July 2026? Describe what happened, in order, whether it was an attack, and the root cause and contributing factors that Google Cloud's own review found.",
+      "answer": "I don’t know the details of this specific incident or Google Cloud’s review of it. From the incident title you provided, the only information I can repeat is that GCVE stretched-cluster customers were reported to have zonal outages affecting network connectivity across multiple regions on 14 July 2026.\n\nI can’t reliably describe the sequence of events, say whether it was an attack, or identify Google’s stated root cause and contributing factors. The title alone doesn’t establish any of those.",
+      "usage": {
+        "input_tokens": 167,
+        "cached_input_tokens": 0,
+        "output_tokens": 353
+      }
+    }
+  ]
+}

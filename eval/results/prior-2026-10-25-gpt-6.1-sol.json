@@ -1,0 +1,45 @@
+{
+  "check": "prior-knowledge",
+  "collected_at": "2026-10-25T21:15:35Z",
+  "deployment": "gpt-6.1-sol",
+  "model_name": "gpt-6.1-sol",
+  "model_version": "2026-09-29",
+  "reasoning_effort": "medium",
+  "prompt_path": "prompts/prior_knowledge.md",
+  "prompt_git_blob": "fb8005e0d49c961504c5cedf354fe8c7df348832",
+  "cases_path": "data/cases.yaml",
+  "cases_git_blob": "1c9b596a84cd8a03f495f47295180473f0f654f3",
+  "code_commit": "30c180e2c0c2af4d49963a4953dfc2a241495835",
+  "entries": [
+    {
+      "case_id": "cloudflare-2025-11-18",
+      "question": "What do you know about this Cloudflare incident: Cloudflare Global Network experiencing issues, on 18 November 2025? Describe what happened, in order, whether it was an attack, and the root cause and contributing factors that Cloudflare's own review found.",
+      "answer": "Cloudflare’s own review attributed this outage to an **internal configuration/data-generation failure, not a cyberattack**. The failure affected the software handling traffic across its network.\n\nI know the main sequence and technical explanation, but not every intermediate timestamp in the incident log. The times below are UTC.\n\n## What happened, in order\n\n1. **A database-permissions change exposed additional metadata.**  \n   Shortly before the outage, Cloudflare changed access permissions in its ClickHouse database system. A query used to build a configuration file for **Bot Management** consequently began returning duplicate entries.\n\n2. **The generated Bot Management “feature file” became too large.**  \n   This file describes the features used by the bot-detection system. The generating query selected column metadata without sufficiently restricting which database it came from. Following the permissions change, it could see metadata for both distributed tables and their underlying tables, rather than just the intended set.\n\n   The resulting file contained more features than the consuming software’s **200-feature limit** allowed. It was then distributed across Cloudflare’s network.\n\n3. **At approximately 11:20, network traffic began failing.**  \n   Loading the oversized file caused failures in Cloudflare’s core proxy software. Users saw HTTP 5xx errors on affected sites.\n\n   The effect differed between proxy implementations: Cloudflare’s newer **FL2** proxy failed with errors, while the older **FL** implementation could instead assign a bot score of zero. That could cause legitimate traffic to be blocked by customers’ bot-protection rules.\n\n4. **The symptoms initially came and went, complicating diagnosis.**  \n   The feature file was regenerated approximately every five minutes. Because the database-permissions change was being rolled out progressively, generation could produce either a valid or an invalid file, depending on which database instance answered. Distributing those alternating files made the network appear to recover and then fail again.\n\n   Cloudflare initially suspected a very large DDoS attack. Its separately hosted status page also experienced an unrelated failure, which reinforced that initial suspicion.\n\n5. **Cloudflare identified the file-generation problem and stopped distributing the bad file.**  \n   Recovery involved replacing it with a known-good version and restoring the affected proxy operation. Some dependent services required additional recovery work.\n\n6. **By 14:30, core traffic was largely back to normal.**  \n   Cloudflare reported that **all systems were operating normally by 17:06**.\n\n## Was it an attack?\n\n**No.** Cloudflare explicitly said the incident was not caused, directly or indirectly, by a cyberattack or malicious activity. An attack was an early investigative hypothesis, not the eventual finding.\n\n## Root cause and contributing factors\n\nThe review’s causal chain was:\n\n**ClickHouse permissions change → unexpectedly duplicated metadata → oversized Bot Management feature file → proxy failure after global distribution.**\n\nThe important contributing factors were:\n\n- **An insufficiently scoped metadata query.** It relied on the previous visibility of database metadata rather than explicitly restricting the query to the intended database.\n- **Inadequate protection against an invalid generated configuration.** The oversized file reached the systems consuming it instead of being rejected before distribution.\n- **A hard feature-count limit with a disruptive failure mode.** Exceeding that limit could crash the newer proxy’s Bot Management processing rather than safely retaining the last good configuration.\n- **A wide blast radius.** Bot Management processing was integrated into the shared traffic-handling path, so this was not merely an outage of a standalone bot-management service.\n- **Periodic generation during a rolling database change.** Alternating good and bad files produced misleading intermittent recovery.\n- **Different behaviour across proxy versions.** Some traffic encountered server errors; other traffic could receive an incorrect bot score and be blocked.\n\nI also recall the review describing diagnostic/error-reporting overhead as worsening the operational impact, but I am less certain of the precise mechanism, so I would not give a more detailed account of that factor from memory.",
+      "usage": {
+        "input_tokens": 150,
+        "cached_input_tokens": 0,
+        "output_tokens": 1802
+      }
+    },
+    {
+      "case_id": "github-2026-08-17",
+      "question": "What do you know about this GitHub incident: Incident with GitHub.com, on 17 August 2026? Describe what happened, in order, whether it was an attack, and the root cause and contributing factors that GitHub's own review found.",
+      "answer": "I don’t have reliable information about **“Incident with GitHub.com” on 17 August 2026**, or a GitHub review of that incident.\n\nI therefore can’t establish:\n- What happened or the order of events.\n- Whether it was an attack.\n- The root cause or contributing factors GitHub’s own review identified.\n\nI won’t substitute details from another GitHub incident or infer causes from typical outages. If you paste the incident report or review, I can summarize its timeline and findings, separating confirmed facts from uncertainty.",
+      "usage": {
+        "input_tokens": 149,
+        "cached_input_tokens": 0,
+        "output_tokens": 198
+      }
+    },
+    {
+      "case_id": "google-cloud-2026-07-14",
+      "question": "What do you know about this Google Cloud incident: Google Cloud VMware Engine (GCVE) Stretched Cluster customers are experiencing zonal outages impacting network connectivity across multiple regions., on 14 July 2026? Describe what happened, in order, whether it was an attack, and the root cause and contributing factors that Google Cloud's own review found.",
+      "answer": "I don’t know this specific **14 July 2026 Google Cloud VMware Engine (GCVE) incident**, and I don’t have access to Google Cloud’s incident report or post-incident review.\n\nThe description you supplied says that **GCVE Stretched Cluster customers experienced zonal outages affecting network connectivity across multiple regions**. I cannot independently verify that description or add incident-specific details.\n\nIn particular, I don’t know:\n- **The sequence of events:** when the disruption began, how it spread, or how Google mitigated and resolved it.\n- **Whether it was an attack:** I have no evidence establishing or ruling out malicious activity.\n- **The root cause and contributing factors:** I don’t know what Google Cloud’s own review concluded.\n\nGiving a technical explanation or timeline would therefore be speculation. If you paste Google Cloud’s review, I can summarize its chronology and distinguish its confirmed findings from any remaining uncertainty.",
+      "usage": {
+        "input_tokens": 167,
+        "cached_input_tokens": 0,
+        "output_tokens": 315
+      }
+    }
+  ]
+}
