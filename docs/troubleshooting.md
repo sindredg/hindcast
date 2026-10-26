@@ -28,4 +28,6 @@ az role assignment create --assignee-object-id "$ME" --assignee-principal-type U
   --role "Cognitive Services OpenAI User" --scope "$RES_ID" -o none
 ```
 
+Remove it after the run: while it is assigned, it also covers the project, which hides whether the project-scope role is enough ([runbook](runbooks/foundations.md#re-check-the-model-choice), step 8).
+
 **Verification:** `GET <project endpoint>/openai/evals?api-version=v1` with the user's token returned HTTP 400 naming the missing `OpenAI/evals/read` action before the assignment and HTTP 200 about 3 minutes after. The next two runs answered all ten questions and scored 48 of 50 evaluator calls; the other two are the entry above. Behaviour: [identity and access](findings/identity-and-access.md). Procedure: [runbook](runbooks/foundations.md#re-check-the-model-choice).

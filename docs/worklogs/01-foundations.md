@@ -129,7 +129,7 @@ Fixed in this pull request:
 
 Opened as issues: [#8](https://github.com/sindredg/hindcast/issues/8), [#9](https://github.com/sindredg/hindcast/issues/9), and [#10](https://github.com/sindredg/hindcast/issues/10) (under Follow-up).
 
-Not acted on: gpt-6.1-terra 2026-10-26 became generally available in Sweden Central on the day decision 0012 was accepted (`az cognitiveservices model list`). Whether to measure it is a decision for the start of milestone 2. The diagram labels the review confirmed are under Follow-up.
+Not acted on: gpt-6.1-terra 2026-10-26 became generally available in Sweden Central on the day decision 0012 was accepted (`az cognitiveservices model list`). It is not measured; luna stays on decision 0012's evidence. Four diagram gaps the review confirmed are fixed in this pull request, waiting for a look: the current-architecture diagram now says "status · postmortems" instead of "status APIs · blogs" and shows the portal evaluation path; the prior-knowledge diagram names `pyproject.toml` among the committed inputs and shows the refusal when a showcase case has no date. Both pass `self_check.py` and `verify-geometry.py` with no findings.
 
 ## Deviations from the plan
 
@@ -146,9 +146,8 @@ Not acted on: gpt-6.1-terra 2026-10-26 became generally available in Sweden Cent
 - [#4](https://github.com/sindredg/hindcast/issues/4): result files record the requested reasoning effort, not the one the response reports, milestone 5.
 - [#7](https://github.com/sindredg/hindcast/issues/7): a few portal evaluation calls failed with 401 an hour after the role assignment; checked again before the milestone 5 runs.
 - [#8](https://github.com/sindredg/hindcast/issues/8): Dependabot cannot update the Python dependencies, because it does not support Python 3.15; the pins move by hand.
-- [#9](https://github.com/sindredg/hindcast/issues/9): the developer's resource-scope role for portal evaluations also covers the project, so the project-scope least-privilege claim cannot fail for that identity; milestone 5.
+- [#9](https://github.com/sindredg/hindcast/issues/9): the developer's resource-scope role for portal evaluations also covers the project, so the project-scope least-privilege claim cannot fail while it is assigned. Removed on 2026-10-26 at 19:26 UTC; the evals read returned 400 again and a gpt-6-luna call through the project answered. The runbook now removes it after each portal run.
 - [#10](https://github.com/sindredg/hindcast/issues/10): Python 3.15.2 is out; move when uv offers it.
-- Diagram labels, waiting for a look: the current-architecture diagram says "status APIs · blogs" where Google Cloud's answer key is an incident page, and does not show the portal evaluation path; the prior-knowledge diagram says "Prompt, registry, code, lock" without `pyproject.toml`, and does not show the refusal when a showcase case has no date.
 
 ## Not verified
 

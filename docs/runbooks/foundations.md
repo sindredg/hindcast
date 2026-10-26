@@ -1,6 +1,6 @@
 # Foundations: operator procedure
 
-Status: Written on 2026-10-25 for [milestone 1](../worklogs/01-foundations.md); "Re-check the model choice" added on 2026-10-26, after its steps ran on 2026-10-25 (steps 1 and 2) and 2026-10-26 (steps 3 to 7; in step 3 the role was assigned once and the check ran in this form afterwards). Every step ran once with the results the worklog records, but not in this order: the Azure foundation was created on 2026-10-24 and 2026-10-25 before the repository existed, and key access on the Foundry resource (step 4 under "Create the Azure foundation") was turned off before the prior-knowledge answers were collected. The Foundry resource, project, and deployments were created in the Foundry portal as it was that day. Not run again from an empty subscription.
+Status: Written on 2026-10-25 for [milestone 1](../worklogs/01-foundations.md); "Re-check the model choice" added on 2026-10-26, after its steps ran on 2026-10-25 (steps 1 and 2) and 2026-10-26 (steps 3 to 8; in step 3 the role was assigned once and the check ran in this form afterwards). Every step ran once with the results the worklog records, but not in this order: the Azure foundation was created on 2026-10-24 and 2026-10-25 before the repository existed, and key access on the Foundry resource (step 4 under "Create the Azure foundation") was turned off before the prior-knowledge answers were collected. The Foundry resource, project, and deployments were created in the Foundry portal as it was that day. Not run again from an empty subscription.
 
 Build the milestone 1 foundation from scratch: the repository checks, the GitHub repository and its protection, the Azure resources and roles, the case sources, and the prior-knowledge answers. [Decision 0009](../decisions/0009-hosting-and-identity.md) records why every call uses Entra ID and no keys.
 
@@ -375,3 +375,17 @@ The evidence for [decision 0012](../decisions/0012-models.md): luna against sol 
    ```
 
    Expected: each run's scores per question, the means, and the answer and judge tokens, then `Score part of the rule: met. Read question 5 by hand.` and exit code 0. A line `errored evaluator calls: ...` names scores the judge did not return; a missing completeness or groundedness score makes the script print `None against ...` and exit 1. Then either show that the missing score cannot change the outcome, as the 2026-10-26 run did in the [evaluation folder](../../eval/model-selection/dev-outage-v1/README.md), or run that model's evaluation again. Last, read question 5 in each results file: the answer says the updates do not contain the cause and names none.
+
+8. Remove the role from step 3, and check that Hindcast's own calls still work with the project-scope role alone. While a role at resource scope is assigned it also covers the project, so the claim that Foundry User on the project is enough cannot fail ([#9](https://github.com/sindredg/hindcast/issues/9)). Run it in the shell of step 3, which set `ME`, `RES_ID`, and `ENDPOINT`.
+
+   ```bash
+   az role assignment delete --assignee "$ME" --role "Cognitive Services OpenAI User" --scope "$RES_ID"
+   TOKEN=$(az account get-access-token --scope https://ai.azure.com/.default --query accessToken -o tsv)
+   curl -s -o /dev/null -w '%{http_code}\n' -H "Authorization: Bearer $TOKEN" \
+     "$ENDPOINT/openai/evals?api-version=v1&limit=1"
+   PYTHONPATH=src uv run --frozen --env-file .env python -c "
+   from hindcast.models import ask_model
+   print(ask_model('gpt-6-luna', 'Answer in one word.', 'What colour is a clear daytime sky?'))"
+   ```
+
+   Expected: `400` (the evals read is refused again; repeat the token and `curl` lines if it still prints `200`), then a one-word answer with its `TokenUsage`.

@@ -40,11 +40,11 @@ One resource group in Sweden Central, created by hand with the [runbook](../runb
 |---|---|---|---|
 | Developer, `hindcast.models` | Foundry project endpoint | Entra token from the Azure CLI sign-in | Foundry User on the project |
 | Developer, Azure CLI | Blob Storage | Entra token | Storage Blob Data Contributor on the account |
-| Developer, Foundry portal evaluation | Model deployments on the Foundry resource endpoint | The developer's portal sign-in | Cognitive Services OpenAI User on the Foundry resource |
+| Developer, Foundry portal evaluation | Model deployments on the Foundry resource endpoint | The developer's portal sign-in | Cognitive Services OpenAI User on the Foundry resource, assigned for a run and removed after it ([runbook](../runbooks/foundations.md#re-check-the-model-choice)) |
 
 The setup ran as subscription Owner, which manages resources and roles but grants no data actions: without the data roles above, none of these calls works.
 
-The Foundry User role at project scope does not reach the resource endpoint, where Content Understanding runs and where portal evaluations call the models. Portal evaluations got their own role on 2026-10-26; milestone 2 adds one for Content Understanding ([findings](../findings/identity-and-access.md)).
+The Foundry User role at project scope does not reach the resource endpoint, where Content Understanding runs and where portal evaluations call the models. Portal evaluations need their own role there, held only while they run, so that the project-scope claim stays testable; milestone 2 adds one for Content Understanding ([findings](../findings/identity-and-access.md)).
 
 ## Pipeline
 
