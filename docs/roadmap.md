@@ -6,7 +6,7 @@ Each milestone has completion criteria: things shown to work, not things built. 
 
 | Milestone | State |
 | --- | --- |
-| 1. Foundations | Built on 2026-10-25; model re-check tested live on 2026-10-26. The [gate](worklogs/01-foundations.md#gate) records the evidence per criterion. Open: the independent review. Decisions [0001](decisions/0001-scope.md) to [0012](decisions/0012-models.md) accepted. |
+| 1. Foundations | Verified on 2026-10-26: the [gate](worklogs/01-foundations.md#gate) records the evidence per criterion and its accepted gaps, and the [independent review](worklogs/01-foundations.md#independent-review) ran with its fixes in. Decisions [0001](decisions/0001-scope.md) to [0012](decisions/0012-models.md) accepted. |
 | 2. Extraction | Planned |
 | 3. Retrieval | Planned |
 | 4. Investigator | Planned |

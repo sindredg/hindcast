@@ -4,7 +4,7 @@ Findings about Foundry evaluation runs in the portal: what a run sends, what its
 
 ## An evaluator call that fails drops out of the pass counts (2026-10-26)
 
-**Seen:** in luna's run, two judge calls failed with 401 and returned no score. The run still reports `errored: 0`, four rows passed and one failed. Each affected row shows a pass over four evaluators instead of five ("4/4"). Only the per-evaluator counts and the row's results show the failure.
+**Seen:** in luna's run, two judge calls failed with 401 and returned no score. The run still reports `errored: 0`, four rows passed and one failed. On the run page, each affected row showed a pass over four evaluators instead of five ("4/4"); the downloaded rows carry no such count. Only the per-evaluator counts and the row's results show the failure.
 
 **Evidence:** tested live, 2026-10-26, in `run-luna-dev-outage-v1.json`: `result_counts` `{"total": 5, "passed": 4, "failed": 1, "errored": 0}`, while `per_testing_criteria_results` lists `errored: 1` for Coherence and for ResponseCompleteness. In `results-luna-dev-outage-v1.jsonl`, those two results have `status` `error`, `score` null, and an error message in `sample`. The log excerpt has the two failed calls ("Error during evaluation ... Principal does not have access to API/Operation") and the service's own count: `EVALUATOR_ROW_SUMMARY ... errored_items=2 graded_items=25`.
 

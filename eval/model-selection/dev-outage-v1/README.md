@@ -99,7 +99,7 @@ Luna's answers cost about a sixteenth of sol's: a twentieth of the price per tok
 | `results-<model>-dev-outage-v1.jsonl` | One row per question: the answer, each evaluator's score and reason, and the judge's tokens. Every copy of the status text is `<context withheld>`. |
 | `log-excerpt-<model>-dev-outage-v1.txt` | The log lines the findings cite: evaluator versions, dropped fields, the chat completions fallback, and failed judge calls with the service's count of them. |
 | `sanitize_results.py` | Turns one run's downloads into the three files above. Every copy of the status text becomes `<context withheld>`, at every level of JSON encoding. Run and evaluation IDs and resource names become placeholders. Writes nothing if a copy of the status text or an identifier is left. |
-| `check_quotes.py` | Checks that every quote in a run's answers appears word for word in the updates. |
+| `check_quotes.py` | Checks that every quote in a run's answers appears word for word in the updates. A quote that is empty after normalising counts as not found. |
 | `summarise_runs.py` | Prints each run's score per question and evaluator, the means, the evaluator calls that failed, the answer and judge tokens, and the score part of the rule. With two runs, exit code 1 when the score part is not met or a score is missing. |
 
 The procedure to run it again is in the [runbook](../../../docs/runbooks/foundations.md#re-check-the-model-choice).

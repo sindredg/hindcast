@@ -65,7 +65,7 @@ export RG=<resource-group> STORAGE=<storage-account> GH_REPO=<owner>/hindcast
    gh api "repos/$GH_REPO/rules/branches/main" --jq '[.[].type] | join(",")'
    ```
 
-   Expected: `main active`, then `deletion,non_fast_forward,required_signatures,pull_request,required_status_checks`. `15368` is the GitHub Actions app, so only checks from Actions count.
+   Expected: `main active`, then `deletion,non_fast_forward,required_signatures,pull_request,required_status_checks`. `15368` is the GitHub Actions app, so only checks from Actions count. A full read-back (`gh api "repos/$GH_REPO/rulesets/<ruleset-id>"`) also lists `require_extra_approval_for_unattributed_changes: true` and `required_reviewers: []` under the pull request rule: GitHub defaults that this JSON does not set.
 
 3. Turn on secret scanning, push protection, Dependabot alerts, and Dependabot security updates, then read them back.
 

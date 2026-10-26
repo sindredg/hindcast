@@ -37,7 +37,7 @@ Scores and tokens are from `summarise_runs.py` on the committed results; quotes 
 
 Two of the 25 judge calls in luna's run failed with 401 ([troubleshooting](../troubleshooting.md)), so luna has no completeness score on question 4 and no coherence score on question 2. The rule is decided anyway: with any completeness score from 1 to 5 on question 4, luna's mean lies between 3.6 and 4.4, and the rule needs 3.4 or more. This bound was worked out after the run; the rule's text did not cover a missing score.
 
-Question 5, read by hand: both models said the text does not say what change caused the withdrawal and named no cause. Relevance scored both refusals 2, a fail, because the answer does not name a change ([finding](../findings/evaluation.md)). Both lost the same completeness point on question 3: each named the 20:35 problem and left out the 22:16 update.
+Question 5, read by hand: both models said the text does not say what change caused the withdrawal and named no cause. Relevance scored both refusals 2, a fail, because the answer does not name a change ([finding](../findings/evaluation.md)). Both scored 3 for completeness on question 3: each named the 20:35 problem and left out the 22:16 update.
 
 Prices per 1M tokens, input / output, Global Standard, short context: gpt-6-luna USD 0.10 / 0.50, gpt-6.1-sol USD 2.00 / 10.00, gpt-5-mini USD 0.25 / 2.00, grok-4.7 USD 2.00 / 6.00. The price list has a separate long-context rate for luna (USD 0.20 / 0.75) and sol (USD 4.00 / 15.00). It does not say where long context starts.
 
