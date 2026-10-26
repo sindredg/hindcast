@@ -9,7 +9,8 @@ because the committed results leave it out) after quote marks and whitespace are
 and trailing punctuation or an ellipsis is removed. Every answer needs a quote, except row N
 given with --no-quote-ok: the question the updates cannot answer, where a refusal quotes
 nothing. --break-row adds a word to the first quote of row N, to show the check fails on a
-wrong quote. Exit code 1 when any quote is not found or a required quote is missing.
+wrong quote. A quote that is empty after normalising counts as not found. Exit code 1 when
+any quote is not found or a required quote is missing.
 """
 
 import argparse
@@ -28,6 +29,34 @@ def normalise(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
+def check(
+    rows: list[dict], updates: str, no_quote_ok: int | None = None, break_row: int | None = None
+) -> tuple[list[str], int, int, int]:
+    """The report lines, quotes found, quotes in total, and answers missing a required quote."""
+    lines = []
+    found = total = missing = 0
+    for row in sorted(rows, key=lambda r: r["datasource_item_id"]):
+        number = row["datasource_item_id"]
+        quotes = QUOTE.findall(row["sample"]["output"][0]["content"])
+        if number == break_row and quotes:
+            quotes[0] = quotes[0] + " inserted"
+        if not quotes:
+            allowed = number == no_quote_ok
+            missing += not allowed
+            note = " (allowed: no answer in the updates)" if allowed else ""
+            lines.append(f"Q{number + 1}: no quote{note}")
+        for quote in quotes:
+            total += 1
+            cut = quote.rstrip().endswith(("…", "..."))
+            text = normalise(quote).rstrip(".,;:…").rstrip()
+            # An empty quote is in every text, so it cannot count as found.
+            ok = bool(text) and text in updates
+            found += ok
+            note = " (cut with an ellipsis)" if cut else ""
+            lines.append(f"Q{number + 1}: {'found' if ok else 'NOT FOUND'}{note}: {text[:70]}")
+    return lines, found, total, missing
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("results", type=Path)
@@ -37,25 +66,8 @@ def main() -> int:
 
     updates = normalise(context(json.loads(SNAPSHOT.read_text(encoding="utf-8"))))
     rows = [json.loads(line) for line in args.results.open(encoding="utf-8")]
-    found = total = missing = 0
-    for row in sorted(rows, key=lambda r: r["datasource_item_id"]):
-        number = row["datasource_item_id"]
-        quotes = QUOTE.findall(row["sample"]["output"][0]["content"])
-        if number == args.break_row and quotes:
-            quotes[0] = quotes[0] + " inserted"
-        if not quotes:
-            allowed = number == args.no_quote_ok
-            missing += not allowed
-            note = " (allowed: no answer in the updates)" if allowed else ""
-            print(f"Q{number + 1}: no quote{note}")
-        for quote in quotes:
-            total += 1
-            cut = quote.rstrip().endswith(("…", "..."))
-            text = normalise(quote).rstrip(".,;:…").rstrip()
-            ok = text in updates
-            found += ok
-            note = " (cut with an ellipsis)" if cut else ""
-            print(f"Q{number + 1}: {'found' if ok else 'NOT FOUND'}{note}: {text[:70]}")
+    lines, found, total, missing = check(rows, updates, args.no_quote_ok, args.break_row)
+    print("\n".join(lines))
     print(f"{found} of {total} quotes word for word; {missing} answers missing a required quote")
     return 0 if found == total and missing == 0 else 1
 

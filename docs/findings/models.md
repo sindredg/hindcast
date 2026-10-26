@@ -6,9 +6,9 @@ Findings about the deployed models: [gpt-6-luna](../decisions/0012-models.md) 20
 
 **Seen:** on the three prior-knowledge questions at medium effort, gpt-6-luna wrote shorter answers than gpt-6.1-sol but used 1.5 times its output tokens. Luna's tokens cost a twentieth of sol's; the run cost about a thirteenth. The same pattern showed on the timeline task: 662 output tokens for luna against 409 for sol, for the same nine events.
 
-**Evidence:** tested live, 2026-10-25, from the usage in the prior-knowledge result files (prompt and code at commit `30c180e`). Output tokens: luna 3,526 (2,805, 368, 353 per question), sol 2,315 (1,802, 198, 315); input tokens 466 each. Answers: luna 2,087 characters in total, sol 5,896. Cost at the retail prices in [decision 0012](../decisions/0012-models.md) (USD per 1M tokens, input / output: luna 0.10 / 0.50, sol 2.00 / 10.00): luna USD 0.0018, sol USD 0.0241. Timeline task: [model selection](../../eval/model-selection/dev-outage-v1/README.md). That the difference is reasoning is inferred from answer length; the result files do not record reasoning tokens separately.
+**Evidence:** tested live, 2026-10-25, from the usage in the prior-knowledge result files (prompt and code at PR #5 commit `30c180e`). Output tokens: luna 3,526 (2,805, 368, 353 per question), sol 2,315 (1,802, 198, 315); input tokens 466 each. Answers: luna 2,087 characters in total, sol 5,896. Cost at the retail prices in [decision 0012](../decisions/0012-models.md) (USD per 1M tokens, input / output: luna 0.10 / 0.50, sol 2.00 / 10.00): luna USD 0.0018, sol USD 0.0241. Timeline task: [model selection](../../eval/model-selection/dev-outage-v1/README.md). That the difference is reasoning is inferred from answer length; the result files do not record reasoning tokens separately.
 
-**For Hindcast:** cost comparisons use measured tokens, not price ratios. The evaluation compares cost per investigation from the run's own usage.
+**For Hindcast:** cost comparisons use measured tokens, not price ratios. The evaluation in milestone 5 compares cost per investigation from each run's own usage.
 
 **Read more:** [Azure OpenAI reasoning models](https://learn.microsoft.com/azure/foundry/openai/how-to/reasoning).
 
@@ -48,7 +48,7 @@ Findings about the deployed models: [gpt-6-luna](../decisions/0012-models.md) 20
 
 **Evidence:** tested live, 2026-10-25. `az cognitiveservices account deployment list` and `deployment show` read `properties.rateLimits`: `request` 50 and `token` 50000 for gpt-6-luna, gpt-6.1-sol, and grok-4.7, `request` 237 and `token` 237000 for gpt-5-mini, each with `renewalPeriod` 60.
 
-**For Hindcast:** every agent turn and every tool round trip is one request. A batch run such as the evaluation paces itself to 50 requests per minute per deployment and backs off on 429.
+**For Hindcast:** every agent turn and every tool round trip is one request. Nothing paces calls yet: the code makes one call at a time, and the `openai` client retries a 429 twice with backoff. The evaluation runner in milestone 5 has to stay under 50 requests per minute per deployment.
 
 **Read more:** [Manage Azure OpenAI quota](https://learn.microsoft.com/azure/foundry/openai/how-to/quota).
 

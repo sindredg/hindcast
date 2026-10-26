@@ -1,12 +1,12 @@
 # Architecture
 
-How Hindcast is built now. What is planned is in the [target architecture](../../README.md#target-architecture) and the [roadmap](../roadmap.md); the decisions behind both are in [decisions](../decisions/). Last compared with the code and the live resources on 2026-10-25, at the end of [milestone 1](../worklogs/01-foundations.md).
+How Hindcast is built now. What is planned is in the [target architecture](../../README.md#target-architecture) and the [roadmap](../roadmap.md); the decisions behind both are in [decisions](../decisions/). Last compared with the code and the live resources on 2026-10-26, during [milestone 1](../worklogs/01-foundations.md).
 
 ## What exists
 
 Milestone 1 built the foundation, not the investigator yet: a capture command for status updates and postmortems, a case registry, a model client, and the prior-knowledge check that runs before any evidence reaches a model.
 
-![Hindcast as built in milestone 1: on an operator workstation signed in with Entra ID, Hindcast's capture command reads the providers' status APIs and postmortem pages, the Azure CLI uploads the captured files to Blob Storage, Hindcast's code calls the two pinned model deployments through the Foundry project with the Responses API, and git reaches GitHub through pull requests. The project is connected to Application Insights, which the code does not use yet. The Foundry resource and the storage account accept no keys; traces use the Application Insights connection string](../diagrams/current-architecture.svg)
+![Hindcast as built in milestone 1: on an operator workstation signed in with Entra ID, Hindcast's capture command reads the providers' status pages and postmortems, the Azure CLI uploads the captured files to Blob Storage, Hindcast's code calls the two pinned model deployments through the Foundry project with the Responses API, and git reaches GitHub through pull requests. During a portal evaluation run, the Foundry evaluation calls the same deployments as the signed-in user. The project is connected to Application Insights, which the code does not use yet. The Foundry resource and the storage account accept no keys; traces use the Application Insights connection string](../diagrams/current-architecture.svg)
 
 | Part | Where | What it does |
 |---|---|---|
@@ -21,7 +21,7 @@ Milestone 1 built the foundation, not the investigator yet: a capture command fo
 
 Every refusal happens before a model is called, so a refused run costs nothing and every result points at a prompt, a registry, and code that are in the history. A test also checks that no key fact from a postmortem appears in any question, the incident's title included, or in the system prompt.
 
-![The prior-knowledge check: the collector refuses to run when the prompt, the case registry, the code, or its lock file differs from the last commit, or when today's result file exists. Otherwise it reads the model version from the deployment, asks about each showcase outage from its provider, title, and date at effort medium, writes one result file with the version, effort, hashes, and commit, and prints token counts but never the answers](../diagrams/prior-knowledge-check.svg)
+![The prior-knowledge check: the collector refuses to run, before any model call, when the prompt, the case registry, the code, the project file, or the lock file differs from the last commit, when today's result file exists, or when a showcase case has no date in the prompt. Otherwise it reads the model version from the deployment, asks about each showcase outage from its provider, title, and date at effort medium, writes one result file with the version, effort, hashes, and commit, and prints token counts but never the answers](../diagrams/prior-knowledge-check.svg)
 
 ## Azure
 
@@ -34,17 +34,18 @@ One resource group in Sweden Central, created by hand with the [runbook](../runb
 | gpt-6.1-sol 2026-09-29 | Comparison model and interim judge | Same as gpt-6-luna |
 | gpt-5-mini, grok-4.7 | Candidates kept for the extraction model and the judge; not called by the code | Global Standard, automatic version upgrade on |
 | Storage account | `sources` holds the captured status snapshots and postmortem pages under `<case_id>/`; `extracted` is for milestone 2 | Entra ID only: shared keys and anonymous access are off |
-| Application Insights and Log Analytics | Connected to the project for tracing | The project connection holds the Application Insights connection string ([decision 0011](../decisions/0011-telemetry-and-cost.md)) |
+| Application Insights and Log Analytics | Connected to the project for tracing. Creating Application Insights also created its "Application Insights Smart Detection" action group, which Hindcast does not use | The project connection holds the Application Insights connection string ([decision 0011](../decisions/0011-telemetry-and-cost.md)) |
 
 | Caller | Target | Credential | Role and scope |
 |---|---|---|---|
 | Developer, `hindcast.models` | Foundry project endpoint | Entra token from the Azure CLI sign-in | Foundry User on the project |
 | Developer, Azure CLI | Blob Storage | Entra token | Storage Blob Data Contributor on the account |
+| Developer, Foundry portal evaluation | Model deployments on the Foundry resource endpoint | The developer's portal sign-in | Cognitive Services OpenAI User on the Foundry resource, assigned for a run and removed after it ([runbook](../runbooks/foundations.md#re-check-the-model-choice)) |
 
-The setup ran as subscription Owner, which manages resources and roles but grants no data actions: without the two data roles above, neither call works.
+The setup ran as subscription Owner, which manages resources and roles but grants no data actions: without the data roles above, none of these calls works.
 
-The Foundry User role at project scope does not reach the resource endpoint, where Content Understanding runs; milestone 2 adds a role there ([finding](../findings/identity-and-access.md)).
+The Foundry User role at project scope does not reach the resource endpoint, where Content Understanding runs and where portal evaluations call the models. Portal evaluations need their own role there, held only while they run, so that the project-scope claim stays testable; milestone 2 adds one for Content Understanding ([findings](../findings/identity-and-access.md)).
 
 ## Pipeline
 
-GitHub Actions runs three jobs on every pull request: lint and tests (ruff, pytest), YAML and workflow checks (yamllint, zizmor, actionlint), and a dependency audit (pip-audit on the locked tree). `main` accepts changes only through a pull request with those checks passing and signed commits. The workflow is `.github/workflows/ci.yml`.
+GitHub Actions runs three jobs on every pull request and every push to `main`: lint and tests (ruff, pytest), YAML and workflow checks (yamllint, zizmor, actionlint), and a dependency audit (pip-audit on the locked tree). `main` accepts changes only through a pull request with those checks passing and signed commits. The workflow is `.github/workflows/ci.yml`.

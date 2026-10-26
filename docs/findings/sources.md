@@ -38,7 +38,7 @@ Findings about the providers' status pages and postmortems: what they keep, in w
 
 **Evidence:** read from the captured snapshots in the [case registry](../../data/cases.yaml), 2026-10-25.
 
-**For Hindcast:** the case evidence ends before the resolved update; its time and status stay and its text is withheld ([decision 5](../decisions/0005-evidence-library-and-answer-key.md)).
+**For Hindcast:** the case evidence will end before the resolved update, keeping its time and status and withholding its text ([decision 5](../decisions/0005-evidence-library-and-answer-key.md)). The cut is built in milestone 2; so far only the development dataset for the model re-check (`build_dataset.py`) is cut this way.
 
 **Read more:** [GitHub status](https://www.githubstatus.com/), [Google Cloud Service Health](https://status.cloud.google.com/).
 
@@ -48,6 +48,6 @@ Findings about the providers' status pages and postmortems: what they keep, in w
 
 **Evidence:** read from the captured snapshot of incident `T8gmtofFSTGT5tbhyciF`, 2026-10-25.
 
-**For Hindcast:** the evidence cut drops report entries by type, and an entry type the rules do not know is dropped and listed ([decision 5](../decisions/0005-evidence-library-and-answer-key.md)). The incident page, which shows the report, is registered as the answer key.
+**For Hindcast:** the evidence cut in milestone 2 drops report entries by type, and drops and lists any entry type the rules do not know ([decision 5](../decisions/0005-evidence-library-and-answer-key.md)). The incident page, which shows the report, is registered as the answer key.
 
 **Read more:** [Google Cloud Service Health](https://status.cloud.google.com/).

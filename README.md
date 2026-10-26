@@ -10,13 +10,18 @@ Planned, not built yet. What is built now: [architecture](docs/architecture/).
 
 ![Target architecture: a reader signs in with Entra ID to the Hindcast app on Azure Container Apps. The app runs the Foundry prompt agent, checks every tool result with Prompt Shields and every output for personal data, reads the case evidence from Blob Storage, searches the postmortem library in Azure AI Search in Switzerland North, and sends traces to Application Insights. An ingest command captures status updates and postmortems, analyzes library pages and charts with Content Understanding, stores sources and answer keys in Blob Storage, and indexes only library documents, so answer keys never reach the index. Service calls use Entra tokens, no keys; traces use the Application Insights connection string](docs/diagrams/target-architecture.svg)
 
-## Status
+## Documentation
 
-See the [roadmap](docs/roadmap.md).
-
-## Findings
-
-What building Hindcast showed about the platform and the sources, with the evidence: [findings](docs/findings/).
+| Question | Where |
+|---|---|
+| What is planned, and what state is each milestone in? | [Roadmap](docs/roadmap.md) |
+| How is it built now? | [Architecture](docs/architecture/) |
+| Why is it built this way? | [Decisions](docs/decisions/) |
+| What did the platform and the sources actually do? | [Findings](docs/findings/), with the evidence for each |
+| Something failed: what was the cause and the fix? | [Troubleshooting](docs/troubleshooting.md) |
+| What did each milestone do, and what proves it? | [Worklogs](docs/worklogs/) |
+| How is it rebuilt from scratch? | [Runbooks](docs/runbooks/) |
+| What were the models given, and how did they score? | [Model re-check](eval/model-selection/dev-outage-v1/README.md): data, rule, and results |
 
 ## Development
 

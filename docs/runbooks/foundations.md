@@ -1,6 +1,6 @@
 # Foundations: operator procedure
 
-Status: Written on 2026-10-25 for [milestone 1](../worklogs/01-foundations.md). Every step ran once with the results the worklog records, but not in this order: the Azure foundation was created on 2026-10-24 and 2026-10-25 before the repository existed, and key access on the Foundry resource (step 4 under "Create the Azure foundation") was turned off before the prior-knowledge answers were collected. The Foundry resource, project, and deployments were created in the Foundry portal as it was that day. Not run again from an empty subscription.
+Status: Written on 2026-10-25 for [milestone 1](../worklogs/01-foundations.md); "Re-check the model choice" added on 2026-10-26, after its steps ran on 2026-10-25 (steps 1 and 2) and 2026-10-26 (steps 3 to 8; in step 3 the role was assigned once and the check ran in this form afterwards). Every step ran once with the results the worklog records, but not in this order: the Azure foundation was created on 2026-10-24 and 2026-10-25 before the repository existed, and key access on the Foundry resource (step 4 under "Create the Azure foundation") was turned off before the prior-knowledge answers were collected. The Foundry resource, project, and deployments were created in the Foundry portal as it was that day. Not run again from an empty subscription.
 
 Build the milestone 1 foundation from scratch: the repository checks, the GitHub repository and its protection, the Azure resources and roles, the case sources, and the prior-knowledge answers. [Decision 0009](../decisions/0009-hosting-and-identity.md) records why every call uses Entra ID and no keys.
 
@@ -65,7 +65,7 @@ export RG=<resource-group> STORAGE=<storage-account> GH_REPO=<owner>/hindcast
    gh api "repos/$GH_REPO/rules/branches/main" --jq '[.[].type] | join(",")'
    ```
 
-   Expected: `main active`, then `deletion,non_fast_forward,required_signatures,pull_request,required_status_checks`. `15368` is the GitHub Actions app, so only checks from Actions count.
+   Expected: `main active`, then `deletion,non_fast_forward,required_signatures,pull_request,required_status_checks`. `15368` is the GitHub Actions app, so only checks from Actions count. A full read-back (`gh api "repos/$GH_REPO/rulesets/<ruleset-id>"`) also lists `require_extra_approval_for_unattributed_changes: true` and `required_reviewers: []` under the pull request rule: GitHub defaults that this JSON does not set.
 
 3. Turn on secret scanning, push protection, Dependabot alerts, and Dependabot security updates, then read them back.
 
@@ -281,3 +281,111 @@ The status pages and postmortems are the providers' copyrighted pages, so the re
    ```
 
    Expected: one line per deployment naming `eval/results/prior-<date>-<deployment>.json`, `3 entries`, and the token totals. Commit the files without opening them: they are scored with the rubric frozen in milestone 5, and reading them first would bias the rubric.
+
+## Re-check the model choice
+
+The evidence for [decision 0012](../decisions/0012-models.md): luna against sol on the development outage, scored by Foundry evaluators with a rule written before the runs. Run it again when a deployment changes version. Needs the development case's status snapshot (see "Add the case sources") and the deployments from "Create the Azure foundation". Run every command from the repository root: the scripts read the snapshot by its path from there.
+
+1. Build the upload file from the local snapshot.
+
+   ```bash
+   uv run --frozen python eval/model-selection/dev-outage-v1/build_dataset.py
+   sha256sum data/sources/model-selection/dataset-dev-outage-v1.jsonl
+   ```
+
+   Expected: `data/sources/model-selection/dataset-dev-outage-v1.jsonl: 5 rows`, and a hash starting `b76a883bd24595a5`. A different hash means the snapshot or the questions changed: the results are then a new dataset version, not a re-run.
+
+2. Ask each model for the timeline, one call per deployment and effort.
+
+   ```bash
+   for run in "gpt-6-luna low" "gpt-6-luna medium" "gpt-6.1-sol medium"; do
+     PYTHONPATH=src uv run --frozen --env-file .env \
+       python eval/model-selection/dev-outage-v1/compare_timeline.py $run
+   done
+   ```
+
+   Expected: one line per run naming `data/sources/model-selection/timeline-<deployment>-<effort>.txt` and its input and output tokens. The script refuses to overwrite an earlier answer. Score each answer by hand against the event table in the folder's README.
+
+3. Give the person who runs the evaluation an OpenAI data role on the Foundry resource, and check it. With key access off, the portal calls the models as that person on the resource endpoint, which the project-scope Foundry User role does not reach ([troubleshooting](../troubleshooting.md)).
+
+   ```bash
+   export RG=<resource-group> RESOURCE=<resource>
+   RES_ID=$(az cognitiveservices account show -g "$RG" -n "$RESOURCE" --query id -o tsv)
+   ME=$(az ad signed-in-user show --query id -o tsv)
+   az role assignment create --assignee-object-id "$ME" --assignee-principal-type User \
+     --role "Cognitive Services OpenAI User" --scope "$RES_ID" -o none
+   ENDPOINT=$(grep '^HINDCAST_PROJECT_ENDPOINT=' .env | cut -d= -f2-)
+   TOKEN=$(az account get-access-token --scope https://ai.azure.com/.default --query accessToken -o tsv)
+   curl -s -o /dev/null -w '%{http_code}\n' -H "Authorization: Bearer $TOKEN" \
+     "$ENDPOINT/openai/evals?api-version=v1&limit=1"
+   ```
+
+   Expected: `200`. Right after the assignment it can print `400` for a few minutes (the body names the missing `OpenAI/evals/read` action); run the last two commands again until it prints `200`.
+
+4. Run the Foundry evaluation in the Foundry portal, once per target: `gpt-6-luna`, then `gpt-6.1-sol`.
+
+   1. **Evaluation**, **Create**, target **Model**, pick the deployment.
+   2. Data source: upload `dataset-dev-outage-v1.jsonl`; the portal names the dataset after the file. For the second run, pick the uploaded dataset.
+   3. **Add custom prompt**. Developer message:
+
+      ```text
+      You answer questions about a provider's status updates for one outage.
+      Use only the text in the message. Do not add facts from memory.
+      Quote the sentence your answer comes from.
+      If the text does not contain the answer, say that it does not.
+      ```
+
+      User message: `{{item.context}}`, a blank line, then `Question: {{item.query}}`. The default `{{item.query}}` alone sends no updates.
+   4. Evaluators: clear the recommended set; select Groundedness, Response completeness, Relevance, Coherence, and Similarity.
+   5. In each evaluator's **Edit**: judge `gpt-6.1-sol`; fields `{{item.context}}`, `{{item.ground_truth}}`, and response `{{sample.output_text}}`.
+   6. Name the run after the target and the dataset, for example `luna-dev-outage-v1`, and submit.
+   7. When it finishes, on the run page: **Download results** and **Download user logs**, and copy the **Raw JSON** view into a file. Save them in `data/sources/model-selection/` as `eval-<target>-dev-outage-v1-results.jsonl`, `eval-<target>-dev-outage-v1-user_logs.txt`, and `eval-<target>-dev-outage-v1-run.json`, with `<target>` `luna` or `sol`.
+
+   Expected: status **Completed** after about 40 seconds, 5 rows, and a score from every evaluator on every row. A row that shows "Error" for one evaluator is a failed judge call ([troubleshooting](../troubleshooting.md)); the run still says completed.
+
+5. Sanitize each run's downloads into the files committed in the evaluation folder.
+
+   ```bash
+   for t in luna sol; do
+     uv run --frozen python eval/model-selection/dev-outage-v1/sanitize_results.py "$t"
+   done
+   ```
+
+   Expected per target: `results-<target>-dev-outage-v1.jsonl: 5 rows; log-excerpt-<target>-dev-outage-v1.txt: 16 lines` (more when judge calls failed) and `run-<target>-dev-outage-v1.json written`. Exit code 1 with nothing written, and the field or identifier named, when a copy of the status text or an identifier remains.
+
+6. Check every quote against the updates, then break one on purpose.
+
+   ```bash
+   EV=eval/model-selection/dev-outage-v1
+   for t in luna sol; do
+     uv run --frozen python "$EV/check_quotes.py" "$EV/results-$t-dev-outage-v1.jsonl" --no-quote-ok 4
+   done
+   uv run --frozen python "$EV/check_quotes.py" "$EV/results-luna-dev-outage-v1.jsonl" \
+     --no-quote-ok 4 --break-row 0; echo "exit $?"
+   ```
+
+   Expected: per run, `6 of 6 quotes word for word; 0 answers missing a required quote` (the count follows the answers), exit code 0. The broken run prints `Q1: NOT FOUND`, `5 of 6 quotes word for word`, and `exit 1`.
+
+7. Apply the rule.
+
+   ```bash
+   uv run --frozen python eval/model-selection/dev-outage-v1/summarise_runs.py \
+     eval/model-selection/dev-outage-v1/results-luna-dev-outage-v1.jsonl \
+     eval/model-selection/dev-outage-v1/results-sol-dev-outage-v1.jsonl
+   ```
+
+   Expected: each run's scores per question, the means, and the answer and judge tokens, then `Score part of the rule: met. Read question 5 by hand.` and exit code 0. A line `errored evaluator calls: ...` names scores the judge did not return; a missing completeness or groundedness score makes the script print `None against ...` and exit 1. Then either show that the missing score cannot change the outcome, as the 2026-10-26 run did in the [evaluation folder](../../eval/model-selection/dev-outage-v1/README.md), or run that model's evaluation again. Last, read question 5 in each results file: the answer says the updates do not contain the cause and names none.
+
+8. Remove the role from step 3, and check that Hindcast's own calls still work with the project-scope role alone. While a role at resource scope is assigned it also covers the project, so the claim that Foundry User on the project is enough cannot fail ([#9](https://github.com/sindredg/hindcast/issues/9)). Run it in the shell of step 3, which set `ME`, `RES_ID`, and `ENDPOINT`.
+
+   ```bash
+   az role assignment delete --assignee "$ME" --role "Cognitive Services OpenAI User" --scope "$RES_ID"
+   TOKEN=$(az account get-access-token --scope https://ai.azure.com/.default --query accessToken -o tsv)
+   curl -s -o /dev/null -w '%{http_code}\n' -H "Authorization: Bearer $TOKEN" \
+     "$ENDPOINT/openai/evals?api-version=v1&limit=1"
+   PYTHONPATH=src uv run --frozen --env-file .env python -c "
+   from hindcast.models import ask_model
+   print(ask_model('gpt-6-luna', 'Answer in one word.', 'What colour is a clear daytime sky?'))"
+   ```
+
+   Expected: `400` (the evals read is refused again; repeat the token and `curl` lines if it still prints `200`), then a one-word answer with its `TokenUsage`.
