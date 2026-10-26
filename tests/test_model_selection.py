@@ -474,3 +474,49 @@ def test_summary_script_exits_1_when_luna_is_too_far_behind(tmp_path):
     assert result.returncode == 1
     assert "Groundedness: 3.0 against 5.0, within 1 point: no" in result.stdout
     assert "ResponseCompleteness: 5.0 against 5.0, within 1 point: yes" in result.stdout
+
+
+UPDATES = "A subset of prefixes is affected. We're restoring them."
+
+
+def answer_row(item_id: int, answer: str) -> dict:
+    """A result row with only the fields check_quotes reads."""
+    return {"datasource_item_id": item_id, "sample": {"output": [{"content": answer}]}}
+
+
+@pytest.fixture
+def quotes(monkeypatch):
+    monkeypatch.syspath_prepend(str(FOLDER))
+    import check_quotes
+
+    return check_quotes
+
+
+def test_a_quote_from_the_updates_is_found(quotes):
+    _, found, total, missing = quotes.check([answer_row(0, ANSWER)], UPDATES)
+    assert (found, total, missing) == (1, 1, 0)
+
+
+def test_a_changed_quote_is_not_found(quotes):
+    row = answer_row(0, "“A subset of prefixes was affected.”")
+    lines, found, total, _ = quotes.check([row], UPDATES)
+    assert (found, total) == (0, 1)
+    assert lines[0].startswith("Q1: NOT FOUND")
+
+
+def test_a_quote_that_is_empty_after_normalising_is_not_found(quotes):
+    # Stripping trailing punctuation leaves "", and "" is in every text.
+    for empty in ("“…”", "“.”", "“ ”"):
+        _, found, total, _ = quotes.check([answer_row(0, f"See {empty}")], UPDATES)
+        assert (found, total) == (0, 1), empty
+
+
+def test_an_answer_without_a_quote_counts_unless_allowed(quotes):
+    rows = [answer_row(0, "No quote here."), answer_row(1, "None here either.")]
+    _, _, _, missing = quotes.check(rows, UPDATES, no_quote_ok=1)
+    assert missing == 1
+
+
+def test_break_row_makes_its_first_quote_fail(quotes):
+    _, found, total, _ = quotes.check([answer_row(0, ANSWER)], UPDATES, break_row=0)
+    assert (found, total) == (0, 1)
