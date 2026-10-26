@@ -26,8 +26,8 @@ def portal_row(item_id: int, context: str = CONTEXT) -> dict:
     return {
         "object": "eval.run.output_item",
         "id": str(item_id + 1),
-        "run_id": "evalrun_8366721af82e49c3a2febcc0b4134a8d",
-        "eval_id": "eval_ddff404390f04eaabb7c9a080014c12c",
+        "run_id": "evalrun_9a8b7c6d5e4f30211203f4e5d6c7b8a9",
+        "eval_id": "eval_b2c3d4e5f60718293a4b5c6d7e8f90a1",
         "datasource_item_id": item_id,
         "datasource_item": {
             "query": "Which prefixes?",
@@ -171,7 +171,7 @@ def test_log_excerpt_keeps_the_cited_lines_without_identifiers(sanitize):
     fallback = (
         "Responses API call failed, falling back to chat completions: Error code: 400 - 'top_p'"
     )
-    run = "evalrun_8366721af82e49c3a2febcc0b4134a8d"
+    run = "evalrun_9a8b7c6d5e4f30211203f4e5d6c7b8a9"
     log = [
         f"14:15:15 | INFO | {run} | register_url: https://contoso-ai-resource.services.ai.azure.com",
         f"14:15:15 | INFO | {run} | {removed}",
