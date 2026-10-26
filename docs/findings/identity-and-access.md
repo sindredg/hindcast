@@ -2,6 +2,31 @@
 
 Findings about Entra ID roles, scopes, and keyless access. Hindcast uses no keys: every call carries an Entra token ([decision 0009](../decisions/0009-hosting-and-identity.md)).
 
+## A few calls failed with 401 an hour after the role assignment (2026-10-26)
+
+**Seen:** after the role in the next entry was assigned, two portal evaluation runs mostly worked, but three model calls still failed with 401 `PermissionDenied`, "Principal does not have access to API/Operation." The calls around them, with the same identity, deployment, and operation, succeeded. Azure documents up to 10 minutes for a role change to take effect; these failures came about an hour after it. The cause is not known.
+
+**Evidence:** tested live, 2026-10-26. Role assigned 17:12 UTC, runs at 18:11 and 18:13 UTC. In the [log excerpts](../../eval/model-selection/dev-outage-v1/README.md): 2 of 25 judge calls in luna's run, and 1 of 5 Responses API calls for sol's answers (the service then answered through chat completions). Tracked in [#7](https://github.com/sindredg/hindcast/issues/7).
+
+**For Hindcast:** a run that finishes as "completed" can still be missing scores. Every evaluation result is checked for failed calls before it is used ([evaluation findings](evaluation.md)).
+
+**Read more:** [Troubleshoot Azure RBAC](https://learn.microsoft.com/azure/role-based-access-control/troubleshooting).
+
+## With key access off, a portal evaluation calls the models as the user, on the resource endpoint (2026-10-26)
+
+**Seen:** a Foundry portal evaluation with a model target failed on every row with 401. The service called `POST /openai/deployments/{deployment-id}/chat/completions` on the resource endpoint with the signed-in user's identity, and the user's only Foundry role was at project scope, which does not reach that path. The day before, with key access on, a run of the same kind worked. In between, key access was turned off and the user's wider Foundry User assignments were removed.
+
+**Evidence:** tested live, 2026-10-26.
+
+- Every row: `Error code: 401 - PermissionDenied`, "The principal `<user>` lacks the required data action `Microsoft.CognitiveServices/accounts/OpenAI/deployments/chat/completions/action`".
+- Activity log: the portal's key requests (`accounts/listkeys/action`) failed 39 times between 16:18 and 16:46 UTC; they had succeeded the day before. That the earlier run used a key is inferred from those requests, not observed.
+- `GET <project endpoint>/openai/evals?api-version=v1` as the same user: HTTP 400 naming the missing data action `Microsoft.CognitiveServices/accounts/OpenAI/evals/read`. About 3 minutes after Cognitive Services OpenAI User was assigned on the Foundry resource: HTTP 200 with the evaluation list. The runs that followed answered all ten questions; see the entry above for three calls that still failed.
+- `az role definition list`: Cognitive Services OpenAI User grants OpenAI chat completions, Responses, and reads (`OpenAI/*/read`), and nothing outside `OpenAI/`. Foundry User grants `Microsoft.CognitiveServices/*`.
+
+**For Hindcast:** whoever runs portal evaluations needs an OpenAI data role on the Foundry resource; Foundry User at project scope is enough for Hindcast's own calls, not for the portal's. Cognitive Services OpenAI User worked, and grants less than Foundry User at the same scope; no narrower role was tried. The [runbook](../runbooks/foundations.md#re-check-the-model-choice) assigns it before the runs; milestone 5 decides the identity for evaluation runs.
+
+**Read more:** [Role-based access control for Microsoft Foundry](https://learn.microsoft.com/azure/foundry/concepts/rbac-foundry), [Run evaluations from the portal](https://learn.microsoft.com/azure/foundry/how-to/evaluate-generative-ai-app).
+
 ## With key access off, a valid key gets the same 401 as a wrong one (2026-10-25)
 
 **Seen:** after key access was turned off on the Foundry resource (`disableLocalAuth` true), a request with a valid API key fails with 401 and the message for a wrong key: "Access denied due to invalid subscription key or wrong API endpoint." Nothing in the response says that key access is disabled. Entra calls through the project keep working.

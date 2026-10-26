@@ -1,6 +1,6 @@
 # Architecture
 
-How Hindcast is built now. What is planned is in the [target architecture](../../README.md#target-architecture) and the [roadmap](../roadmap.md); the decisions behind both are in [decisions](../decisions/). Last compared with the code and the live resources on 2026-10-25, at the end of [milestone 1](../worklogs/01-foundations.md).
+How Hindcast is built now. What is planned is in the [target architecture](../../README.md#target-architecture) and the [roadmap](../roadmap.md); the decisions behind both are in [decisions](../decisions/). Last compared with the code and the live resources on 2026-10-26, during [milestone 1](../worklogs/01-foundations.md).
 
 ## What exists
 
@@ -34,16 +34,17 @@ One resource group in Sweden Central, created by hand with the [runbook](../runb
 | gpt-6.1-sol 2026-09-29 | Comparison model and interim judge | Same as gpt-6-luna |
 | gpt-5-mini, grok-4.7 | Candidates kept for the extraction model and the judge; not called by the code | Global Standard, automatic version upgrade on |
 | Storage account | `sources` holds the captured status snapshots and postmortem pages under `<case_id>/`; `extracted` is for milestone 2 | Entra ID only: shared keys and anonymous access are off |
-| Application Insights and Log Analytics | Connected to the project for tracing | The project connection holds the Application Insights connection string ([decision 0011](../decisions/0011-telemetry-and-cost.md)) |
+| Application Insights and Log Analytics | Connected to the project for tracing. Creating Application Insights also created its "Application Insights Smart Detection" action group, which Hindcast does not use | The project connection holds the Application Insights connection string ([decision 0011](../decisions/0011-telemetry-and-cost.md)) |
 
 | Caller | Target | Credential | Role and scope |
 |---|---|---|---|
 | Developer, `hindcast.models` | Foundry project endpoint | Entra token from the Azure CLI sign-in | Foundry User on the project |
 | Developer, Azure CLI | Blob Storage | Entra token | Storage Blob Data Contributor on the account |
+| Developer, Foundry portal evaluation | Model deployments on the Foundry resource endpoint | The developer's portal sign-in | Cognitive Services OpenAI User on the Foundry resource |
 
-The setup ran as subscription Owner, which manages resources and roles but grants no data actions: without the two data roles above, neither call works.
+The setup ran as subscription Owner, which manages resources and roles but grants no data actions: without the data roles above, none of these calls works.
 
-The Foundry User role at project scope does not reach the resource endpoint, where Content Understanding runs; milestone 2 adds a role there ([finding](../findings/identity-and-access.md)).
+The Foundry User role at project scope does not reach the resource endpoint, where Content Understanding runs and where portal evaluations call the models. Portal evaluations got their own role on 2026-10-26; milestone 2 adds one for Content Understanding ([findings](../findings/identity-and-access.md)).
 
 ## Pipeline
 

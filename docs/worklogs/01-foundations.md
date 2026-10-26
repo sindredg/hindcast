@@ -1,6 +1,6 @@
 # Milestone 1: Foundations
 
-Status: Built on 2026-10-25. The model re-check on the development outage and the [independent review](#independent-review) are open; the milestone state is in the [roadmap](../roadmap.md).
+Status: Built on 2026-10-25; the model re-check was tested live on 2026-10-26. The [independent review](#independent-review) is open; the milestone state is in the [roadmap](../roadmap.md).
 
 ## Scope
 
@@ -10,7 +10,7 @@ The repository and its pipeline, the GitHub protection, the Azure foundation, th
 
 ### Decisions
 
-[Decisions 0001 to 0011](../decisions/) are accepted: outages as the scope with the attack question first, a prompt agent with case tools and a date-bound library search, Content Understanding for postmortems and charts, AI Search over the postmortem library, the cut rules for evidence and answer keys, the evaluation and support rules, Prompt Shields on every tool result, the investigation view, hosting, infrastructure as code, and telemetry. Decision 0012 (models) is written from the re-check below.
+[Decisions 0001 to 0011](../decisions/) are accepted: outages as the scope with the attack question first, a prompt agent with case tools and a date-bound library search, Content Understanding for postmortems and charts, AI Search over the postmortem library, the cut rules for evidence and answer keys, the evaluation and support rules, Prompt Shields on every tool result, the investigation view, hosting, infrastructure as code, and telemetry. [Decision 0012](../decisions/0012-models.md) (models) is accepted from the re-check below.
 
 ### Repository and pipeline
 
@@ -74,7 +74,16 @@ The answers are scored with the rubric frozen in milestone 5.
 
 ### Model re-check on the development outage
 
-The rule, the five questions, and a hand count of nine timeline events were written before any run: [model selection](../../eval/model-selection/dev-outage-v1/README.md). The timeline calls (live, 2026-10-25) found all nine events for gpt-6-luna at low and medium effort and for gpt-6.1-sol at medium, with nothing added. The Foundry evaluation runs on the five questions are open.
+The rule, the five questions, and a hand count of nine timeline events were written before any run: [model selection](../../eval/model-selection/dev-outage-v1/README.md). The timeline calls (live, 2026-10-25) found all nine events for gpt-6-luna at low and medium effort and for gpt-6.1-sol at medium, with nothing added.
+
+The Foundry evaluation ran live on 2026-10-26, one portal run per model, judge gpt-6.1-sol. Results, run records, and log excerpts are committed in the model selection folder; the scores and the rule are in [decision 0012](../decisions/0012-models.md).
+
+- First attempt: every row failed with 401. Cause and fix in [troubleshooting](../troubleshooting.md): the portal calls the models as the user on the resource endpoint once key access is off, and the user needed Cognitive Services OpenAI User on the Foundry resource. Check: `GET <project endpoint>/openai/evals?api-version=v1` returned 400 before the assignment and 200 after.
+- Second attempt, both runs completed. Groundedness 5.0 for both; completeness 4.4 for sol and missing for luna on one question, because 2 of luna's 25 judge calls failed with 401 ([#7](https://github.com/sindredg/hindcast/issues/7)). The rule holds for every value the missing score could take, an argument made after the run. Both refused question 5 without naming a cause.
+- `check_quotes.py --no-quote-ok 4`: 6 of 6 quotes word for word per run, exit 0; with `--break-row 0`, exit 1 per run.
+- `summarise_runs.py` crashed on the failed judge calls, which have no token usage: the tests had no such row. Fixed test first (three tests failed, then passed); it now lists failed calls. `sanitize_results.py` now also sanitizes the run record and keeps the failed-call lines in the log excerpt, each with a test that failed first. `tests/test_model_selection.py` has 30 tests; the whole suite passes (108, `uv run --frozen pytest -q`).
+
+What the runs showed about the platform: [evaluation findings](../findings/evaluation.md) and [identity findings](../findings/identity-and-access.md).
 
 `sanitize_results.py` prepares a run's downloads for commit and `summarise_runs.py` applies the score part of the rule (commit `185e977`). Tested locally, before any run on this case:
 
@@ -87,7 +96,7 @@ The [architecture page](../architecture/README.md) carries the as-built diagram 
 
 ### Findings
 
-[Findings](../findings/) record what the platform and the sources did, with evidence: the status archives and their formats, where the cause leaks into the live record, and the models' token use.
+[Findings](../findings/) record what the platform and the sources did, with evidence: the status archives and their formats, where the cause leaks into the live record, the models' token use, access for portal evaluations, and what evaluation runs count. Failures with their fix are in [troubleshooting](../troubleshooting.md).
 
 ## Gate
 
@@ -98,7 +107,7 @@ The [architecture page](../architecture/README.md) carries the as-built diagram 
 | Foundry project, deployments, and Blob Storage exist and are reached with Entra tokens; key access off | Tested live; accepted gap for the Log Analytics workspace | Deployment list; calls through the project; `--auth-mode login` uploads and downloads; key listing and key use refused. The Log Analytics workspace behind Application Insights still accepts its shared keys: nothing uses them, and turning them off waits until traces flow and the change can be checked ([#2](https://github.com/sindredg/hindcast/issues/2)) |
 | Every source in the registry with URL, licence, attribution, retrieval time, and a matching SHA-256, locally and in Blob Storage | Tested locally and live | `verify_local_files` on the local files and on a fresh download; byte-flip break-test |
 | Prior-knowledge answers recorded before any evidence reaches a model | Tested live | Result files in `c8ff321`, collected from `30c180e` |
-| The investigator model meets the rule on the development outage | Open | Rule and questions written; Foundry evaluation runs not done yet |
+| The investigator model meets the rule on the development outage | Tested live, 2026-10-26 | Two Foundry evaluation runs, read with `summarise_runs.py` and `check_quotes.py`: [model selection](../../eval/model-selection/dev-outage-v1/README.md), [decision 0012](../decisions/0012-models.md). One luna completeness score is missing; the rule holds for every value it could take |
 
 ## Independent review
 
@@ -117,9 +126,11 @@ Open.
 - [#2](https://github.com/sindredg/hindcast/issues/2): Log Analytics workspace keys, milestone 4.
 - [#3](https://github.com/sindredg/hindcast/issues/3): settings require search and embedding values before they exist, milestone 2.
 - [#4](https://github.com/sindredg/hindcast/issues/4): result files record the requested reasoning effort, not the one the response reports, milestone 5.
+- [#7](https://github.com/sindredg/hindcast/issues/7): a few portal evaluation calls failed with 401 an hour after the role assignment; checked again before the milestone 5 runs.
 
 ## Not verified
 
 - That Radar's downloadable chart images are licensed CC BY 4.0. Its About page blocks scripted reads; the licence is checked in a browser before any chart is committed.
 - That the postmortem pages still hash the same when captured again: a page's layout can change around an unchanged article. The registry pins the copy in Blob Storage.
 - The CI checks failing on a pull request in this repository: they were broken locally, and run green in CI.
+- Why three calls in the evaluation runs failed with 401 after the role assignment ([#7](https://github.com/sindredg/hindcast/issues/7)).
