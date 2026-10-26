@@ -58,6 +58,7 @@ The two recent showcase cases began after the training cutoffs that Microsoft's 
 - `verify_local_files` returned an empty list for all four cases. After one byte of `github-status-2026-08-17.json` was changed, it returned `['github-status-2026-08-17']`; after the file was restored, an empty list again.
 - A second capture of `8gmgl950y3h7` gave the same SHA-256 as the first (`95e7a2ef…`).
 - Blob Storage: the eight files uploaded to `sources/<case_id>/`, downloaded again into an empty folder, and `verify_local_files` on the download returned an empty list for all four cases. This was run twice: once with single uploads and once with the runbook's batch commands.
+- Cloudflare Radar's About page licenses its downloadable graphs and images under CC BY 4.0: checked by hand in a browser on 2026-10-26. The page refuses scripted reads (HTTP 403), so no copy is kept. Charts are registered, with their attribution, in milestone 2.
 
 ### Prior knowledge
 
@@ -130,7 +131,6 @@ Open.
 
 ## Not verified
 
-- That Radar's downloadable chart images are licensed CC BY 4.0. Its About page blocks scripted reads; the licence is checked in a browser before any chart is committed.
 - That the postmortem pages still hash the same when captured again: a page's layout can change around an unchanged article. The registry pins the copy in Blob Storage.
 - The CI checks failing on a pull request in this repository: they were broken locally, and run green in CI.
 - Why three calls in the evaluation runs failed with 401 after the role assignment ([#7](https://github.com/sindredg/hindcast/issues/7)).
