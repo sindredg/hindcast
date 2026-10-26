@@ -12,8 +12,9 @@ dependencies = [
     "ruamel-yaml==0.19.1",
 ]
 
-# Exact pins. uv.lock records the full tree with hashes, and Dependabot
-# proposes the updates.
+# Exact pins. uv.lock records the full tree with hashes. Dependabot is set up to
+# propose updates but does not support Python 3.15 yet (issue #8): until it does,
+# these pins move by hand.
 [dependency-groups]
 dev = [
     "pip-audit==2.10.1",
