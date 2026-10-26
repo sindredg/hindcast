@@ -6,7 +6,7 @@ How Hindcast is built now. What is planned is in the [target architecture](../..
 
 Milestone 1 built the foundation, not the investigator yet: a capture command for status updates and postmortems, a case registry, a model client, and the prior-knowledge check that runs before any evidence reaches a model.
 
-![Hindcast as built in milestone 1: on an operator workstation signed in with Entra ID, Hindcast's capture command reads the providers' status APIs and postmortem pages, the Azure CLI uploads the captured files to Blob Storage, Hindcast's code calls the two pinned model deployments through the Foundry project with the Responses API, and git reaches GitHub through pull requests. The project is connected to Application Insights, which the code does not use yet. The Foundry resource and the storage account accept no keys; traces use the Application Insights connection string](../diagrams/current-architecture.svg)
+![Hindcast as built in milestone 1: on an operator workstation signed in with Entra ID, Hindcast's capture command reads the providers' status pages and postmortems, the Azure CLI uploads the captured files to Blob Storage, Hindcast's code calls the two pinned model deployments through the Foundry project with the Responses API, and git reaches GitHub through pull requests. During a portal evaluation run, the Foundry evaluation calls the same deployments as the signed-in user. The project is connected to Application Insights, which the code does not use yet. The Foundry resource and the storage account accept no keys; traces use the Application Insights connection string](../diagrams/current-architecture.svg)
 
 | Part | Where | What it does |
 |---|---|---|
@@ -21,7 +21,7 @@ Milestone 1 built the foundation, not the investigator yet: a capture command fo
 
 Every refusal happens before a model is called, so a refused run costs nothing and every result points at a prompt, a registry, and code that are in the history. A test also checks that no key fact from a postmortem appears in any question, the incident's title included, or in the system prompt.
 
-![The prior-knowledge check: the collector refuses to run when the prompt, the case registry, the code, or its lock file differs from the last commit, or when today's result file exists. Otherwise it reads the model version from the deployment, asks about each showcase outage from its provider, title, and date at effort medium, writes one result file with the version, effort, hashes, and commit, and prints token counts but never the answers](../diagrams/prior-knowledge-check.svg)
+![The prior-knowledge check: the collector refuses to run, before any model call, when the prompt, the case registry, the code, the project file, or the lock file differs from the last commit, when today's result file exists, or when a showcase case has no date in the prompt. Otherwise it reads the model version from the deployment, asks about each showcase outage from its provider, title, and date at effort medium, writes one result file with the version, effort, hashes, and commit, and prints token counts but never the answers](../diagrams/prior-knowledge-check.svg)
 
 ## Azure
 
