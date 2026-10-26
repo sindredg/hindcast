@@ -5,11 +5,15 @@
 Reads data/sources/model-selection/eval-<target>-dev-outage-v1-results.jsonl and
 -user_logs.txt (the portal's "Download results" and "Download user logs") and writes
 results-<target>-dev-outage-v1.jsonl and log-excerpt-<target>-dev-outage-v1.txt to this
-folder. The status text the models were given is Cloudflare's: every copy of it becomes
+folder. When -run.json (the run page's "Raw JSON", saved by hand) is there too, it becomes
+run-<target>-dev-outage-v1.json without the person who ran it and the portal link.
+
+The status text the models were given is Cloudflare's: every copy of it becomes
 "<context withheld>". Run and evaluation IDs become placeholders, and the resource and
 project names read from .env become "<resource>". The rows are sorted by question;
 answers, scores, and reasons are kept. The log excerpt keeps only the lines the findings
-cite: fields an evaluator dropped, evaluator versions, and the chat completions fallback.
+cite: fields an evaluator dropped, evaluator versions, the chat completions fallback, and
+failed evaluator calls with the service's count of them.
 
 Exit code 1, with nothing written, when a copy of the status text or an identifier is
 still in the output.
@@ -35,7 +39,16 @@ IDS = (
     (re.compile(r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b"), "<uuid>"),
 )
 UPDATE_START = re.compile(r"\n\n(?=\[\d{4}-\d{2}-\d{2} \d{2}:\d{2} UTC\] )")
-CITED = ("Removed [", "evaluatorId provided:", "falling back to chat completions")
+CITED = (
+    "Removed [",
+    "evaluatorId provided:",
+    "falling back to chat completions",
+    # Failed judge calls and the service's own count of them; tracebacks are left out.
+    "| Error during evaluation:",
+    "EVALUATOR_ROW_SUMMARY",
+)
+# The portal link encodes the subscription and names the resource group; neither is in .env.
+RUN_DROPPED = ("created_by", "report_url")
 
 
 def names_from_env(path: Path) -> tuple[str, ...]:
@@ -89,6 +102,11 @@ def _map_strings(value, change):
 
 def sanitize_row(row: dict, context: str, names: tuple[str, ...]) -> dict:
     return _map_strings(row, _scrubber(context, names))
+
+
+def sanitize_run(run: dict, names: tuple[str, ...]) -> dict:
+    kept = {key: value for key, value in run.items() if key not in RUN_DROPPED}
+    return _map_strings(kept, _scrubber("", names))
 
 
 def _strings(value, path=""):
@@ -170,8 +188,15 @@ def main() -> int:
     log = (args.raw_dir / f"eval-{stem}-user_logs.txt").read_text(encoding="utf-8")
     excerpt = log_excerpt(log.splitlines(), names)
 
+    run_path = args.raw_dir / f"eval-{stem}-run.json"
+    run = None
+    if run_path.exists():
+        run = json.dumps(
+            sanitize_run(json.loads(run_path.read_text(encoding="utf-8")), names), indent=2
+        )
+
     lines = [json.dumps(row, ensure_ascii=False) for row in clean]
-    left = identifiers("\n".join(lines + excerpt), names)
+    left = identifiers("\n".join(lines + excerpt + [run or ""]), names)
     problems = [f"status text in {label}" for label in leaks(clean, text)]
     problems += [f"identifier left: {value}" for value in left]
     if problems:
@@ -183,6 +208,9 @@ def main() -> int:
     excerpt_text = "".join(line + "\n" for line in excerpt)
     (args.out_dir / f"log-excerpt-{stem}.txt").write_text(excerpt_text, encoding="utf-8")
     print(f"results-{stem}.jsonl: {len(lines)} rows; log-excerpt-{stem}.txt: {len(excerpt)} lines")
+    if run:
+        (args.out_dir / f"run-{stem}.json").write_text(run + "\n", encoding="utf-8")
+        print(f"run-{stem}.json written")
     return 0
 
 

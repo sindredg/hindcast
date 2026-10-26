@@ -3,12 +3,14 @@
     uv run --frozen python eval/model-selection/dev-outage-v1/summarise_runs.py \
         results-luna-dev-outage-v1.jsonl results-sol-dev-outage-v1.jsonl
 
-For each run: the score per question and evaluator, the mean per evaluator, and the tokens
-of the answers and of the judge. With two runs, luna first: whether luna's mean groundedness
-and completeness are within 1 point of sol's. The other half of the rule, a refusal on
-question 5 without an invented cause, is read from the answer by hand.
+For each run: the score per question and evaluator, the mean per evaluator, the evaluator
+calls that errored, and the tokens of the answers and of the judge. With two runs, luna
+first: whether luna's mean groundedness and completeness are within 1 point of sol's. The
+other half of the rule, a refusal on question 5 without an invented cause, is read from the
+answer by hand.
 
-Exit code 1 when the score part of the rule is not met, or a score is missing.
+With two runs, exit code 1 when the score part of the rule is not met, or a score it needs is
+missing. With one run, exit code 0: there is nothing to compare.
 """
 
 import json
@@ -38,12 +40,23 @@ def means(rows: list[dict]) -> dict[str, float | None]:
 
 def tokens(rows: list[dict]) -> dict[str, tuple[int, int]]:
     answer = [row["sample"]["usage"] for row in rows]
-    judge = [result["sample"]["usage"] for row in rows for result in row["results"]]
+    # An errored evaluator call (status "error") has no usage: the judge returned nothing.
+    judge = [r["sample"]["usage"] for row in rows for r in row["results"] if "usage" in r["sample"]]
 
     def total(usages):
         return sum(u["prompt_tokens"] for u in usages), sum(u["completion_tokens"] for u in usages)
 
     return {"answer": total(answer), "judge": total(judge)}
+
+
+def errored(rows: list[dict]) -> list[tuple[str, str]]:
+    """(question, evaluator) for every evaluator call the portal marked as errored."""
+    return [
+        (f"Q{row['datasource_item_id'] + 1}", result["name"])
+        for row in sorted(rows, key=lambda r: r["datasource_item_id"])
+        for result in row["results"]
+        if result.get("status") == "error"
+    ]
 
 
 def within_one_point(luna: float | None, sol: float | None) -> bool:
@@ -64,6 +77,8 @@ def main() -> int:
         for name, scores in sorted(table.items()):
             row = " ".join("-" if s is None else f"{s:.1f}" for s in scores)
             print(f"  {name}: {row}, mean {means(rows)[name]}")
+        if failed := errored(rows):
+            print("  errored evaluator calls: " + ", ".join(f"{q} {name}" for q, name in failed))
         used = tokens(rows)
         ratio = sum(used["judge"]) / sum(used["answer"])
         print(f"  answer tokens: {used['answer'][0]:,} input, {used['answer'][1]:,} output")

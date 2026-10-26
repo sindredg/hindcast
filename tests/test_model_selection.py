@@ -187,6 +187,20 @@ def test_log_excerpt_keeps_the_cited_lines_without_identifiers(sanitize):
     ]
 
 
+def test_log_excerpt_keeps_failed_evaluator_calls_and_the_row_summary(sanitize):
+    failed = "Error during evaluation: (UserError) OpenAI API hits AuthenticationError: denied"
+    run = "evalrun_0f1e2d3c4b5a69788796a5b4c3d2e1f0"
+    log = [
+        f"18:11:48 | ERROR | {run} | {failed}",
+        "openai.AuthenticationError: Error code: 401 - {'error': {'code': 'PermissionDenied'}}",
+        f"18:12:05 | WARNING | {run} | EVALUATOR_ROW_SUMMARY run_id={run} errored_items=2",
+    ]
+    assert sanitize.log_excerpt(log, NAMES) == [
+        f"18:11:48 | ERROR | <run-id> | {failed}",
+        "18:12:05 | WARNING | <run-id> | EVALUATOR_ROW_SUMMARY run_id=<run-id> errored_items=2",
+    ]
+
+
 def test_names_are_read_from_the_endpoints_in_env(sanitize, tmp_path):
     env = tmp_path / ".env"
     env.write_text(
@@ -248,6 +262,59 @@ def test_script_writes_sorted_rows_and_the_excerpt(tmp_path):
     assert [r["datasource_item_id"] for r in written] == [0, 1]
     excerpt = (out / "log-excerpt-luna-dev-outage-v1.txt").read_text(encoding="utf-8")
     assert excerpt == "x | INFO | <run-id> | evaluatorId provided: builtin.coherence/versions/13\n"
+
+
+def portal_run() -> dict:
+    """A run record shaped like the portal's "Raw JSON" view of one evaluation run."""
+    return {
+        "object": "eval.run",
+        "created_by": "Alex Example",
+        "id": "evalrun_0f1e2d3c4b5a69788796a5b4c3d2e1f0",
+        "eval_id": "eval_a1b2c3d4e5f60718293a4b5c6d7e8f90",
+        "data_source": {
+            "source": {"id": "azureai://accounts/contoso-ai-resource/projects/contoso-project/d"},
+            "target": {"model": "gpt-6-luna", "sampling_params": {"top_p": 1}},
+        },
+        "report_url": "https://ai.azure.com/nextgen/r/AbC123,rg-contoso,,contoso-ai-resource",
+        "result_counts": {"total": 5, "passed": 4, "failed": 1, "errored": 0},
+    }
+
+
+def test_run_record_drops_the_person_and_the_portal_link(sanitize):
+    clean = sanitize.sanitize_run(portal_run(), NAMES)
+    assert "created_by" not in clean
+    assert "report_url" not in clean
+    assert clean["id"] == "<run-id>"
+    assert clean["eval_id"] == "<eval-id>"
+    assert (
+        clean["data_source"]["source"]["id"]
+        == "azureai://accounts/<resource>/projects/<resource>/d"
+    )
+    assert clean["data_source"]["target"]["sampling_params"] == {"top_p": 1}
+    assert clean["result_counts"]["errored"] == 0
+
+
+def test_script_writes_the_sanitized_run_record_when_one_was_saved(tmp_path):
+    raw = tmp_path / "raw"
+    raw.mkdir()
+    (raw / "eval-luna-dev-outage-v1-results.jsonl").write_text(
+        json.dumps(portal_row(0)) + "\n", encoding="utf-8"
+    )
+    (raw / "eval-luna-dev-outage-v1-user_logs.txt").write_text("", encoding="utf-8")
+    (raw / "eval-luna-dev-outage-v1-run.json").write_text(json.dumps(portal_run()))
+    snapshot = tmp_path / "snapshot.json"
+    snapshot.write_text(json.dumps(incident_for(CONTEXT)), encoding="utf-8")
+    env = tmp_path / ".env"
+    env.write_text(
+        "HINDCAST_PROJECT_ENDPOINT=https://contoso-ai-resource.x/api/projects/contoso-project\n"
+    )
+    out = tmp_path / "out"
+    result = run_script(raw, snapshot, env, out)
+    assert result.returncode == 0, result.stdout + result.stderr
+    text = (out / "run-luna-dev-outage-v1.json").read_text(encoding="utf-8")
+    assert "Alex Example" not in text
+    assert "rg-contoso" not in text
+    assert json.loads(text)["id"] == "<run-id>"
 
 
 def incident_for(context: str) -> dict:
@@ -322,6 +389,42 @@ def test_tokens_split_answer_from_judge(summarise):
         "answer": (610, 90),
         "judge": (3800, 340),
     }
+
+
+def with_errored_cell(row: dict, name: str) -> dict:
+    """The row with `name` replaced by an errored evaluator call, as the portal writes it."""
+    errored = {"name": name, "score": None, "status": "error", "sample": {"error": "401"}}
+    row["results"] = [errored if r["name"] == name else r for r in row["results"]]
+    return row
+
+
+def test_errored_evaluator_calls_add_no_judge_tokens(summarise):
+    rows = [
+        scored_row(0, {"Groundedness": 5.0, "Coherence": 5.0}, judge=(900, 80)),
+        with_errored_cell(scored_row(1, {"Groundedness": 5.0, "Coherence": 5.0}), "Coherence"),
+    ]
+    assert summarise.tokens(rows)["judge"] == (2700, 240)
+
+
+def test_errored_evaluator_calls_are_listed_by_question(summarise):
+    rows = [
+        with_errored_cell(scored_row(1, {"Groundedness": 5.0, "Coherence": 5.0}), "Coherence"),
+        scored_row(0, {"Groundedness": 5.0, "Coherence": 5.0}),
+    ]
+    assert summarise.errored(rows) == [("Q2", "Coherence")]
+
+
+def test_summary_script_reports_an_errored_rule_score_and_exits_1(tmp_path):
+    scores = {"Groundedness": 5.0, "ResponseCompleteness": 5.0}
+    luna = tmp_path / "luna.jsonl"
+    sol = tmp_path / "sol.jsonl"
+    luna.write_text(json.dumps(with_errored_cell(scored_row(0, scores), "ResponseCompleteness")))
+    sol.write_text(json.dumps(scored_row(0, scores)) + "\n")
+    command = [sys.executable, str(FOLDER / "summarise_runs.py"), str(luna), str(sol)]
+    result = subprocess.run(command, capture_output=True, text=True, check=False)  # noqa: S603
+    assert result.returncode == 1
+    assert "errored evaluator calls: Q1 ResponseCompleteness" in result.stdout
+    assert "ResponseCompleteness: None against 5.0, within 1 point: no" in result.stdout
 
 
 @pytest.mark.parametrize(
