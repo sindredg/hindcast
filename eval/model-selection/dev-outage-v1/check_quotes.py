@@ -1,6 +1,7 @@
 """Check that every quote in each answer of an evaluation run appears word for word in the updates.
 
-    uv run --frozen python eval/model-selection/dev-outage-v1/check_quotes.py RESULTS.jsonl \
+    PYTHONPATH=src uv run --frozen python \
+        eval/model-selection/dev-outage-v1/check_quotes.py RESULTS.jsonl \
         [--no-quote-ok N] [--break-row N]
 
 A quote is text between curly double quotes in the model's answer. It counts as word for word

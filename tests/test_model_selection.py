@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -325,14 +326,18 @@ def incident_for(context: str) -> dict:
         status, body = rest.split(": ", 1)
         created = stamp.replace(" UTC", "").replace(" ", "T") + ":00Z"
         updates.append({"created_at": created, "status": status, "body": body})
-    return {"incident_updates": updates}
+    return {"name": "x", "started_at": updates[0]["created_at"], "incident_updates": updates}
 
 
 def run_script(raw: Path, snapshot: Path, env: Path, out: Path):
     command = [sys.executable, str(FOLDER / "sanitize_results.py"), "luna"]
     command += ["--raw-dir", str(raw), "--snapshot", str(snapshot)]
     command += ["--env", str(env), "--out-dir", str(out)]
-    return subprocess.run(command, capture_output=True, text=True, check=False)  # noqa: S603
+    # The scripts import hindcast, which is not installed as a package.
+    path = {"PYTHONPATH": str(FOLDER.parents[2] / "src")}
+    return subprocess.run(  # noqa: S603
+        command, capture_output=True, text=True, check=False, env=os.environ | path
+    )
 
 
 def scored_row(item_id: int, scores: dict, answer=(300, 40), judge=(900, 80)) -> dict:

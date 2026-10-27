@@ -8,6 +8,7 @@ requires-python = "==3.15.*"
 dependencies = [
     "azure-ai-projects==2.9.0",
     "azure-identity==1.26.0",
+    "azure-storage-blob==12.31.0",
     "openai==3.37.0",
     "ruamel-yaml==0.19.1",
 ]
