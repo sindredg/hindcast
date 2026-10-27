@@ -239,3 +239,40 @@ def test_two_identical_short_paragraphs_do_not_cut_the_body():
     )
 
     assert "Tail." in article(page.encode(), "https://aws.amazon.com/message/1/").html
+
+
+def test_github_body_leaves_out_tags_and_the_author_bio():
+    page = (
+        '<html><body><main><header><h1 class="h3-mktg">Availability report</h1></header>'
+        '<section class="container-xl">'
+        '<time class="d-block" datetime="2026-07-08">July 8, 2026</time></section>'
+        '<div><section class="col-12 col-md-8"><p>On June 10, requests failed.</p>'
+        '<section class="my-6"><ul><li>Tags: availability report</li></ul></section>'
+        '<div class="mt-8"><h2>Written by</h2></div>'
+        '<div class="mt-8"><article class="author-bio"><header>Some Author</header>'
+        "<p>Engineer.</p></article></div></section></div></main></body></html>"
+    )
+
+    found = article(page.encode(), "https://github.blog/news-insights/company-news/x/")
+
+    assert "requests failed" in found.html
+    assert "Some Author" not in found.html and "Tags:" not in found.html
+    assert "Written by" not in found.html
+    assert found.published_at == "2026-07-08"
+
+
+def test_github_incident_lines_in_bold_become_headings():
+    page = (
+        "<html><body><main><header><h1>Availability report</h1></header>"
+        '<section><time class="d-block" datetime="2026-07-08">July 8, 2026</time></section>'
+        '<div><section class="col-12 col-md-8"><p><strong>The short version:</strong> fine.</p>'
+        "<p><strong>June 04 17:30 UTC (lasting 1 hour and 25 minutes)</strong></p><p>First.</p>"
+        "<p><strong>June 10 15:05 UTC (lasting 55 minutes)</strong></p><p>Second.</p>"
+        "</section></div></main></body></html>"
+    )
+
+    body = article(page.encode(), "https://github.blog/news-insights/company-news/x/").html
+
+    assert "<h3>June 04 17:30 UTC (lasting 1 hour and 25 minutes)</h3>" in body
+    assert "<h3>June 10 15:05 UTC (lasting 55 minutes)</h3>" in body
+    assert "<strong>The short version:</strong>" in body

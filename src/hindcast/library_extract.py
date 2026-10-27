@@ -140,6 +140,16 @@ def _html(node: _Node) -> str:
     return node.start + ("" if node.tag in VOID else f"{inner}</{node.tag}>")
 
 
+def _without(node: _Node, drop: Callable[[_Node], bool]) -> _Node:
+    """A copy of node with every descendant that drop matches left out."""
+    children = [
+        c if isinstance(c, str) else _without(c, drop)
+        for c in node.children
+        if isinstance(c, str) or not drop(c)
+    ]
+    return _Node(node.tag, node.attrs, node.start, children)
+
+
 def _has_class(name: str) -> Callable[[_Node], bool]:
     return lambda n: name in n.classes()
 
@@ -169,11 +179,18 @@ def _github(root: _Node) -> tuple[_Node | None, _Node | None, _Node | None]:
     main = _first(root, lambda n: n.tag == "main")
     # The first time element is the publish date; a second one is "Updated ...".
     when = _first(main, lambda n: n.tag == "time" and "datetime" in n.attrs)
-    return (
-        _first(main, lambda n: n.tag == "h1"),
-        when,
-        _first(main, lambda n: n.tag == "section" and "col-md-8" in n.classes()),
-    )
+    body = _first(main, lambda n: n.tag == "section" and "col-md-8" in n.classes())
+    if body is not None:
+        # The post's tags and its author's bio close the body; neither is the
+        # article, and the bio names a person.
+        body = _without(
+            body,
+            lambda n: (
+                "author-bio" in n.classes()
+                or (n.tag in ("section", "div") and _text(n).startswith(("Tags", "Written by")))
+            ),
+        )
+    return _first(main, lambda n: n.tag == "h1"), when, body
 
 
 def _aws(root: _Node) -> tuple[_Node | None, _Node | None, _Node | None]:
@@ -204,6 +221,12 @@ def _google(root: _Node) -> tuple[_Node | None, _Node | None, _Node | None]:
         )
     return title, newest, table
 
+
+# GitHub's monthly reports mark some incidents with a bold line, not a heading.
+GITHUB_INCIDENT = re.compile(
+    r"<p[^>]*>\s*<strong>((?:January|February|March|April|May|June|July|August|September|"
+    r"October|November|December) \d{1,2} \d{2}:\d{2} UTC[^<]*)</strong>\s*</p>"
+)
 
 SITES = {
     "blog.cloudflare.com": _cloudflare,
@@ -245,6 +268,9 @@ def article(page: bytes, url: str) -> Article:
         else _text(when)
     )
     body_html = _once(body)
+    if host == "github.blog":
+        # Each incident becomes its own section, as with a heading.
+        body_html = GITHUB_INCIDENT.sub(r"<h3>\1</h3>", body_html)
     images = [
         urljoin(url, n.attrs["src"])
         for n in _all(_parse(body_html.encode()), lambda n: n.tag == "img" and n.attrs.get("src"))
