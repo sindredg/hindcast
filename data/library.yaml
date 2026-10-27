@@ -1,0 +1,112 @@
+# Library registry: earlier postmortems the investigator can search, and the
+# symptoms they were picked by. The pick rule is decision 0013.
+#
+# symptoms are what an outside engineer could see during each case, tagged
+# from the case's cut evidence (hindcast.evidence), never from its postmortem.
+# They were committed before any library document was looked at. Each tag is
+# "product: ...", "symptom: ...", or "scale: ...", and quotes the update it
+# comes from word for word. The quotes are short excerpts from the provider's
+# status page; source and attribution are in data/cases.yaml.
+#
+# No update in these four cases mentions an attack, so no tag says one.
+#
+# documents are the picks, added after the symptoms. Like the case sources,
+# the pages themselves are not committed.
+
+symptoms:
+  cloudflare-2025-11-18:
+    - tag: "symptom: internal service degradation"
+      quote: Cloudflare is experiencing an internal service degradation.
+      update_id: cloudflare-2025-11-18/u1
+    - tag: "symptom: elevated HTTP error rates"
+      quote: customers may continue to observe higher-than-normal error rates
+      update_id: cloudflare-2025-11-18/u3
+    - tag: "symptom: errors and latency across the network"
+      quote: elevated errors or latency across the network
+      update_id: cloudflare-2025-11-18/u21
+    - tag: "scale: global"
+      quote: while we undergo global recovery
+      update_id: cloudflare-2025-11-18/u17
+    - tag: "product: application services (CDN and proxy)"
+      quote: restoring service for application services customers
+      update_id: cloudflare-2025-11-18/u9
+    - tag: "product: WARP"
+      quote: Users in London trying to access the Internet via WARP will see a failure to connect.
+      update_id: cloudflare-2025-11-18/u6
+    - tag: "product: Access"
+      quote: Error levels for Access and WARP users have returned to pre-incident rates.
+      update_id: cloudflare-2025-11-18/u8
+    - tag: "product: dashboard and sign-in"
+      quote: issues logging into or using the Cloudflare dashboard
+      update_id: cloudflare-2025-11-18/u14
+    - tag: "product: bot scores"
+      quote: Bot scores will be impacted intermittently
+      update_id: cloudflare-2025-11-18/u17
+
+  github-2026-08-17:
+    - tag: "symptom: elevated HTTP error rates"
+      quote: high error rates around 20% for web experiences and api traffic
+      update_id: github-2026-08-17/u8
+    - tag: "symptom: download failures"
+      quote: >-
+        Archive downloads and raw repository content downloads are experiencing an
+        approximate 50% error rate.
+      update_id: github-2026-08-17/u8
+    - tag: "symptom: sign-in and identity failures"
+      quote: SAML and OIDC authentication, SCIM, and Team Sync are also impacted.
+      update_id: github-2026-08-17/u9
+    - tag: "symptom: sporadic authentication failures"
+      quote: residual impact in the form of sporadic authentication failures
+      update_id: github-2026-08-17/u28
+    - tag: "scale: many services at once"
+      quote: >-
+        The degradation affecting API Requests, Actions, Git Operations, Issues,
+        Pages, Pull Requests and Webhooks has been mitigated.
+      update_id: github-2026-08-17/u24
+    - tag: "scale: about a fifth of requests"
+      quote: an approximate 20% error rate across numerous experiences
+      update_id: github-2026-08-17/u5
+    - tag: "product: Copilot authentication"
+      quote: sporadic failures affecting Copilot authentication in some applications
+      update_id: github-2026-08-17/u33
+
+  google-cloud-2026-07-14:
+    - tag: "product: Google Cloud VMware Engine stretched clusters"
+      quote: >-
+        Google Cloud VMware Engine (GCVE) Stretched Cluster customers are
+        experiencing zonal outages
+      update_id: google-cloud-2026-07-14/u1
+    - tag: "symptom: lost connectivity between zones"
+      quote: inter-site communication failures to their GCVE environments within the affected zones
+      update_id: google-cloud-2026-07-14/u1
+    - tag: "symptom: BGP session flapping"
+      quote: Border Gateway Protocol (BGP) session flapping between cluster zones
+      update_id: google-cloud-2026-07-14/u3
+    - tag: "symptom: cluster cannot synchronise state"
+      quote: the cluster zones are unable to safely synchronize state
+      update_id: google-cloud-2026-07-14/u3
+    - tag: "scale: multiple regions"
+      quote: zonal outages impacting network connectivity across multiple regions
+      update_id: google-cloud-2026-07-14/u1
+    - tag: "scale: network only, storage and compute unaffected"
+      quote: Storage and Compute services appear to be unaffected
+      update_id: google-cloud-2026-07-14/u1
+
+  cloudflare-2026-02-20:
+    - tag: "symptom: errors or timeouts reaching the network"
+      quote: Users may experience errors or timeouts reaching Cloudflare’s network or services.
+      update_id: cloudflare-2026-02-20/u1
+    - tag: "symptom: BGP prefixes withdrawn"
+      quote: the last subset of prefixes which were withdrawn
+      update_id: cloudflare-2026-02-20/u7
+    - tag: "product: BYOIP prefixes"
+      quote: Cloudflare has identified impact to a subset of BYOIP prefixes.
+      update_id: cloudflare-2026-02-20/u2
+    - tag: "product: dashboard"
+      quote: some customers are unable to reload their IPs through the dashboard
+      update_id: cloudflare-2026-02-20/u5
+    - tag: "scale: a subset of customers"
+      quote: a subset of BYOIP prefixes
+      update_id: cloudflare-2026-02-20/u2
+
+documents: []
