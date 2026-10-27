@@ -313,7 +313,7 @@ def cut_later_text(markdown: str, cutoff: str, doc_id: str) -> tuple[list[Sectio
     ], dropped
 
 
-def _mime(data: bytes) -> str | None:
+def image_mime(data: bytes) -> str | None:
     """Image types the service reads; anything else (SVG included) is not sent."""
     if data.startswith(b"\x89PNG\r\n\x1a\n"):
         return "image/png"
@@ -326,7 +326,7 @@ def _mime(data: bytes) -> str | None:
     return None
 
 
-def _value(content: dict, name: str) -> str:
+def field_value(content: dict, name: str) -> str:
     return (content.get("fields", {}).get(name) or {}).get("valueString") or ""
 
 
@@ -369,7 +369,7 @@ def extract_document(
     figures = []
     for source in found.figures:
         data = fetch(source)
-        mime = _mime(data)
+        mime = image_mime(data)
         if mime is None:
             dropped.append(f"figure {source}: image type not read by the service")
             continue
@@ -381,9 +381,9 @@ def extract_document(
                 figure_id=f"lib/{doc.doc_id}/fig{len(figures) + 1}",
                 source_url=source,
                 sha256=hashlib.sha256(data).hexdigest(),
-                description=_value(content, "description"),
-                alt_text=_value(content, "alt_text"),
-                text_in_image=_value(content, "text_in_image"),
+                description=field_value(content, "description"),
+                alt_text=field_value(content, "alt_text"),
+                text_in_image=field_value(content, "text_in_image"),
                 display=display_allowed(doc.licence),
             )
         )

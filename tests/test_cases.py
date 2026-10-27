@@ -256,3 +256,41 @@ def test_verify_reports_missing_file(tmp_path):
     case = one_case(tmp_path)
 
     assert verify_local_files(case, tmp_path) == ["example-status", "example-postmortem"]
+
+
+CHART_SOURCE = """\
+      - doc_id: example-radar-traffic
+        filename: radar-traffic.png
+        url: https://radar.cloudflare.com/traffic?dateStart=2026-02-20&dateEnd=2026-02-20
+        licence: CC BY 4.0
+        attribution: Cloudflare Radar
+        sha256: "{sha256}"
+        retrieved_at: "2026-10-27T17:00:00Z"
+        kind: chart
+"""
+
+
+def test_a_chart_source_with_a_display_licence_loads(tmp_path):
+    case = load_cases(
+        write_registry(tmp_path, registry() + CHART_SOURCE.replace("{sha256}", ABC_SHA256))
+    )
+
+    assert [s.kind for s in case["example-2026"].sources][-1] == "chart"
+
+
+def test_chart_sources_need_a_display_licence(tmp_path):
+    chart = CHART_SOURCE.replace("{sha256}", ABC_SHA256).replace(
+        "licence: CC BY 4.0", "licence: Copyright Cloudflare; not redistributed"
+    )
+
+    with pytest.raises(ValueError, match="example-radar-traffic.*licence"):
+        load_cases(write_registry(tmp_path, registry() + chart))
+
+
+def test_verify_can_check_one_kind_of_source(tmp_path):
+    case = one_case(tmp_path)
+    (tmp_path / "example-2026").mkdir()
+    (tmp_path / "example-2026" / "example-status.json").write_bytes(b"abc")
+
+    assert verify_local_files(case, tmp_path, kinds=frozenset({"status-updates"})) == []
+    assert verify_local_files(case, tmp_path) == ["example-postmortem"]

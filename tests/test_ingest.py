@@ -9,6 +9,7 @@ from hindcast.cases import Case, SourceFile
 from hindcast.evidence import cut, evidence_json
 from hindcast.ingest import (
     EvidenceDiffers,
+    describe_chart,
     ingest_evidence,
     ingest_library,
     library_summary,
@@ -239,3 +240,105 @@ def test_library_summary_prints_counts_not_text():
     ).encode()
 
     assert library_summary(data) == "d: 1 sections, 0 figures, dropped 1"
+
+
+CHART_PNG = b"\x89PNG\r\n\x1a\n" + b"1" * 32
+
+
+def chart_case() -> Case:
+    chart = SourceFile(
+        doc_id="cloudflare-radar-2026-02-20",
+        filename="radar-routing.png",
+        url="https://radar.cloudflare.com/routing/as13335",
+        licence="CC BY 4.0",
+        attribution="Cloudflare Radar",
+        sha256=hashlib.sha256(CHART_PNG).hexdigest(),
+        retrieved_at="2026-10-27T17:00:00Z",
+        kind="chart",
+    )
+    base = case()
+    return Case(
+        base.case_id, base.title, base.provider, base.role, base.started_at, (*base.sources, chart)
+    )
+
+
+def chart_analyzer(calls: list):
+    def analyzer(analyzer_id, data, mime):
+        calls.append((analyzer_id, mime))
+        fields = {
+            "description": {"valueString": "A step chart of announced prefixes."},
+            "alt_text": {"valueString": "Prefixes over time."},
+            "text_in_image": {"valueString": "AS13335"},
+        }
+        return {"result": {"contents": [{"fields": fields}]}, "usage": {"tokens": {"x": 1}}}
+
+    return analyzer
+
+
+def test_a_chart_is_described_once_and_then_reused(tmp_path):
+    charts = tmp_path / "charts" / "cloudflare-2026-02-20"
+    charts.mkdir(parents=True)
+    (charts / "radar-routing.png").write_bytes(CHART_PNG)
+    chart = chart_case().sources[-1]
+    calls, extracted = [], FakeContainer()
+
+    data, status, _ = describe_chart(
+        chart_case(),
+        chart,
+        charts_dir=tmp_path / "charts",
+        out_dir=tmp_path / "out",
+        uploader=extracted,
+        analyzer=chart_analyzer(calls),
+    )
+    assert (status, calls) == ("uploaded", [("hindcast_chart", "image/png")])
+    assert json.loads(data)["description"] == "A step chart of announced prefixes."
+
+    extracted.existing = {name: blob for name, blob, _ in extracted.uploaded}
+    _, again, _ = describe_chart(
+        chart_case(),
+        chart,
+        charts_dir=tmp_path / "charts",
+        out_dir=tmp_path / "out",
+        uploader=extracted,
+        analyzer=chart_analyzer(calls),
+    )
+    assert again == "reused" and len(calls) == 1
+
+
+def test_a_chart_file_that_does_not_match_its_hash_is_refused(tmp_path):
+    charts = tmp_path / "charts" / "cloudflare-2026-02-20"
+    charts.mkdir(parents=True)
+    (charts / "radar-routing.png").write_bytes(CHART_PNG + b"!")
+
+    with pytest.raises(SourceMismatch, match="cloudflare-radar-2026-02-20"):
+        describe_chart(
+            chart_case(),
+            chart_case().sources[-1],
+            charts_dir=tmp_path / "charts",
+            out_dir=tmp_path / "out",
+            uploader=FakeContainer(),
+            analyzer=chart_analyzer([]),
+        )
+
+
+def test_evidence_attaches_the_stored_chart_description(tmp_path):
+    stored = json.dumps({"description": "A step chart.", "alt_text": "Prefixes."}).encode()
+    extracted = FakeContainer(
+        existing={"charts/cloudflare-2026-02-20/cloudflare-radar-2026-02-20.json": stored}
+    )
+
+    evidence, _ = ingest_evidence(
+        chart_case(), out_dir=tmp_path, client=FakeContainer(SNAPSHOT), uploader=extracted
+    )
+
+    assert [(c.chart_id, c.description, c.display) for c in evidence.charts] == [
+        ("cloudflare-2026-02-20/chart1", "A step chart.", True)
+    ]
+
+
+def test_evidence_refuses_a_chart_that_is_not_described_yet(tmp_path):
+    with pytest.raises(ValueError, match="ingest charts"):
+        ingest_evidence(
+            chart_case(), out_dir=tmp_path, client=FakeContainer(SNAPSHOT), uploader=FakeContainer()
+        )
+    assert list(tmp_path.iterdir()) == []

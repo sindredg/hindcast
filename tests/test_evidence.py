@@ -3,7 +3,15 @@ import json
 import pytest
 
 from hindcast.cases import Case
-from hindcast.evidence import Dropped, cut, cut_google, cut_statuspage, evidence_json
+from hindcast.evidence import (
+    ChartEvidence,
+    Dropped,
+    cut,
+    cut_google,
+    cut_statuspage,
+    evidence_json,
+    with_charts,
+)
 
 PLANTED_REPORT = "## Mini Incident Report\n\nThe cause was a planted sentence."
 
@@ -212,3 +220,20 @@ def test_evidence_json_is_canonical():
     assert data.endswith(b"\n")
     assert data == evidence_json(ev)
     assert json.loads(data)["updates"][0]["update_id"] == "c/u1"
+
+
+def test_chart_evidence_ids_follow_the_case():
+    ev = cut_statuspage("c", statuspage(update("2026-02-20T23:50:00Z", "resolved")))
+    described = [
+        ("radar-traffic.png", {"description": "A line chart.", "alt_text": "Traffic."}),
+        ("radar-routing.png", {"description": "A step chart.", "alt_text": "Routes."}),
+    ]
+
+    charted = with_charts(ev, described, display=True)
+
+    assert [c.chart_id for c in charted.charts] == ["c/chart1", "c/chart2"]
+    assert charted.charts[0] == ChartEvidence(
+        "c/chart1", "radar-traffic.png", "A line chart.", "Traffic.", True
+    )
+    assert json.loads(evidence_json(charted))["charts"][1]["chart_id"] == "c/chart2"
+    assert ev.charts == ()

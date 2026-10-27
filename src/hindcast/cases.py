@@ -27,7 +27,7 @@ class SourceFile:
     attribution: str
     sha256: str
     retrieved_at: str
-    kind: Literal["status-updates", "postmortem"]
+    kind: Literal["status-updates", "postmortem", "chart"]
 
 
 @dataclass(frozen=True)
@@ -83,6 +83,13 @@ def load_cases(path: Path = Path("data/cases.yaml")) -> dict[str, Case]:
             name = source.filename
             if Path(name).name != name or name.startswith("."):
                 raise ValueError(f"{source.doc_id}: filename {name!r} is not a plain name")
+            # A chart is shown to the user next to the evidence, so its licence
+            # has to allow that; the status pages and postmortems are never shown.
+            if source.kind == "chart" and source.licence != "CC BY 4.0":
+                raise ValueError(
+                    f"{source.doc_id}: a chart is displayed, so its licence must be CC BY 4.0, "
+                    f"not {source.licence!r}"
+                )
             # Pages change after capture, so the hash is only meaningful with its time.
             if not UTC_TIMESTAMP.fullmatch(source.retrieved_at):
                 raise ValueError(
@@ -107,10 +114,16 @@ def load_cases(path: Path = Path("data/cases.yaml")) -> dict[str, Case]:
     return cases
 
 
-def verify_local_files(case: Case, root: Path) -> list[str]:
-    """Return the doc_id of every source missing under root/<case_id>/ or not matching its hash."""
+def verify_local_files(case: Case, root: Path, kinds: frozenset[str] | None = None) -> list[str]:
+    """Return the doc_id of every source missing under root/<case_id>/ or not matching its hash.
+
+    kinds limits the check to some kinds of source: charts are committed under
+    data/charts/, the captured pages sit under data/sources/.
+    """
     failed = []
     for source in case.sources:
+        if kinds is not None and source.kind not in kinds:
+            continue
         path = root / case.case_id / source.filename
         if not path.is_file():
             failed.append(source.doc_id)

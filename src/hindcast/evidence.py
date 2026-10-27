@@ -9,7 +9,7 @@ the list carries no text.
 """
 
 import json
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime
 from typing import Literal
 
@@ -38,6 +38,15 @@ class Dropped:
 
 
 @dataclass(frozen=True)
+class ChartEvidence:
+    chart_id: str
+    filename: str
+    description: str
+    alt_text: str
+    display: bool
+
+
+@dataclass(frozen=True)
 class CaseEvidence:
     case_id: str
     provider: str
@@ -45,6 +54,7 @@ class CaseEvidence:
     started_at: str
     updates: tuple[EvidenceUpdate, ...]
     dropped: tuple[Dropped, ...]
+    charts: tuple[ChartEvidence, ...] = ()
 
 
 def _parse(timestamp: str) -> datetime:
@@ -138,6 +148,23 @@ def cut(case: Case, snapshot: bytes) -> CaseEvidence:
     if case.provider == "Google Cloud":
         return cut_google(case.case_id, incident)
     raise ValueError(f"{case.case_id}: no evidence rules for provider {case.provider!r}")
+
+
+def with_charts(
+    evidence: CaseEvidence, described: list[tuple[str, dict]], *, display: bool
+) -> CaseEvidence:
+    """The evidence with its charts' stored descriptions, numbered in registry order."""
+    charts = tuple(
+        ChartEvidence(
+            chart_id=f"{evidence.case_id}/chart{n}",
+            filename=filename,
+            description=fields["description"],
+            alt_text=fields["alt_text"],
+            display=display,
+        )
+        for n, (filename, fields) in enumerate(described, 1)
+    )
+    return replace(evidence, charts=charts)
 
 
 def render_context(evidence: CaseEvidence) -> str:
