@@ -2,10 +2,12 @@ import hashlib
 import json
 
 import pytest
+from azure.core.exceptions import ResourceExistsError
 
+from hindcast import ingest
 from hindcast.cases import Case, SourceFile
 from hindcast.evidence import cut, evidence_json
-from hindcast.ingest import ingest_evidence, summary
+from hindcast.ingest import EvidenceDiffers, ingest_evidence, summary
 from hindcast.storage import SourceMismatch
 
 PLANTED_CAUSE = "The cause was a planted sentence."
@@ -45,22 +47,28 @@ class FakeBlob:
 
 
 class FakeContainer:
-    def __init__(self, data: bytes = b""):
+    """Serves `data` for any blob; holds `existing` blobs, which an upload keeps unless told."""
+
+    def __init__(self, data: bytes = b"", existing: dict[str, bytes] | None = None):
         self.data = data
+        self.existing = existing or {}
         self.uploaded: list[tuple[str, bytes, bool]] = []
 
     def download_blob(self, name: str) -> FakeBlob:
-        return FakeBlob(self.data)
+        return FakeBlob(self.existing.get(name, self.data))
 
     def upload_blob(self, name: str, data: bytes, overwrite: bool = False) -> None:
+        if name in self.existing and not overwrite:
+            raise ResourceExistsError("exists")
         self.uploaded.append((name, data, overwrite))
 
 
 def test_ingest_writes_the_cut_evidence_locally_and_to_blob(tmp_path):
     sources, extracted = FakeContainer(SNAPSHOT), FakeContainer()
 
-    ingest_evidence(case(), out_dir=tmp_path, client=sources, uploader=extracted)
+    _, status = ingest_evidence(case(), out_dir=tmp_path, client=sources, uploader=extracted)
 
+    assert status == "uploaded"
     local = (tmp_path / "cloudflare-2026-02-20.json").read_bytes()
     assert local == evidence_json(cut(case(), SNAPSHOT))
     assert extracted.uploaded == [("evidence/cloudflare-2026-02-20.json", local, False)]
@@ -83,3 +91,49 @@ def test_ingest_prints_counts_not_text():
     assert lines[0] == "cloudflare-2026-02-20: 2 updates (resolved 2026-02-20T23:50:58Z), dropped 1"
     assert lines[1:] == ["  report: 1"]
     assert not any(PLANTED_CAUSE in line or "Errors." in line for line in lines)
+
+
+BLOB = "evidence/cloudflare-2026-02-20.json"
+
+
+def test_existing_identical_evidence_writes_the_local_copy(tmp_path):
+    same = evidence_json(cut(case(), SNAPSHOT))
+    extracted = FakeContainer(existing={BLOB: same})
+
+    _, status = ingest_evidence(
+        case(), out_dir=tmp_path, client=FakeContainer(SNAPSHOT), uploader=extracted
+    )
+
+    assert status == "unchanged"
+    assert (tmp_path / "cloudflare-2026-02-20.json").read_bytes() == same
+    assert extracted.uploaded == []
+
+
+def test_existing_different_evidence_is_kept_and_reported(tmp_path):
+    extracted = FakeContainer(existing={BLOB: b"{}\n"})
+
+    with pytest.raises(EvidenceDiffers, match="cloudflare-2026-02-20"):
+        ingest_evidence(
+            case(), out_dir=tmp_path, client=FakeContainer(SNAPSHOT), uploader=extracted
+        )
+
+    assert list(tmp_path.iterdir()) == []
+    assert extracted.uploaded == []
+
+
+def test_main_reports_each_failing_case_and_exits_1(monkeypatch, capsys):
+    good, bad = case(), Case("broken-case", "t", "Cloudflare", "development", case().sources)
+    monkeypatch.setattr(ingest, "load_cases", lambda: {"broken-case": bad, good.case_id: good})
+
+    def fake_ingest(c, *, replace):
+        if c.case_id == "broken-case":
+            raise ValueError("broken-case: no update marks the incident resolved")
+        return cut(good, SNAPSHOT), "uploaded"
+
+    monkeypatch.setattr(ingest, "ingest_evidence", fake_ingest)
+
+    assert ingest.main(["evidence"]) == 1
+    out = capsys.readouterr().out
+    assert "broken-case: no update marks the incident resolved" in out
+    assert "cloudflare-2026-02-20: 2 updates" in out
+    assert "  blob: uploaded" in out
