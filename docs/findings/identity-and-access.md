@@ -2,6 +2,16 @@
 
 Findings about Entra ID roles, scopes, and keyless access. Hindcast uses no keys: every call carries an Entra token ([decision 0009](../decisions/0009-hosting-and-identity.md)).
 
+## A removed role kept working on Content Understanding for about 11 minutes (2026-10-27)
+
+**Seen:** after the Content Understanding Contributor role was removed, reads on the Content Understanding endpoint kept succeeding for about 11 minutes before they were refused. Azure documents up to 10 minutes for a role change to take effect. Model calls through the project endpoint kept working on the project-scope role throughout, as expected.
+
+**Evidence:** tested live, 2026-10-27, from the developer's sign-in. `az role assignment delete` at 18:23:46 UTC; afterwards the user held Owner, Foundry User at project scope, and Storage Blob Data Contributor. `get_analyzer("hindcast_chart")`, polled about every 32 seconds, succeeded up to 18:34:23 and returned `PermissionDenied` at 18:35:09, naming `MultiModalIntelligence/analyzers/read`. `ask_model("gpt-6-luna", ...)` through the project endpoint answered "Blue" (24 input, 18 output tokens).
+
+**For Hindcast:** removing a role is not instant revocation. A teardown or a role removal is checked by retrying the refused call until it is refused, not by reading the assignment list. The extraction runbook does so.
+
+**Read more:** [Troubleshoot Azure RBAC](https://learn.microsoft.com/azure/role-based-access-control/troubleshooting).
+
 ## A few calls failed with 401 an hour after the role assignment (2026-10-26)
 
 **Seen:** after the role in the next entry was assigned, two portal evaluation runs mostly worked, but three model calls still failed with 401 `PermissionDenied`, "Principal does not have access to API/Operation." The calls around them, with the same identity, deployment, and operation, succeeded. Azure documents up to 10 minutes for a role change to take effect; these failures came about an hour after it. The cause is not known.
