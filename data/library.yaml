@@ -109,4 +109,416 @@ symptoms:
       quote: a subset of BYOIP prefixes
       update_id: cloudflare-2026-02-20/u2
 
-documents: []
+documents:
+  - doc_id: cloudflare-2025-06-12
+    provider: Cloudflare
+    title: Cloudflare service outage June 12, 2025
+    url: 'https://blog.cloudflare.com/cloudflare-service-outage-june-12-2025/'
+    published_at: "2025-06-12"
+    filename: cloudflare-2025-06-12.html
+    sha256: ""
+    retrieved_at: ""
+    licence: Copyright Cloudflare; not redistributed
+    attribution: 'Cloudflare blog, "Cloudflare service outage June 12, 2025"'
+    kind: same-provider
+    serves: [cloudflare-2025-11-18, github-2026-08-17]
+    reason: >-
+      Global failure of Access identity logins, WARP and dashboard sign-in across many products, as
+      in "Error levels for Access and WARP users have returned to pre-incident rates." and "issues
+      logging into or using the Cloudflare dashboard"; for GitHub (other provider) the same SSO and
+      identity login failures as "SAML and OIDC authentication, SCIM, and Team Sync are also
+      impacted."
+
+  - doc_id: cloudflare-2024-06-20
+    provider: Cloudflare
+    title: Cloudflare incident on June 20, 2024
+    url: 'https://blog.cloudflare.com/cloudflare-incident-on-june-20-2024/'
+    published_at: "2024-06-26"
+    filename: cloudflare-2024-06-20.html
+    sha256: ""
+    retrieved_at: ""
+    licence: Copyright Cloudflare; not redistributed
+    attribution: 'Cloudflare blog, "Cloudflare incident on June 20, 2024"'
+    kind: same-provider
+    serves: [cloudflare-2025-11-18]
+    reason: >-
+      Global rise in HTTP 5xx errors and roughly tripled tail latency on the CDN for about two
+      hours, the same outside picture as "elevated errors or latency across the network" and
+      "customers may continue to observe higher-than-normal error rates".
+
+  - doc_id: cloudflare-2022-06-21
+    provider: Cloudflare
+    title: Cloudflare outage on June 21, 2022
+    url: 'https://blog.cloudflare.com/cloudflare-outage-on-june-21-2022/'
+    published_at: "2022-06-21"
+    filename: cloudflare-2022-06-21.html
+    sha256: ""
+    retrieved_at: ""
+    licence: Copyright Cloudflare; not redistributed
+    attribution: 'Cloudflare blog, "Cloudflare outage on June 21, 2022"'
+    kind: same-provider
+    serves: [cloudflare-2026-02-20, cloudflare-2025-11-18]
+    reason: >-
+      A critical subset of prefixes was withdrawn in 19 data centers, so users there could not reach
+      sites on the network, as in "the last subset of prefixes which were withdrawn" and "Users may
+      experience errors or timeouts reaching Cloudflare’s network or services."; those locations
+      carried about half of all requests, close to "customers may continue to observe
+      higher-than-normal error rates".
+
+  - doc_id: google-cloud-2025-06-12
+    provider: Google Cloud
+    title: Multiple GCP products are experiencing Service issues.
+    url: 'https://status.cloud.google.com/incidents/ow5i3PPK96RduMcb1SsW'
+    published_at: "2025-06-13"
+    filename: google-cloud-2025-06-12.html
+    sha256: ""
+    retrieved_at: ""
+    licence: Copyright Google; not redistributed
+    attribution: Google Cloud Service Health, incident ow5i3PPK96RduMcb1SsW
+    kind: other-provider
+    serves: [cloudflare-2025-11-18, github-2026-08-17]
+    reason: >-
+      Global HTTP 503 errors on external API requests across dozens of products, with console and
+      IAM access issues, as in "customers may continue to observe higher-than-normal error rates"
+      and "an approximate 20% error rate across numerous experiences".
+
+  - doc_id: google-cloud-2020-12-14
+    provider: Google Cloud
+    title: 'Google Cloud Infrastructure Components Incident #20013'
+    url: 'https://status.cloud.google.com/incident/zall/20013'
+    published_at: "2020-12-18"
+    filename: google-cloud-2020-12-14.html
+    sha256: ""
+    retrieved_at: ""
+    licence: Copyright Google; not redistributed
+    attribution: >-
+      Google Cloud Status Dashboard, "Google Cloud Infrastructure Components Incident #20013"
+    kind: other-provider
+    serves: [github-2026-08-17, cloudflare-2025-11-18]
+    reason: >-
+      Global authentication failures returned 5xx errors on most authenticated traffic across many
+      services and blocked console sign-in, as in "residual impact in the form of sporadic
+      authentication failures" and "issues logging into or using the Cloudflare dashboard".
+
+  - doc_id: cloudflare-2019-07-02
+    provider: Cloudflare
+    title: Details of the Cloudflare outage on July 2, 2019
+    url: 'https://blog.cloudflare.com/details-of-the-cloudflare-outage-on-july-2-2019/'
+    published_at: "2019-07-12"
+    filename: cloudflare-2019-07-02.html
+    sha256: ""
+    retrieved_at: ""
+    licence: Copyright Cloudflare; not redistributed
+    attribution: 'Cloudflare blog, "Details of the Cloudflare outage on July 2, 2019"'
+    kind: attack-suspected
+    serves: [cloudflare-2025-11-18]
+    reason: >-
+      Global HTTP 502 errors on proxied sites, with the dashboard and API unreachable, as in
+      "customers may continue to observe higher-than-normal error rates" and "issues logging into or
+      using the Cloudflare dashboard"; the post says an attack was first speculated and then
+      dismissed.
+
+  - doc_id: cloudflare-2013-03-03
+    provider: Cloudflare
+    title: >-
+      Today's Outage Post Mortem
+    url: 'https://blog.cloudflare.com/todays-outage-post-mortem-82515/'
+    published_at: "2013-03-03"
+    filename: cloudflare-2013-03-03.html
+    sha256: ""
+    retrieved_at: ""
+    licence: Copyright Cloudflare; not redistributed
+    attribution: >-
+      Cloudflare blog, "Today's Outage Post Mortem"
+    kind: attack-suspected
+    serves: [cloudflare-2025-11-18, cloudflare-2026-02-20]
+    reason: >-
+      Network-wide outage of all services during a DDoS attack on one customer, with routes
+      withdrawn and "No Route to Host" errors, as in "while we undergo global recovery" and "Users
+      may experience errors or timeouts reaching Cloudflare’s network or services."
+
+  - doc_id: github-availability-2026-06
+    provider: GitHub
+    title: 'GitHub availability report: June 2026'
+    url: 'https://github.blog/news-insights/company-news/github-availability-report-june-2026/'
+    published_at: "2026-07-08"
+    filename: github-availability-2026-06.html
+    sha256: ""
+    retrieved_at: ""
+    licence: Copyright GitHub; not redistributed
+    attribution: 'GitHub blog, "GitHub availability report: June 2026"'
+    kind: same-provider
+    serves: [github-2026-08-17]
+    reason: >-
+      June 10 incident: intermittent authentication failures on about 9% of REST and GraphQL API
+      requests, as in "residual impact in the form of sporadic authentication failures"; June 8
+      incident: HTTP 504 errors on about 17% of signed-out web requests.
+
+  - doc_id: github-availability-2023-11
+    provider: GitHub
+    title: 'GitHub Availability Report: November 2023'
+    url: 'https://github.blog/news-insights/company-news/github-availability-report-november-2023/'
+    published_at: "2023-12-13"
+    filename: github-availability-2023-11.html
+    sha256: ""
+    retrieved_at: ""
+    licence: Copyright GitHub; not redistributed
+    attribution: 'GitHub blog, "GitHub Availability Report: November 2023"'
+    kind: same-provider
+    serves: [github-2026-08-17]
+    reason: >-
+      November 3 incident: failed authorization checks returned 404 or error responses on most page
+      and API requests, as in "high error rates around 20% for web experiences and api traffic".
+
+  - doc_id: aws-2021-12-07
+    provider: AWS
+    title: Summary of the AWS Service Event in the Northern Virginia (US-EAST-1) Region
+    url: 'https://aws.amazon.com/message/12721/'
+    published_at: "2021-12-10"
+    filename: aws-2021-12-07.html
+    sha256: ""
+    retrieved_at: ""
+    licence: Copyright Amazon; not redistributed
+    attribution: >-
+      AWS post-event summary, "Summary of the AWS Service Event in the Northern Virginia (US-EAST-1)
+      Region"
+    kind: other-provider
+    serves: [github-2026-08-17, google-cloud-2026-07-14]
+    reason: >-
+      API errors across many services at once, with console sign-in failures and STS latency causing
+      login failures, as in "residual impact in the form of sporadic authentication failures";
+      congestion between two internal networks while running instances kept working, close to
+      "Storage and Compute services appear to be unaffected".
+
+  - doc_id: github-2018-02-28
+    provider: GitHub
+    title: February 28th DDoS Incident Report
+    url: 'https://github.blog/news-insights/company-news/ddos-incident-report/'
+    published_at: "2018-03-01"
+    filename: github-2018-02-28.html
+    sha256: ""
+    retrieved_at: ""
+    licence: Copyright GitHub; not redistributed
+    attribution: 'GitHub blog, "February 28th DDoS Incident Report"'
+    kind: attack-suspected
+    serves: [github-2026-08-17]
+    reason: >-
+      GitHub.com fully and then intermittently unavailable for all web and API users, a site-wide
+      form of "high error rates around 20% for web experiences and api traffic"; the report confirms
+      a DDoS attack.
+
+  - doc_id: github-2016-01-28
+    provider: GitHub
+    title: January 28th Incident Report
+    url: 'https://github.blog/news-insights/company-news/january-28th-incident-report/'
+    published_at: "2016-02-03"
+    filename: github-2016-01-28.html
+    sha256: ""
+    retrieved_at: ""
+    licence: Copyright GitHub; not redistributed
+    attribution: 'GitHub blog, "January 28th Incident Report"'
+    kind: attack-suspected
+    serves: [github-2026-08-17]
+    reason: >-
+      Site-wide HTTP 503 errors for two hours across web and API, a stronger form of "high error
+      rates around 20% for web experiences and api traffic"; the team first brought up DDoS defenses
+      and later ruled an attack out.
+
+  - doc_id: google-cloud-2018-10-11
+    provider: Google Cloud
+    title: 'Google Cloud Networking Incident #18016'
+    url: 'https://status.cloud.google.com/incident/cloud-networking/18016'
+    published_at: "2018-10-12"
+    filename: google-cloud-2018-10-11.html
+    sha256: ""
+    retrieved_at: ""
+    licence: Copyright Google; not redistributed
+    attribution: 'Google Cloud Status Dashboard, "Google Cloud Networking Incident #18016"'
+    kind: same-provider
+    serves: [google-cloud-2026-07-14]
+    reason: >-
+      BGP sessions between one zone and the backbone were lost, so VMs in that zone could not reach
+      other regions while VM-to-VM traffic inside it kept working, close to "Border Gateway Protocol
+      (BGP) session flapping between cluster zones" and "inter-site communication failures to their
+      GCVE environments within the affected zones".
+
+  - doc_id: google-cloud-2019-04-04
+    provider: Google Cloud
+    title: 'Google Cloud Networking Incident #19007'
+    url: 'https://status.cloud.google.com/incident/cloud-networking/19007'
+    published_at: "2019-04-10"
+    filename: google-cloud-2019-04-04.html
+    sha256: ""
+    retrieved_at: ""
+    licence: Copyright Google; not redistributed
+    attribution: 'Google Cloud Status Dashboard, "Google Cloud Networking Incident #19007"'
+    kind: same-provider
+    serves: [google-cloud-2026-07-14]
+    reason: >-
+      Cloud Router tasks lost state and had to re-establish their BGP sessions, breaking
+      Interconnect and dynamic VPN routes, close to "Border Gateway Protocol (BGP) session flapping
+      between cluster zones" and "the cluster zones are unable to safely synchronize state".
+
+  - doc_id: google-cloud-2016-04-11
+    provider: Google Cloud
+    title: 'Google Compute Engine Incident #16007'
+    url: 'https://status.cloud.google.com/incident/compute/16007'
+    published_at: "2016-04-13"
+    filename: google-cloud-2016-04-11.html
+    sha256: ""
+    retrieved_at: ""
+    licence: Copyright Google; not redistributed
+    attribution: 'Google Cloud Status Dashboard, "Google Compute Engine Incident #16007"'
+    kind: same-provider
+    serves: [google-cloud-2026-07-14, cloudflare-2026-02-20]
+    reason: >-
+      Instances in all regions lost external connectivity while internal traffic and Cloud Storage
+      kept working, as in "zonal outages impacting network connectivity across multiple regions" and
+      "Storage and Compute services appear to be unaffected"; for the development case (other
+      provider) the IP blocks stopped being announced, as in "the last subset of prefixes which were
+      withdrawn".
+
+  - doc_id: github-2018-10-21
+    provider: GitHub
+    title: October 21 post-incident analysis
+    url: 'https://github.blog/news-insights/company-news/oct21-post-incident-analysis/'
+    published_at: "2018-10-30"
+    filename: github-2018-10-21.html
+    sha256: ""
+    retrieved_at: ""
+    licence: Copyright GitHub; not redistributed
+    attribution: 'GitHub blog, "October 21 post-incident analysis"'
+    kind: decoy
+    serves: [google-cloud-2026-07-14]
+    reason: >-
+      A brief loss of connectivity between a network hub and the primary data center left database
+      clusters in two sites inconsistent for a day, close to "inter-site communication failures to
+      their GCVE environments within the affected zones" and "the cluster zones are unable to safely
+      synchronize state". Decoy: the same symptom, with a cause checked to differ from the case's.
+
+  - doc_id: cloudflare-2020-07-17
+    provider: Cloudflare
+    title: Cloudflare outage on July 17, 2020
+    url: 'https://blog.cloudflare.com/cloudflare-outage-on-july-17-2020/'
+    published_at: "2020-07-18"
+    filename: cloudflare-2020-07-17.html
+    sha256: ""
+    retrieved_at: ""
+    licence: Copyright Cloudflare; not redistributed
+    attribution: 'Cloudflare blog, "Cloudflare outage on July 17, 2020"'
+    kind: other-provider
+    serves: [google-cloud-2026-07-14, cloudflare-2026-02-20]
+    reason: >-
+      A BGP routing error on the private backbone dropped traffic in many locations on several
+      continents, as in "zonal outages impacting network connectivity across multiple regions"; for
+      the development case (same provider) users in those locations could not reach the network, as
+      in "Users may experience errors or timeouts reaching Cloudflare’s network or services."
+
+  - doc_id: cloudflare-2025-07-14
+    provider: Cloudflare
+    title: Cloudflare 1.1.1.1 Incident on July 14, 2025
+    url: 'https://blog.cloudflare.com/cloudflare-1-1-1-1-incident-on-july-14-2025/'
+    published_at: "2025-07-15"
+    filename: cloudflare-2025-07-14.html
+    sha256: ""
+    retrieved_at: ""
+    licence: Copyright Cloudflare; not redistributed
+    attribution: 'Cloudflare blog, "Cloudflare 1.1.1.1 Incident on July 14, 2025"'
+    kind: attack-suspected
+    serves: [google-cloud-2026-07-14, cloudflare-2026-02-20]
+    reason: >-
+      Resolver prefixes were withdrawn worldwide in BGP and a concurrent prefix hijack was seen, a
+      routing symptom close to "Border Gateway Protocol (BGP) session flapping between cluster
+      zones" and the same as "the last subset of prefixes which were withdrawn"; the post rules out
+      an attack and the hijack as the cause.
+
+  - doc_id: cloudflare-2024-06-27
+    provider: Cloudflare
+    title: Cloudflare 1.1.1.1 incident on June 27, 2024
+    url: 'https://blog.cloudflare.com/cloudflare-1111-incident-on-june-27-2024/'
+    published_at: "2024-07-04"
+    filename: cloudflare-2024-06-27.html
+    sha256: ""
+    retrieved_at: ""
+    licence: Copyright Cloudflare; not redistributed
+    attribution: 'Cloudflare blog, "Cloudflare 1.1.1.1 incident on June 27, 2024"'
+    kind: attack-suspected
+    serves: [google-cloud-2026-07-14, cloudflare-2026-02-20]
+    reason: >-
+      A BGP route hijack and route leak made 1.1.1.1 unreachable or slow from over 300 networks, a
+      routing symptom close to "Border Gateway Protocol (BGP) session flapping between cluster
+      zones" and the same as "Users may experience errors or timeouts reaching Cloudflare’s network
+      or services."
+
+  - doc_id: cloudflare-2025-09-12
+    provider: Cloudflare
+    title: A deep dive into Cloudflare’s September 12, 2025 dashboard and API outage
+    url: 'https://blog.cloudflare.com/deep-dive-into-cloudflares-sept-12-dashboard-and-api-outage/'
+    published_at: "2025-09-13"
+    filename: cloudflare-2025-09-12.html
+    sha256: ""
+    retrieved_at: ""
+    licence: Copyright Cloudflare; not redistributed
+    attribution: >-
+      Cloudflare blog, "A deep dive into Cloudflare’s September 12, 2025 dashboard and API outage"
+    kind: decoy
+    serves: [cloudflare-2025-11-18]
+    reason: >-
+      Dashboard and a set of APIs unavailable for about an hour, with API 5xx errors while proxied
+      traffic was unaffected, as in "issues logging into or using the Cloudflare dashboard". Decoy:
+      the same symptom, with a cause checked to differ from the case's.
+
+  - doc_id: cloudflare-2023-11-02
+    provider: Cloudflare
+    title: Post mortem on the Cloudflare Control Plane and Analytics Outage
+    url: 'https://blog.cloudflare.com/post-mortem-on-cloudflare-control-plane-and-analytics-outage/'
+    published_at: "2023-11-04"
+    filename: cloudflare-2023-11-02.html
+    sha256: ""
+    retrieved_at: ""
+    licence: Copyright Cloudflare; not redistributed
+    attribution: >-
+      Cloudflare blog, "Post mortem on the Cloudflare Control Plane and Analytics
+      Outage"
+    kind: decoy
+    serves: [cloudflare-2025-11-18]
+    reason: >-
+      Intermittent errors when making changes in the dashboard and API, with logs and analytics down
+      for most customers, as in "issues logging into or using the Cloudflare dashboard". Decoy: the
+      same symptom, with a cause checked to differ from the case's.
+
+  - doc_id: github-availability-2023-09
+    provider: GitHub
+    title: 'GitHub Availability Report: September 2023'
+    url: 'https://github.blog/news-insights/company-news/github-availability-report-september-2023/'
+    published_at: "2023-10-11"
+    filename: github-availability-2023-09.html
+    sha256: ""
+    retrieved_at: ""
+    licence: Copyright GitHub; not redistributed
+    attribution: 'GitHub blog, "GitHub Availability Report: September 2023"'
+    kind: decoy
+    serves: [github-2026-08-17]
+    reason: >-
+      September 5 incident: SAML login, Actions, Issues, pull requests, Pages, API, Webhooks,
+      Codespaces and Packages down or degraded at once, as in "SAML and OIDC authentication, SCIM,
+      and Team Sync are also impacted." Decoy: the same symptom, with a cause checked to differ from
+      the case's.
+
+  - doc_id: cloudflare-2025-08-21
+    provider: Cloudflare
+    title: Cloudflare incident on August 21, 2025
+    url: 'https://blog.cloudflare.com/cloudflare-incident-on-august-21-2025/'
+    published_at: "2025-08-22"
+    filename: cloudflare-2025-08-21.html
+    sha256: ""
+    retrieved_at: ""
+    licence: Copyright Cloudflare; not redistributed
+    attribution: 'Cloudflare blog, "Cloudflare incident on August 21, 2025"'
+    kind: decoy
+    serves: [cloudflare-2026-02-20]
+    reason: >-
+      High latency, packet loss and failures reaching origins for the subset of customers behind one
+      cloud region, with BGP withdrawals on the path, as in "Users may experience errors or timeouts
+      reaching Cloudflare’s network or services." Decoy: the same symptom, with a cause checked to
+      differ from the case's.
