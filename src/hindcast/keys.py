@@ -364,7 +364,11 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     cases = load_cases()
     if args.command == "freeze":
-        print(f"{args.case_id}: frozen, sha256 {freeze(args.case_id)}")
+        try:
+            print(f"{args.case_id}: frozen, sha256 {freeze(args.case_id)}")
+        except (ValueError, OSError) as error:
+            print(f"{args.case_id}: {error}")
+            return 1
         return 0
     failed = False
     for case_id in args.case or sorted(cases):

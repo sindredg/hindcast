@@ -234,3 +234,14 @@ def test_a_quote_with_words_in_another_order_is_still_reported():
     )
 
     assert "root_cause: quote not found word for word in the postmortem" in problems
+
+
+def test_freeze_command_reports_a_refusal_and_exits_1(monkeypatch, tmp_path, capsys):
+    from hindcast import keys
+
+    monkeypatch.setattr(
+        keys, "freeze", lambda case_id: (_ for _ in ()).throw(ValueError("frozen already"))
+    )
+
+    assert keys.main(["freeze", "example-2026"]) == 1
+    assert capsys.readouterr().out == "example-2026: frozen already\n"
