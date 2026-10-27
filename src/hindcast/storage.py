@@ -49,3 +49,12 @@ def upload_bytes(
 ) -> None:
     """Upload one blob; an existing blob is kept unless overwrite is set."""
     (client or container(container_name)).upload_blob(name, data, overwrite=overwrite)
+
+
+def upload_source(prefix: str, filename: str, data: bytes) -> None:
+    """Upload a captured page to sources/<prefix>/<filename>, never over an existing one.
+
+    A source that changes after its hash is pinned is a different source, so
+    replacing one means deleting the blob by hand and pinning the new hash.
+    """
+    upload_bytes(SOURCES, f"{prefix}/{filename}", data)

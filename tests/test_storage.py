@@ -2,8 +2,9 @@ import hashlib
 
 import pytest
 
+from hindcast import storage
 from hindcast.cases import SourceFile
-from hindcast.storage import SourceMismatch, download_source, upload_bytes
+from hindcast.storage import SourceMismatch, download_source, upload_bytes, upload_source
 
 CONTENT = b'{"incident": "snapshot"}\n'
 
@@ -78,3 +79,13 @@ def test_upload_overwrites_only_when_asked():
     upload_bytes("extracted", "evidence/c.json", b"{}", overwrite=True, client=client)
 
     assert client.uploaded == [("evidence/c.json", b"{}", True)]
+
+
+def test_upload_source_uses_the_sources_container_and_never_overwrites(monkeypatch):
+    client, names = FakeContainer(), []
+    monkeypatch.setattr(storage, "container", lambda name: names.append(name) or client)
+
+    upload_source("library", "aws-2025-10-20.html", b"<html></html>")
+
+    assert names == ["sources"]
+    assert client.uploaded == [("library/aws-2025-10-20.html", b"<html></html>", False)]
