@@ -42,6 +42,18 @@ cases:
         sha256: e2f07ee36e46c93c1b1e252e986dfc63a20640980b74f7da48cb528d2814bfe5
         retrieved_at: "2026-10-25T21:09:30Z"
         kind: postmortem
+      # Radar offers whole UTC days only; this view runs to 23:45, past the
+      # resolved update at 19:28:36. The later hours show traffic back near the
+      # week before and nothing about the cause. The shaded band is Radar's own
+      # marking of the event, without text.
+      - doc_id: cloudflare-radar-http-2025-11-18
+        filename: radar-http-traffic.png
+        url: https://radar.cloudflare.com/traffic?dateStart=2025-11-18&dateEnd=2025-11-18
+        licence: CC BY 4.0
+        attribution: Cloudflare Radar, "HTTP traffic worldwide"
+        sha256: 8f7e33471b77f8da8a57d951ccedf87ab9cde8f105d60a4415281eebee7fd6ff
+        retrieved_at: "2026-10-27T17:49:44Z"
+        kind: chart
 
   - case_id: github-2026-08-17
     title: Incident with GitHub.com
