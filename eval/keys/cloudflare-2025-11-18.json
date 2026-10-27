@@ -1,0 +1,149 @@
+{
+  "attack": "not an attack",
+  "attack_basis": "stated",
+  "attack_quote": "The issue was not caused, directly or indirectly, by a cyber attack or malicious activity of any kind.",
+  "case_id": "cloudflare-2025-11-18",
+  "contributing_factors": [
+    {
+      "source_quote": "Note how the query does not filter for the database name.",
+      "stated_during_incident": false,
+      "text": "The feature-file query did not filter by database name, so after the permissions change it also returned the columns of the underlying r0 tables, more than doubling the features."
+    },
+    {
+      "source_quote": "When the bad file with more than 200 features was propagated to our servers, this limit was hit — resulting in the system panicking.",
+      "stated_during_incident": false,
+      "text": "The Bot Management module preallocates memory and enforces a hard limit of 200 features; the doubled feature file exceeded this limit and triggered an unhandled panic in FL2 Rust code."
+    },
+    {
+      "source_quote": "The file was being generated every five minutes by a query running on a ClickHouse database cluster, which was being gradually updated to improve permissions management.",
+      "stated_during_incident": false,
+      "text": "Feature files were generated and propagated every five minutes; mixed deployment across ClickHouse nodes caused intermittent recoveries and failures, making diagnosis harder."
+    },
+    {
+      "source_quote": "This feature file is refreshed every few minutes and published to our entire network and allows us to react to variations in traffic flows across the Internet.",
+      "stated_during_incident": false,
+      "text": "The feature file is refreshed every few minutes and published to the entire network, so the bad file reached every machine quickly."
+    },
+    {
+      "source_quote": "While it turned out to be a coincidence, it led some of the team diagnosing the issue to believe that an attacker may be targeting both our systems as well as our status page.",
+      "stated_during_incident": false,
+      "text": "The team first suspected a hyper-scale DDoS attack, partly because Cloudflare's status page, hosted off Cloudflare, went down at the same time by coincidence."
+    },
+    {
+      "source_quote": "This was due to large amounts of CPU being consumed by our debugging and observability systems, which automatically enhance uncaught errors with additional debugging information.",
+      "stated_during_incident": false,
+      "text": "Debugging and observability systems consumed large amounts of CPU enhancing uncaught errors, which increased CDN latency."
+    },
+    {
+      "source_quote": "This backlog, in combination with retry attempts, resulted in elevated latency, reducing dashboard availability.",
+      "stated_during_incident": false,
+      "text": "After the feature file was restored, a backlog of login attempts and retries overwhelmed the dashboard until control plane concurrency was scaled."
+    }
+  ],
+  "fixes": [
+    {
+      "source_quote": "Hardening ingestion of Cloudflare-generated configuration files in the same way we would for user-generated input",
+      "stated_during_incident": false,
+      "text": "Harden ingestion of Cloudflare-generated configuration files as for user-generated input."
+    },
+    {
+      "source_quote": "Enabling more global kill switches for features",
+      "stated_during_incident": false,
+      "text": "Enable more global kill switches for features."
+    },
+    {
+      "source_quote": "Eliminating the ability for core dumps or other error reports to overwhelm system resources",
+      "stated_during_incident": false,
+      "text": "Stop core dumps and other error reports from overwhelming system resources."
+    },
+    {
+      "source_quote": "Reviewing failure modes for error conditions across all core proxy modules",
+      "stated_during_incident": false,
+      "text": "Review failure modes for error conditions across all core proxy modules."
+    }
+  ],
+  "root_cause": {
+    "source_quote": "A change to one of our database systems' permissions which caused the database to output multiple entries into a “feature file” used by our Bot Management system.",
+    "stated_during_incident": false,
+    "text": "A database permissions change caused ClickHouse queries to return duplicate feature rows, which doubled the feature configuration file size; the oversized file exceeded a preallocated feature limit in the proxy's Bot Management module, causing the proxy to panic and return 5xx errors."
+  },
+  "timeline": [
+    {
+      "event": "Database access control change deployed; change making underlying r0 table metadata visible was applied.",
+      "source_quote": "11:05\nNormal.\nDatabase access control change deployed.",
+      "stated_during_incident": false,
+      "time": "2025-11-18T11:05Z",
+      "time_as_written": "11:05"
+    },
+    {
+      "event": "Cloudflare's network began experiencing significant failures to deliver core network traffic; users saw error pages.",
+      "source_quote": "On 18 November 2025 at 11:20 UTC (all times in this blog are UTC), Cloudflare's network began experiencing significant failures to deliver core network traffic.",
+      "stated_during_incident": true,
+      "time": "2025-11-18T11:20Z",
+      "time_as_written": "On 18 November 2025 at 11:20 UTC (all times in this blog are UTC)"
+    },
+    {
+      "event": "Impact starts as deployment reaches customer environments and first errors observed on customer HTTP traffic.",
+      "source_quote": "11:28\nImpact starts.\nDeployment reaches customer environments, first errors observed on customer HTTP traffic.",
+      "stated_during_incident": true,
+      "time": "2025-11-18T11:28Z",
+      "time_as_written": "11:28"
+    },
+    {
+      "event": "First automated test detected the issue; manual investigation started at 11:32 and incident call created at 11:35.",
+      "source_quote": "The first automated test detected the issue at 11:31 and manual investigation started at 11:32. The incident call was created at 11:35.",
+      "stated_during_incident": false,
+      "time": "2025-11-18T11:31Z",
+      "time_as_written": "11:31"
+    },
+    {
+      "event": "Workers KV and Cloudflare Access bypass implemented; impact reduced by falling back to a prior proxy version for those services.",
+      "source_quote": "13:05\nWorkers KV and Cloudflare Access bypass implemented — impact reduced.",
+      "stated_during_incident": true,
+      "time": "2025-11-18T13:05Z",
+      "time_as_written": "13:05"
+    },
+    {
+      "event": "Work focused on rollback of the Bot Management configuration file to a last-known-good version.",
+      "source_quote": "13:37\nWork focused on rollback of the Bot Management configuration file to a last-known-good version.",
+      "stated_during_incident": false,
+      "time": "2025-11-18T13:37Z",
+      "time_as_written": "13:37"
+    },
+    {
+      "event": "Stopped creation and propagation of new Bot Management configuration files and tested a known-good file.",
+      "source_quote": "14:24\nStopped creation and propagation of new Bot Management configuration files.",
+      "stated_during_incident": false,
+      "time": "2025-11-18T14:24Z",
+      "time_as_written": "14:24"
+    },
+    {
+      "event": "Main impact resolved after deploying a correct Bot Management configuration file globally and restarting core proxy; downstream errors reduced.",
+      "source_quote": "14:30\nMain impact resolved. Downstream impacted services started observing reduced errors.",
+      "stated_during_incident": true,
+      "time": "2025-11-18T14:30Z",
+      "time_as_written": "14:30"
+    },
+    {
+      "event": "A backlog of login attempts starts a second period of reduced dashboard availability.",
+      "source_quote": "This showed up as reduced availability during two time periods: from 11:30 to 13:10, and between 14:40 and 15:30, as seen in the graph below.",
+      "stated_during_incident": true,
+      "time": "2025-11-18T14:40Z",
+      "time_as_written": "between 14:40 and 15:30"
+    },
+    {
+      "event": "Scaling control plane concurrency restores dashboard availability.",
+      "source_quote": "Scaling control plane concurrency restored availability at approximately 15:30.",
+      "stated_during_incident": false,
+      "time": "2025-11-18T15:30Z",
+      "time_as_written": "approximately 15:30"
+    },
+    {
+      "event": "All services resolved and impact ended after restarting remaining services.",
+      "source_quote": "17:06\nAll services resolved. Impact ends.",
+      "stated_during_incident": true,
+      "time": "2025-11-18T17:06Z",
+      "time_as_written": "17:06"
+    }
+  ]
+}

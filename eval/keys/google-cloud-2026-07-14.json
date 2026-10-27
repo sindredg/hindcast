@@ -1,0 +1,78 @@
+{
+  "attack": "not an attack",
+  "attack_basis": "implied",
+  "attack_quote": "A network configuration update intended to prepare the cloud network infrastructure for new capabilities was deployed to the foundational network control plane.",
+  "case_id": "google-cloud-2026-07-14",
+  "contributing_factors": [
+    {
+      "source_quote": "Automated safeguards did not block the deployment because the configuration passed initial payload validations.",
+      "stated_during_incident": false,
+      "text": "The configuration payload passed initial payload validations so automated safeguards did not block the deployment."
+    },
+    {
+      "source_quote": "Standard routing health-checking protocols, such as Border Gateway Protocol (BGP) and Bidirectional Forwarding Detection (BFD), remained fully functional because their control plane sessions run on separate, unaffected address spaces.",
+      "stated_during_incident": false,
+      "text": "Standard routing health-checking protocols ran on separate address spaces and remained functional, so failover mechanisms did not detect the selective private IP range being dropped."
+    },
+    {
+      "source_quote": "Because these workloads are pinned to a single zone without active cross-site replication, they cannot survive inter-site network disruptions.",
+      "stated_during_incident": false,
+      "text": "Workloads in non-vSAN replicated configurations were pinned to a single zone without cross-site replication, so they could not survive the inter-site disruption."
+    }
+  ],
+  "fixes": [
+    {
+      "source_quote": "Expanded Testing: We are adding more detailed GCVE network setups to our existing testing environments.",
+      "stated_during_incident": false,
+      "text": "Add more detailed GCVE network setups to testing environments to automatically test future network updates against these configurations before they go live."
+    },
+    {
+      "source_quote": "Service-Level Data Path Failover: We are implementing additional service-level data path failover mechanisms that actively probe the specific data-tunneling traffic space.",
+      "stated_during_incident": false,
+      "text": "Implement service-level data path failover mechanisms that actively probe the data-tunneling traffic space to trigger failover when the data plane is degraded."
+    },
+    {
+      "source_quote": "Detailed Alerting: We are adding faster, more specific alerts for connection issues between zones.",
+      "stated_during_incident": false,
+      "text": "Add faster, more specific alerts for connection issues between zones to catch disruptions early."
+    },
+    {
+      "source_quote": "Improved Cluster Resilience: We are fine-tuning the cluster's high-availability and storage settings.",
+      "stated_during_incident": false,
+      "text": "Fine-tune cluster high-availability and storage settings to make VMs more resilient to short network drops."
+    },
+    {
+      "source_quote": "Workload Resilience Alignment (Shared Responsibility): We are proactively reaching out to customers utilizing non-vSAN replicated virtual machine configurations within Stretched Clusters.",
+      "stated_during_incident": false,
+      "text": "Proactively reach out to customers using non-vSAN replicated VM configurations to assist with auditing storage policies and planning secondary zone capacity."
+    }
+  ],
+  "root_cause": {
+    "source_quote": "A network configuration update intended to prepare the cloud network infrastructure for new capabilities was deployed to the foundational network control plane.",
+    "stated_during_incident": true,
+    "text": "A network configuration update deployed to the foundational network control plane exposed an implementation gap in the control plane's routing logic, causing hosts to misconfigure program routing tables and drop traffic for the private IP address space used by GCVE Stretched Clusters, which severed inter-zonal communications and triggered VMware HA failovers."
+  },
+  "timeline": [
+    {
+      "event": "Inter-site communication failures began for GCVE Stretched Cluster customers in affected zones, caused by a network configuration update.",
+      "source_quote": "On Tuesday, 14 July 2026 10:00 PT, Google Cloud VMware Engine (GCVE) Stretched Cluster customers in the australia-southeast2 and europe-west3 zones experienced inter-site communication failures.",
+      "stated_during_incident": true,
+      "time": "2026-07-14T17:00Z",
+      "time_as_written": "14 July 2026 10:00 US/Pacific"
+    },
+    {
+      "event": "A status update names a recent configuration update as the likely cause of the inter-zone disruption.",
+      "source_quote": "Our investigation has identified a recent configuration update that is the likely cause of the inter-zone network disruption.",
+      "stated_during_incident": true,
+      "time": "2026-07-14T23:05Z",
+      "time_as_written": "14 Jul 2026 16:05 PDT"
+    },
+    {
+      "event": "GCVE Stretched Cluster inter-zonal connectivity was completely restored after engineers rolled back the problematic configuration and reset network state.",
+      "source_quote": "GCVE Stretched Cluster inter-zonal connectivity was completely restored for all supported locations on Tuesday, 14 July 2026 at 20:40 US/Pacific.",
+      "stated_during_incident": false,
+      "time": "2026-07-15T03:40Z",
+      "time_as_written": "14 July 2026 20:40 US/Pacific"
+    }
+  ]
+}
