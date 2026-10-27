@@ -1,9 +1,10 @@
 """Content Understanding analyzers for library pages, chart images, and answer keys.
 
 The analyzer definitions are JSON files in analyzers/, so every extract traces
-to a committed definition. An analyzer in the service that differs from its
-file is refused instead of used. replace_analyzer recreates it from the file;
-it needs no delete, which the Content Understanding Contributor role lacks.
+to a committed definition. ensure_analyzers refuses an analyzer in the service
+that differs from its file; analyze runs the analyzer it is given without that
+check (issue #15). replace_analyzer recreates an analyzer from its file; it
+needs no delete, which the Content Understanding Contributor role lacks.
 
 Calls go to the Foundry resource endpoint with a DefaultAzureCredential token.
 They need a Content Understanding role at resource scope; the project-scope

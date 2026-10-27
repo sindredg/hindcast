@@ -144,7 +144,7 @@ def test_page_dates_in_each_site_format(text, iso):
     assert page_date(text) == iso
 
 
-def test_library_figures_are_never_displayable():
+def test_only_cc_by_4_0_is_displayable():
     assert display_allowed("CC BY 4.0")
     assert not display_allowed("Copyright Cloudflare; not redistributed")
     assert not display_allowed("CC BY-NC 4.0")
