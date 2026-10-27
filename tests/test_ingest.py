@@ -2,12 +2,19 @@ import hashlib
 import json
 
 import pytest
-from azure.core.exceptions import ResourceExistsError
+from azure.core.exceptions import ResourceExistsError, ResourceNotFoundError
 
 from hindcast import ingest
 from hindcast.cases import Case, SourceFile
 from hindcast.evidence import cut, evidence_json
-from hindcast.ingest import EvidenceDiffers, ingest_evidence, summary
+from hindcast.ingest import (
+    EvidenceDiffers,
+    ingest_evidence,
+    ingest_library,
+    library_summary,
+    summary,
+)
+from hindcast.library import LibraryDocument
 from hindcast.storage import SourceMismatch
 
 PLANTED_CAUSE = "The cause was a planted sentence."
@@ -22,6 +29,12 @@ SNAPSHOT = json.dumps(
         ],
     }
 ).encode()
+
+LIB_PAGE = (
+    b'<html><body><div class="post-content"><header><time class="date">June 12, 2025</time>'
+    b'<h1>Example outage</h1></header><div class="article-content"><p>Body.</p></div></div>'
+    b"</body></html>"
+)
 
 
 def case(snapshot: bytes = SNAPSHOT) -> Case:
@@ -62,6 +75,8 @@ class FakeContainer:
         self.uploaded: list[tuple[str, bytes, bool]] = []
 
     def download_blob(self, name: str) -> FakeBlob:
+        if name not in self.existing and not self.data:
+            raise ResourceNotFoundError("no such blob")
         return FakeBlob(self.existing.get(name, self.data))
 
     def upload_blob(self, name: str, data: bytes, overwrite: bool = False) -> None:
@@ -149,3 +164,78 @@ def test_main_reports_each_failing_case_and_exits_1(monkeypatch, capsys):
     assert "broken-case: no update marks the incident resolved" in out
     assert "cloudflare-2026-02-20: 2 updates" in out
     assert "  blob: uploaded" in out
+
+
+LIB_DOC = LibraryDocument(
+    doc_id="cloudflare-2025-06-12",
+    provider="Cloudflare",
+    title="Example outage",
+    url="https://blog.cloudflare.com/example-outage/",
+    published_at="2025-06-12",
+    filename="cloudflare-2025-06-12.html",
+    sha256=hashlib.sha256(LIB_PAGE).hexdigest(),
+    retrieved_at="2026-10-27T15:58:00Z",
+    licence="Copyright Cloudflare; not redistributed",
+    attribution="Cloudflare blog",
+    kind="same-provider",
+    serves=("cloudflare-2026-02-20",),
+    reason="r",
+)
+LIB_CASES = {"cloudflare-2026-02-20": case()}
+
+
+def fake_analyzer(calls: list):
+    def analyzer(analyzer_id, data, mime):
+        calls.append(analyzer_id)
+        return {
+            "result": {"contents": [{"markdown": "# Example outage\n\nBody.\n"}]},
+            "usage": {"contextualizationTokens": 1000},
+        }
+
+    return analyzer
+
+
+def test_library_writes_the_extract_locally_and_to_blob(tmp_path):
+    calls, extracted = [], FakeContainer()
+
+    data, status, usage = ingest_library(
+        LIB_DOC,
+        LIB_CASES,
+        out_dir=tmp_path,
+        client=FakeContainer(LIB_PAGE),
+        uploader=extracted,
+        analyzer=fake_analyzer(calls),
+        fetch=lambda url: b"",
+    )
+
+    assert status == "uploaded" and calls == ["hindcast_postmortem"]
+    assert (tmp_path / "cloudflare-2025-06-12.json").read_bytes() == data
+    assert extracted.uploaded == [("library/cloudflare-2025-06-12.json", data, False)]
+    assert json.loads(data)["sections"][0]["section_id"] == "lib/cloudflare-2025-06-12/s1"
+    assert usage == {"contextualizationTokens": 1000}
+
+
+def test_library_extract_already_in_blob_is_reused_without_calling_the_service(tmp_path):
+    calls = []
+    extracted = FakeContainer(existing={"library/cloudflare-2025-06-12.json": b'{"kept": 1}\n'})
+
+    data, status, usage = ingest_library(
+        LIB_DOC,
+        LIB_CASES,
+        out_dir=tmp_path,
+        client=FakeContainer(LIB_PAGE),
+        uploader=extracted,
+        analyzer=fake_analyzer(calls),
+        fetch=lambda url: b"",
+    )
+
+    assert (status, calls, usage) == ("reused", [], {})
+    assert (tmp_path / "cloudflare-2025-06-12.json").read_bytes() == b'{"kept": 1}\n'
+
+
+def test_library_summary_prints_counts_not_text():
+    data = json.dumps(
+        {"doc_id": "d", "sections": [{"markdown": PLANTED_CAUSE}], "figures": [], "dropped": ["x"]}
+    ).encode()
+
+    assert library_summary(data) == "d: 1 sections, 0 figures, dropped 1"

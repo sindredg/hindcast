@@ -8,14 +8,22 @@ Contributor. Captured sources live in the "sources" container under
 
 import functools
 import hashlib
+from typing import Protocol
 
 from azure.identity import DefaultAzureCredential
 from azure.storage.blob import BlobServiceClient, ContainerClient
 
-from hindcast.cases import SourceFile
 from hindcast.config import StorageSettings, load_settings
 
 SOURCES = "sources"
+
+
+class Pinned(Protocol):
+    """A registry entry with a pinned file: a case source or a library document."""
+
+    doc_id: str
+    filename: str
+    sha256: str
 
 
 class SourceMismatch(ValueError):
@@ -35,9 +43,12 @@ def container(name: str) -> ContainerClient:
     return _service().get_container_client(name)
 
 
-def download_source(case_id: str, source: SourceFile, client=None) -> bytes:
-    """The source's bytes from Blob Storage, refused unless they match the registry's hash."""
-    data = (client or container(SOURCES)).download_blob(f"{case_id}/{source.filename}").readall()
+def download_source(prefix: str, source: Pinned, client=None) -> bytes:
+    """The bytes at sources/<prefix>/<filename>, refused unless they match the registry's hash.
+
+    prefix is the case ID for a case source, "library" for a library page.
+    """
+    data = (client or container(SOURCES)).download_blob(f"{prefix}/{source.filename}").readall()
     # A page captured again, or a changed blob, is not the source the case was built on.
     if hashlib.sha256(data).hexdigest() != source.sha256:
         raise SourceMismatch(f"{source.doc_id}: downloaded bytes do not match the registry")
