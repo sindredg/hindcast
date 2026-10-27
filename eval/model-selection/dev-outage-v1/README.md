@@ -94,7 +94,7 @@ Luna's answers cost about a sixteenth of sol's: a twentieth of the price per tok
 |---|---|
 | `questions-v1.jsonl` | The five questions and expected answers. Frozen before the runs. |
 | `compare_timeline.py` | One timeline call per deployment and effort; prints token usage. |
-| `build_dataset.py` | Builds the upload file `data/sources/model-selection/dataset-dev-outage-v1.jsonl` (ignored by Git) by adding the status text as `context`. The status text is Cloudflare's and is not committed. |
+| `build_dataset.py` | Builds the upload file `data/sources/model-selection/dataset-dev-outage-v1.jsonl` (ignored by Git) by adding the status text as `context`, cut by the same rules as the case evidence (`hindcast.evidence`). The status text is Cloudflare's and is not committed. |
 | `run-<model>-dev-outage-v1.json` | The run record from the run page's "Raw JSON": status, prompt, target, sampling parameters, result counts, and token usage per model. Without the person who ran it and the portal link. |
 | `results-<model>-dev-outage-v1.jsonl` | One row per question: the answer, each evaluator's score and reason, and the judge's tokens. Every copy of the status text is `<context withheld>`. |
 | `log-excerpt-<model>-dev-outage-v1.txt` | The log lines the findings cite: evaluator versions, dropped fields, the chat completions fallback, and failed judge calls with the service's count of them. |

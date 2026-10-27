@@ -38,7 +38,7 @@ Findings about the providers' status pages and postmortems: what they keep, in w
 
 **Evidence:** read from the captured snapshots in the [case registry](../../data/cases.yaml), 2026-10-25.
 
-**For Hindcast:** the case evidence will end before the resolved update, keeping its time and status and withholding its text ([decision 5](../decisions/0005-evidence-library-and-answer-key.md)). The cut is built in milestone 2; so far only the development dataset for the model re-check (`build_dataset.py`) is cut this way.
+**For Hindcast:** the case evidence ends before the resolved update, keeping its time and status and withholding its text ([decision 5](../decisions/0005-evidence-library-and-answer-key.md)). `hindcast.evidence` cuts every case this way, and Google Cloud's report entries are dropped ([worklog](../worklogs/02-extraction.md#evidence-cut)).
 
 **Read more:** [GitHub status](https://www.githubstatus.com/), [Google Cloud Service Health](https://status.cloud.google.com/).
 

@@ -7,7 +7,7 @@ Each milestone has completion criteria: things shown to work, not things built. 
 | Milestone | State |
 | --- | --- |
 | 1. Foundations | Verified on 2026-10-26: the [gate](worklogs/01-foundations.md#gate) records the evidence per criterion and its accepted gaps, and the [independent review](worklogs/01-foundations.md#independent-review) ran with its fixes in. Decisions [0001](decisions/0001-scope.md) to [0012](decisions/0012-models.md) accepted. |
-| 2. Extraction | Planned |
+| 2. Extraction | Open: the evidence cut and ingestion from Blob Storage are built ([worklog](worklogs/02-extraction.md)); the library, its extraction, the charts, and the answer keys follow. |
 | 3. Retrieval | Planned |
 | 4. Investigator | Planned |
 | 5. Evaluation | Planned |
