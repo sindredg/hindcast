@@ -60,7 +60,7 @@
     <div class="diagram-container">
       <svg viewBox="0 0 1000 640" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="target-architecture-title target-architecture-desc">
         <title id="target-architecture-title">Hindcast target architecture</title>
-        <desc id="target-architecture-desc">A signed-in reader uses the Hindcast app on Container Apps, which runs the Foundry prompt agent, checks tool results and outputs with Content Safety and Language, reads the case evidence from Blob Storage, searches the postmortem library in AI Search, and sends traces to Application Insights; an ingest command captures status updates and postmortems, analyzes library pages and charts with Content Understanding, stores sources and answer keys in Blob Storage, and indexes only library documents, so answer keys never reach the index.</desc>
+        <desc id="target-architecture-desc">A signed-in reader uses the Hindcast app on Container Apps, which runs the Foundry prompt agent, checks tool results and outputs with Content Safety and Language, reads the case evidence from Blob Storage, searches the postmortem library in AI Search, and sends traces to Application Insights; an ingest command captures status updates and postmortems, analyzes library pages, charts, and answer keys with Content Understanding, stores sources and extracts in Blob Storage, and indexes only library documents, so answer keys never reach the index.</desc>
         <defs>
           <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#bfc0c0"/></marker>
           <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#f08a59"/></marker>
@@ -75,8 +75,8 @@
         <text x="836" y="93" fill="#949eb2" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">FOUNDRY RESOURCE</text>
 
         <rect x="488" y="296" width="192" height="112" rx="8" fill="rgba(245,245,245,0.02)" stroke="rgba(245,245,245,0.10)" stroke-width="0.8"/>
-        <rect x="524" y="300" width="120" height="12" rx="2" fill="#2d3142"/>
-        <text x="584" y="309" fill="#949eb2" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">SWITZERLAND NORTH</text>
+        <rect x="572" y="300" width="100" height="12" rx="2" fill="#2d3142"/>
+        <text x="622" y="309" fill="#949eb2" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">SWITZERLAND NORTH</text>
 
         <!-- Arrows: runtime path -->
         <line x1="200" y1="168" x2="288" y2="168" stroke="#739fdf" stroke-width="1.2" marker-end="url(#arrow-link)"/>
@@ -84,7 +84,7 @@
         <path d="M 464,192 H 688 Q 696,192 696,200 V 256 Q 696,264 704,264 H 728" fill="none" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
         <path d="M 332,240 V 276 Q 332,284 324,284 H 128 Q 120,284 120,292 V 328" fill="none" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
         <line x1="376" y1="240" x2="376" y2="328" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
-        <path d="M 420,240 V 276 Q 420,284 428,284 H 576 Q 584,284 584,292 V 328" fill="none" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <path d="M 420,240 V 276 Q 420,284 428,284 H 552 Q 560,284 560,292 V 328" fill="none" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
 
         <!-- Arrows: ingestion path -->
         <path d="M 200,488 H 368 Q 376,488 376,480 V 392" fill="none" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
@@ -160,7 +160,7 @@
         <rect x="736" y="496" width="24" height="12" rx="2" fill="transparent" stroke="rgba(245,245,245,0.40)" stroke-width="0.8"/>
         <text x="748" y="505" fill="#f5f5f5" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">CU</text>
         <text x="836" y="526" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Content Understanding</text>
-        <text x="836" y="542" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">postmortem + chart analyzers</text>
+        <text x="836" y="542" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">page · chart · key analyzers</text>
 
         <!-- Node: Application Insights (store) -->
         <rect x="40" y="328" width="160" height="64" rx="6" fill="#2d3142"/>
@@ -176,7 +176,7 @@
         <rect x="288" y="336" width="28" height="12" rx="2" fill="transparent" stroke="rgba(191,192,192,0.50)" stroke-width="0.8"/>
         <text x="302" y="345" fill="#bfc0c0" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">BLOB</text>
         <text x="376" y="366" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Blob Storage</text>
-        <text x="376" y="382" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">sources · answer keys · citations</text>
+        <text x="376" y="382" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">sources · extracts · citations</text>
 
         <!-- Node: Azure AI Search (store) -->
         <rect x="504" y="328" width="160" height="64" rx="6" fill="#2d3142"/>
