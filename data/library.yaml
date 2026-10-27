@@ -116,8 +116,8 @@ documents:
     url: 'https://blog.cloudflare.com/cloudflare-service-outage-june-12-2025/'
     published_at: "2025-06-12"
     filename: cloudflare-2025-06-12.html
-    sha256: ""
-    retrieved_at: ""
+    sha256: 297371f56d2eac07905aa82432a141b45fe433fa2942e82474136230169cb575
+    retrieved_at: "2026-10-27T15:59:14Z"
     licence: Copyright Cloudflare; not redistributed
     attribution: 'Cloudflare blog, "Cloudflare service outage June 12, 2025"'
     kind: same-provider
@@ -135,8 +135,8 @@ documents:
     url: 'https://blog.cloudflare.com/cloudflare-incident-on-june-20-2024/'
     published_at: "2024-06-26"
     filename: cloudflare-2024-06-20.html
-    sha256: ""
-    retrieved_at: ""
+    sha256: 5b4f2b04946d1ccbc66b331cd284b489df3a19d494ee0c98fe96927d50d21d57
+    retrieved_at: "2026-10-27T15:59:14Z"
     licence: Copyright Cloudflare; not redistributed
     attribution: 'Cloudflare blog, "Cloudflare incident on June 20, 2024"'
     kind: same-provider
@@ -152,8 +152,8 @@ documents:
     url: 'https://blog.cloudflare.com/cloudflare-outage-on-june-21-2022/'
     published_at: "2022-06-21"
     filename: cloudflare-2022-06-21.html
-    sha256: ""
-    retrieved_at: ""
+    sha256: 181f12aa97ef961e54eb56f363a9efe509e0f463238f1cdae035b9c861a178f6
+    retrieved_at: "2026-10-27T15:59:15Z"
     licence: Copyright Cloudflare; not redistributed
     attribution: 'Cloudflare blog, "Cloudflare outage on June 21, 2022"'
     kind: same-provider
@@ -171,8 +171,8 @@ documents:
     url: 'https://status.cloud.google.com/incidents/ow5i3PPK96RduMcb1SsW'
     published_at: "2025-06-13"
     filename: google-cloud-2025-06-12.html
-    sha256: ""
-    retrieved_at: ""
+    sha256: 8db5d9f6f117090a3bb2ac4972517a04bc7fd6c5a3d378e8fc438bbd3a6dfccb
+    retrieved_at: "2026-10-27T15:59:15Z"
     licence: Copyright Google; not redistributed
     attribution: Google Cloud Service Health, incident ow5i3PPK96RduMcb1SsW
     kind: other-provider
@@ -188,8 +188,8 @@ documents:
     url: 'https://status.cloud.google.com/incident/zall/20013'
     published_at: "2020-12-18"
     filename: google-cloud-2020-12-14.html
-    sha256: ""
-    retrieved_at: ""
+    sha256: 142659b545df98a9ab3b5e3f773955ec74032988616ecdb7f4521b0bf27dcad4
+    retrieved_at: "2026-10-27T15:59:15Z"
     licence: Copyright Google; not redistributed
     attribution: >-
       Google Cloud Status Dashboard, "Google Cloud Infrastructure Components Incident #20013"
@@ -206,8 +206,8 @@ documents:
     url: 'https://blog.cloudflare.com/details-of-the-cloudflare-outage-on-july-2-2019/'
     published_at: "2019-07-12"
     filename: cloudflare-2019-07-02.html
-    sha256: ""
-    retrieved_at: ""
+    sha256: 1adbe24d85ed89af8d5341cb08c58908dc8b744496159265780010285e89ccc9
+    retrieved_at: "2026-10-27T15:59:16Z"
     licence: Copyright Cloudflare; not redistributed
     attribution: 'Cloudflare blog, "Details of the Cloudflare outage on July 2, 2019"'
     kind: attack-suspected
@@ -225,8 +225,8 @@ documents:
     url: 'https://blog.cloudflare.com/todays-outage-post-mortem-82515/'
     published_at: "2013-03-03"
     filename: cloudflare-2013-03-03.html
-    sha256: ""
-    retrieved_at: ""
+    sha256: 21317dc2e6bcf1f30b869dc168a0b3ae3e34e4dbcf146a20a3e3a120455980b9
+    retrieved_at: "2026-10-27T15:59:16Z"
     licence: Copyright Cloudflare; not redistributed
     attribution: >-
       Cloudflare blog, "Today's Outage Post Mortem"
@@ -243,8 +243,8 @@ documents:
     url: 'https://github.blog/news-insights/company-news/github-availability-report-june-2026/'
     published_at: "2026-07-08"
     filename: github-availability-2026-06.html
-    sha256: ""
-    retrieved_at: ""
+    sha256: 404bf282afd028fbc0fdc7523e9c4b958b664af4602d00868462135e447a35d3
+    retrieved_at: "2026-10-27T15:59:17Z"
     licence: Copyright GitHub; not redistributed
     attribution: 'GitHub blog, "GitHub availability report: June 2026"'
     kind: same-provider
@@ -260,8 +260,8 @@ documents:
     url: 'https://github.blog/news-insights/company-news/github-availability-report-november-2023/'
     published_at: "2023-12-13"
     filename: github-availability-2023-11.html
-    sha256: ""
-    retrieved_at: ""
+    sha256: 93d2c4dbc0c1815f80e339558b1f7ff56d3cfb1c852d0412a838c81993490038
+    retrieved_at: "2026-10-27T15:59:18Z"
     licence: Copyright GitHub; not redistributed
     attribution: 'GitHub blog, "GitHub Availability Report: November 2023"'
     kind: same-provider
@@ -276,8 +276,8 @@ documents:
     url: 'https://aws.amazon.com/message/12721/'
     published_at: "2021-12-10"
     filename: aws-2021-12-07.html
-    sha256: ""
-    retrieved_at: ""
+    sha256: 8ef583206243c000f4564a7e0d3c2f086e555f2541c1afbe56aabac7d83423d8
+    retrieved_at: "2026-10-27T15:59:18Z"
     licence: Copyright Amazon; not redistributed
     attribution: >-
       AWS post-event summary, "Summary of the AWS Service Event in the Northern Virginia (US-EAST-1)
@@ -296,8 +296,8 @@ documents:
     url: 'https://github.blog/news-insights/company-news/ddos-incident-report/'
     published_at: "2018-03-01"
     filename: github-2018-02-28.html
-    sha256: ""
-    retrieved_at: ""
+    sha256: 884f5875328567de162f41499a83dc51f0d59f3aa4a7a307a044e4b1a4e67d78
+    retrieved_at: "2026-10-27T15:59:19Z"
     licence: Copyright GitHub; not redistributed
     attribution: 'GitHub blog, "February 28th DDoS Incident Report"'
     kind: attack-suspected
@@ -313,8 +313,8 @@ documents:
     url: 'https://github.blog/news-insights/company-news/january-28th-incident-report/'
     published_at: "2016-02-03"
     filename: github-2016-01-28.html
-    sha256: ""
-    retrieved_at: ""
+    sha256: b0b9fc8e61f5f6e4f302b2aa6e89d31a989aa39ee9aa3339413972dbeb5c8c8a
+    retrieved_at: "2026-10-27T15:59:20Z"
     licence: Copyright GitHub; not redistributed
     attribution: 'GitHub blog, "January 28th Incident Report"'
     kind: attack-suspected
@@ -330,8 +330,8 @@ documents:
     url: 'https://status.cloud.google.com/incident/cloud-networking/18016'
     published_at: "2018-10-12"
     filename: google-cloud-2018-10-11.html
-    sha256: ""
-    retrieved_at: ""
+    sha256: ed78e30583a8c47ca2a7e28b10c56d55a13fe1ae9ef1143a81fd7c27657084b7
+    retrieved_at: "2026-10-27T15:59:22Z"
     licence: Copyright Google; not redistributed
     attribution: 'Google Cloud Status Dashboard, "Google Cloud Networking Incident #18016"'
     kind: same-provider
@@ -348,8 +348,8 @@ documents:
     url: 'https://status.cloud.google.com/incident/cloud-networking/19007'
     published_at: "2019-04-10"
     filename: google-cloud-2019-04-04.html
-    sha256: ""
-    retrieved_at: ""
+    sha256: c1b121aba31cf87ed5e6a1ec95142ea7c01a37cc23d83bed207b79abaa7b0841
+    retrieved_at: "2026-10-27T15:59:23Z"
     licence: Copyright Google; not redistributed
     attribution: 'Google Cloud Status Dashboard, "Google Cloud Networking Incident #19007"'
     kind: same-provider
@@ -365,8 +365,8 @@ documents:
     url: 'https://status.cloud.google.com/incident/compute/16007'
     published_at: "2016-04-13"
     filename: google-cloud-2016-04-11.html
-    sha256: ""
-    retrieved_at: ""
+    sha256: e792f7f321b1e92ce46316ae91c7722add343308aae14c1d63b88e6112084e88
+    retrieved_at: "2026-10-27T15:59:23Z"
     licence: Copyright Google; not redistributed
     attribution: 'Google Cloud Status Dashboard, "Google Compute Engine Incident #16007"'
     kind: same-provider
@@ -384,8 +384,8 @@ documents:
     url: 'https://github.blog/news-insights/company-news/oct21-post-incident-analysis/'
     published_at: "2018-10-30"
     filename: github-2018-10-21.html
-    sha256: ""
-    retrieved_at: ""
+    sha256: 3d4e42d393ad9d16650475ec891af7aef82c6f8aa3d335994de64969e4013625
+    retrieved_at: "2026-10-27T15:59:23Z"
     licence: Copyright GitHub; not redistributed
     attribution: 'GitHub blog, "October 21 post-incident analysis"'
     kind: decoy
@@ -402,8 +402,8 @@ documents:
     url: 'https://blog.cloudflare.com/cloudflare-outage-on-july-17-2020/'
     published_at: "2020-07-18"
     filename: cloudflare-2020-07-17.html
-    sha256: ""
-    retrieved_at: ""
+    sha256: 82cb662048a7963e08990de5615aa71f9550c44e97d65d17e41a649e9399e46e
+    retrieved_at: "2026-10-27T15:59:25Z"
     licence: Copyright Cloudflare; not redistributed
     attribution: 'Cloudflare blog, "Cloudflare outage on July 17, 2020"'
     kind: other-provider
@@ -420,8 +420,8 @@ documents:
     url: 'https://blog.cloudflare.com/cloudflare-1-1-1-1-incident-on-july-14-2025/'
     published_at: "2025-07-15"
     filename: cloudflare-2025-07-14.html
-    sha256: ""
-    retrieved_at: ""
+    sha256: fbad170adb83a1dfea6ff892588fcaf47d6ebe7fd0a48641394f6b420367e80e
+    retrieved_at: "2026-10-27T15:59:25Z"
     licence: Copyright Cloudflare; not redistributed
     attribution: 'Cloudflare blog, "Cloudflare 1.1.1.1 Incident on July 14, 2025"'
     kind: attack-suspected
@@ -438,8 +438,8 @@ documents:
     url: 'https://blog.cloudflare.com/cloudflare-1111-incident-on-june-27-2024/'
     published_at: "2024-07-04"
     filename: cloudflare-2024-06-27.html
-    sha256: ""
-    retrieved_at: ""
+    sha256: 04fbdc63e3d6ebb266828fd4766ebe38feb24bbf562d8bb01c7b2055346b96d9
+    retrieved_at: "2026-10-27T15:59:26Z"
     licence: Copyright Cloudflare; not redistributed
     attribution: 'Cloudflare blog, "Cloudflare 1.1.1.1 incident on June 27, 2024"'
     kind: attack-suspected
@@ -456,8 +456,8 @@ documents:
     url: 'https://blog.cloudflare.com/deep-dive-into-cloudflares-sept-12-dashboard-and-api-outage/'
     published_at: "2025-09-13"
     filename: cloudflare-2025-09-12.html
-    sha256: ""
-    retrieved_at: ""
+    sha256: 463d1458629c81402429495869a79fd8743eec8a1f5415a6ffce051d97038f8b
+    retrieved_at: "2026-10-27T15:59:26Z"
     licence: Copyright Cloudflare; not redistributed
     attribution: >-
       Cloudflare blog, "A deep dive into Cloudflare’s September 12, 2025 dashboard and API outage"
@@ -474,8 +474,8 @@ documents:
     url: 'https://blog.cloudflare.com/post-mortem-on-cloudflare-control-plane-and-analytics-outage/'
     published_at: "2023-11-04"
     filename: cloudflare-2023-11-02.html
-    sha256: ""
-    retrieved_at: ""
+    sha256: b20b3f2817534453c2387c9801145f2de804b11e06fb3ba8746bc8b95047b089
+    retrieved_at: "2026-10-27T15:59:27Z"
     licence: Copyright Cloudflare; not redistributed
     attribution: >-
       Cloudflare blog, "Post mortem on the Cloudflare Control Plane and Analytics
@@ -493,8 +493,8 @@ documents:
     url: 'https://github.blog/news-insights/company-news/github-availability-report-september-2023/'
     published_at: "2023-10-11"
     filename: github-availability-2023-09.html
-    sha256: ""
-    retrieved_at: ""
+    sha256: f4419b443f488253b68139cb12d587f2da1d951eb74823f391c629889ea72503
+    retrieved_at: "2026-10-27T15:59:27Z"
     licence: Copyright GitHub; not redistributed
     attribution: 'GitHub blog, "GitHub Availability Report: September 2023"'
     kind: decoy
@@ -511,8 +511,8 @@ documents:
     url: 'https://blog.cloudflare.com/cloudflare-incident-on-august-21-2025/'
     published_at: "2025-08-22"
     filename: cloudflare-2025-08-21.html
-    sha256: ""
-    retrieved_at: ""
+    sha256: 5732908e6a0426431cd18d406dac7529b72df58fb1756690d7c67b4a790118be
+    retrieved_at: "2026-10-27T15:59:27Z"
     licence: Copyright Cloudflare; not redistributed
     attribution: 'Cloudflare blog, "Cloudflare incident on August 21, 2025"'
     kind: decoy

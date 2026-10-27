@@ -188,5 +188,5 @@ def test_empty_hash_is_accepted_only_in_draft_mode(tmp_path):
         load_library(library_file(tmp_path, retrieved_at=""), CASES)
 
 
-def test_the_committed_library_loads():
-    load_library(LIBRARY, load_cases(), draft=True)
+def test_the_committed_library_loads_with_every_hash_pinned():
+    assert load_library(LIBRARY, load_cases())
