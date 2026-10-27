@@ -16,16 +16,28 @@ class ConfigError(ValueError):
 
 
 @dataclass(frozen=True)
-class Settings:
+class ModelSettings:
     project_endpoint: str
+    chat_deployment: str
+    compare_deployment: str
+    judge_deployment: str
+
+
+@dataclass(frozen=True)
+class StorageSettings:
+    storage_url: str
+
+
+@dataclass(frozen=True)
+class ExtractionSettings:
+    cu_endpoint: str
+
+
+@dataclass(frozen=True)
+class SearchSettings:
     search_endpoint: str
     search_index: str
-    storage_url: str
-    chat_deployment: str
-    judge_deployment: str
-    compare_deployment: str
     embedding_deployment: str
-    cu_endpoint: str
     embedding_dimensions: int = 1024
 
 
@@ -33,12 +45,16 @@ def env_name(field_name: str) -> str:
     return PREFIX + field_name.upper()
 
 
-def load_settings(env: Mapping[str, str] = os.environ) -> Settings:
-    """Build Settings from env, naming every missing or invalid variable at once."""
+def load_settings[T](section: type[T], env: Mapping[str, str] = os.environ) -> T:
+    """Build one component's settings from env, naming every missing or invalid variable.
+
+    Each component loads only its own section, so ingestion runs before the
+    search and embedding settings exist.
+    """
     values: dict[str, str | int] = {}
     problems: list[str] = []
 
-    for field in fields(Settings):
+    for field in fields(section):
         name = env_name(field.name)
         raw = env.get(name, "").strip()
         if field.type is int:
@@ -59,4 +75,4 @@ def load_settings(env: Mapping[str, str] = os.environ) -> Settings:
 
     if problems:
         raise ConfigError("; ".join(problems))
-    return Settings(**values)
+    return section(**values)

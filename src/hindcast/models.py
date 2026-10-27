@@ -7,12 +7,12 @@ resource scope and needs its own role.
 
 import base64
 import functools
-import os
 
 from azure.ai.projects import AIProjectClient
 from azure.identity import DefaultAzureCredential
 from openai import OpenAI
 
+from hindcast.config import ModelSettings, load_settings
 from hindcast.costs import TokenUsage
 
 # Image types the Responses API accepts here, told apart by their first bytes.
@@ -24,7 +24,7 @@ def project_client() -> AIProjectClient:
     # DefaultAzureCredential finds the az or azd sign-in locally and the managed
     # identity in Azure. Cached so the process signs in once.
     return AIProjectClient(
-        endpoint=os.environ["HINDCAST_PROJECT_ENDPOINT"], credential=DefaultAzureCredential()
+        endpoint=load_settings(ModelSettings).project_endpoint, credential=DefaultAzureCredential()
     )
 
 

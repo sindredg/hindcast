@@ -10,7 +10,7 @@ Milestone 1 built the foundation, not the investigator yet: a capture command fo
 
 | Part | Where | What it does |
 |---|---|---|
-| Settings | `hindcast.config` | Reads endpoints and deployment names from `HINDCAST_*` variables and names every missing one at once. No keys. Not used by the code yet: `hindcast.models` reads its endpoint from the environment directly ([#3](https://github.com/sindredg/hindcast/issues/3)). |
+| Settings | `hindcast.config` | Reads endpoints and deployment names from `HINDCAST_*` variables, one section per component (models, storage, extraction, search), and names every missing variable of that section at once. No keys. `hindcast.models` loads the model section, so the search values can stay empty until milestone 3. |
 | Capture | `hindcast.capture` | `status` takes one incident from a provider's status API as canonical JSON (Cloudflare and GitHub by incident ID; Google Cloud from its feed or a saved copy of it). `page` saves a postmortem page as served. Both refuse to overwrite a file, fetch only `https` URLs, and print the registry lines: URL, retrieval time, SHA-256. |
 | Case registry | `data/cases.yaml`, `hindcast.cases` | Four outages: three scored showcase cases and one development case. Each has its status updates (evidence) and its postmortem (answer key), each with URL, licence, attribution, retrieval time, and SHA-256. The files stay out of Git. |
 | Model client | `hindcast.models` | One Responses API call through the Foundry project, signed in with `DefaultAzureCredential`. Sends the reasoning effort on every call, never `temperature` or `top_p`, and raises on an incomplete or empty answer. Reads model versions from the deployment. |
