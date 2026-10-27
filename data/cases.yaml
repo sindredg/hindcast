@@ -7,7 +7,9 @@
 # the exact file and retrieved_at says when it was taken, so a changed upstream
 # copy fails verify_local_files instead of being read.
 #
-# kind status-updates is the evidence. kind postmortem is the answer key and
+# kind status-updates is the evidence. kind chart is a Cloudflare Radar image,
+# committed under data/charts/<case_id>/ (CC BY 4.0, see its README), and
+# described as evidence. kind postmortem is the answer key and
 # never reaches the investigator. Google Cloud's status snapshot also holds the
 # incident report entries Google adds after the outage; the evidence cut
 # removes them.
@@ -114,3 +116,21 @@ cases:
         sha256: eabc2619b89f04b14ffb91b85aa739fce4e44cb2b054ff2ebcf51ed74c75e9be
         retrieved_at: "2026-10-25T21:09:35Z"
         kind: postmortem
+      # Radar offers whole UTC days only; both views end at 23:45, before the
+      # resolved update at 23:50:58.
+      - doc_id: cloudflare-radar-ipv4-2026-02-20
+        filename: radar-announced-ipv4.png
+        url: https://radar.cloudflare.com/routing/as13335?dateStart=2026-02-20&dateEnd=2026-02-20
+        licence: CC BY 4.0
+        attribution: Cloudflare Radar, "Announced IP address space from AS13335", IPv4 /24s
+        sha256: b3565536ba5cd794920c327728da15f9c9e3de61977ee3e0514c4eca16401a94
+        retrieved_at: "2026-10-27T17:21:01Z"
+        kind: chart
+      - doc_id: cloudflare-radar-bgp-2026-02-20
+        filename: radar-bgp-announcements.png
+        url: https://radar.cloudflare.com/routing/as13335?dateStart=2026-02-20&dateEnd=2026-02-20
+        licence: CC BY 4.0
+        attribution: Cloudflare Radar, "BGP announcements from AS13335"
+        sha256: be0a94a963c5594d8ca333d4ade0daefe516d7399ef039e1355986c8a71f11e3
+        retrieved_at: "2026-10-27T17:21:49Z"
+        kind: chart
