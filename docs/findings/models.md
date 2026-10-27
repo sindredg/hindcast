@@ -58,6 +58,6 @@ Findings about the deployed models: [gpt-6-luna](../decisions/0012-models.md) 20
 
 **Evidence:** read from the documentation, not tested here: "What's new in Content Understanding", October 2026 entry. The analyzer's `supportedModels` could not be read yet (see [identity and access](identity-and-access.md)).
 
-**For Hindcast:** extraction needs a GPT-5.x deployment next to the investigator's model. The extraction milestone chooses it and reads `supportedModels` first.
+**For Hindcast:** extraction needs a GPT-5.x deployment next to the investigator's model. It uses gpt-5-mini, read from `supportedModels` on 2026-10-27 ([extraction findings](extraction.md#gpt-5-mini-is-on-the-supported-list-of-the-ga-api-2026-10-27)).
 
 **Read more:** [What's new in Content Understanding](https://learn.microsoft.com/azure/ai-services/content-understanding/whats-new), [Model deployment options for Content Understanding analyzers](https://learn.microsoft.com/azure/ai-services/content-understanding/concepts/models-deployments), [Content Understanding service limits](https://learn.microsoft.com/azure/ai-services/content-understanding/service-limits).
