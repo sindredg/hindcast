@@ -35,7 +35,14 @@ def case(snapshot: bytes = SNAPSHOT) -> Case:
         retrieved_at="2026-10-25T21:09:30Z",
         kind="status-updates",
     )
-    return Case("cloudflare-2026-02-20", "Elevated errors", "Cloudflare", "development", (status,))
+    return Case(
+        "cloudflare-2026-02-20",
+        "Elevated errors",
+        "Cloudflare",
+        "development",
+        "2026-02-20T18:45:16Z",
+        (status,),
+    )
 
 
 class FakeBlob:
@@ -122,7 +129,12 @@ def test_existing_different_evidence_is_kept_and_reported(tmp_path):
 
 
 def test_main_reports_each_failing_case_and_exits_1(monkeypatch, capsys):
-    good, bad = case(), Case("broken-case", "t", "Cloudflare", "development", case().sources)
+    good, bad = (
+        case(),
+        Case(
+            "broken-case", "t", "Cloudflare", "development", "2026-02-20T18:45:16Z", case().sources
+        ),
+    )
     monkeypatch.setattr(ingest, "load_cases", lambda: {"broken-case": bad, good.case_id: good})
 
     def fake_ingest(c, *, replace):

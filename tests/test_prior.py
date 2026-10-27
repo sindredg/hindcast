@@ -27,9 +27,15 @@ SOURCE = SourceFile(
     kind="status-updates",
 )
 CASES = {
-    "alpha-2026": Case("alpha-2026", "Elevated errors", "Cloudflare", "showcase", (SOURCE,)),
-    "beta-2026": Case("beta-2026", "Incident with Git", "GitHub", "showcase", (SOURCE,)),
-    "gamma-2026": Case("gamma-2026", "Slow pages", "Cloudflare", "development", (SOURCE,)),
+    "alpha-2026": Case(
+        "alpha-2026", "Elevated errors", "Cloudflare", "showcase", "2026-02-20T18:45:16Z", (SOURCE,)
+    ),
+    "beta-2026": Case(
+        "beta-2026", "Incident with Git", "GitHub", "showcase", "2026-02-20T18:45:16Z", (SOURCE,)
+    ),
+    "gamma-2026": Case(
+        "gamma-2026", "Slow pages", "Cloudflare", "development", "2026-02-20T18:45:16Z", (SOURCE,)
+    ),
 }
 PROMPT = PriorPrompt(
     system="Answer from memory.",

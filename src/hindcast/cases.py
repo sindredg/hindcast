@@ -36,6 +36,9 @@ class Case:
     title: str
     provider: Literal["Cloudflare", "GitHub", "Google Cloud"]
     role: Literal["showcase", "development", "injection"]
+    # When the outage began, as the provider's status snapshot states it (UTC).
+    # The library's date bound is set from it.
+    started_at: str
     sources: tuple[SourceFile, ...]
 
 
@@ -87,6 +90,11 @@ def load_cases(path: Path = Path("data/cases.yaml")) -> dict[str, Case]:
                     "must be a UTC time like 2026-10-26T08:00:00Z"
                 )
         case = Case(**_values(Case, raw | {"sources": sources}, case_id))
+        if not UTC_TIMESTAMP.fullmatch(case.started_at):
+            raise ValueError(
+                f"{case_id}: started_at {case.started_at!r} "
+                "must be a UTC time like 2026-10-26T08:00:00Z"
+            )
         # Every case needs its evidence; a scored or development case also needs
         # the answer key. An injection copy is never scored.
         needed = (

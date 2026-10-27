@@ -13,13 +13,16 @@
 # removes them.
 #
 # title is the incident's public title on the status page, as the provider
-# wrote it.
+# wrote it. started_at is when the outage began, as the status snapshot states
+# it (Statuspage started_at, Google begin), in UTC to the second; the library
+# only serves a case documents published before it.
 
 cases:
   - case_id: cloudflare-2025-11-18
     title: Cloudflare Global Network experiencing issues
     provider: Cloudflare
     role: showcase
+    started_at: "2025-11-18T11:48:27Z"
     sources:
       - doc_id: cloudflare-status-2025-11-18
         filename: cloudflare-status-2025-11-18.json
@@ -42,6 +45,7 @@ cases:
     title: Incident with GitHub.com
     provider: GitHub
     role: showcase
+    started_at: "2026-08-17T13:40:03Z"
     sources:
       - doc_id: github-status-2026-08-17
         filename: github-status-2026-08-17.json
@@ -67,6 +71,7 @@ cases:
       regions.
     provider: Google Cloud
     role: showcase
+    started_at: "2026-07-14T17:00:00Z"
     sources:
       - doc_id: google-cloud-status-2026-07-14
         filename: google-cloud-status-2026-07-14.json
@@ -91,6 +96,7 @@ cases:
     title: Cloudflare is investigating connectivity issues
     provider: Cloudflare
     role: development
+    started_at: "2026-02-20T18:45:16Z"
     sources:
       - doc_id: cloudflare-status-2026-02-20
         filename: cloudflare-status-2026-02-20.json

@@ -198,11 +198,11 @@ def test_a_time_without_a_zone_is_rejected():
 
 def test_cut_dispatches_on_the_provider_and_rejects_others():
     snapshot = json.dumps(statuspage(update("2026-02-20T23:50:00Z", "resolved"))).encode()
-    case = Case("c", "t", "Cloudflare", "development", ())
+    case = Case("c", "t", "Cloudflare", "development", "2026-02-20T18:45:16Z", ())
 
     assert cut(case, snapshot).provider == "Cloudflare"
     with pytest.raises(ValueError, match="Unknown"):
-        cut(Case("c", "t", "Unknown", "development", ()), snapshot)  # type: ignore[arg-type]
+        cut(Case("c", "t", "Unknown", "development", "2026-02-20T18:45:16Z", ()), snapshot)  # type: ignore[arg-type]
 
 
 def test_evidence_json_is_canonical():

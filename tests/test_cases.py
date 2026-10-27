@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 
 from hindcast.cases import Case, SourceFile, load_cases, verify_local_files
+from hindcast.evidence import cut
 
 # sha256 of b"abc" (FIPS 180-2 test vector).
 ABC_SHA256 = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
@@ -37,6 +38,7 @@ cases:
     title: Elevated errors across the network
     provider: Cloudflare
     role: showcase
+    started_at: "2026-02-20T18:45:16Z"
     sources:
 """
     + STATUS_SOURCE
@@ -67,6 +69,7 @@ def test_load_cases_reads_case_and_sources(tmp_path):
             title="Elevated errors across the network",
             provider="Cloudflare",
             role="showcase",
+            started_at="2026-02-20T18:45:16Z",
             sources=(
                 SourceFile(
                     doc_id="example-status",
@@ -121,6 +124,28 @@ def test_retrieved_at_must_be_utc_timestamp(tmp_path, bad):
 
     with pytest.raises(ValueError, match="retrieved_at"):
         load_cases(write_registry(tmp_path, text))
+
+
+@pytest.mark.parametrize("bad", ["2025-11-18 11:48", "2026-02-20T18:45:16.965Z", "2026-02-20"])
+def test_started_at_must_be_a_utc_timestamp(tmp_path, bad):
+    text = registry().replace('"2026-02-20T18:45:16Z"', f'"{bad}"')
+
+    with pytest.raises(ValueError, match=r"started_at '.+' must be a UTC time"):
+        load_cases(write_registry(tmp_path, text))
+
+
+def test_started_at_matches_the_cut_evidence():
+    # The library's date bound and the prior-knowledge cutoff read started_at,
+    # so it has to be the start the provider's own snapshot states.
+    checked = 0
+    for case in load_cases().values():
+        status = next(s for s in case.sources if s.kind == "status-updates")
+        path = Path("data/sources") / case.case_id / status.filename
+        if path.is_file():
+            assert case.started_at == cut(case, path.read_bytes()).started_at, case.case_id
+            checked += 1
+    if not checked:
+        pytest.skip("no local status snapshots under data/sources/")
 
 
 @pytest.mark.parametrize(
