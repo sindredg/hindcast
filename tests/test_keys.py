@@ -15,6 +15,7 @@ from hindcast.keys import (
     key_json,
     load_key,
     review_sheet,
+    write_draft,
 )
 
 CASE = Case("example-2026", "Elevated errors", "Cloudflare", "showcase", "2026-02-20T18:45:16Z", ())
@@ -245,3 +246,15 @@ def test_freeze_command_reports_a_refusal_and_exits_1(monkeypatch, tmp_path, cap
 
     assert keys.main(["freeze", "example-2026"]) == 1
     assert capsys.readouterr().out == "example-2026: frozen already\n"
+
+
+def test_a_reviewed_draft_is_never_overwritten(tmp_path):
+    key, _ = draft_key(CASE, result(), MARKDOWN)
+    (tmp_path / "example-2026-draft.json").write_text('{"reviewed": true}\n')
+
+    written = write_draft(key, "sheet\n", tmp_path)
+
+    assert written is False
+    assert (tmp_path / "example-2026-draft.json").read_text() == '{"reviewed": true}\n'
+    assert write_draft(key, "sheet\n", tmp_path / "fresh") is True
+    assert (tmp_path / "fresh" / "example-2026-review.md").read_text() == "sheet\n"

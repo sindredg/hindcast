@@ -5,8 +5,9 @@
 
 draft: downloads the case's postmortem (hash-checked), cuts out the article
 (and, in a monthly report, the case's incident), runs the answer-key analyzer,
-and writes build/keys/<case_id>-draft.json and a review sheet next to it. The
-analyzer's raw result is kept in Blob extracted/keys/ and reused.
+and writes build/keys/<case_id>-draft.json and a review sheet next to it. An
+existing draft is kept, since it may hold review edits. The analyzer's raw
+result is kept in Blob extracted/keys/ and reused.
 
 Content Understanding returns no source locations for HTML, so every key item
 carries a quote that has to appear word for word in the postmortem; a quote
@@ -323,15 +324,25 @@ def _draft(case: Case, evidence: CaseEvidence) -> None:
         outcome = "uploaded"
     markdown = stored["result"]["contents"][0].get("markdown", "")
     key, problems = draft_key(case, stored["result"], markdown)
-    DRAFTS.mkdir(parents=True, exist_ok=True)
-    (DRAFTS / f"{case.case_id}-draft.json").write_bytes(key_json(key))
     url = next(s.url for s in case.sources if s.kind == "postmortem")
-    (DRAFTS / f"{case.case_id}-review.md").write_text(review_sheet(key, evidence, problems, url))
+    if not write_draft(key, review_sheet(key, evidence, problems, url)):
+        print(f"{case.case_id}: a draft exists and may hold review edits; kept")
     print(
         f"{case.case_id}: {len(key.contributing_factors)} factors, {len(key.timeline)} timeline "
         f"events, {len(key.fixes)} fixes, {len(problems)} problems\n  blob: {outcome}"
         f"\n  usage: {json.dumps(stored.get('usage', {}), sort_keys=True)}"
     )
+
+
+def write_draft(key: AnswerKey, sheet: str, drafts: Path = DRAFTS) -> bool:
+    """Write a draft and its review sheet, unless a draft exists: it may hold review edits."""
+    draft = drafts / f"{key.case_id}-draft.json"
+    if draft.exists():
+        return False
+    drafts.mkdir(parents=True, exist_ok=True)
+    draft.write_bytes(key_json(key))
+    (drafts / f"{key.case_id}-review.md").write_text(sheet)
+    return True
 
 
 def freeze(case_id: str, drafts: Path = DRAFTS, keys_dir: Path = KEYS_DIR) -> str:
