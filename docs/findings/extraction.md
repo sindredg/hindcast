@@ -2,6 +2,16 @@
 
 Findings about Content Understanding as Hindcast's extraction service ([decision 0003](../decisions/0003-document-extraction.md)): analyzers, model deployments, and what an analysis returns. Newest first.
 
+## Content Understanding Contributor cannot delete an analyzer, but can replace one (2026-10-27)
+
+**Seen:** the Content Understanding Contributor role grants `MultiModalIntelligence/*` except the delete actions, so a Contributor cannot delete an analyzer. Creating the analyzer again with `allow_replace` needs no delete and works. Only the Owner role grants deletes. The [earlier finding](identity-and-access.md#a-project-scope-role-reaches-the-models-but-not-the-resource-endpoint-2026-10-25) listed Contributor and Owner as granting the same actions.
+
+**Evidence:** tested live, 2026-10-27, signed in with Cognitive Services Content Understanding Contributor on the Foundry resource. `delete_analyzer("hindcast_answer_key")` returned `PermissionDenied`: "lacks the required data action `Microsoft.CognitiveServices/accounts/MultiModalIntelligence/analyzers/delete`". `begin_create_analyzer("hindcast_answer_key", <new definition>, allow_replace=True)` succeeded, and the analyzer reported `ready` with the new fields. `az role definition list`: Contributor has `notDataActions` for `analyzers/delete`, `classifiers/delete`, `persondirectories/delete`, and `labelingProjects/delete`; Owner has none.
+
+**For Hindcast:** `hindcast.extract.replace_analyzer` recreates an analyzer from its committed file with `allow_replace`, so changing a definition needs no broader role. Analyzers left at teardown are removed with the resource.
+
+**Read more:** [Secure your Content Understanding analyzers and data](https://learn.microsoft.com/azure/ai-services/content-understanding/concepts/secure-communications).
+
 ## HTML analysis returns field values without their source, billed per about 2,900 characters (2026-10-27)
 
 **Seen:** a custom analyzer on the document base, run on a postmortem's HTML page, returns markdown with the page's headings and the field values with a confidence, but no source location for any field and no paragraphs, sections, or pages, although the analyzer sets `returnDetails` and `estimateFieldSourceAndConfidence`. The result reports the content's `mimeType` as `text/plain`. The page is billed as minimal document pages, one per about 2,900 characters of markdown, plus 1,000 contextualization tokens per page. The embedding deployment the analyzer names was not used.
