@@ -156,10 +156,13 @@ def _plain(text: str) -> str:
     quote joins a row's cells), spacing, and letter case are not compared: a
     quote taken from mid-sentence starts with a capital.
     """
-    text = re.sub(r"<[^>]+>", " ", text)
+    # Inline tags vanish and block tags become spaces, so "<strong>A</strong>: b"
+    # reads "A: b". Entities are decoded next, so &#8217; equals a typed curly quote.
+    text = re.sub(r"</?(?:strong|em|b|i|a|span|code|sup|sub)\b[^>]*>", "", text)
+    text = html.unescape(re.sub(r"<[^>]+>", " ", text))
     text = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", text)
     text = re.sub(r"[*_`]", "", text).replace("’", "'").replace("“", '"').replace("”", '"')
-    return re.sub(r"\s+", " ", html.unescape(text)).strip().casefold()
+    return re.sub(r"\s+", " ", text).strip().casefold()
 
 
 def _string(fields: dict, name: str) -> str:

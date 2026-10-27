@@ -4,11 +4,13 @@ from pathlib import Path
 
 import pytest
 
-from hindcast.cases import Case
+from hindcast.cases import Case, load_cases
 from hindcast.evidence import CaseEvidence, EvidenceUpdate
 from hindcast.keys import (
     FROZEN,
+    INCIDENT_HEADINGS,
     KEYS_DIR,
+    _plain,
     draft_key,
     freeze,
     incident_part,
@@ -17,6 +19,7 @@ from hindcast.keys import (
     review_sheet,
     write_draft,
 )
+from hindcast.library_extract import article
 
 CASE = Case("example-2026", "Elevated errors", "Cloudflare", "showcase", "2026-02-20T18:45:16Z", ())
 MARKDOWN = (
@@ -176,10 +179,13 @@ def test_incident_part_keeps_only_the_case_incident():
 
 
 def test_frozen_keys_match_their_hashes():
+    # Every scored and development case has a frozen key; an empty folder fails.
+    expected = sorted(c for c, case in load_cases().items() if case.role != "injection")
     frozen = json.loads(FROZEN.read_text()) if FROZEN.is_file() else {}
     files = sorted(p.stem for p in KEYS_DIR.glob("*.json") if p != FROZEN)
 
-    assert files == sorted(frozen)
+    assert files == expected
+    assert sorted(frozen) == expected
     for case_id, sha256 in frozen.items():
         data = (KEYS_DIR / f"{case_id}.json").read_bytes()
         assert hashlib.sha256(data).hexdigest() == sha256, case_id
@@ -258,3 +264,52 @@ def test_a_reviewed_draft_is_never_overwritten(tmp_path):
     assert (tmp_path / "example-2026-draft.json").read_text() == '{"reviewed": true}\n'
     assert write_draft(key, "sheet\n", tmp_path / "fresh") is True
     assert (tmp_path / "fresh" / "example-2026-review.md").read_text() == "sheet\n"
+
+
+def test_a_quote_with_a_curly_apostrophe_matches_its_html_entity():
+    page = "<p>A new peak pushed one datacenter&#8217;s load balancers past their limits.</p>"
+
+    _, problems = draft_key(
+        CASE,
+        result(root_cause=item("x", "one datacenter’s load balancers past their limits")),
+        page,
+    )
+
+    assert not [p for p in problems if p.startswith("root_cause")]
+
+
+def test_inline_tags_do_not_split_a_quote():
+    page = "<ul><li><strong>Detailed Alerting</strong>: We are adding alerts.</li></ul>"
+
+    _, problems = draft_key(
+        CASE, result(root_cause=item("x", "Detailed Alerting: We are adding alerts.")), page
+    )
+
+    assert not [p for p in problems if p.startswith("root_cause")]
+
+
+def test_every_frozen_quote_appears_in_its_postmortem():
+    # Quotes added in review are checked too, against the captured page, which
+    # is not in the repository: CI skips this.
+    checked = 0
+    for case in load_cases().values():
+        if case.role == "injection":
+            continue
+        source = next(s for s in case.sources if s.kind == "postmortem")
+        path = Path("data/sources") / case.case_id / source.filename
+        if not path.is_file():
+            continue
+        found = article(path.read_bytes(), source.url)
+        body = found.html
+        if case.case_id in INCIDENT_HEADINGS:
+            body = incident_part(body, INCIDENT_HEADINGS[case.case_id])
+        page = _plain(f"{found.title} {body}")
+        key = load_key(KEYS_DIR / f"{case.case_id}.json")
+        quotes = [key.attack_quote, key.root_cause.source_quote]
+        quotes += [i.source_quote for i in (*key.contributing_factors, *key.fixes)]
+        quotes += [e.source_quote for e in key.timeline]
+        missing = [q for q in quotes if q and _plain(q) not in page]
+        assert missing == [], case.case_id
+        checked += 1
+    if not checked:
+        pytest.skip("no captured postmortems under data/sources/")
