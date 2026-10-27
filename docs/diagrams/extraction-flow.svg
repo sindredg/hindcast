@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1000 472" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="extraction-flow-title extraction-flow-desc" id="extraction-flow-root">
+        <title id="extraction-flow-title">What the investigator can read</title>
+        <desc id="extraction-flow-desc">Three lanes. Case evidence: each case's status snapshot, read from Blob Storage and checked against its SHA-256, goes through the evidence cut, which keeps the updates before the resolved one and drops the resolved update's text and any report entries, and becomes the case evidence with its Radar chart descriptions. Library: each library page, picked by the case's symptoms, is cut to its article and extracted; a page must be dated before every case it serves, and later text and bylines are dropped; the result is the library extract, whose figures are never shown. Answer keys: each case's postmortem, which is never in the library, is drafted into a key, reviewed with every quote checked word for word and facts already stated during the incident marked, and frozen with its SHA-256. The investigator reads the case evidence and the library extract; the frozen keys are for the evaluation only. Every step refuses what its rules cannot read.</desc>
+        <defs>
+      <style>#extraction-flow-root { --color-paper:   #2d3142;
+      --color-ink:     #f5f5f5;
+      --color-muted:   #bfc0c0;
+      --color-accent:  #f08a59;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace; }
+      #extraction-flow-root { font-family: var(--font-sans); color: var(--color-ink); }
+      #extraction-flow-root .diagram-container { width: 100%; overflow-x: auto; }
+      #extraction-flow-root .diagram-container { overflow-x: visible; }</style>
+          <marker id="extraction-flow-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#bfc0c0"/></marker>
+        </defs>
+
+        <rect width="100%" height="100%" fill="#2d3142"/>
+
+        <!-- Lane dividers -->
+        <line x1="40" y1="88" x2="960" y2="88" stroke="#f5f5f5" stroke-opacity="0.10" stroke-width="0.8"/>
+        <line x1="40" y1="184" x2="960" y2="184" stroke="#f5f5f5" stroke-opacity="0.10" stroke-width="0.8"/>
+        <line x1="40" y1="280" x2="960" y2="280" stroke="#f5f5f5" stroke-opacity="0.10" stroke-width="0.8"/>
+        <line x1="40" y1="376" x2="960" y2="376" stroke="#f5f5f5" stroke-opacity="0.10" stroke-width="0.8"/>
+
+        <!-- Consumer boundaries -->
+        <rect x="704" y="96" width="232" height="176" rx="8" fill="#f5f5f5" fill-opacity="0.02" stroke="#f5f5f5" stroke-opacity="0.30" stroke-width="0.8" stroke-dasharray="4,3"/>
+        <rect x="756" y="90" width="128" height="12" rx="2" fill="#2d3142"/>
+        <text x="820" y="99" fill="#bfc0c0" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">INVESTIGATOR READS</text>
+        <rect x="704" y="288" width="232" height="80" rx="8" fill="#f08a59" fill-opacity="0.04" stroke="#f08a59" stroke-width="0.8" stroke-dasharray="4,3"/>
+        <rect x="768" y="282" width="104" height="12" rx="2" fill="#2d3142"/>
+        <text x="820" y="291" fill="#f08a59" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">EVALUATION ONLY</text>
+        <!-- Lane labels -->
+        <text x="40" y="139" fill="#949eb2" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">CASE EVIDENCE</text>
+        <text x="40" y="235" fill="#949eb2" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">LIBRARY</text>
+        <text x="40" y="331" fill="#949eb2" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">ANSWER KEYS</text>
+        <!-- Flow (drawn before the nodes) -->
+        <line x1="344" y1="136" x2="400" y2="136" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#extraction-flow-arrow)"/>
+        <line x1="640" y1="136" x2="720" y2="136" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#extraction-flow-arrow)"/>
+        <line x1="344" y1="232" x2="400" y2="232" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#extraction-flow-arrow)"/>
+        <line x1="640" y1="232" x2="720" y2="232" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#extraction-flow-arrow)"/>
+        <line x1="344" y1="328" x2="400" y2="328" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#extraction-flow-arrow)"/>
+        <line x1="640" y1="328" x2="720" y2="328" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#extraction-flow-arrow)"/>
+        <!-- Steps -->
+        <rect x="168" y="104" width="176" height="64" rx="6" fill="#2d3142"/>
+        <rect x="168" y="104" width="176" height="64" rx="6" fill="#f5f5f5" fill-opacity="0.05" stroke="#bfc0c0" stroke-width="1"/>
+        <rect x="176" y="112" width="23" height="12" rx="2" fill="none" stroke="#bfc0c0" stroke-opacity="0.50" stroke-width="0.8"/>
+        <text x="187.5" y="121" fill="#bfc0c0" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SRC</text>
+        <text x="256" y="136" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Status snapshot</text>
+        <text x="256" y="152" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Blob · SHA-256 checked</text>
+
+        <rect x="400" y="104" width="240" height="64" rx="6" fill="#2d3142"/>
+        <rect x="400" y="104" width="240" height="64" rx="6" fill="#393e53" stroke="#f5f5f5" stroke-width="1"/>
+        <rect x="408" y="112" width="23" height="12" rx="2" fill="none" stroke="#f5f5f5" stroke-opacity="0.40" stroke-width="0.8"/>
+        <text x="419.5" y="121" fill="#f5f5f5" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">CUT</text>
+        <text x="520" y="134" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Evidence cut</text>
+        <text x="520" y="148" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">updates before resolved</text>
+        <text x="520" y="160" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">resolved text, reports dropped</text>
+
+        <rect x="720" y="104" width="200" height="64" rx="6" fill="#2d3142"/>
+        <rect x="720" y="104" width="200" height="64" rx="6" fill="#f5f5f5" fill-opacity="0.05" stroke="#bfc0c0" stroke-width="1"/>
+        <rect x="728" y="112" width="23" height="12" rx="2" fill="none" stroke="#bfc0c0" stroke-opacity="0.50" stroke-width="0.8"/>
+        <text x="739.5" y="121" fill="#bfc0c0" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">OUT</text>
+        <text x="820" y="136" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Case evidence</text>
+        <text x="820" y="152" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">updates · Radar charts</text>
+
+        <rect x="168" y="200" width="176" height="64" rx="6" fill="#2d3142"/>
+        <rect x="168" y="200" width="176" height="64" rx="6" fill="#f5f5f5" fill-opacity="0.05" stroke="#bfc0c0" stroke-width="1"/>
+        <rect x="176" y="208" width="23" height="12" rx="2" fill="none" stroke="#bfc0c0" stroke-opacity="0.50" stroke-width="0.8"/>
+        <text x="187.5" y="217" fill="#bfc0c0" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SRC</text>
+        <text x="256" y="232" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Library page</text>
+        <text x="256" y="248" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">picked by symptoms</text>
+
+        <rect x="400" y="200" width="240" height="64" rx="6" fill="#2d3142"/>
+        <rect x="400" y="200" width="240" height="64" rx="6" fill="#393e53" stroke="#f5f5f5" stroke-width="1"/>
+        <rect x="408" y="208" width="23" height="12" rx="2" fill="none" stroke="#f5f5f5" stroke-opacity="0.40" stroke-width="0.8"/>
+        <text x="419.5" y="217" fill="#f5f5f5" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">CUT</text>
+        <text x="520" y="230" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Article cut + extract</text>
+        <text x="520" y="244" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">dated before every case</text>
+        <text x="520" y="256" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">later text, bylines dropped</text>
+
+        <rect x="720" y="200" width="200" height="64" rx="6" fill="#2d3142"/>
+        <rect x="720" y="200" width="200" height="64" rx="6" fill="#f5f5f5" fill-opacity="0.05" stroke="#bfc0c0" stroke-width="1"/>
+        <rect x="728" y="208" width="23" height="12" rx="2" fill="none" stroke="#bfc0c0" stroke-opacity="0.50" stroke-width="0.8"/>
+        <text x="739.5" y="217" fill="#bfc0c0" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">OUT</text>
+        <text x="820" y="232" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Library extract</text>
+        <text x="820" y="248" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">sections · figures, not shown</text>
+
+        <rect x="168" y="296" width="176" height="64" rx="6" fill="#2d3142"/>
+        <rect x="168" y="296" width="176" height="64" rx="6" fill="#f5f5f5" fill-opacity="0.05" stroke="#bfc0c0" stroke-width="1"/>
+        <rect x="176" y="304" width="23" height="12" rx="2" fill="none" stroke="#bfc0c0" stroke-opacity="0.50" stroke-width="0.8"/>
+        <text x="187.5" y="313" fill="#bfc0c0" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SRC</text>
+        <text x="256" y="328" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Case postmortem</text>
+        <text x="256" y="344" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">never in the library</text>
+
+        <rect x="400" y="296" width="240" height="64" rx="6" fill="#2d3142"/>
+        <rect x="400" y="296" width="240" height="64" rx="6" fill="#393e53" stroke="#f5f5f5" stroke-width="1"/>
+        <rect x="408" y="304" width="23" height="12" rx="2" fill="none" stroke="#f5f5f5" stroke-opacity="0.40" stroke-width="0.8"/>
+        <text x="419.5" y="313" fill="#f5f5f5" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">KEY</text>
+        <text x="520" y="326" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Draft + review</text>
+        <text x="520" y="340" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">quotes checked word for word</text>
+        <text x="520" y="352" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">stated-during-incident marked</text>
+
+        <rect x="720" y="296" width="200" height="64" rx="6" fill="#2d3142"/>
+        <rect x="720" y="296" width="200" height="64" rx="6" fill="#f5f5f5" fill-opacity="0.05" stroke="#bfc0c0" stroke-width="1"/>
+        <rect x="728" y="304" width="23" height="12" rx="2" fill="none" stroke="#bfc0c0" stroke-opacity="0.50" stroke-width="0.8"/>
+        <text x="739.5" y="313" fill="#bfc0c0" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">OUT</text>
+        <text x="820" y="328" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Frozen key</text>
+        <text x="820" y="344" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">SHA-256 in frozen.json</text>
+
+        <!-- Legend -->
+        <line x1="40" y1="408" x2="960" y2="408" stroke="#f5f5f5" stroke-opacity="0.10" stroke-width="0.8"/>
+        <text x="40" y="424" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+
+        <rect x="40" y="436" width="14" height="10" rx="2" fill="#f5f5f5" fill-opacity="0.05" stroke="#bfc0c0" stroke-width="1"/>
+        <text x="60" y="444" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">Stored file</text>
+
+        <rect x="136" y="436" width="14" height="10" rx="2" fill="#393e53" stroke="#f5f5f5" stroke-width="1"/>
+        <text x="156" y="444" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">Hindcast step</text>
+
+        <rect x="240" y="436" width="14" height="10" rx="2" fill="#f08a59" fill-opacity="0.04" stroke="#f08a59" stroke-width="0.8" stroke-dasharray="4,3"/>
+        <text x="260" y="444" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">Never reaches the investigator</text>
+
+        <text x="960" y="424" fill="#949eb2" font-size="8.5" font-family="'Geist', sans-serif" text-anchor="end">Every step refuses what its rules cannot read: an unknown entry, a page without its date, a key with a missing field</text>
+      </svg>

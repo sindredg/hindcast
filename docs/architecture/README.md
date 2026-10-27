@@ -8,6 +8,14 @@ Milestone 1 built the foundation, not the investigator yet: a capture command fo
 
 ![Hindcast as built: on an operator workstation signed in with Entra ID, Hindcast's capture command reads the providers' status pages, postmortems, and Radar charts. The Azure CLI and Hindcast's code store the captured files in Blob Storage, and Hindcast's ingestion reads them back and writes the evidence, extracts, and key drafts there with its own Entra token. Hindcast's code calls the pinned model deployments through the Foundry project with the Responses API, and calls Content Understanding on the Foundry resource, whose three analyzers use the gpt-5-mini and text-embedding-3-large deployments, with a role held only while extraction runs. During a portal evaluation run, the Foundry evaluation calls the deployments as the signed-in user. git reaches GitHub through pull requests. The project is connected to Application Insights, which the code does not use yet. The Foundry resource and the storage account accept no keys; traces use the Application Insights connection string](../diagrams/current-architecture.svg)
 
+### What reaches the investigator
+
+Three cuts decide what the investigator can read. The evidence cut follows [decision 0005](../decisions/0005-evidence-library-and-answer-key.md), the library follows [decision 0013](../decisions/0013-library-selection.md), and the answer keys stay with the evaluation.
+
+![What the investigator can read: Three lanes. Case evidence: each case's status snapshot, read from Blob Storage and checked against its SHA-256, goes through the evidence cut, which keeps the updates before the resolved one and drops the resolved update's text and any report entries, and becomes the case evidence with its Radar chart descriptions. Library: each library page, picked by the case's symptoms, is cut to its article and extracted; a page must be dated before every case it serves, and later text and bylines are dropped; the result is the library extract, whose figures are never shown. Answer keys: each case's postmortem, which is never in the library, is drafted into a key, reviewed with every quote checked word for word and facts already stated during the incident marked, and frozen with its SHA-256. The investigator reads the case evidence and the library extract; the frozen keys are for the evaluation only. Every step refuses what its rules cannot read.](../diagrams/extraction-flow.svg)
+
+### Components
+
 | Part | Where | What it does |
 |---|---|---|
 | Settings | `hindcast.config` | Reads endpoints and deployment names from `HINDCAST_*` variables, one section per component (models, storage, extraction, search), and names every missing variable of that section at once. No keys. `hindcast.models` loads the model section, so the search values can stay empty until milestone 3. |
