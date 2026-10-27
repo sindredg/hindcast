@@ -2,6 +2,16 @@
 
 Findings about Content Understanding as Hindcast's extraction service ([decision 0003](../decisions/0003-document-extraction.md)): analyzers, model deployments, and what an analysis returns. Newest first.
 
+## A chart description gets times roughly right and can invent a value (2026-10-27)
+
+**Seen:** describing two Cloudflare Radar charts, the chart analyzer placed the visible changes within about half an hour of where the axis puts them, but gave a value no label in the image shows. The analyzer's definition asks for nothing beyond what is visible.
+
+**Evidence:** tested live, 2026-10-27, `hindcast_chart` on the development case's two Radar images (`data/charts/cloudflare-2026-02-20/`). The IPv4 description says the announced space "drops sharply in the late afternoon to a low below 5.2K around ~18:00"; all three y-axis labels in the image read 5.3K (Radar rounds them), and by eye from the tick positions the drop runs from about 18:10 to 18:45 UTC. The BGP description puts "a large spike" at "around 17:00 to 18:00"; by eye it rises from about 17:35 and peaks near 18:20. The times were read from the images by a person, not measured.
+
+**For Hindcast:** a chart description is model output about an image, not a reading of the data. The investigator gets it as a lead; a time or value that rests only on a chart description cannot support a finding on its own, which the milestone 4 prompt and the milestone 5 support rules have to say.
+
+**Read more:** [Content Understanding image analysis](https://learn.microsoft.com/azure/ai-services/content-understanding/image/overview).
+
 ## Content Understanding Contributor cannot delete an analyzer, but can replace one (2026-10-27)
 
 **Seen:** the Content Understanding Contributor role grants `MultiModalIntelligence/*` except the delete actions, so a Contributor cannot delete an analyzer. Creating the analyzer again with `allow_replace` needs no delete and works. Only the Owner role grants deletes. The [earlier finding](identity-and-access.md#a-project-scope-role-reaches-the-models-but-not-the-resource-endpoint-2026-10-25) listed Contributor and Owner as granting the same actions.
