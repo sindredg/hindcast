@@ -47,9 +47,17 @@ class CaseEvidence:
     dropped: tuple[Dropped, ...]
 
 
+def _parse(timestamp: str) -> datetime:
+    moment = datetime.fromisoformat(timestamp)
+    # A time without a zone would be read as this machine's local time.
+    if moment.tzinfo is None:
+        raise ValueError(f"{timestamp!r} has no time zone")
+    return moment
+
+
 def utc(timestamp: str) -> str:
-    """Any ISO 8601 time as YYYY-MM-DDTHH:MM:SSZ, fractions dropped."""
-    return datetime.fromisoformat(timestamp).astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+    """Any ISO 8601 time with a zone as YYYY-MM-DDTHH:MM:SSZ, fractions dropped."""
+    return _parse(timestamp).astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def _cut(
@@ -64,7 +72,15 @@ def _cut(
     kept: list[tuple[str, str, str | None]] = []
     dropped: list[Dropped] = []
     resolved = False
-    for time, status, text in sorted(((utc(t), s, x) for t, s, x in entries), key=lambda e: e[0]):
+    # Sorted at full precision: providers list updates newest first, so a tie
+    # on whole seconds would put a later update before the resolved mark. On
+    # an exact tie the mark goes first, so the other entry is dropped.
+    entries_by_time = sorted(
+        ((_parse(t), 0 if classify(s, x) == "resolved" else 1, s, x) for t, s, x in entries),
+        key=lambda e: (e[0], e[1]),
+    )
+    for moment, _, status, text in entries_by_time:
+        time = moment.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
         kind = classify(status, text)
         if kind == "report":
             dropped.append(Dropped(time, status, "report"))

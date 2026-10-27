@@ -156,10 +156,44 @@ def test_times_are_normalised_and_sorted():
 
 
 def test_unresolved_incident_raises():
-    with pytest.raises(ValueError, match="c"):
-        cut_statuspage("c", statuspage(update("2026-02-20T18:45:00Z", "investigating")))
-    with pytest.raises(ValueError, match="g"):
-        cut_google("g", google(g_update("2026-07-14T20:24:18+00:00", "SERVICE_DISRUPTION")))
+    with pytest.raises(ValueError, match=r"^case-x: "):
+        cut_statuspage("case-x", statuspage(update("2026-02-20T18:45:00Z", "investigating")))
+    with pytest.raises(ValueError, match=r"^case-y: "):
+        cut_google("case-y", google(g_update("2026-07-14T20:24:18+00:00", "SERVICE_DISRUPTION")))
+
+
+def test_updates_in_the_same_second_follow_their_real_order():
+    # Providers list updates newest first; a later update in the same second
+    # as the resolved mark must not come out before it.
+    ev = cut_statuspage(
+        "c",
+        statuspage(
+            update("2026-02-20T23:50:58.900Z", "update", "Posted after the resolution."),
+            update("2026-02-20T23:50:58.100Z", "resolved"),
+            update("2026-02-20T18:45:00Z", "investigating"),
+        ),
+    )
+
+    assert [u.status for u in ev.updates] == ["investigating", "resolved"]
+    assert ev.dropped == (Dropped("2026-02-20T23:50:58Z", "update", "after-resolved"),)
+
+
+def test_an_update_tied_with_the_resolved_mark_is_dropped():
+    ev = cut_statuspage(
+        "c",
+        statuspage(
+            update("2026-02-20T23:50:58.500Z", "monitoring", "Same instant."),
+            update("2026-02-20T23:50:58.500Z", "resolved"),
+        ),
+    )
+
+    assert [u.status for u in ev.updates] == ["resolved"]
+    assert [d.reason for d in ev.dropped] == ["after-resolved"]
+
+
+def test_a_time_without_a_zone_is_rejected():
+    with pytest.raises(ValueError, match="time zone"):
+        cut_statuspage("c", statuspage(update("2026-02-20T23:50:58", "resolved")))
 
 
 def test_cut_dispatches_on_the_provider_and_rejects_others():
