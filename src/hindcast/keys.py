@@ -149,10 +149,16 @@ def load_key(path: Path) -> AnswerKey:
 
 
 def _plain(text: str) -> str:
-    """Text as compared for quotes: markdown links, emphasis, and spacing removed."""
+    """Text as compared for quotes: the same words in the same order.
+
+    Markdown links and emphasis, HTML tags (tables come back as HTML, and a
+    quote joins a row's cells), spacing, and letter case are not compared: a
+    quote taken from mid-sentence starts with a capital.
+    """
+    text = re.sub(r"<[^>]+>", " ", text)
     text = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", text)
     text = re.sub(r"[*_`]", "", text).replace("’", "'").replace("“", '"').replace("”", '"')
-    return re.sub(r"\s+", " ", text).strip()
+    return re.sub(r"\s+", " ", html.unescape(text)).strip().casefold()
 
 
 def _string(fields: dict, name: str) -> str:

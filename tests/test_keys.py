@@ -200,3 +200,37 @@ def test_freeze_records_the_hash_and_refuses_a_second_freeze(tmp_path):
     assert hashlib.sha256(changed).hexdigest() != sha256
     with pytest.raises(ValueError, match="frozen already"):
         freeze("example-2026", drafts, keys)
+
+
+def test_quotes_from_table_cells_or_mid_sentence_are_found():
+    markdown = (
+        "It was triggered by a change to the address pipeline.\n\n"
+        "<table><tr><td>19:09</td> <td>Change reverted.</td></tr></table>\n"
+    )
+    quoted = result(
+        root_cause=item("x", "A change to the address pipeline."),
+        timeline={
+            "valueArray": [
+                {
+                    "valueObject": {
+                        "time_utc": {"valueString": "2026-02-20T19:09Z"},
+                        "time_as_written": {"valueString": "19:09"},
+                        "event": {"valueString": "Reverted."},
+                        "quote": {"valueString": "19:09 Change reverted."},
+                    }
+                }
+            ]
+        },
+    )
+
+    _, problems = draft_key(CASE, quoted, markdown)
+
+    assert not [p for p in problems if p.startswith(("root_cause", "timeline"))]
+
+
+def test_a_quote_with_words_in_another_order_is_still_reported():
+    _, problems = draft_key(
+        CASE, result(root_cause=item("x", "customer prefixes withdrew the change")), MARKDOWN
+    )
+
+    assert "root_cause: quote not found word for word in the postmortem" in problems
