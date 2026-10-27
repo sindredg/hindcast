@@ -289,7 +289,7 @@ The evidence for [decision 0012](../decisions/0012-models.md): luna against sol 
 1. Build the upload file from the local snapshot.
 
    ```bash
-   uv run --frozen python eval/model-selection/dev-outage-v1/build_dataset.py
+   PYTHONPATH=src uv run --frozen python eval/model-selection/dev-outage-v1/build_dataset.py
    sha256sum data/sources/model-selection/dataset-dev-outage-v1.jsonl
    ```
 
@@ -347,7 +347,7 @@ The evidence for [decision 0012](../decisions/0012-models.md): luna against sol 
 
    ```bash
    for t in luna sol; do
-     uv run --frozen python eval/model-selection/dev-outage-v1/sanitize_results.py "$t"
+     PYTHONPATH=src uv run --frozen python eval/model-selection/dev-outage-v1/sanitize_results.py "$t"
    done
    ```
 
@@ -358,9 +358,9 @@ The evidence for [decision 0012](../decisions/0012-models.md): luna against sol 
    ```bash
    EV=eval/model-selection/dev-outage-v1
    for t in luna sol; do
-     uv run --frozen python "$EV/check_quotes.py" "$EV/results-$t-dev-outage-v1.jsonl" --no-quote-ok 4
+     PYTHONPATH=src uv run --frozen python "$EV/check_quotes.py" "$EV/results-$t-dev-outage-v1.jsonl" --no-quote-ok 4
    done
-   uv run --frozen python "$EV/check_quotes.py" "$EV/results-luna-dev-outage-v1.jsonl" \
+   PYTHONPATH=src uv run --frozen python "$EV/check_quotes.py" "$EV/results-luna-dev-outage-v1.jsonl" \
      --no-quote-ok 4 --break-row 0; echo "exit $?"
    ```
 

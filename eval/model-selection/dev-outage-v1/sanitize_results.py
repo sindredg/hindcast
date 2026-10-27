@@ -1,6 +1,7 @@
 """Sanitize one Foundry evaluation run's downloads before they are committed.
 
-    uv run --frozen python eval/model-selection/dev-outage-v1/sanitize_results.py luna|sol
+    PYTHONPATH=src uv run --frozen python \
+        eval/model-selection/dev-outage-v1/sanitize_results.py luna|sol
 
 Reads data/sources/model-selection/eval-<target>-dev-outage-v1-results.jsonl and
 -user_logs.txt (the portal's "Download results" and "Download user logs") and writes
