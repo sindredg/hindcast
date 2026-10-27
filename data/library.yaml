@@ -186,7 +186,7 @@ documents:
     provider: Google Cloud
     title: 'Google Cloud Infrastructure Components Incident #20013'
     url: 'https://status.cloud.google.com/incident/zall/20013'
-    published_at: "2020-12-18"
+    published_at: "2020-12-22"
     filename: google-cloud-2020-12-14.html
     sha256: 142659b545df98a9ab3b5e3f773955ec74032988616ecdb7f4521b0bf27dcad4
     retrieved_at: "2026-10-27T15:59:15Z"
