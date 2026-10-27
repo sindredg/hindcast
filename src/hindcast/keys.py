@@ -239,11 +239,14 @@ def _may_state(text: str, evidence: CaseEvidence) -> list[str]:
     ]
 
 
-def review_sheet(key: AnswerKey, evidence: CaseEvidence, problems: list[str]) -> str:
+def review_sheet(
+    key: AnswerKey, evidence: CaseEvidence, problems: list[str], source_url: str = ""
+) -> str:
     """Markdown for the reviewer: each field, its quote, and updates that may state it."""
     lines = [
         f"# Answer key review: {key.case_id}",
         "",
+        *([f"Postmortem: {source_url}", ""] if source_url else []),
         "Check each item against the postmortem. Correct what is wrong, and mark an item",
         "stated during the incident when an update listed next to it already says it.",
         f'When it is right, say "freeze {key.case_id}".',
@@ -262,7 +265,7 @@ def review_sheet(key: AnswerKey, evidence: CaseEvidence, problems: list[str]) ->
     def entry(label: str, text: str, quote: str) -> list[str]:
         hint = _may_state(f"{text} {quote}", evidence)
         return [
-            f"- **{label}** {text}",
+            f"- **{label}** {text}" if label else f"- {text}",
             f"  - Quote: {quote}",
             f"  - Updates that may state it: {', '.join(hint) if hint else 'none'}",
         ]
@@ -322,7 +325,8 @@ def _draft(case: Case, evidence: CaseEvidence) -> None:
     key, problems = draft_key(case, stored["result"], markdown)
     DRAFTS.mkdir(parents=True, exist_ok=True)
     (DRAFTS / f"{case.case_id}-draft.json").write_bytes(key_json(key))
-    (DRAFTS / f"{case.case_id}-review.md").write_text(review_sheet(key, evidence, problems))
+    url = next(s.url for s in case.sources if s.kind == "postmortem")
+    (DRAFTS / f"{case.case_id}-review.md").write_text(review_sheet(key, evidence, problems, url))
     print(
         f"{case.case_id}: {len(key.contributing_factors)} factors, {len(key.timeline)} timeline "
         f"events, {len(key.fixes)} fixes, {len(problems)} problems\n  blob: {outcome}"
