@@ -5,7 +5,14 @@ import pytest
 from azure.ai.contentunderstanding import models
 from azure.core.exceptions import ResourceNotFoundError
 
-from hindcast.extract import ANALYZERS, AnalyzerDiffers, analyze, definition, ensure_analyzers
+from hindcast.extract import (
+    ANALYZERS,
+    AnalyzerDiffers,
+    analyze,
+    definition,
+    ensure_analyzers,
+    replace_analyzer,
+)
 
 
 def test_every_analyzer_file_is_valid_json_with_its_id():
@@ -31,12 +38,22 @@ def test_answer_key_analyzer_allows_only_the_defined_attack_values():
     assert sorted(fields) == [
         "attack",
         "attack_basis",
+        "attack_quote",
         "contributing_factors",
         "fixes",
         "root_cause",
         "timeline",
     ]
-    assert sorted(fields["timeline"]["items"]["properties"]) == ["event", "time"]
+    # HTML results carry no source locations, so every item quotes its source.
+    assert sorted(fields["root_cause"]["properties"]) == ["quote", "text"]
+    for name in ("contributing_factors", "fixes"):
+        assert sorted(fields[name]["items"]["properties"]) == ["quote", "text"]
+    assert sorted(fields["timeline"]["items"]["properties"]) == [
+        "event",
+        "quote",
+        "time_as_written",
+        "time_utc",
+    ]
 
 
 def rest_names(model: type) -> set[str]:
@@ -138,3 +155,16 @@ def test_analyze_returns_the_result_and_its_usage():
 
     assert client.call == ("hindcast_chart", b"\x89PNG", "image/png")
     assert out == {"result": {"contents": []}, "usage": {"tokens": {"a": 1}}}
+
+
+def test_replace_analyzer_recreates_it_from_its_file_without_a_delete():
+    class Client:
+        def begin_create_analyzer(self, analyzer_id, resource, *, allow_replace):
+            self.call = (analyzer_id, resource, allow_replace)
+            return FakePoller()
+
+    client = Client()
+
+    replace_analyzer("hindcast_chart", client)
+
+    assert client.call == ("hindcast_chart", definition("hindcast_chart"), True)

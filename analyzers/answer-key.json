@@ -17,7 +17,10 @@
         "type": "string",
         "method": "classify",
         "description": "Whether deliberate hostile action caused the outage, as the postmortem states it.",
-        "enum": ["attack", "not an attack"],
+        "enum": [
+          "attack",
+          "not an attack"
+        ],
         "enumDescriptions": {
           "attack": "Deliberate hostile action, for example a DDoS attack, an intrusion, or a route hijack, caused the outage in whole or in part, as the postmortem states it.",
           "not an attack": "The postmortem gives a cause that is not deliberate hostile action. Heavy but legitimate traffic is not an attack unless the postmortem calls it one. Hostile activity during the outage that did not cause it is not an attack."
@@ -27,24 +30,53 @@
         "type": "string",
         "method": "classify",
         "description": "What the attack verdict rests on.",
-        "enum": ["stated", "implied", "not stated"],
+        "enum": [
+          "stated",
+          "implied",
+          "not stated"
+        ],
         "enumDescriptions": {
           "stated": "The postmortem says outright whether an attack caused the outage.",
           "implied": "The postmortem does not say it outright, but the root cause it gives, for example an internal configuration change, settles it.",
           "not stated": "The postmortem neither says nor implies whether an attack caused the outage."
         }
       },
-      "root_cause": {
+      "attack_quote": {
         "type": "string",
         "method": "generate",
-        "description": "The root cause as the postmortem states it, in one or two sentences close to its own wording. Nothing the postmortem does not say."
+        "description": "The sentence from the postmortem that the attack verdict rests on, copied word for word. Empty if the basis is not stated."
+      },
+      "root_cause": {
+        "type": "object",
+        "method": "generate",
+        "description": "The root cause as the postmortem states it.",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "The root cause in one or two sentences close to the postmortem's wording. Nothing the postmortem does not say."
+          },
+          "quote": {
+            "type": "string",
+            "description": "One sentence from the postmortem that states this, copied word for word. Do not paraphrase or join sentences."
+          }
+        }
       },
       "contributing_factors": {
         "type": "array",
         "method": "generate",
         "description": "Conditions the postmortem names as making the outage happen, spread, or last longer, other than the root cause. One condition per item.",
         "items": {
-          "type": "string"
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "description": "One condition, in a sentence close to the postmortem's wording."
+            },
+            "quote": {
+              "type": "string",
+              "description": "One sentence from the postmortem that states this, copied word for word. Do not paraphrase or join sentences."
+            }
+          }
         }
       },
       "timeline": {
@@ -54,13 +86,21 @@
         "items": {
           "type": "object",
           "properties": {
-            "time": {
+            "time_utc": {
+              "type": "string",
+              "description": "The time in UTC as YYYY-MM-DDTHH:MMZ, converted with the date and time zone the postmortem gives. Empty if the postmortem gives no date or no time zone for it."
+            },
+            "time_as_written": {
               "type": "string",
               "description": "The time exactly as the postmortem writes it, including its time zone."
             },
             "event": {
               "type": "string",
               "description": "What happened at that time, in one sentence close to the postmortem's wording."
+            },
+            "quote": {
+              "type": "string",
+              "description": "One sentence from the postmortem that states this, copied word for word. Do not paraphrase or join sentences."
             }
           }
         }
@@ -70,7 +110,17 @@
         "method": "generate",
         "description": "Changes the provider made or committed to after the outage, as the postmortem lists them. One change per item.",
         "items": {
-          "type": "string"
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "description": "One change, in a sentence close to the postmortem's wording."
+            },
+            "quote": {
+              "type": "string",
+              "description": "One sentence from the postmortem that states this, copied word for word. Do not paraphrase or join sentences."
+            }
+          }
         }
       }
     }

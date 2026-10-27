@@ -1,9 +1,9 @@
 """Content Understanding analyzers for library pages, chart images, and answer keys.
 
 The analyzer definitions are JSON files in analyzers/, so every extract traces
-to a committed definition. Content Understanding cannot change an analyzer's
-fields in place, so an analyzer in the service that differs from its file is
-refused instead of used: delete it and run ensure_analyzers again.
+to a committed definition. An analyzer in the service that differs from its
+file is refused instead of used. replace_analyzer recreates it from the file;
+it needs no delete, which the Content Understanding Contributor role lacks.
 
 Calls go to the Foundry resource endpoint with a DefaultAzureCredential token.
 They need a Content Understanding role at resource scope; the project-scope
@@ -68,9 +68,16 @@ def ensure_analyzers(client=None) -> list[str]:
         if not _contains(served, wanted):
             raise AnalyzerDiffers(
                 f"{analyzer_id}: the analyzer in the service differs from {path}; "
-                "delete it to create it again"
+                "replace it with replace_analyzer"
             )
     return created
+
+
+def replace_analyzer(analyzer_id: str, client=None) -> None:
+    """Recreate one analyzer from its committed file, replacing the service's copy."""
+    (client or cu_client()).begin_create_analyzer(
+        analyzer_id, definition(analyzer_id), allow_replace=True
+    ).result()
 
 
 def analyze(analyzer_id: str, data: bytes, mime: str, client=None) -> dict:
