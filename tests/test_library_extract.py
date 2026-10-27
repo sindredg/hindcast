@@ -76,7 +76,7 @@ def test_undated_update_note_is_dropped():
 
 
 def test_text_dated_before_the_cutoff_is_kept():
-    markdown = "# Title\n\nOn 2026-02-20 at 09:00 and on February 19, 2026, things failed.\n"
+    markdown = "# Title\n\nOn 2026-02-19 at 09:00 and on February 18, 2026, things failed.\n"
 
     sections, dropped = cut_later_text(markdown, "2026-02-20T18:45:16Z", "d")
 
@@ -276,3 +276,13 @@ def test_github_incident_lines_in_bold_become_headings():
     assert "<h3>June 04 17:30 UTC (lasting 1 hour and 25 minutes)</h3>" in body
     assert "<h3>June 10 15:05 UTC (lasting 55 minutes)</h3>" in body
     assert "<strong>The short version:</strong>" in body
+
+
+def test_text_dated_on_the_cutoff_day_is_dropped():
+    # A day cannot be ordered against the case's start time, as in the registry.
+    markdown = "# Title\n\nKept.\n\nOn February 20, 2026 at 09:00 we changed it.\n"
+
+    sections, dropped = cut_later_text(markdown, "2026-02-20T18:45:16Z", "d")
+
+    assert "changed it" not in sections[0].markdown
+    assert dropped == ["Title: a paragraph dated 2026-02-20, on or after 2026-02-20"]

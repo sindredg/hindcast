@@ -324,10 +324,12 @@ def cut_later_text(markdown: str, cutoff: str, doc_id: str) -> tuple[list[Sectio
         if heading and "\n" not in block.strip():
             sections.append((heading.group(2).strip(), [block.strip()]))
             continue
-        later = [d for d in _dates(block) if date.fromisoformat(d) > limit]
+        # The cutoff day itself counts as later: a date cannot be ordered against
+        # the case's start time, as the registry also refuses.
+        later = [d for d in _dates(block) if date.fromisoformat(d) >= limit]
         where = sections[-1][0] or "(start)"
         if later:
-            dropped.append(f"{where}: a paragraph dated {later[0]}, after {cutoff[:10]}")
+            dropped.append(f"{where}: a paragraph dated {later[0]}, on or after {cutoff[:10]}")
         elif UPDATE_NOTE.match(block) and not _dates(block):
             dropped.append(f"{where}: an undated update note")
         else:
