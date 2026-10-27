@@ -1,6 +1,6 @@
 # Milestone 2: Extraction
 
-Status: Open. Everything the milestone builds was built and run on 2026-10-27: the evidence cut, ingestion from Blob Storage, the library and its extraction, the charts, and the frozen answer keys. The independent review is open. The milestone state is in the [roadmap](../roadmap.md).
+Status: Verified on 2026-10-27. Everything the milestone builds was built and run that day: the evidence cut, ingestion from Blob Storage, the library and its extraction, the charts, and the frozen answer keys. The independent review ran and its fixes are in. The milestone state is in the [roadmap](../roadmap.md).
 
 ## Scope
 
@@ -59,7 +59,7 @@ Tested locally: `tests/test_library.py` checks every tag's form and that each qu
 
 `hindcast.library` loads the registry and refuses a document dated on or after the start day of any case it serves, a missing or non-ISO date, a URL that is a case's own source, a document ID used twice across cases and library, an unknown served case, and a reason that quotes none of the served case's tagged symptoms. Tested locally: `tests/test_library.py`, each check shown failing once with the check switched off.
 
-Candidates were searched in the providers' archives from the symptom tags alone; the cases' causes were not part of the search. Two search-result summaries showed a line of the GitHub case's report and a summary of the development case's post; the picks for those two cases had been made before those searches. Of 29 candidates, 23 were kept:
+Candidates were searched in the providers' archives from the symptom tags alone; the cases' causes were not part of the search. The cause of the 2025-11-18 outage was widely reported before the search began, so its picks rest on the rule and the decoys, as decision 0013 says. Two search-result summaries showed a line of the GitHub case's report and a summary of the development case's post; the picks for those two cases had been made before those searches. Of 29 candidates, 23 were kept:
 
 | Kind | Documents |
 |---|---|
@@ -88,11 +88,13 @@ Live, 2026-10-27:
 - All three analyzers reported `ready`; a second run created none, and a locally changed definition raised `AnalyzerDiffers`.
 - Smoke test on the development case's postmortem: 18 minimal pages, 18,000 contextualization tokens, gpt-5-mini 18,999 input and 132 output tokens, 9.5 seconds; `published_date` 2026-02-21, the date in the page's metadata.
 
+`azure-ai-contentunderstanding` 1.1.0 is a new direct dependency: typed calls to the GA API with `DefaultAzureCredential` and the analyze usage, instead of hand-written REST calls. It was the newest stable release on PyPI when adopted (2026-04-20; the 1.2.0 releases are betas), and the lock gained only this package. `pip-audit --strict --disable-pip --require-hashes` on the exported lock, as CI runs it: no known vulnerabilities.
+
 Tested locally: `tests/test_extract.py`, including a check of every key in the analyzer files against the field names the SDK defines, which failed on a misspelt field key and a misspelt setting. What the service did that the documentation does not say is in the [extraction findings](../findings/extraction.md).
 
 ### Library extraction
 
-`python -m hindcast.ingest library` downloads each page (hash-checked), cuts out the article by a fixed rule per site, checks that the page's own date equals the registry's, extracts the article with `hindcast_postmortem`, splits it into sections by heading, drops text dated after the earliest served case and undated update notes, and describes each image in the article with `hindcast_chart`. Library figures are never displayable. A page whose title, date, or body its site's rule cannot find is refused. An extract already in Blob Storage is reused unless `--replace` is given.
+`python -m hindcast.ingest library` downloads each page (hash-checked), cuts out the article by a fixed rule per site, checks that the page's own date equals the registry's, extracts the article with `hindcast_postmortem`, splits it into sections by heading, drops text dated after the earliest served case and undated update notes, and describes each image in the article with `hindcast_chart`. A library figure is shown only under a licence that allows it; every library page is under its provider's copyright, so all its figures are stored with `display: false`. A page whose title, date, or body its site's rule cannot find is refused. An extract already in Blob Storage is reused unless `--replace` is given.
 
 Tested locally: `tests/test_library_extract.py` and `tests/test_ingest.py`, each rule shown failing once with the rule switched off. Live, 2026-10-27, 16:10:12 to 16:21:17 UTC: 23 of 23 documents extracted and uploaded, exit 0; usage 118 minimal pages, 189,000 contextualization tokens, gpt-5-mini 130,915 input (34,944 more cached) and 22,752 output tokens. A check of the extracts found the GitHub author bios and photos ([troubleshooting](../troubleshooting.md)); after the fix, six documents were extracted again (19 pages, 26,000 contextualization tokens, gpt-5-mini 22,555 input and 2,493 output), and two monthly reports again so that each incident is its own section (6 pages, 6,000 contextualization tokens). Final library: 23 extracts, 176 sections, 65 described figures, no text dropped for its date. No extract mentions a case's report or a case's date. The one Google page whose newest update postdates its report counts as published on that newest update (2020-12-22).
 
@@ -131,18 +133,27 @@ Live, 2026-10-27: the Content Understanding role was removed at 18:23:46 UTC, le
 | Criterion | Status | Evidence |
 |---|---|---|
 | Ingestion reads the sources from Blob Storage with an Entra token | Tested live | The ingestion run above read all four snapshots, and the library extraction all 23 pages, from Blob Storage with the Azure CLI sign-in's token; a changed hash is refused (`SourceMismatch`, live) |
-| The evidence cut, tested per provider with fixed inputs including a planted report entry | Tested locally and live | `tests/test_evidence.py` (14 tests; 11 run first against a missing module, 3 failing on the code before the review fix); live counts above |
-| Library postmortems extracted into sections with publish dates; charts described with their source | Tested live | Library extraction above: 23 documents, 176 sections, 65 described figures with source URL and SHA-256; each page's date equals the registry's or the page is refused (`tests/test_library_extract.py`) |
-| Answer keys extracted, reviewed by a person, and frozen by hash | Tested | Answer keys above: each field checked against its postmortem, every quote verified in code, corrections approved before freezing; `tests/test_keys.py` checks each key against `eval/keys/frozen.json` and failed on one changed byte |
-| A third-party chart is shown only under a licence that allows it | Tested locally | `tests/test_cases.py::test_chart_sources_need_a_display_licence` and `tests/test_library_extract.py::test_library_figures_are_never_displayable`; the three Radar charts are CC BY 4.0 with their attribution in [`data/charts/`](../../data/charts/README.md) |
+| The evidence cut, tested per provider with fixed inputs including a planted report entry | Tested locally and live | `tests/test_evidence.py` (15 tests; 11 run first against a missing module, 3 failing on the code before the review fix, 1 for chart evidence); live counts above |
+| Library postmortems extracted into sections with publish dates; charts described with their source | Tested live; accepted gap | Library extraction above: 23 documents, 176 sections, 65 described figures with source URL and SHA-256; each page's date equals the registry's or the page is refused (`tests/test_library_extract.py`). Accepted gap: the 2025-11-18 chart runs about four hours past the resolved update, because Radar serves whole days; those hours show recovery only (reason in `data/cases.yaml`) |
+| Answer keys extracted, reviewed by a person, and frozen by hash | Tested locally; accepted gap | Frozen by hash: `tests/test_keys.py` checks each key against `eval/keys/frozen.json` and failed on one changed byte, and checks every quote against the captured postmortem (73 quotes; failed on one changed quote). Review: each field was checked against its postmortem and the corrections were approved before freezing. Accepted gap: the approval covered the corrections, not a re-read of every field |
+| A third-party chart is shown only under a licence that allows it | Tested locally | `tests/test_cases.py::test_chart_sources_need_a_display_licence`, `tests/test_library_extract.py::test_only_cc_by_4_0_is_displayable`, and `test_extract_document_describes_each_figure_and_never_displays_it` (a figure from a copyrighted page is stored with `display: false`); all 65 library figures are stored so; the three Radar charts are CC BY 4.0 with their attribution in [`data/charts/`](../../data/charts/README.md) |
 
 ## Independent review
 
-Open for the milestone.
+A read-only review on 2026-10-27 checked every milestone 2 claim against the code, the stored outputs, Blob Storage, and the live Azure resources, item by item. It confirmed the pick order, the registry's dates and hashes, the extracts, the keys' hashes and quotes, the charts, and the Azure settings. Each finding was checked again before it was acted on; none was rejected. Fixed in this pull request:
+
+- The quote check missed quotes whose apostrophe the page wrote as an HTML entity, and quotes split by inline tags; both now match, and a committed test checks every frozen key's quotes, review additions included, against the captured postmortem.
+- The frozen-key hash test passed with no keys; it now requires a key for every scored and development case.
+- Library text dated on a case's start day was kept, though the registry refuses a document dated that day; it is now dropped. No stored extract contains a case date.
+- The keys row claimed a person's review of every field; it now records the approval as covering the corrections, an accepted gap.
+- Statements that went further than the code: library figures are shown by licence, not never; the diagram said every step refuses, where the evidence cut drops and lists; the as-built diagram said the capture command reads Radar charts and that key drafts go to Blob Storage; decision 0014 said no default decides the model.
+- Decision 0013's rule 6 now says what the code does, a missing dependency entry and a test count were added, the runbook's leak search covers every case date, and the chart images lost their executable bit.
+
+Recorded as issues: [#14](https://github.com/sindredg/hindcast/issues/14) to [#17](https://github.com/sindredg/hindcast/issues/17). Left as they are: the 2025-11-18 chart's extra hours, recorded as an accepted gap above; the GitHub key's attack basis, which the milestone 5 rubric settles.
 
 ### Code review of the first pull request
 
-A separate agent reviewed the first pull request read-only on 2026-10-27, against the plan, decision 0005, and the project rules. Each finding was checked again before it was acted on; none was rejected. Fixed in that pull request:
+The first pull request was reviewed read-only on 2026-10-27 against the plan and decision 0005. Each finding was checked again before it was acted on; none was rejected. Fixed in that pull request:
 
 - The cut sorted on times truncated to the second, and providers list updates newest first, so an update posted after the resolved one in the same second was kept with its text. Updates now sort at full precision, and on an exact tie the resolved mark goes first.
 - A time without a zone was read as the machine's local time; it is now refused.
@@ -157,7 +168,8 @@ A separate agent reviewed the first pull request read-only on 2026-10-27, agains
 - The project gained an embedding deployment, which the document analyzers require; retrieval reuses it.
 - The answer-key analyzer gained a quote per item and a timeline time as written next to the UTC time, because HTML results carry no source locations. It was replaced in place, which the Contributor role allows although it cannot delete.
 - The article is cut out of each page in code before extraction, by a rule per site; the plan cut it after extraction. Extraction bills fewer pages, and a page the rule cannot read is refused.
-- Text dropped for its date would be listed in each extract's `dropped` field, not in the registry entry that decision 0013 names; none was found.
+- Decision 0013's rule 6 first said that text dropped from an edited page is listed in the registry entry. It was corrected before merge to what the code does: each extract lists the text it dropped for its date (none was found), and each site's rule leaves out related posts, tags, and bylines.
+- Library text dated on a case's start day is dropped, as the registry refuses a document dated that day; the first version kept it. No stored extract contains a case date, so nothing was extracted again.
 - Chart descriptions are stored once and attached during evidence ingestion, so evidence ingestion stays deterministic.
 - The 2025-11-18 chart runs past the resolved update; Radar offers whole days only.
 - A document has one kind; where it serves a second case in another relation, its reason says so.
@@ -166,6 +178,10 @@ A separate agent reviewed the first pull request read-only on 2026-10-27, agains
 
 - [#12](https://github.com/sindredg/hindcast/issues/12): the answer-key draft check accepts a time that was not converted to UTC.
 - [#13](https://github.com/sindredg/hindcast/issues/13): the extraction model upgrades automatically, and extracts do not record its version.
+- [#14](https://github.com/sindredg/hindcast/issues/14): a reused extract or chart description is not checked against the registry.
+- [#15](https://github.com/sindredg/hindcast/issues/15): analyzers are not checked against their files before each run.
+- [#16](https://github.com/sindredg/hindcast/issues/16): the support rules have to treat a chart description as a lead.
+- [#17](https://github.com/sindredg/hindcast/issues/17): chart evidence carries no attribution for display.
 
 ## Not verified
 

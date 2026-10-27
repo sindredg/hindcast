@@ -29,7 +29,7 @@ The rule:
 3. **About 25 documents.** Two of each of the first three kinds per scored case, a few decoys, and a few documents for the development case. A kind with no good match stays short, and the registry says why, instead of taking a weaker pick.
 4. **Every pick records its reason.** Each document names its kind, the cases it serves, and a one-line reason that quotes the case symptom it matches.
 5. **The case's cause is used once, for decoys only.** `other-provider`, `same-provider`, and `attack-suspected` picks are made on symptoms alone. A decoy's cause is compared with the case's known cause only to make sure the two differ. That knowledge can only make the library harder, never easier.
-6. **Pages edited after publication keep the article body only.** Notes dated after the earliest case the document serves, and related-post or sidebar blocks, are dropped and listed in the registry entry. A page whose body cannot be separated from later text is not used.
+6. **A page keeps its article body only.** A fixed rule per site cuts the page to its article and leaves out related posts, sidebars, tags, and bylines. Within the article, text dated on or after the start day of the earliest case the document serves, and undated update notes, are dropped, and each extract lists what it dropped. A page whose article the rule cannot find is not used.
 7. **A monthly report is one document**, and each incident in it becomes a section.
 
 No update in the four cases mentions an attack. The `attack-suspected` picks therefore quote a symptom an attack could also produce, such as errors or timeouts reaching the network.

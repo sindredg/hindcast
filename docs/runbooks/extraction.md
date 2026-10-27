@@ -188,7 +188,7 @@ export RG=<resource-group> RESOURCE=<foundry-resource>
 14. Check the extracts for text that must not be there: a case's report, a case's date, or a byline.
 
     ```bash
-    grep -l -i 'availability report: August 2026\|November 18, 2025\|February 20, 2026' build/extracted/library/*.json; grep -l -i 'written by\|author-bio' build/extracted/library/*.json
+    grep -l -i -E 'availability report: August 2026|2025-11-18|November 18, 2025|18 November 2025|2026-02-20|February 20, 2026|20 February 2026|2026-07-14|July 14, 2026|14 July 2026|2026-08-17|August 17, 2026|17 August 2026' build/extracted/library/*.json; grep -l -i 'written by\|author-bio' build/extracted/library/*.json
     ```
 
     Expected: no file from the first search, and only `build/extracted/library/cloudflare-2019-07-02.json` from the second, whose text says "code written by customers".
@@ -201,7 +201,7 @@ export RG=<resource-group> RESOURCE=<foundry-resource>
     PYTHONPATH=src uv run --frozen --env-file .env python -m hindcast.keys draft
     ```
 
-    Expected: one line per case with its counts and problems, then `  blob: uploaded` and a `usage:` line on a first run (together 24 minimal pages), or `  blob: reused` after. An existing draft is kept: `<case_id>: a draft exists and may hold review edits; kept`. The drafts and review sheets are in `build/keys/`, which Git ignores.
+    Expected: one line per case with its counts and problems, then `  blob: uploaded` on a first run or `  blob: reused` after, and the stored analysis's `usage:` line either way (together 24 minimal pages). An existing draft is kept: `<case_id>: a draft exists and may hold review edits; kept`. The drafts and review sheets are in `build/keys/`, which Git ignores.
 
 16. Review each sheet against its postmortem, linked at the top of the sheet. Correct the draft in `build/keys/<case_id>-draft.json`: values, missing items, times in UTC, and `stated_during_incident` for what a status update already said. The fields and rules are in the [keys README](../../eval/keys/README.md). The prior-knowledge answers stay unopened.
 

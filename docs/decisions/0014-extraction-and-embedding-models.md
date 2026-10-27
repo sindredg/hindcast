@@ -26,7 +26,7 @@ Prices: the Azure retail price list for Sweden Central, Global Standard, read 20
 
 Option A for extraction, with text-embedding-3-large as the embedding model.
 
-gpt-5-mini was deployed already, and a second chat deployment for a step that runs once is not worth its quota. Extraction is stored and its drafts are reviewed, so a newer model buys little here. text-embedding-3-large is deployed once, version 1, with automatic upgrade off, and the same deployment embeds the library for retrieval in milestone 3. Both are named in each analyzer's committed definition ([`analyzers/`](../../analyzers/)), so no default or alias decides which model runs.
+gpt-5-mini was deployed already, and a second chat deployment for a step that runs once is not worth its quota. Extraction is stored and its drafts are reviewed, so a newer model buys little here. text-embedding-3-large is deployed once, version 1, with automatic upgrade off, and the same deployment embeds the library for retrieval in milestone 3. Each analyzer names its models in its committed definition ([`analyzers/`](../../analyzers/)), so no alias decides which model runs; the resource defaults map those names to the deployments.
 
 ## Trade-offs
 

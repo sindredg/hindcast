@@ -7,7 +7,7 @@ Each milestone has completion criteria: things shown to work, not things built. 
 | Milestone | State |
 | --- | --- |
 | 1. Foundations | Verified on 2026-10-26: the [gate](worklogs/01-foundations.md#gate) records the evidence per criterion and its accepted gaps, and the [independent review](worklogs/01-foundations.md#independent-review) ran with its fixes in. Decisions [0001](decisions/0001-scope.md) to [0012](decisions/0012-models.md) accepted. |
-| 2. Extraction | Open: the evidence, the library extracts, the charts, and the frozen answer keys were built and run on 2026-10-27; the [gate](worklogs/02-extraction.md#gate) records the evidence per criterion. The independent review is open. Decisions [0013](decisions/0013-library-selection.md) and [0014](decisions/0014-extraction-and-embedding-models.md) accepted. |
+| 2. Extraction | Verified on 2026-10-27: the evidence, the library extracts, the charts, and the frozen answer keys were built and run; the [gate](worklogs/02-extraction.md#gate) records the evidence per criterion and its accepted gaps, and the [independent review](worklogs/02-extraction.md#independent-review) ran with its fixes in. Decisions [0013](decisions/0013-library-selection.md) and [0014](decisions/0014-extraction-and-embedding-models.md) accepted. |
 | 3. Retrieval | Planned |
 | 4. Investigator | Planned |
 | 5. Evaluation | Planned |

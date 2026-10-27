@@ -34,7 +34,7 @@ Frozen on 2026-10-27, before any scored run, with the prior-knowledge answers st
 
 ## How the keys were made
 
-Each postmortem was cut to its article (and, for GitHub's monthly report, to the case's incident) and extracted with the `hindcast_answer_key` analyzer ([`analyzers/answer-key.json`](../../analyzers/answer-key.json)). Each draft was then checked field by field against its postmortem: wrong values corrected, missing factors and events added, steps taken during the outage moved out of the fixes, and every time converted to UTC. Every quote is checked word for word against the extracted postmortem text in code (`hindcast.keys.draft_key`). The corrections were approved before freezing. The procedure is in the [extraction runbook](../../docs/runbooks/extraction.md).
+Each postmortem was cut to its article (and, for GitHub's monthly report, to the case's incident) and extracted with the `hindcast_answer_key` analyzer ([`analyzers/answer-key.json`](../../analyzers/answer-key.json)). Each draft was then checked field by field against its postmortem: wrong values corrected, missing factors and events added, steps taken during the outage moved out of the fixes, and every time converted to UTC. Every quote, including those added in review, appears word for word in the captured postmortem: `tests/test_keys.py::test_every_frozen_quote_appears_in_its_postmortem` checks it where the captured pages are present. The corrections were approved before freezing. The procedure is in the [extraction runbook](../../docs/runbooks/extraction.md).
 
 ## Limits
 
