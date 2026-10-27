@@ -1,0 +1,78 @@
+{
+  "analyzerId": "hindcast_answer_key",
+  "description": "A provider's postmortem as an answer key: attack verdict and its basis, root cause, contributing factors, timeline, and fixes.",
+  "baseAnalyzerId": "prebuilt-document",
+  "models": {
+    "completion": "gpt-5-mini",
+    "embedding": "text-embedding-3-large"
+  },
+  "config": {
+    "returnDetails": true,
+    "estimateFieldSourceAndConfidence": true
+  },
+  "fieldSchema": {
+    "name": "answer_key",
+    "fields": {
+      "attack": {
+        "type": "string",
+        "method": "classify",
+        "description": "Whether deliberate hostile action caused the outage, as the postmortem states it.",
+        "enum": ["attack", "not an attack"],
+        "enumDescriptions": {
+          "attack": "Deliberate hostile action, for example a DDoS attack, an intrusion, or a route hijack, caused the outage in whole or in part, as the postmortem states it.",
+          "not an attack": "The postmortem gives a cause that is not deliberate hostile action. Heavy but legitimate traffic is not an attack unless the postmortem calls it one. Hostile activity during the outage that did not cause it is not an attack."
+        }
+      },
+      "attack_basis": {
+        "type": "string",
+        "method": "classify",
+        "description": "What the attack verdict rests on.",
+        "enum": ["stated", "implied", "not stated"],
+        "enumDescriptions": {
+          "stated": "The postmortem says outright whether an attack caused the outage.",
+          "implied": "The postmortem does not say it outright, but the root cause it gives, for example an internal configuration change, settles it.",
+          "not stated": "The postmortem neither says nor implies whether an attack caused the outage."
+        }
+      },
+      "root_cause": {
+        "type": "string",
+        "method": "generate",
+        "description": "The root cause as the postmortem states it, in one or two sentences close to its own wording. Nothing the postmortem does not say."
+      },
+      "contributing_factors": {
+        "type": "array",
+        "method": "generate",
+        "description": "Conditions the postmortem names as making the outage happen, spread, or last longer, other than the root cause. One condition per item.",
+        "items": {
+          "type": "string"
+        }
+      },
+      "timeline": {
+        "type": "array",
+        "method": "generate",
+        "description": "The events with times that the postmortem gives, in order.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "time": {
+              "type": "string",
+              "description": "The time exactly as the postmortem writes it, including its time zone."
+            },
+            "event": {
+              "type": "string",
+              "description": "What happened at that time, in one sentence close to the postmortem's wording."
+            }
+          }
+        }
+      },
+      "fixes": {
+        "type": "array",
+        "method": "generate",
+        "description": "Changes the provider made or committed to after the outage, as the postmortem lists them. One change per item.",
+        "items": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

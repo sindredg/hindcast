@@ -1,0 +1,28 @@
+{
+  "analyzerId": "hindcast_postmortem",
+  "description": "Earlier outage postmortems in the library: the article as markdown sections, its title, and its publish date.",
+  "baseAnalyzerId": "prebuilt-document",
+  "models": {
+    "completion": "gpt-5-mini",
+    "embedding": "text-embedding-3-large"
+  },
+  "config": {
+    "returnDetails": true,
+    "estimateFieldSourceAndConfidence": true
+  },
+  "fieldSchema": {
+    "name": "postmortem",
+    "fields": {
+      "title": {
+        "type": "string",
+        "method": "extract",
+        "description": "The article's own title, as written at the top of the article."
+      },
+      "published_date": {
+        "type": "date",
+        "method": "extract",
+        "description": "The date the article was first published, as the page states it next to the title or byline. Not a date of the outage and not the date of a later update. Empty if the page states no publish date."
+      }
+    }
+  }
+}
