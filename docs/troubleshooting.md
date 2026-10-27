@@ -2,6 +2,40 @@
 
 Failures that showed something about Hindcast, the platform, or a procedure: the symptom, the cause, the fix, and how the fix was verified. Newest first. A cause that was not confirmed is labelled as a hypothesis. The behaviour behind an entry is recorded once, in [findings](findings/), and linked from here.
 
+## Answer-key draft: most quotes reported as not found (2026-10-27)
+
+**Symptom:** `python -m hindcast.keys draft` reported 10 problems for one key, nearly all "quote not found word for word in the postmortem", although the quoted sentences were on the page.
+
+**Cause:** confirmed. Content Understanding returns a postmortem's tables as HTML inside the markdown, and a quote from a table joins a row's cells into one sentence. Other quotes start mid-sentence and gain a capital letter. The comparison expected the exact characters.
+
+**Fix:** the comparison drops HTML tags and letter case and still requires the same words in the same order (`hindcast.keys._plain`). A quote with its words in another order is still reported.
+
+**Verification:** tested locally, `tests/test_keys.py` (`test_quotes_from_table_cells_or_mid_sentence_are_found`, `test_a_quote_with_words_in_another_order_is_still_reported`). Re-drafted from the stored results: 1 problem left for that key, a quote broken across lines on the page, which the review replaced.
+
+## Library extraction: GitHub extracts named a person and described their photo (2026-10-27)
+
+**Symptom:** a check of the first library extracts found sections headed "Tags", "Written by", and an author's name at the end of six GitHub extracts, and one figure per page that was the author's photo.
+
+**Cause:** confirmed. The GitHub rule cut each page to the element that holds the post's text, and that element also holds the post's tags and its author's bio ([sources](findings/sources.md#a-github-blog-posts-body-ends-with-its-authors-bio-and-photo-2026-10-27)).
+
+**Fix:** the GitHub rule drops the tags, the "Written by" block, and the author bio. The six documents were extracted again with `python -m hindcast.ingest library --replace --doc <doc_id>`, which overwrote the earlier extracts in Blob Storage.
+
+**Verification:** tested locally, `tests/test_library_extract.py::test_github_body_leaves_out_tags_and_the_author_bio`, failing before the fix. Live, 2026-10-27: the six extracts have one figure fewer each, and `grep -l -i "written by\|author-bio" build/extracted/library/*.json` matches only a Cloudflare extract whose text says "code written by customers".
+
+## Content Understanding: creating a document analyzer fails with `DefaultDeploymentModelNotFound` (2026-10-27)
+
+**Symptom:** creating a custom analyzer on `prebuilt-document` fails with `DefaultDeploymentModelNotFound`, "Defaults have not yet been set to 'prebuilt-analyzer-embedding'", although the resource defaults map the completion model, and later the embedding model too. An analyzer on `prebuilt-image` is created without the error.
+
+**Cause:** confirmed. The document base declares an embedding model under the alias `prebuilt-analyzer-embedding`, and a custom analyzer inherits it unless it names its own. Mapping the model name `text-embedding-3-large` in the defaults does not map the alias ([extraction findings](findings/extraction.md#a-document-analyzer-needs-an-embedding-deployment-an-image-analyzer-does-not-2026-10-27)).
+
+**Fix:** deploy an embedding model the service supports, map it in the defaults by model name, and name it in the analyzer's `models`:
+
+```json
+"models": {"completion": "gpt-5-mini", "embedding": "text-embedding-3-large"}
+```
+
+**Verification:** tested live, 2026-10-27: `ensure_analyzers()` created the analyzer, it reported `ready`, and a second run created nothing. `tests/test_extract.py` checks that every document analyzer names both models.
+
 ## Portal evaluation: a few evaluator calls fail with 401 after the fix below (2026-10-26)
 
 **Symptom:** the run completes and reports `errored: 0`, but some rows show "Error" for one evaluator, and the row's pass count covers fewer evaluators than were selected. The row's result says "OpenAI API hits AuthenticationError: Principal does not have access to API/Operation."

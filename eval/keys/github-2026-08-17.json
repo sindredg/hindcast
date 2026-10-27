@@ -1,0 +1,71 @@
+{
+  "attack": "not an attack",
+  "attack_basis": "implied",
+  "attack_quote": "The core weakness was that our service-mesh sidecar did not scale up, together with our retry behavior, and clients were not bound enough to keep a partial degradation from amplifying into a broader overload.",
+  "case_id": "github-2026-08-17",
+  "contributing_factors": [
+    {
+      "source_quote": "As requests backed up, several of the datacenter’s load-balancer nodes exhausted their network flow limits, which degraded the shared gateway authentication path and produced widespread authentication latency and failures across the many services that route through that datacenter.",
+      "stated_during_incident": false,
+      "text": "Several of the datacenter’s load-balancer nodes exhausted their network flow limits, which degraded the shared gateway authentication path and produced widespread authentication latency and failures."
+    },
+    {
+      "source_quote": "A latent client retry bug sharply amplified traffic to one internal authentication endpoint, which slowed recovery for the Copilot Token Service.",
+      "stated_during_incident": true,
+      "text": "A latent client retry bug sharply amplified traffic to one internal authentication endpoint, slowing recovery for the Copilot Token Service."
+    },
+    {
+      "source_quote": "The core weakness was that our service-mesh sidecar did not scale up, together with our retry behavior, and clients were not bound enough to keep a partial degradation from amplifying into a broader overload.",
+      "stated_during_incident": false,
+      "text": "Service-mesh sidecar did not scale up together with retry behavior, and clients were not sufficiently bounded, allowing partial degradation to amplify into broader overload."
+    }
+  ],
+  "fixes": [
+    {
+      "source_quote": "Correct autoscaling policies so they account for service-mesh sidecar concurrency and capacity, not just the host service.",
+      "stated_during_incident": false,
+      "text": "Correct autoscaling policies so they account for service-mesh sidecar concurrency and capacity, not just the host service."
+    },
+    {
+      "source_quote": "Audit request, concurrency, and scaling limits for the service mesh across the affected services.",
+      "stated_during_incident": false,
+      "text": "Audit request, concurrency, and scaling limits for the service mesh across the affected services."
+    },
+    {
+      "source_quote": "Review retry and backoff limits across gateways and clients so a partial degradation cannot be amplified into a broader overload.",
+      "stated_during_incident": false,
+      "text": "Review retry and backoff limits across gateways and clients to prevent amplification of partial degradations."
+    },
+    {
+      "source_quote": "Fix the client retry behavior that amplified authentication traffic during the incident.",
+      "stated_during_incident": false,
+      "text": "Fix the client retry behavior that amplified authentication traffic during the incident."
+    },
+    {
+      "source_quote": "Improve load-balancer capacity monitoring and strengthen regional failover safeguards.",
+      "stated_during_incident": false,
+      "text": "Improve load-balancer capacity monitoring and strengthen regional failover safeguards."
+    }
+  ],
+  "root_cause": {
+    "source_quote": "A new peak in traffic pushed one datacenter’s load balancers past their limits. A service-mesh sidecar reached its concurrency limit and did not scale up.",
+    "stated_during_incident": false,
+    "text": "A new peak in traffic pushed one datacenter’s load balancers past their limits and a service-mesh sidecar reached its concurrency limit and did not scale up, causing network flow exhaustion and degraded shared authentication paths."
+  },
+  "timeline": [
+    {
+      "event": "The incident begins; front-door requests to many services fail or run slow.",
+      "source_quote": "August 17 13:40 UTC (lasting 7 hours and 35 minutes)",
+      "stated_during_incident": true,
+      "time": "2026-08-17T13:40Z",
+      "time_as_written": "August 17 13:40 UTC"
+    },
+    {
+      "event": "The incident ends: 13:40 UTC plus the stated 7 hours and 35 minutes (the impact summary gives about 6 hours 44 minutes).",
+      "source_quote": "August 17 13:40 UTC (lasting 7 hours and 35 minutes)",
+      "stated_during_incident": true,
+      "time": "2026-08-17T21:15Z",
+      "time_as_written": "13:40 UTC, lasting 7 hours and 35 minutes"
+    }
+  ]
+}

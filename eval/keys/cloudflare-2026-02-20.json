@@ -1,0 +1,153 @@
+{
+  "attack": "not an attack",
+  "attack_basis": "stated",
+  "attack_quote": "The issue was not caused, directly or indirectly, by a cyberattack or malicious activity of any kind.",
+  "case_id": "cloudflare-2026-02-20",
+  "contributing_factors": [
+    {
+      "source_quote": "Our staging environment contains data that matches Production as closely as possible, but was not sufficient in this case and the mock data we relied on to simulate what would occur was insufficient.",
+      "stated_during_incident": false,
+      "text": "The staging environment and mock data did not sufficiently mirror production for this scenario, so the bug was not caught in testing."
+    },
+    {
+      "source_quote": "While we have tests for this functionality, coverage for this scenario in our testing process and environment was incomplete.",
+      "stated_during_incident": false,
+      "text": "Test coverage did not include the scenario where the task-runner service independently executes changes without explicit user input."
+    },
+    {
+      "source_quote": "One of the issues in this incident is that the pending_delete flag was interpreted as a string, making it difficult for both client and server to rationalize the value of the flag.",
+      "stated_during_incident": false,
+      "text": "The Addressing API treated the pending_delete flag as a string, leading to ambiguous interpretation when the flag was present with no value."
+    },
+    {
+      "source_quote": "Today, customers make changes to the addressing schema that are persisted in an authoritative database, and that database is the same one used for operational actions.",
+      "stated_during_incident": false,
+      "text": "Operational and configured state are stored in the same database, making rollbacks harder and requiring manual data recovery steps."
+    },
+    {
+      "source_quote": "This means that changes to the Addressing API are immediately propagated to the Cloudflare edge.",
+      "stated_during_incident": false,
+      "text": "Changes to the Addressing API reach the edge immediately, without a staged, health-mediated rollout."
+    },
+    {
+      "source_quote": "There were still ~300 prefixes that were unable to be remediated through the dashboard because the service configurations for those prefixes were removed from the edge due to a software bug.",
+      "stated_during_incident": false,
+      "text": "The sub-task also removed service bindings, so about 300 prefixes could not be restored from the dashboard and needed a global configuration update."
+    }
+  ],
+  "fixes": [
+    {
+      "source_quote": "We will improve the API schema to ensure better standardization, which will make it much easier for testing and systems to validate whether an API call is properly formed or not.",
+      "stated_during_incident": false,
+      "text": "Standardize the API schema so flags like pending_delete have well-defined types and validation."
+    },
+    {
+      "source_quote": "We will redesign the rollback mechanism and database configuration to ensure that we have an easy way to roll back changes quickly and also to introduce layers between customer configuration and Production.",
+      "stated_during_incident": false,
+      "text": "Redesign rollback mechanisms and separate operational state from customer-configured state, using snapshots and health-mediated deployments to enable quick rollbacks."
+    },
+    {
+      "source_quote": "We will improve our monitoring to detect when changes are happening too fast or too broadly, such as withdrawing or deleting BGP prefixes quickly, and disable the deployment of snapshots when this happens.",
+      "stated_during_incident": false,
+      "text": "Add monitoring and circuit breakers to detect and stop large or fast withdrawal actions and to use service behavior signals to stop dangerous changes."
+    }
+  ],
+  "root_cause": {
+    "source_quote": "Because the client is passing pending_delete with no value, the result of Query().Get(\"pending_delete\") here will be an empty string (\"\"), so the API server interprets this as a request for all BYOIP prefixes instead of just those prefixes that were supposed to be removed.",
+    "stated_during_incident": false,
+    "text": "A buggy automated cleanup sub-task queried the Addressing API with a pending_delete flag that had no value, causing the API to return all BYOIP prefixes which the cleanup then interpreted as queued for deletion and subsequently removed prefixes and related objects."
+  },
+  "timeline": [
+    {
+      "event": "Code merged into system: broken sub-process merged into code base.",
+      "source_quote": "2026-02-05 21:53",
+      "stated_during_incident": false,
+      "time": "2026-02-05T21:53Z",
+      "time_as_written": "2026-02-05 21:53"
+    },
+    {
+      "event": "Code deployed into system: Address API release with broken sub-process completes.",
+      "source_quote": "2026-02-20 17:46",
+      "stated_during_incident": false,
+      "time": "2026-02-20T17:46Z",
+      "time_as_written": "2026-02-20 17:46"
+    },
+    {
+      "event": "Impact Start: broken sub-process begins executing and prefixes begin to be withdrawn.",
+      "source_quote": "2026-02-20 17:56",
+      "stated_during_incident": true,
+      "time": "2026-02-20T17:56Z",
+      "time_as_written": "2026-02-20 17:56"
+    },
+    {
+      "event": "Cloudflare engaged for failures observed on one.one.one.one.",
+      "source_quote": "2026-02-20 18:13",
+      "stated_during_incident": false,
+      "time": "2026-02-20T18:13Z",
+      "time_as_written": "2026-02-20 18:13"
+    },
+    {
+      "event": "Internal incident declared and engineers continue investigating impact.",
+      "source_quote": "2026-02-20 18:18",
+      "stated_during_incident": false,
+      "time": "2026-02-20T18:18Z",
+      "time_as_written": "2026-02-20 18:18"
+    },
+    {
+      "event": "Addressing API team paged and debugging begins.",
+      "source_quote": "2026-02-20 18:21",
+      "stated_during_incident": false,
+      "time": "2026-02-20T18:21Z",
+      "time_as_written": "2026-02-20 18:21"
+    },
+    {
+      "event": "Issue identified and broken sub-process terminated; remediation begins.",
+      "source_quote": "2026-02-20 18:46",
+      "stated_during_incident": true,
+      "time": "2026-02-20T18:46Z",
+      "time_as_written": "2026-02-20 18:46"
+    },
+    {
+      "event": "Mitigation begins: engineers start restoring serviceability for withdrawn prefixes.",
+      "source_quote": "2026-02-20 19:11",
+      "stated_during_incident": true,
+      "time": "2026-02-20T19:11Z",
+      "time_as_written": "2026-02-20 19:11"
+    },
+    {
+      "event": "Some prefixes mitigated as customers re-advertise via dashboard.",
+      "source_quote": "2026-02-20 19:19",
+      "stated_during_incident": true,
+      "time": "2026-02-20T19:19Z",
+      "time_as_written": "2026-02-20 19:19"
+    },
+    {
+      "event": "Additional mitigation: engineers begin database recovery for removed prefixes.",
+      "source_quote": "2026-02-20 19:44",
+      "stated_during_incident": false,
+      "time": "2026-02-20T19:44Z",
+      "time_as_written": "2026-02-20 19:44"
+    },
+    {
+      "event": "Final mitigation process begins to restore withdrawn prefixes with existing bindings.",
+      "source_quote": "2026-02-20 20:30",
+      "stated_during_incident": true,
+      "time": "2026-02-20T20:30Z",
+      "time_as_written": "2026-02-20 20:30"
+    },
+    {
+      "event": "Configuration update deploys: global machine rollout to restore prefixes not self-mitigated.",
+      "source_quote": "2026-02-20 21:08",
+      "stated_during_incident": false,
+      "time": "2026-02-20T21:08Z",
+      "time_as_written": "2026-02-20 21:08"
+    },
+    {
+      "event": "Configuration update completed and impact ends.",
+      "source_quote": "2026-02-20 23:03",
+      "stated_during_incident": true,
+      "time": "2026-02-20T23:03Z",
+      "time_as_written": "2026-02-20 23:03"
+    }
+  ]
+}

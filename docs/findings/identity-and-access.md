@@ -2,6 +2,16 @@
 
 Findings about Entra ID roles, scopes, and keyless access. Hindcast uses no keys: every call carries an Entra token ([decision 0009](../decisions/0009-hosting-and-identity.md)).
 
+## A removed role kept working on Content Understanding for about 11 minutes (2026-10-27)
+
+**Seen:** after the Content Understanding Contributor role was removed, reads on the Content Understanding endpoint kept succeeding for about 11 minutes before they were refused. Azure documents up to 10 minutes for a role change to take effect. Model calls through the project endpoint kept working on the project-scope role throughout, as expected.
+
+**Evidence:** tested live, 2026-10-27, from the developer's sign-in. `az role assignment delete` at 18:23:46 UTC; afterwards the user held Owner, Foundry User at project scope, and Storage Blob Data Contributor. `get_analyzer("hindcast_chart")`, polled about every 32 seconds, succeeded up to 18:34:23 and returned `PermissionDenied` at 18:35:09, naming `MultiModalIntelligence/analyzers/read`. `ask_model("gpt-6-luna", ...)` through the project endpoint answered "Blue" (24 input, 18 output tokens).
+
+**For Hindcast:** removing a role is not instant revocation. A teardown or a role removal is checked by retrying the refused call until it is refused, not by reading the assignment list. The extraction runbook does so.
+
+**Read more:** [Troubleshoot Azure RBAC](https://learn.microsoft.com/azure/role-based-access-control/troubleshooting).
+
 ## A few calls failed with 401 an hour after the role assignment (2026-10-26)
 
 **Seen:** after the role in the next entry was assigned, two portal evaluation runs mostly worked, but three model calls still failed with 401 `PermissionDenied`, "Principal does not have access to API/Operation." The calls around them, with the same identity, deployment, and operation, succeeded. Azure documents up to 10 minutes for a role change to take effect; these failures came about an hour after it. The cause is not known.
@@ -47,7 +57,7 @@ Findings about Entra ID roles, scopes, and keyless access. Hindcast uses no keys
 - `GET https://<resource>.services.ai.azure.com/contentunderstanding/analyzers/prebuilt-documentSearch?api-version=2025-11-01` with a token for `https://cognitiveservices.azure.com/.default`: HTTP 401, `PermissionDenied`, "lacks the required data action `Microsoft.CognitiveServices/accounts/MultiModalIntelligence/analyzers/read`". The same for `GET .../contentunderstanding/defaults`. Later the same day, after key access was turned off, the same GET returned 401 `PermissionDenied` with "Principal does not have access to API/Operation." and no action named (read 19:30 UTC).
 - `az role definition list`: Foundry User and Cognitive Services User grant `Microsoft.CognitiveServices/*`; Cognitive Services Content Understanding Reader grants analyzer reads and the analyze actions, but no writes; Content Understanding Contributor and Owner grant `MultiModalIntelligence/*`.
 
-**For Hindcast:** extraction needs a second assignment at resource scope. Reader is enough to analyze; setting the resource's model defaults needs Contributor. The extraction milestone decides, for the developer and for the app's identity.
+**For Hindcast:** extraction needs a second assignment at resource scope. Reader is enough to analyze; setting the resource's model defaults needs Contributor. Milestone 2 assigned Contributor to the developer on 2026-10-27 to build and run the analyzers, to be removed when extraction is done; Contributor cannot delete analyzers ([extraction findings](extraction.md#content-understanding-contributor-cannot-delete-an-analyzer-but-can-replace-one-2026-10-27)). The app's identity is decided with deployment.
 
 **Read more:** [Role-based access control for Microsoft Foundry](https://learn.microsoft.com/azure/foundry/concepts/rbac-foundry), [Secure your Content Understanding analyzers and data](https://learn.microsoft.com/azure/ai-services/content-understanding/concepts/secure-communications).
 

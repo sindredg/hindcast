@@ -1,6 +1,36 @@
 # Case sources
 
-Findings about the providers' status pages and postmortems: what they keep, in what form, and where the answer leaks into the evidence.
+Findings about the providers' status pages, postmortems, and charts: what they keep, in what form, and where the answer leaks into the evidence.
+
+## A GitHub blog post's body ends with its author's bio and photo (2026-10-27)
+
+**Seen:** on github.blog the element that holds a post's text also holds, after the last paragraph, the post's tags, a "Written by" heading, and an author bio with the author's name and photo. Cutting the page to that element is not enough to keep a person out of the extract.
+
+**Evidence:** tested live, 2026-10-27, on the six captured github.blog pages in the library. The first library extraction kept those blocks: the six extracts ended with "Tags", "Written by", and a section headed with the author's name, and each listed the author's photo as a figure. After the GitHub rule dropped the blocks, the six pages were extracted again with one figure fewer each, and no extract contains "Written by".
+
+**For Hindcast:** `hindcast.library_extract` drops the tags, the "Written by" block, and the author bio from GitHub posts. A new site gets its own rule, and its first extracts are checked for names and portraits before use ([troubleshooting](../troubleshooting.md)).
+
+**Read more:** none; the page layout is not documented.
+
+## Cloudflare Radar serves whole UTC days, and only to a browser (2026-10-27)
+
+**Seen:** Radar's chart downloads cover whole UTC days from 00:00 to 23:45, even when the page address asks for exact times. The site refuses scripted requests, and the Radar API needs an account token, so charts are downloaded by hand in a browser. A chart can carry a shaded band and a bar under the axis, Radar's own marking of an event, without text.
+
+**Evidence:** tested live, 2026-10-27. `curl` on `radar.cloudflare.com/traffic` returned HTTP 403; the API returned code 9106, "Missing X-Auth-Key, X-Auth-Email or Authorization headers". In a browser, `traffic?dateStart=2025-11-18T10:48:00Z&dateEnd=2025-11-18T19:28:00Z` produced charts labelled "Nov 18, 2025, 00:00 UTC → Nov 18, 2025, 23:45 UTC", with a shaded band from about 11:48 to 14:42.
+
+**For Hindcast:** a case's chart can show the hours after its resolved update. The development case's views end before its resolved update; the 2025-11-18 view runs about four hours past it, which is recorded with the chart ([`data/charts/`](../../data/charts/README.md)). Radar's downloadable graphs and images are licensed CC BY 4.0, so the images are committed with their attribution.
+
+**Read more:** [Cloudflare Radar](https://developers.cloudflare.com/radar/).
+
+## AWS post-event summaries and Azure post-incident reviews state no publish date (2026-10-27)
+
+**Seen:** most AWS post-event summaries carry no publish date on the page, and Azure's post-incident reviews have neither a publish date nor a page of their own: each is a collapsed entry on a status history page that also lists later reviews. Cloudflare's blog, the GitHub blog, and Google Cloud's incident pages state their dates.
+
+**Evidence:** read live, 2026-10-27, while searching for library candidates. Seven AWS summaries checked (including `aws.amazon.com/message/101925/`) show no date; one, `aws.amazon.com/message/12721/`, states "December 10th, 2021" under its title. The Azure reviews are entries on `azure.status.microsoft/en-us/status/history/`, and their short links lead to a feedback form.
+
+**For Hindcast:** a library document has to state its publish date, so a served case can be shown only documents published before it began ([decision 13](../decisions/0013-library-selection.md)). The library has one AWS document and no Azure document.
+
+**Read more:** [AWS post-event summaries](https://aws.amazon.com/premiumsupport/technology/pes/), [Azure status history](https://azure.status.microsoft/en-us/status/history/).
 
 ## Google Cloud's status feed holds recent incidents only, and there is no per-incident JSON (2026-10-25)
 
@@ -48,6 +78,6 @@ Findings about the providers' status pages and postmortems: what they keep, in w
 
 **Evidence:** read from the captured snapshot of incident `T8gmtofFSTGT5tbhyciF`, 2026-10-25.
 
-**For Hindcast:** the evidence cut in milestone 2 drops report entries by type, and drops and lists any entry type the rules do not know ([decision 5](../decisions/0005-evidence-library-and-answer-key.md)). The incident page, which shows the report, is registered as the answer key.
+**For Hindcast:** `hindcast.evidence` drops report entries by type, and drops and lists any entry type the rules do not know ([decision 5](../decisions/0005-evidence-library-and-answer-key.md)); for this case it drops two report entries. The incident page, which shows the report, is registered as the answer key.
 
 **Read more:** [Google Cloud Service Health](https://status.cloud.google.com/).

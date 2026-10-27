@@ -1,0 +1,28 @@
+{
+  "analyzerId": "hindcast_chart",
+  "description": "Traffic and routing charts: what is visible in the image, the text in it, and alt text.",
+  "baseAnalyzerId": "prebuilt-image",
+  "models": {
+    "completion": "gpt-5-mini"
+  },
+  "fieldSchema": {
+    "name": "chart",
+    "fields": {
+      "description": {
+        "type": "string",
+        "method": "generate",
+        "description": "What the chart shows: the chart type, the axes and their units, each series, the time range, and visible changes such as drops, spikes, or gaps with their approximate times. Describe only what is visible. Do not explain causes or guess what happened."
+      },
+      "text_in_image": {
+        "type": "string",
+        "method": "generate",
+        "description": "All text visible in the image, word for word: title, axis labels, legend, and annotations, separated by ' | '. Empty if there is none."
+      },
+      "alt_text": {
+        "type": "string",
+        "method": "generate",
+        "description": "One or two plain sentences of alternative text for a reader who cannot see the image. Only what is visible."
+      }
+    }
+  }
+}
