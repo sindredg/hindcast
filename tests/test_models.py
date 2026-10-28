@@ -83,7 +83,7 @@ def test_ask_model_attaches_image_as_data_url(fake, image, data_url):
             "role": "user",
             "content": [
                 {"type": "input_text", "text": "What does the figure show?"},
-                {"type": "input_image", "image_url": data_url},
+                {"type": "input_image", "image_url": data_url, "detail": "auto"},
             ],
         }
     ]

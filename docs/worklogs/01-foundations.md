@@ -115,7 +115,7 @@ The [architecture page](../architecture/README.md) carries the as-built diagram 
 
 ## Independent review
 
-A separate agent reviewed the milestone read-only on 2026-10-26, at `b94c2a8`. It checked the claims against the code, CI, the GitHub settings, and the live Azure resources, without opening the prior-knowledge answers. Every finding was checked again before it was acted on; none was rejected.
+A read-only review from a fresh context, with no part in the milestone's work, checked the milestone on 2026-10-26, at `b94c2a8`. It checked the claims against the code, CI, the GitHub settings, and the live Azure resources, without opening the prior-knowledge answers. Every finding was checked again before it was acted on; none was rejected.
 
 Fixed in this pull request:
 

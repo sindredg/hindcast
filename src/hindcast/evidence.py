@@ -9,6 +9,7 @@ the list carries no text.
 """
 
 import json
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime
 from typing import Literal
@@ -76,7 +77,7 @@ def _cut(
     title: str,
     started_at: str,
     entries: list[tuple[str, str, str]],
-    classify,
+    classify: Callable[[str, str], str],
 ) -> CaseEvidence:
     """entries are (time, status, text); classify returns keep, resolved, report, or unknown."""
     kept: list[tuple[str, str, str | None]] = []

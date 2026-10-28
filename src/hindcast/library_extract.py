@@ -85,30 +85,30 @@ class _Tree(HTMLParser):
         self.root = _Node("root", {})
         self.stack = [self.root]
 
-    def handle_starttag(self, tag, attrs):
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         node = _Node(tag, {k: v or "" for k, v in attrs}, self.get_starttag_text() or "")
         self.stack[-1].children.append(node)
         if tag not in VOID:
             self.stack.append(node)
 
-    def handle_startendtag(self, tag, attrs):
+    def handle_startendtag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         node = _Node(tag, {k: v or "" for k, v in attrs}, self.get_starttag_text() or "")
         self.stack[-1].children.append(node)
 
-    def handle_endtag(self, tag):
+    def handle_endtag(self, tag: str) -> None:
         # Close the nearest open element of this tag; stray end tags are ignored.
         for i in range(len(self.stack) - 1, 0, -1):
             if self.stack[i].tag == tag:
                 del self.stack[i:]
                 return
 
-    def handle_data(self, data):
+    def handle_data(self, data: str) -> None:
         self.stack[-1].children.append(data)
 
-    def handle_entityref(self, name):
+    def handle_entityref(self, name: str) -> None:
         self.stack[-1].children.append(f"&{name};")
 
-    def handle_charref(self, name):
+    def handle_charref(self, name: str) -> None:
         self.stack[-1].children.append(f"&#{name};")
 
 
@@ -257,10 +257,12 @@ def article(page: bytes, url: str) -> Article:
     if host not in SITES:
         raise ValueError(f"no article rule for {host}")
     title, when, body = SITES[host](_parse(page))
-    missing = [
-        name for name, node in (("title", title), ("date", when), ("article", body)) if node is None
-    ]
-    if missing:
+    if title is None or when is None or body is None:
+        missing = [
+            name
+            for name, node in (("title", title), ("date", when), ("article", body))
+            if node is None
+        ]
         raise ValueError(f"{url}: no {', '.join(missing)} found by the {host} rule")
     date_text = (
         when.attrs.get("datetime", "")[:10]
@@ -273,7 +275,7 @@ def article(page: bytes, url: str) -> Article:
         body_html = GITHUB_INCIDENT.sub(r"<h3>\1</h3>", body_html)
     images = [
         urljoin(url, n.attrs["src"])
-        for n in _all(_parse(body_html.encode()), lambda n: n.tag == "img" and n.attrs.get("src"))
+        for n in _all(_parse(body_html.encode()), lambda n: n.tag == "img" and "src" in n.attrs)
         if not n.attrs["src"].startswith("data:")
     ]
     return Article(
