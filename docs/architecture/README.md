@@ -1,6 +1,6 @@
 # Architecture
 
-How Hindcast is built now. What is planned is in the [target architecture](../../README.md#target-architecture) and the [roadmap](../roadmap.md); the decisions behind both are in [decisions](../decisions/). Last compared with the code and the live resources on 2026-10-27, during [milestone 2](../worklogs/02-extraction.md).
+How Hindcast is built now. What is planned is in the [roadmap](../roadmap.md) with the target architecture; the decisions behind both are in [decisions](../decisions/). Last compared with the code and the live resources on 2026-10-27, during [milestone 2](../worklogs/02-extraction.md).
 
 ## What exists
 

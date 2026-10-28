@@ -41,6 +41,7 @@ Each postmortem was cut to its article (and, for GitHub's monthly report, to the
 - All four keys say `not an attack`. A reconstruction that always answers "not an attack" gets every verdict right, so the evaluation reports the attack verdict together with its reasoning and citations, never as accuracy alone.
 - A postmortem can disagree with itself. Where it gives two times for the same event, both are kept with their own quotes (Cloudflare 2025-11-18 gives 11:20 and 11:28 for the start). The GitHub key's end time is 13:40 UTC plus the duration in the report's heading; the report's impact summary gives a shorter duration.
 - `stated_during_incident` is a judgment about meaning, not a string match.
+- The keys have been public in this repository since 2026-10-27. The prior-knowledge check covers the postmortems, not this repository, so a model version released after that day may have seen the keys. Every model version pinned today predates it; the evaluation report records the comparison per model ([roadmap, milestone 5](../../docs/roadmap.md#5-evaluation)).
 
 ## Sources and attribution
 

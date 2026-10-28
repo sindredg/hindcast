@@ -140,7 +140,7 @@ Live, 2026-10-27: the Content Understanding role was removed at 18:23:46 UTC, le
 
 ## Independent review
 
-A read-only review on 2026-10-27 checked every milestone 2 claim against the code, the stored outputs, Blob Storage, and the live Azure resources, item by item. It confirmed the pick order, the registry's dates and hashes, the extracts, the keys' hashes and quotes, the charts, and the Azure settings. Each finding was checked again before it was acted on; none was rejected. Fixed in this pull request:
+A read-only review from a fresh context, with no part in the milestone's work, checked every milestone 2 claim on 2026-10-27 against the code, the stored outputs, Blob Storage, and the live Azure resources, item by item. It confirmed the pick order, the registry's dates and hashes, the extracts, the keys' hashes and quotes, the charts, and the Azure settings. Each finding was checked again before it was acted on; none was rejected. Fixed in this pull request:
 
 - The quote check missed quotes whose apostrophe the page wrote as an HTML entity, and quotes split by inline tags; both now match, and a committed test checks every frozen key's quotes, review additions included, against the captured postmortem.
 - The frozen-key hash test passed with no keys; it now requires a key for every scored and development case.
@@ -153,7 +153,7 @@ Recorded as issues: [#14](https://github.com/sindredg/hindcast/issues/14) to [#1
 
 ### Code review of the first pull request
 
-The first pull request was reviewed read-only on 2026-10-27 against the plan and decision 0005. Each finding was checked again before it was acted on; none was rejected. Fixed in that pull request:
+The first pull request was reviewed read-only, from a fresh context, on 2026-10-27 against the plan and decision 0005. Each finding was checked again before it was acted on; none was rejected. Fixed in that pull request:
 
 - The cut sorted on times truncated to the second, and providers list updates newest first, so an update posted after the resolved one in the same second was kept with its text. Updates now sort at full precision, and on an exact tie the resolved mark goes first.
 - A time without a zone was read as the machine's local time; it is now refused.

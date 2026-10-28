@@ -1,6 +1,6 @@
 # Roadmap
 
-Each milestone has completion criteria: things shown to work, not things built. A milestone is done when every criterion has evidence in its worklog and an independent review has checked the claims against the code and the running system. Decisions behind the design are in [decisions](decisions/).
+Each milestone has completion criteria: things shown to work, not things built. A milestone is done when every criterion has evidence in its worklog and an independent review has checked the claims against the code and the running system. An independent review is a read-only pass from a fresh context, with no part in the milestone's work, whose findings are each checked again before they are acted on. Decisions behind the design are in [decisions](decisions/).
 
 ## Status
 
@@ -12,6 +12,14 @@ Each milestone has completion criteria: things shown to work, not things built. 
 | 4. Investigator | Planned |
 | 5. Evaluation | Planned |
 | 6. Deployment and release | Planned |
+
+Milestone 4's first slice, the investigator on case tools only, runs before milestone 3: it de-risks the tool loop, the citation checks, and the caps, which no earlier milestone has touched, and AI Search bills per hour from creation ([decision 0004](decisions/0004-retrieval.md)), so creating it later costs less.
+
+## Target architecture
+
+Planned, not built yet. What is built now: [architecture](architecture/).
+
+![Target architecture: a reader signs in with Entra ID to the Hindcast app on Azure Container Apps. The app runs the Foundry prompt agent, checks every tool result with Prompt Shields and every output for personal data, reads the case evidence from Blob Storage, searches the postmortem library in Azure AI Search in Switzerland North, and sends traces to Application Insights. An ingest command captures status updates and postmortems, analyzes library pages, charts, and answer keys with Content Understanding, stores sources and extracts in Blob Storage, and indexes only library documents, so answer keys never reach the index. Service calls use Entra tokens, no keys; traces use the Application Insights connection string](diagrams/target-architecture.svg)
 
 ## 1. Foundations
 
@@ -40,7 +48,7 @@ Cut each case's status updates into evidence, extract the postmortem library and
 
 ## 3. Retrieval
 
-Index the postmortem library in Azure AI Search with section- and figure-bounded chunks and resolvable citations.
+Index the postmortem library in Azure AI Search with section- and figure-bounded chunks and resolvable citations. Runs after the first slice of milestone 4.
 
 **Completion criteria:**
 
@@ -51,7 +59,7 @@ Index the postmortem library in Azure AI Search with section- and figure-bounded
 
 ## 4. Investigator
 
-Run an investigation with a Foundry prompt agent that calls case-bound tools and the date-bound library search, and show it in the interface.
+Run an investigation with a Foundry prompt agent that calls case-bound tools and the date-bound library search, and show it in the interface. Built in two slices: first the investigator on the development case with case tools only, before milestone 3; then the library search tool and its citations once milestone 3 has landed. The first bullet is met in full only after the second slice.
 
 **Completion criteria:**
 
@@ -71,7 +79,7 @@ Score blind reconstructions against the postmortems, compare them with the basel
 - Each case is scored for Hindcast and both baselines ([decision 0006](decisions/0006-evaluation-design.md)), with the dataset, model deployment and version, prompt version, and run named for every result.
 - Unsupported claims are counted by the support rules; a claim about the outage that rests only on a library document counts as unsupported.
 - Planted instructions in a status update, in a library page, and in a chart image are not followed.
-- The evaluation report states the results and the error analysis.
+- The evaluation report states the results and the error analysis, and two limits: the library is small enough that retrieval is close to a lookup, so the scores say little about retrieval quality; and the answer keys have been public in this repository since 2026-10-27, so for each scored model the report gives its version date against that day and says whether its training data could include the keys.
 
 ## 6. Deployment and release
 
