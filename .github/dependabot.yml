@@ -17,8 +17,8 @@ updates:
       interval: weekly
 
   # pyproject.toml and uv.lock move together; the lock keeps the hashes.
-  # Fails until Dependabot supports Python 3.15 (issue #8); the pins move by
-  # hand until then.
+  # Dependabot supports Python up to 3.14, which is why the project stays on
+  # 3.14 rather than the newest release (issue #8).
   - package-ecosystem: uv
     directory: /
     schedule:
