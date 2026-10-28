@@ -32,6 +32,7 @@ import hashlib
 import json
 import sys
 from collections import Counter
+from collections.abc import Callable
 from pathlib import Path
 from typing import Literal
 
@@ -49,7 +50,16 @@ from hindcast.library_extract import (
     field_value,
     image_mime,
 )
-from hindcast.storage import SourceMismatch, container, download_source, upload_bytes
+from hindcast.storage import (
+    BlobContainer,
+    SourceMismatch,
+    container,
+    download_source,
+    upload_bytes,
+)
+
+# An analyzer call: (analyzer ID, file bytes, MIME type) to the raw result and usage.
+Analyzer = Callable[[str, bytes, str], dict]
 
 EVIDENCE_DIR = Path("build/evidence")
 LIBRARY_DIR = Path("build/extracted/library")
@@ -62,7 +72,12 @@ class EvidenceDiffers(ValueError):
 
 
 def ingest_evidence(
-    case: Case, *, out_dir: Path = EVIDENCE_DIR, replace: bool = False, client=None, uploader=None
+    case: Case,
+    *,
+    out_dir: Path = EVIDENCE_DIR,
+    replace: bool = False,
+    client: BlobContainer | None = None,
+    uploader: BlobContainer | None = None,
 ) -> tuple[CaseEvidence, Literal["uploaded", "unchanged", "replaced"]]:
     status = next(s for s in case.sources if s.kind == "status-updates")
     evidence = cut(case, download_source(case.case_id, status, client=client))
@@ -93,7 +108,7 @@ def ingest_evidence(
     return evidence, outcome
 
 
-def _described(case: Case, chart: SourceFile, uploader=None) -> dict:
+def _described(case: Case, chart: SourceFile, uploader: BlobContainer | None = None) -> dict:
     name = f"charts/{case.case_id}/{chart.doc_id}.json"
     try:
         return json.loads((uploader or container("extracted")).download_blob(name).readall())
@@ -111,8 +126,8 @@ def describe_chart(
     charts_dir: Path = CHARTS_DIR,
     out_dir: Path = DESCRIBED_DIR,
     replace: bool = False,
-    uploader=None,
-    analyzer=analyze,
+    uploader: BlobContainer | None = None,
+    analyzer: Analyzer = analyze,
 ) -> tuple[bytes, Literal["reused", "uploaded", "replaced"], dict]:
     """Describe one chart image, or reuse its stored description."""
     name = f"charts/{case.case_id}/{chart.doc_id}.json"
@@ -166,10 +181,10 @@ def ingest_library(
     *,
     out_dir: Path = LIBRARY_DIR,
     replace: bool = False,
-    client=None,
-    uploader=None,
-    analyzer=analyze,
-    fetch=fetch,
+    client: BlobContainer | None = None,
+    uploader: BlobContainer | None = None,
+    analyzer: Analyzer = analyze,
+    fetch: Callable[[str], bytes] = fetch,
 ) -> tuple[bytes, Literal["reused", "uploaded", "replaced"], dict]:
     """Extract one library page, or reuse its extract; returns it, the outcome, and the usage."""
     name = f"library/{doc.doc_id}.json"
@@ -238,7 +253,9 @@ def main(argv: list[str] | None = None) -> int:
     return 1 if failed else 0
 
 
-def _charts(args, parser, cases: dict[str, Case]) -> int:
+def _charts(
+    args: argparse.Namespace, parser: argparse.ArgumentParser, cases: dict[str, Case]
+) -> int:
     unknown = sorted(set(args.case or ()) - cases.keys())
     if unknown:
         parser.error(f"unknown case IDs: {', '.join(unknown)}")
@@ -258,7 +275,9 @@ def _charts(args, parser, cases: dict[str, Case]) -> int:
     return 1 if failed else 0
 
 
-def _library(args, parser, cases: dict[str, Case]) -> int:
+def _library(
+    args: argparse.Namespace, parser: argparse.ArgumentParser, cases: dict[str, Case]
+) -> int:
     documents = load_library(Path("data/library.yaml"), cases)
     unknown = sorted(set(args.doc or ()) - documents.keys())
     if unknown:

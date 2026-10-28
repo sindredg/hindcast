@@ -94,4 +94,4 @@ def test_settings_are_frozen():
     settings = load_settings(ModelSettings, FULL_ENV)
 
     with pytest.raises(AttributeError):
-        settings.chat_deployment = "other"
+        settings.chat_deployment = "other"  # pyright: ignore[reportAttributeAccessIssue]

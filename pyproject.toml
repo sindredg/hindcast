@@ -19,6 +19,9 @@ dependencies = [
 [dependency-groups]
 dev = [
     "pip-audit==2.10.1",
+    # [nodejs] brings node as a locked, hashed wheel; without it pyright downloads
+    # node at first run, outside the lock.
+    "pyright[nodejs]==1.1.414",
     "pytest==9.1.1",
     "ruff==0.17.3",
     "yamllint==1.38.0",
@@ -30,6 +33,17 @@ required-version = "==0.13.5"
 # Not built or installed as a package yet: tests import from src/ directly.
 # The container image in the deployment phase decides how the app is packaged.
 package = false
+
+[tool.pyright]
+include = ["src", "tests"]
+pythonVersion = "3.14"
+typeCheckingMode = "standard"
+# Every parameter in src/ carries a type. Tests use pytest fixtures untyped, and
+# import the evaluation scripts by plain name, as the scripts import each other.
+executionEnvironments = [
+    { root = "src", reportMissingParameterType = "error" },
+    { root = "tests", extraPaths = ["src", "eval/model-selection/dev-outage-v1"] },
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

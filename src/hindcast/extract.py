@@ -54,7 +54,7 @@ def _contains(served: object, wanted: object) -> bool:
     return served == wanted
 
 
-def ensure_analyzers(client=None) -> list[str]:
+def ensure_analyzers(client: ContentUnderstandingClient | None = None) -> list[str]:
     """Create the analyzers that do not exist yet; return the IDs created."""
     client = client or cu_client()
     created = []
@@ -74,14 +74,16 @@ def ensure_analyzers(client=None) -> list[str]:
     return created
 
 
-def replace_analyzer(analyzer_id: str, client=None) -> None:
+def replace_analyzer(analyzer_id: str, client: ContentUnderstandingClient | None = None) -> None:
     """Recreate one analyzer from its committed file, replacing the service's copy."""
     (client or cu_client()).begin_create_analyzer(
         analyzer_id, definition(analyzer_id), allow_replace=True
     ).result()
 
 
-def analyze(analyzer_id: str, data: bytes, mime: str, client=None) -> dict:
+def analyze(
+    analyzer_id: str, data: bytes, mime: str, client: ContentUnderstandingClient | None = None
+) -> dict:
     """Run one analyzer on one file; the raw result and what it used (pages, tokens)."""
     poller = (client or cu_client()).begin_analyze_binary(analyzer_id, data, content_type=mime)
     result = poller.result()

@@ -21,9 +21,24 @@ SOURCES = "sources"
 class Pinned(Protocol):
     """A registry entry with a pinned file: a case source or a library document."""
 
-    doc_id: str
-    filename: str
-    sha256: str
+    # Read-only, so frozen dataclasses satisfy the protocol.
+    @property
+    def doc_id(self) -> str: ...
+    @property
+    def filename(self) -> str: ...
+    @property
+    def sha256(self) -> str: ...
+
+
+class BlobDownload(Protocol):
+    def readall(self) -> bytes: ...
+
+
+class BlobContainer(Protocol):
+    """The two container operations the code uses; ContainerClient satisfies it."""
+
+    def download_blob(self, name: str) -> BlobDownload: ...
+    def upload_blob(self, name: str, data: bytes, overwrite: bool = ...) -> None: ...
 
 
 class SourceMismatch(ValueError):
@@ -43,7 +58,7 @@ def container(name: str) -> ContainerClient:
     return _service().get_container_client(name)
 
 
-def download_source(prefix: str, source: Pinned, client=None) -> bytes:
+def download_source(prefix: str, source: Pinned, client: BlobContainer | None = None) -> bytes:
     """The bytes at sources/<prefix>/<filename>, refused unless they match the registry's hash.
 
     prefix is the case ID for a case source, "library" for a library page.
@@ -56,7 +71,12 @@ def download_source(prefix: str, source: Pinned, client=None) -> bytes:
 
 
 def upload_bytes(
-    container_name: str, name: str, data: bytes, *, overwrite: bool = False, client=None
+    container_name: str,
+    name: str,
+    data: bytes,
+    *,
+    overwrite: bool = False,
+    client: BlobContainer | None = None,
 ) -> None:
     """Upload one blob; an existing blob is kept unless overwrite is set."""
     (client or container(container_name)).upload_blob(name, data, overwrite=overwrite)

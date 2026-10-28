@@ -1,7 +1,9 @@
 import json
 from pathlib import Path
+from typing import cast
 
 import pytest
+from azure.ai.contentunderstanding import ContentUnderstandingClient as CU
 from azure.ai.contentunderstanding import models
 from azure.core.exceptions import ResourceNotFoundError
 
@@ -125,9 +127,9 @@ def as_served(analyzer_id: str) -> dict:
 def test_ensure_analyzers_creates_only_missing_ones():
     client = FakeClient({"hindcast_postmortem": as_served("hindcast_postmortem")})
 
-    assert ensure_analyzers(client) == ["hindcast_chart", "hindcast_answer_key"]
+    assert ensure_analyzers(cast(CU, client)) == ["hindcast_chart", "hindcast_answer_key"]
     assert client.created == ["hindcast_chart", "hindcast_answer_key"]
-    assert ensure_analyzers(client) == []
+    assert ensure_analyzers(cast(CU, client)) == []
 
 
 def test_an_analyzer_that_differs_from_its_file_is_refused():
@@ -139,7 +141,7 @@ def test_an_analyzer_that_differs_from_its_file_is_refused():
     client.existing["hindcast_answer_key"] = served
 
     with pytest.raises(AnalyzerDiffers, match="hindcast_answer_key"):
-        ensure_analyzers(client)
+        ensure_analyzers(cast(CU, client))
     assert client.created == []
 
 
@@ -151,7 +153,7 @@ def test_analyze_returns_the_result_and_its_usage():
 
     client = Client()
 
-    out = analyze("hindcast_chart", b"\x89PNG", "image/png", client=client)
+    out = analyze("hindcast_chart", b"\x89PNG", "image/png", client=cast(CU, client))
 
     assert client.call == ("hindcast_chart", b"\x89PNG", "image/png")
     assert out == {"result": {"contents": []}, "usage": {"tokens": {"a": 1}}}
@@ -165,6 +167,6 @@ def test_replace_analyzer_recreates_it_from_its_file_without_a_delete():
 
     client = Client()
 
-    replace_analyzer("hindcast_chart", client)
+    replace_analyzer("hindcast_chart", cast(CU, client))
 
     assert client.call == ("hindcast_chart", definition("hindcast_chart"), True)

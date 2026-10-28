@@ -7,6 +7,10 @@ authenticate with DefaultAzureCredential.
 import os
 from collections.abc import Mapping
 from dataclasses import dataclass, fields
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from _typeshed import DataclassInstance
 
 PREFIX = "HINDCAST_"
 
@@ -45,7 +49,7 @@ def env_name(field_name: str) -> str:
     return PREFIX + field_name.upper()
 
 
-def load_settings[T](section: type[T], env: Mapping[str, str] = os.environ) -> T:
+def load_settings[T: DataclassInstance](section: type[T], env: Mapping[str, str] = os.environ) -> T:
     """Build one component's settings from env, naming every missing or invalid variable.
 
     Each component loads only its own section, so ingestion runs before the

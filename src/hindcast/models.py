@@ -11,6 +11,8 @@ import functools
 from azure.ai.projects import AIProjectClient
 from azure.identity import DefaultAzureCredential
 from openai import OpenAI
+from openai.types.responses import ResponseInputContentParam, ResponseInputImageParam
+from openai.types.shared_params import Reasoning, ReasoningEffort
 
 from hindcast.config import ModelSettings, load_settings
 from hindcast.costs import TokenUsage
@@ -35,12 +37,17 @@ def openai_client() -> OpenAI:
     return project_client().get_openai_client()
 
 
-def _image_part(image: bytes) -> dict:
+def _image_part(image: bytes) -> ResponseInputImageParam:
     mime = next((t for magic, t in IMAGE_TYPES.items() if image.startswith(magic)), None)
     if mime is None:
         raise ValueError("image must be PNG or JPEG")
     data = base64.b64encode(image).decode("ascii")
-    return {"type": "input_image", "image_url": f"data:{mime};base64,{data}"}
+    # Detail is sent even though "auto" is the service default, for the same
+    # reason as the reasoning effort below: a changed default must not change
+    # results silently.
+    return ResponseInputImageParam(
+        type="input_image", image_url=f"data:{mime};base64,{data}", detail="auto"
+    )
 
 
 def ask_model(
@@ -49,10 +56,10 @@ def ask_model(
     user: str,
     *,
     image: bytes | None = None,
-    effort: str = "medium",
+    effort: ReasoningEffort = "medium",
 ) -> tuple[str, TokenUsage]:
     """One Responses API call: system prompt as instructions, one user turn, optional image."""
-    content: list[dict] = [{"type": "input_text", "text": user}]
+    content: list[ResponseInputContentParam] = [{"type": "input_text", "text": user}]
     if image is not None:
         content.append(_image_part(image))
 
@@ -63,7 +70,7 @@ def ask_model(
         model=deployment,
         instructions=system,
         input=[{"role": "user", "content": content}],
-        reasoning={"effort": effort},
+        reasoning=Reasoning(effort=effort),
     )
 
     if response.status != "completed":
@@ -77,6 +84,9 @@ def ask_model(
         raise RuntimeError(f"{deployment} returned an empty answer")
 
     usage = response.usage
+    if usage is None:
+        # Cost and the rate-limit accounting rest on usage; never guess it.
+        raise RuntimeError(f"{deployment} returned no token usage")
     # Reasoning tokens are billed as output and are already in output_tokens.
     details = usage.input_tokens_details
     return text, TokenUsage(
@@ -89,6 +99,9 @@ def ask_model(
 def deployment_model(deployment: str) -> tuple[str, str]:
     """(model name, model version) of a deployment; the response's model field has no version."""
     deployed = project_client().deployments.get(deployment)
-    if not deployed.model_name or not deployed.model_version:
+    # Only a ModelDeployment carries these; any other kind reports nothing.
+    name = getattr(deployed, "model_name", None)
+    version = getattr(deployed, "model_version", None)
+    if not name or not version:
         raise RuntimeError(f"deployment {deployment} reports no model name or version")
-    return deployed.model_name, deployed.model_version
+    return name, version
