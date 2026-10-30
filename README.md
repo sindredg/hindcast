@@ -69,15 +69,18 @@ A finding is an observation the evidence states, or an inference that names the 
 
 ## Development
 
-Requires [uv](https://docs.astral.sh/uv/). It installs the Python version in `.python-version` and the locked tools. These are the checks CI runs on the code; the workflow also lints the YAML and audits the dependencies ([ci.yml](.github/workflows/ci.yml)).
+Requires [uv](https://docs.astral.sh/uv/). It installs the Python version in `.python-version` and the locked tools. These are the checks CI runs on the code; the workflow also lints the YAML, audits the dependencies, and builds the image ([ci.yml](.github/workflows/ci.yml)).
 
 ```bash
-uv sync --frozen
+uv sync --frozen --all-extras
 uv run --frozen ruff check .
 uv run --frozen ruff format --check .
 uv run --frozen pyright
 uv run --frozen pytest
+az bicep build --file infra/main.bicep --stdout > /dev/null && az bicep lint --file infra/main.bicep
 ```
+
+The page runs locally with `uv run --frozen streamlit run src/hindcast/app.py`; without a connection string it sends no telemetry. hadolint and shellcheck run in CI from their pinned releases; the Dockerfile builds there, since the image is pushed from `main` by the workflow, not from a workstation.
 
 The tests that read the captured status pages and postmortems skip when `data/sources/` is absent, which includes CI. The [runbooks](docs/runbooks/) capture them.
 
