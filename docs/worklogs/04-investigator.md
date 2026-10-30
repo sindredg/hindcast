@@ -90,13 +90,13 @@ Read against the evidence, not against the answer key, which stays closed until 
 - No item cites or mentions a chart. Whether the model called `list_charts` is not recorded: the result counts 2 tool calls, not their names. The chart descriptions put a drop in announced address space around 18:00 and a spike in BGP announcements around 17:00 to 18:00 UTC; read by eye from the images, the drop runs from about 18:10 to 18:45 and the spike rises from about 17:35 ([finding](../findings/extraction.md#a-chart-description-gets-times-roughly-right-and-can-invent-a-value-2026-10-27)). Both start before the first update at 18:45. That lead went unused.
 - The first timeline event cites update 1 for the incident's start time, 18:45:16, which comes from the case header `list_updates` returns, not from update 1 (18:45:17). The reference resolves, so the citation check passes it; whether a citation supports its item is milestone 5's support rule.
 
-The result file stays local in `build/`; it is not committed.
+The result file is committed unchanged in [`eval/investigations/cloudflare-2026-02-20/`](../../eval/investigations/cloudflare-2026-02-20/README.md), with its run details and licence note.
 
 ## Gate
 
 | Criterion | Status | Evidence |
 |---|---|---|
-| An investigation of the development case returns an attack assessment, a timeline, findings, contributing factors, and open questions, each item with a citation that resolves | Tested live, case citations only | Live run above: `complete`, 0 rejected, 0 unsupported. Those counts alone would also pass an inference that rests only on findings, so the result file was read item by item: the attack verdict, all 10 findings, all 8 timeline events, the root cause, and both factors each carry at least one case citation that resolves against the evidence file. The 4 open questions carry none: `OpenQuestion` in `hindcast.result` has no citation field. Library citations come with slice 2 |
+| An investigation of the development case returns an attack assessment, a timeline, findings, contributing factors, and open questions, each item with a citation that resolves | Tested live, case citations only | Live run above: `complete`, 0 rejected, 0 unsupported. Those counts alone would also pass an inference that rests only on findings, so the result file was read item by item: the attack verdict, all 10 findings, all 8 timeline events, the root cause, and both factors each carry at least one case citation that resolves against the evidence file. The 4 open questions carry none: `OpenQuestion` in `hindcast.result` has no citation field. `tests/test_committed_investigation.py` repeats this reading on the committed file where the evidence is present; with an inference's citations removed, it fails. Library citations come with slice 2 |
 | A bad citation is rejected with a reason and the rest survives | Tested locally | `tests/test_result.py`: one test per reason, a bad citation next to a good one, an unsupported attack verdict kept |
 | A tool error, an empty result, or a run past 12 tool calls or 120 seconds ends as incomplete with a reason | Tested locally | `tests/test_investigate.py`: the 13th tool call in separate responses and in one response, a slow tool before the next model call and before the next tool call, a model call timeout, a tool error, an unknown tool, empty text, a schema error. Not tested live: a cap or an error was not provoked on the service |
 | The investigator cannot read an answer key or a postmortem, and cannot run on a scored case before the rubric is frozen | Tested locally | `tests/test_boundaries.py`; `tests/test_investigate.py` refusal tests in both directions |
@@ -117,7 +117,7 @@ Every new check was run once against a broken input on 2026-10-30, locally, and 
 | The evidence file loaded after the agent version is created | `test_main_fails_on_missing_evidence_before_any_model_call` |
 | The code dirty flag fixed at `False` | `test_code_provenance_marks_a_change_under_the_code_paths_only` |
 
-With every file restored, the suite passed: `uv run --frozen pytest -q`, 305 passed. After the review fixes below, 306 passed.
+With every file restored, the suite passed: `uv run --frozen pytest -q`, 305 passed. After the review fixes below, 306 passed; with the committed run's 2 tests, 308.
 
 ## Independent review
 
