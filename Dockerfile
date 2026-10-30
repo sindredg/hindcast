@@ -23,7 +23,7 @@ RUN uv sync --frozen --no-dev --extra app --no-install-project
 
 # The code and the one result the page shows.
 COPY src ./src
-COPY data/cases.yaml data/does-not-exist.yaml ./data/
+COPY data/cases.yaml ./data/cases.yaml
 COPY eval/investigations ./eval/investigations
 
 # A fixed UID so the container never runs as root. USER takes the number, not
