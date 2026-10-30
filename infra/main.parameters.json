@@ -1,0 +1,18 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": { "value": "${AZURE_ENV_NAME}" },
+    "location": { "value": "${AZURE_LOCATION}" },
+    "applicationInsightsName": { "value": "${APPLICATIONINSIGHTS_NAME}" },
+    "logAnalyticsName": { "value": "${LOG_ANALYTICS_NAME}" },
+    "authClientId": { "value": "${AUTH_CLIENT_ID}" },
+    "authTenantId": { "value": "${AUTH_TENANT_ID}" },
+    "allowedUserObjectId": { "value": "${AUTH_ALLOWED_USER_OBJECT_ID}" },
+    "authClientSecret": { "value": "${AUTH_CLIENT_SECRET=}" },
+    "imageName": {
+      "value": "${SERVICE_WEB_IMAGE_NAME=mcr.microsoft.com/k8se/quickstart@sha256:d278e30de23a1b5b5f4c987e830dbd915f9fafc1e2e574022eadf7e7ce1c05fb}"
+    },
+    "webExists": { "value": "${SERVICE_WEB_RESOURCE_EXISTS=false}" }
+  }
+}
