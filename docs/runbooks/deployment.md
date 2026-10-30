@@ -10,6 +10,7 @@ The procedure deploys the Hindcast page to Azure Container Apps from one `azd up
 - Azure Developer CLI 1.37.2, Bicep CLI 0.48.1 (through `az bicep`), Azure CLI, GitHub CLI.
 - Signed in as an Owner of the subscription who can create app registrations in the tenant, and as a GitHub user who can set repository secrets and the ruleset.
 - Placeholders: `<app-insights>` and `<log-analytics>` are the resource names from the foundations runbook; `<registry>` and `<sha>` come from steps 5 and 9.
+- Steps 1 and 2 ran on 2026-10-30 with the expected output (azd 1.37.2, Bicep 0.48.1, an empty `git status`).
 - Commands run from the repository root.
 
 ## Tools
@@ -28,10 +29,10 @@ The procedure deploys the Hindcast page to Azure Container Apps from one `azd up
 
 ## Environment
 
-2. Create the azd environment. Its files live under `.azure/`, which is git-ignored because they hold real resource names.
+2. Create the azd environment. Its files live under `.azure/`, which is git-ignored because they hold real resource names. `HINDCAST_IMAGE` starts as a public placeholder image, because the registry does not exist before the first provision; step 10 points it at the app image.
 
    ```bash
-   azd auth login && azd env new hindcast-app --no-prompt && azd env set AZURE_LOCATION swedencentral && azd env set APPLICATIONINSIGHTS_NAME <app-insights> && azd env set LOG_ANALYTICS_NAME <log-analytics> && azd env set HINDCAST_IMAGE_TAG main && git status --short
+   azd auth login && azd env new hindcast-app --no-prompt && azd env set AZURE_LOCATION swedencentral && azd env set APPLICATIONINSIGHTS_NAME <app-insights> && azd env set LOG_ANALYTICS_NAME <log-analytics> && azd env set HINDCAST_IMAGE mcr.microsoft.com/k8se/quickstart@sha256:d278e30de23a1b5b5f4c987e830dbd915f9fafc1e2e574022eadf7e7ce1c05fb && git status --short
    ```
 
    Expected: a browser sign-in, then `git status` prints nothing.
@@ -127,7 +128,7 @@ The procedure deploys the Hindcast page to Azure Container Apps from one `azd up
 10. Point the container app at the pushed image.
 
     ```bash
-    azd env set HINDCAST_IMAGE_TAG <sha> && azd deploy
+    azd env set HINDCAST_IMAGE "$(azd env get-value AZURE_CONTAINER_REGISTRY_ENDPOINT)/hindcast:<sha>" && azd deploy
     ```
 
     ```bash

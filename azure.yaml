@@ -6,8 +6,11 @@ services:
   web:
     host: containerapp
     # The image is built in CI and pushed to the registry from main; azd only
-    # points the container app at it (deployment runbook).
-    image: ${AZURE_CONTAINER_REGISTRY_ENDPOINT}/hindcast:${HINDCAST_IMAGE_TAG}
+    # points the container app at it. One explicit variable, because azd
+    # checks the reference before the first provision, when the registry's
+    # name does not exist yet: the runbook sets it to a public placeholder
+    # first and to the registry image once CI has pushed one.
+    image: ${HINDCAST_IMAGE}
     docker:
       imagePassthrough: true
 hooks:
