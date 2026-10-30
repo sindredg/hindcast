@@ -24,7 +24,7 @@ jobs:
       - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e  # v10.3.2
         with:
           version: "0.13.5"
-      - run: uv sync --frozen
+      - run: uv sync --frozen --all-extras
       - run: uv run --frozen ruff check .
       - run: uv run --frozen ruff format --check .
       - run: uv run --frozen pyright
@@ -77,7 +77,7 @@ jobs:
       # fails the job. An ignore needs --ignore-vuln with a comment that holds
       # the reachability evidence, its limits, and when to check again.
       - run: |
-          uv export --frozen --all-groups --no-emit-project \
+          uv export --frozen --all-groups --all-extras --no-emit-project \
             --format requirements.txt -o "$RUNNER_TEMP/requirements.txt"
           uv run --frozen pip-audit --strict --disable-pip --require-hashes \
             -r "$RUNNER_TEMP/requirements.txt"
