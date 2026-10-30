@@ -9,7 +9,7 @@ Each milestone has completion criteria: things shown to work, not things built. 
 | 1. Foundations | Verified on 2026-10-26: the [gate](worklogs/01-foundations.md#gate) records the evidence per criterion and its accepted gaps, and the [independent review](worklogs/01-foundations.md#independent-review) ran with its fixes in. Decisions [0001](decisions/0001-scope.md) to [0012](decisions/0012-models.md) accepted. |
 | 2. Extraction | Verified on 2026-10-27: the evidence, the library extracts, the charts, and the frozen answer keys were built and run; the [gate](worklogs/02-extraction.md#gate) records the evidence per criterion and its accepted gaps, and the [independent review](worklogs/02-extraction.md#independent-review) ran with its fixes in. Decisions [0013](decisions/0013-library-selection.md) and [0014](decisions/0014-extraction-and-embedding-models.md) accepted. |
 | 3. Retrieval | Planned |
-| 4. Investigator | Planned |
+| 4. Investigator | Slice 1 built on 2026-10-30: the investigator on case tools reconstructed the development outage with every citation resolving, and the caps, citation checks, and scored-case lock are tested with stubs ([gate](worklogs/04-investigator.md#gate)); the slice's [independent review](worklogs/04-investigator.md#independent-review) ran with its fixes in. Decision [0015](decisions/0015-investigation-result-and-citation-policy.md) accepted. Open: slice 2 (library search and citations, after milestone 3), the challenge, the interface, traces, and cost. |
 | 5. Evaluation | Planned |
 | 6. Deployment and release | Planned |
 

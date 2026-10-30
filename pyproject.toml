@@ -10,6 +10,9 @@ dependencies = [
     "azure-ai-projects==2.9.0",
     "azure-identity==1.27.0",
     "azure-storage-blob==12.31.0",
+    # Checks the model's output locally against the same schema dict the service
+    # enforces, so a disagreement shows up as a schema error, not a crash later.
+    "jsonschema==4.26.0",
     "openai==3.40.0",
     "ruamel-yaml==0.19.1",
 ]
@@ -18,6 +21,9 @@ dependencies = [
 # the updates (.github/dependabot.yml).
 [dependency-groups]
 dev = [
+    # Imported directly by a test to build a request for openai.APITimeoutError;
+    # openai depends on it, so this pin moves with openai's range.
+    "httpx2==2.16.0",
     "pip-audit==2.10.1",
     # [nodejs] brings node as a locked, hashed wheel; without it pyright downloads
     # node at first run, outside the lock.
