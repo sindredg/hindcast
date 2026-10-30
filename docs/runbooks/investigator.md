@@ -53,7 +53,7 @@ The procedure runs one investigation of a case through the investigator prompt a
 4. Print the run's metadata and checks without the investigation text.
 
    ```bash
-   python3 -c "import json,sys; d=json.load(open(sys.argv[1])); [print(k, d[k]) for k in ('agent','model','provenance','status','incomplete_reason','checks','usage')]" build/investigations/cloudflare-2026-02-20/<file>.json
+   uv run --frozen python -c "import json,sys; d=json.load(open(sys.argv[1])); [print(k, d[k]) for k in ('agent','model','provenance','status','incomplete_reason','checks','usage')]" build/investigations/cloudflare-2026-02-20/<file>.json
    ```
 
    Expected: the agent name and version (`hindcast-investigator-gpt-6-luna`, `1` on 2026-10-30), the model name and version (`gpt-6-luna`, `2026-09-22`), the prompt blob hash (or SHA-256 with `dirty: True`), the commit with its dirty flag, the evidence SHA-256, `status complete`, and empty `rejected_citations` and `unsupported` lists for a run that passes.

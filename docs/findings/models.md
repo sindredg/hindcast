@@ -68,6 +68,6 @@ Findings about the deployed models: [gpt-6-luna](../decisions/0012-models.md) 20
 
 **Evidence:** tested live, 2026-10-30, with a throwaway agent (one `echo` tool, a one-field schema), created as version 1 and deleted after the run. Usage: 83 input and 17 output tokens on the first call, 117 and 14 on the second. The same call shape then ran the investigator on the development case with the full schema and two tools ([worklog](../worklogs/04-investigator.md#live-run)). Whether the effort set in the agent definition is applied is not shown: the spike's task was too small to need reasoning, and the investigation's usage does not separate reasoning tokens.
 
-**For Hindcast:** [decision 0002](../decisions/0002-agent-approach.md) option A works as decided, with no fallback to the Responses API without an agent and no extra role. The effort the agent applies is not yet read back from the response ([#4](https://github.com/sindredg/hindcast/issues/4)).
+**For Hindcast:** [decision 0002](../decisions/0002-agent-approach.md) option A works as decided, with no fallback to the Responses API without an agent and no extra role. The effort the agent applies is not yet read back from the response ([#26](https://github.com/sindredg/hindcast/issues/26), with [#4](https://github.com/sindredg/hindcast/issues/4) for the prior-knowledge results).
 
 **Read more:** [Agents in Microsoft Foundry](https://learn.microsoft.com/azure/foundry/agents/overview).
