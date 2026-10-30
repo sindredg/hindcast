@@ -371,6 +371,7 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "httpx2" },
     { name = "pip-audit" },
     { name = "pyright", extra = ["nodejs"] },
     { name = "pytest" },
@@ -392,6 +393,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "httpx2", specifier = "==2.16.0" },
     { name = "pip-audit", specifier = "==2.10.1" },
     { name = "pyright", extras = ["nodejs"], specifier = "==1.1.414" },
     { name = "pytest", specifier = "==9.1.1" },
