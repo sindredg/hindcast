@@ -61,3 +61,13 @@ Findings about the deployed models: [gpt-6-luna](../decisions/0012-models.md) 20
 **For Hindcast:** extraction needs a GPT-5.x deployment next to the investigator's model. It uses gpt-5-mini, read from `supportedModels` on 2026-10-27 ([extraction findings](extraction.md#gpt-5-mini-is-on-the-supported-list-of-the-ga-api-2026-10-27)).
 
 **Read more:** [What's new in Content Understanding](https://learn.microsoft.com/azure/ai-services/content-understanding/whats-new), [Model deployment options for Content Understanding analyzers](https://learn.microsoft.com/azure/ai-services/content-understanding/concepts/models-deployments), [Content Understanding service limits](https://learn.microsoft.com/azure/ai-services/content-understanding/service-limits).
+
+## A prompt agent drives app-run function tools under a strict output schema (2026-10-30)
+
+**Seen:** a Foundry prompt agent on gpt-6-luna with a strict function tool and a strict JSON schema output format returned a `function_call` item on the first call. With the function's output sent back in a second call, it returned text that parsed against the schema. The agent is referenced from the project's OpenAI client with `extra_body={"agent_reference": {"type": "agent_reference", "name": ..., "version": ...}}` on every call, and the second call chains with `previous_response_id`. `agents.list_versions(name, limit=1, order="desc")` returns the version's metadata, which Hindcast uses to store the definition's fingerprint. Foundry User on the project was enough to create, call, and delete the agent. Both calls reported 0 reasoning tokens at effort medium.
+
+**Evidence:** tested live, 2026-10-30, with a throwaway agent (one `echo` tool, a one-field schema), created as version 1 and deleted after the run. Usage: 83 input and 17 output tokens on the first call, 117 and 14 on the second. The same call shape then ran the investigator on the development case with the full schema and two tools ([worklog](../worklogs/04-investigator.md#live-run)). Whether the effort set in the agent definition is applied is not shown: the spike's task was too small to need reasoning, and the investigation's usage does not separate reasoning tokens.
+
+**For Hindcast:** [decision 0002](../decisions/0002-agent-approach.md) option A works as decided, with no fallback to the Responses API without an agent and no extra role. The effort the agent applies is not yet read back from the response ([#4](https://github.com/sindredg/hindcast/issues/4)).
+
+**Read more:** [Agents in Microsoft Foundry](https://learn.microsoft.com/azure/foundry/agents/overview).

@@ -6,37 +6,48 @@ Given only what an outside engineer could see while an outage was happening, Hin
 
 ## Status
 
-Milestones 1 and 2 of 6 are verified ([roadmap](docs/roadmap.md)). Built and run: the case sources are captured and pinned by hash, the status updates are cut into evidence that keeps every update before the resolved one and only the time of that one, a library of earlier postmortems is extracted into sections and described charts, and the answer keys are frozen. Not built yet: the investigator, the library search, the evaluation, and the deployment.
+Milestones 1 and 2 of 6 are verified, and the first slice of milestone 4 is built ([roadmap](docs/roadmap.md)). Built and run: the case sources are captured and pinned by hash, the status updates are cut into evidence that keeps every update before the resolved one and only the time of that one, a library of earlier postmortems is extracted into sections and described charts, the answer keys are frozen, and the investigator has reconstructed the development outage from its updates with every citation resolving ([worklog](docs/worklogs/04-investigator.md)). Not built yet: the library search, the interface, the evaluation, and the deployment.
 
 The current cases are all "not an attack" according to their postmortems, so the attack verdict is reported with its reasoning and citations, never as an accuracy rate ([answer keys](eval/keys/README.md#limits)).
 
 ## What an investigation returns
 
-The planned shape, from [decision 0001](docs/decisions/0001-scope.md) and [decision 0002](docs/decisions/0002-agent-approach.md). The values are placeholders: no investigator exists yet, and the field names are settled when it is built.
+The shape `hindcast.result` and `hindcast.investigate` write, shortened: one item per list, and the values are illustrative ([decision 0015](docs/decisions/0015-investigation-result-and-citation-policy.md)).
 
 ```json
 {
   "case_id": "example-case",
+  "agent": {"name": "hindcast-investigator-gpt-6-luna", "version": "1"},
+  "model": {"deployment": "gpt-6-luna", "name": "gpt-6-luna", "version": "2026-09-22"},
+  "provenance": {
+    "prompt": {"blob": "<git blob hash>", "dirty": false},
+    "code": {"commit": "<commit>", "dirty": false},
+    "evidence_sha256": "<sha256>"
+  },
   "status": "complete",
-  "attack": {
-    "verdict": "cannot tell",
-    "reasoning": "No update describes hostile traffic; the error pattern also fits a bad configuration push.",
-    "citations": [{"source": "case", "ref": "update-04"}]
+  "incomplete_reason": null,
+  "investigation": {
+    "attack": {"verdict": "cannot tell", "reasoning": "No update names a cause.",
+               "citations": [{"source": "case", "ref": "example-case/u2"}]},
+    "findings": [
+      {"id": "f1", "kind": "observation", "claim": "Errors rose for a subset of customers.",
+       "rests_on": [], "citations": [{"source": "case", "ref": "example-case/u1"}]}
+    ],
+    "timeline": [
+      {"time": "2026-01-01T10:12:00Z", "time_kind": "stated", "event": "Investigating elevated errors",
+       "citations": [{"source": "case", "ref": "example-case/u1"}]}
+    ],
+    "root_cause": {"claim": "A change in the edge routing layer", "rests_on": ["f1"], "citations": []},
+    "contributing_factors": [],
+    "open_questions": [{"question": "What triggered the change?", "why_open": "No update says."}]
   },
-  "timeline": [
-    {"time": "2026-01-01T10:12:00Z", "event": "First report of elevated errors",
-     "citations": [{"source": "case", "ref": "update-01"}]}
-  ],
-  "root_cause": {
-    "claim": "A configuration change in the edge routing layer",
-    "citations": [{"source": "case", "ref": "update-04"}, {"source": "library", "ref": "doc-12/section-3"}]
-  },
-  "contributing_factors": [],
-  "open_questions": ["What triggered the change at 10:05 UTC?"]
+  "checks": {"rejected_citations": [], "unsupported": []},
+  "usage": {"model_calls": 2, "tool_calls": 2, "seconds": 31.4,
+            "input_tokens": 3776, "cached_input_tokens": 1034, "output_tokens": 3395}
 }
 ```
 
-Each citation names its source group: `case` for the open case's updates and charts, `library` for an earlier postmortem. A citation that does not resolve is rejected with a reason, and a run that exceeds its tool or time caps ends as `incomplete` with a reason.
+A finding is an observation the evidence states, or an inference that names the findings it `rests_on`. A citation that does not resolve to the case's evidence is removed and listed in `checks` with a reason, and an item left with no support stays and is listed as unsupported. A run that exceeds 12 tool calls or 120 seconds, or whose tool fails or answer does not fit the schema, ends as `incomplete` with a reason. Library citations (`"source": "library"`) come with the library search.
 
 ## Documentation
 
@@ -54,7 +65,7 @@ Each citation names its source group: `case` for the open case's updates and cha
 
 ## How it is built now
 
-![Hindcast as built: on an operator workstation signed in with Entra ID, Hindcast's capture command reads the providers' status pages and postmortems, and the Radar charts are downloaded in the browser. The Azure CLI and Hindcast's code store the captured files in Blob Storage, and Hindcast's ingestion reads them back and writes the evidence, the extracts, and the answer-key analyzer results there with its own Entra token. Hindcast's code calls the pinned model deployments through the Foundry project with the Responses API, and calls Content Understanding on the Foundry resource, whose three analyzers use the gpt-5-mini and text-embedding-3-large deployments, with a role held only while extraction runs. During a portal evaluation run, the Foundry evaluation calls the deployments as the signed-in user. git reaches GitHub through pull requests. The project is connected to Application Insights, which the code does not use yet. The Foundry resource and the storage account accept no keys; traces use the Application Insights connection string](docs/diagrams/current-architecture.svg)
+![Hindcast as built: on an operator workstation signed in with Entra ID, Hindcast's capture command reads the providers' status pages and postmortems, and the Radar charts are downloaded in the browser. The Azure CLI and Hindcast's code store the captured files in Blob Storage, and Hindcast's ingestion reads them back and writes the evidence, the extracts, and the answer-key analyzer results there with its own Entra token. Hindcast's code calls the pinned model deployments through the Foundry project with the Responses API; its investigate command keeps the investigator prompt agent's version in the project, runs that agent, executes its case tools on the workstation, and writes the result file there. It calls Content Understanding on the Foundry resource, whose three analyzers use the gpt-5-mini and text-embedding-3-large deployments, with a role held only while extraction runs. During a portal evaluation run, the Foundry evaluation calls the deployments as the signed-in user. git reaches GitHub through pull requests. The project is connected to Application Insights, which the code does not use yet. The Foundry resource and the storage account accept no keys; traces use the Application Insights connection string](docs/diagrams/current-architecture.svg)
 
 ## Development
 
