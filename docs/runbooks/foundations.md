@@ -43,7 +43,7 @@ export RG=<resource-group> STORAGE=<storage-account> GH_REPO=<owner>/hindcast
 
    Expected: `git ls-remote origin main` prints the commit of your local `main`, and the CI run on it is green (`gh run list --workflow CI --limit 1`).
 
-2. Add the branch ruleset: enforcement active, no bypass list, restrict deletions, block force pushes, require signed commits, require a pull request before merging (squash or rebase, threads resolved), and require the three CI checks with the branch up to date.
+2. Add the branch ruleset: enforcement active, no bypass list, restrict deletions, block force pushes, require signed commits, require a pull request before merging (squash or rebase, threads resolved), and require the four CI checks with the branch up to date.
 
    ```bash
    cat > ruleset.json <<'EOF'
@@ -59,7 +59,8 @@ export RG=<resource-group> STORAGE=<storage-account> GH_REPO=<owner>/hindcast
       "do_not_enforce_on_create": false, "required_status_checks": [
        {"context": "Python lint and tests", "integration_id": 15368},
        {"context": "YAML and workflow lint", "integration_id": 15368},
-       {"context": "Dependency audit", "integration_id": 15368}]}}]}
+       {"context": "Dependency audit", "integration_id": 15368},
+       {"context": "Image and infrastructure", "integration_id": 15368}]}}]}
    EOF
    gh api -X POST "repos/$GH_REPO/rulesets" --input ruleset.json --jq '.name + " " + .enforcement'
    rm ruleset.json
