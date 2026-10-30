@@ -13,9 +13,11 @@ services:
 hooks:
   # Bicep cannot create an Entra app registration; the scripts do, and finish
   # it with the app's URL and the identity's federated credential afterwards.
+  # "bash" explicitly: the scripts use bash arrays, and azd's sh is the
+  # system shell, which may be dash.
   preprovision:
     shell: sh
-    run: infra/scripts/app-registration.sh
+    run: bash infra/scripts/app-registration.sh
   postprovision:
     shell: sh
-    run: infra/scripts/app-registration-complete.sh
+    run: bash infra/scripts/app-registration-complete.sh

@@ -91,6 +91,10 @@ jobs:
       # replaced release asset fails the check. Moves by hand with the version.
       HADOLINT_SHA256: c7187db94eeeeca956519a6af171adc31453941a1e777961f6e680f697c8c507
       BICEP_VERSION: "0.48.1"
+      SHELLCHECK_VERSION: "0.11.0"
+      # The release publishes no checksum file; this is the SHA-256 of the
+      # archive as downloaded on 2026-10-30. Moves by hand with the version.
+      SHELLCHECK_SHA256: 8c3be12b05d5c177a04c29e3c78ce89ac86f1595681cab149b65b97c4e227198
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
@@ -102,6 +106,14 @@ jobs:
           echo "$HADOLINT_SHA256  $RUNNER_TEMP/hadolint" | sha256sum --check --strict
           chmod +x "$RUNNER_TEMP/hadolint"
           "$RUNNER_TEMP/hadolint" Dockerfile
+      - name: shellcheck
+        run: |
+          archive="shellcheck-v${SHELLCHECK_VERSION}.linux.x86_64.tar.xz"
+          curl -fsSL -o "$RUNNER_TEMP/$archive" \
+            "https://github.com/koalaman/shellcheck/releases/download/v${SHELLCHECK_VERSION}/$archive"
+          echo "$SHELLCHECK_SHA256  $RUNNER_TEMP/$archive" | sha256sum --check --strict
+          tar -xJf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP"
+          "$RUNNER_TEMP/shellcheck-v${SHELLCHECK_VERSION}/shellcheck" infra/scripts/*.sh
       # The runner's az CLI installs the pinned Bicep; infra/bicepconfig.json
       # raises the analyzer rules to errors.
       - name: Bicep build and lint
