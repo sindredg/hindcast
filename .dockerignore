@@ -1,0 +1,20 @@
+# Only what the Dockerfile copies reaches the build context.
+.venv
+.git
+.github
+.azure
+.notes
+.superpowers
+__pycache__
+build/
+tests/
+docs/
+infra/
+analyzers/
+prompts/
+data/sources/
+data/charts/
+data/library.yaml
+eval/results/
+eval/model-selection/
+eval/keys/
