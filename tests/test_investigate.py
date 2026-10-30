@@ -1,11 +1,25 @@
+import hashlib
 import json
+from datetime import UTC, datetime
+from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
+import httpx2
+import openai
 import pytest
 
-from hindcast.evidence import CaseEvidence, ChartEvidence, EvidenceUpdate
-from hindcast.investigate import run_investigation
+from hindcast import investigate
+from hindcast.cases import Case, SourceFile
+from hindcast.evidence import CaseEvidence, ChartEvidence, EvidenceUpdate, evidence_json
+from hindcast.investigate import (
+    ScoredCaseLocked,
+    agent_turn,
+    check_case_allowed,
+    main,
+    run_investigation,
+    write_result,
+)
 from hindcast.tools import CaseTools, ToolError
 
 EVIDENCE = CaseEvidence(
@@ -263,3 +277,231 @@ def test_cut_response_is_an_error() -> None:
     reply.incomplete_details = SimpleNamespace(reason="max_output_tokens")
     with pytest.raises(RuntimeError, match="incomplete: max_output_tokens"):
         run(ScriptedTurn(reply))
+
+
+# The command, its guards, and the result file.
+
+SOURCE = SourceFile(
+    "doc",
+    "doc.json",
+    "https://example.org",
+    "l",
+    "a",
+    "0" * 64,
+    "2026-10-26T08:00:00Z",
+    "status-updates",
+)
+CASES = {
+    "dev": Case(
+        "dev", "Slow pages", "Cloudflare", "development", "2026-02-20T18:45:16Z", (SOURCE,)
+    ),
+    "inj": Case("inj", "Slow pages", "Cloudflare", "injection", "2026-02-20T18:45:16Z", (SOURCE,)),
+    "show": Case("show", "Slow pages", "Cloudflare", "showcase", "2026-02-20T18:45:16Z", (SOURCE,)),
+}
+AGENT = {"name": "hindcast-investigator-gpt-6-luna", "version": "3"}
+MODEL = {"deployment": "gpt-6-luna", "name": "gpt-6-luna", "version": "2026-09-22"}
+PROVENANCE = {
+    "prompt": {"blob": "b" * 40, "dirty": False},
+    "code": {"commit": "c" * 40, "dirty": False},
+    "evidence_sha256": "e" * 64,
+}
+NOW = datetime(2026, 10, 30, 12, 0, 1, tzinfo=UTC)
+
+
+@pytest.mark.parametrize("case_id", ["dev", "inj"])
+def test_development_and_injection_cases_are_allowed(case_id: str, tmp_path: Path) -> None:
+    check_case_allowed(CASES[case_id], rubric_lock=tmp_path / "frozen.json")
+
+
+def test_showcase_case_is_refused_without_the_rubric_lock(tmp_path: Path) -> None:
+    with pytest.raises(ScoredCaseLocked, match=r"show.*rubric.*frozen\.json"):
+        check_case_allowed(CASES["show"], rubric_lock=tmp_path / "frozen.json")
+
+
+def test_showcase_case_runs_once_the_rubric_is_frozen(tmp_path: Path) -> None:
+    lock = tmp_path / "frozen.json"
+    lock.write_text("{}")
+    check_case_allowed(CASES["show"], rubric_lock=lock)
+
+
+def complete_result() -> Any:
+    return run(ScriptedTurn(response(call()), final()))
+
+
+def test_result_file_has_the_spec_shape(tmp_path: Path) -> None:
+    path = write_result(
+        complete_result(),
+        case_id="dev",
+        agent=AGENT,
+        model=MODEL,
+        provenance=PROVENANCE,
+        out_dir=tmp_path,
+        now=NOW,
+    )
+    assert path == tmp_path / "dev" / "20261030T120001Z-v3.json"
+    written = json.loads(path.read_text("utf-8"))
+    assert set(written) == {
+        "case_id",
+        "agent",
+        "model",
+        "provenance",
+        "status",
+        "incomplete_reason",
+        "investigation",
+        "checks",
+        "usage",
+    }
+    assert (written["case_id"], written["agent"], written["model"]) == ("dev", AGENT, MODEL)
+    assert written["provenance"] == PROVENANCE
+    assert written["status"] == "complete"
+    assert written["investigation"] == FINAL
+    assert written["checks"] == {"rejected_citations": [], "unsupported": []}
+    assert written["usage"]["tool_calls"] == 1
+
+
+def test_result_file_is_never_overwritten(tmp_path: Path) -> None:
+    kwargs: dict[str, Any] = {
+        "case_id": "dev",
+        "agent": AGENT,
+        "model": MODEL,
+        "provenance": PROVENANCE,
+        "out_dir": tmp_path,
+        "now": NOW,
+    }
+    write_result(complete_result(), **kwargs)
+    with pytest.raises(FileExistsError):
+        write_result(complete_result(), **kwargs)
+
+
+def test_incomplete_result_has_null_investigation_and_the_reason(tmp_path: Path) -> None:
+    result = run(ScriptedTurn(response(text="")))
+    path = write_result(
+        result,
+        case_id="dev",
+        agent=AGENT,
+        model=MODEL,
+        provenance=PROVENANCE,
+        out_dir=tmp_path,
+        now=NOW,
+    )
+    written = json.loads(path.read_text("utf-8"))
+    assert (written["status"], written["incomplete_reason"]) == ("incomplete", "empty-result")
+    assert written["investigation"] is None
+    assert written["usage"]["model_calls"] == 1
+
+
+class FakeClient:
+    """Stands in for the project's OpenAI client; records each create call."""
+
+    def __init__(self, *script: object) -> None:
+        self.turn = ScriptedTurn(*script)
+        self.options: list[dict] = []
+        self.calls: list[dict] = []
+        self.responses = SimpleNamespace(create=self.create)
+
+    def with_options(self, **options: Any) -> FakeClient:
+        self.options.append(options)
+        return self
+
+    def create(self, **kwargs: Any) -> Any:
+        self.calls.append(kwargs)
+        return self.turn(kwargs["input"], kwargs.get("previous_response_id"), timeout=0)
+
+
+def test_agent_turn_references_the_agent_version_and_passes_the_timeout() -> None:
+    client = FakeClient(response(call()), final())
+    turn = agent_turn(client, "hindcast-investigator-x", "3")
+    turn([{"role": "user", "content": "go"}], None, timeout=120.0)
+    turn([], "r1", timeout=70.0)
+    reference = {"type": "agent_reference", "name": "hindcast-investigator-x", "version": "3"}
+    assert [c["extra_body"] for c in client.calls] == [{"agent_reference": reference}] * 2
+    assert "previous_response_id" not in client.calls[0]
+    assert client.calls[1]["previous_response_id"] == "r1"
+    # No retries: a retried call would run past the remaining budget.
+    assert client.options == [
+        {"max_retries": 0, "timeout": 120.0},
+        {"max_retries": 0, "timeout": 70.0},
+    ]
+
+
+def test_agent_turn_maps_the_client_timeout_to_timeout_error() -> None:
+    request = httpx2.Request("POST", "https://example.org/responses")
+    client = FakeClient(openai.APITimeoutError(request=request))
+    with pytest.raises(TimeoutError):
+        agent_turn(client, "a", "1")([], None, timeout=1.0)
+
+
+def stub_command(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, client: FakeClient
+) -> list[tuple[str, dict]]:
+    """Point main at stub cases, a temp evidence file and output, and fake Foundry calls."""
+    from hindcast import models
+
+    (tmp_path / "evidence").mkdir()
+    (tmp_path / "evidence" / "dev.json").write_bytes(evidence_json(EVIDENCE))
+    monkeypatch.setattr(investigate, "load_cases", lambda: CASES)
+    monkeypatch.setattr(investigate, "EVIDENCE_DIR", tmp_path / "evidence")
+    monkeypatch.setattr(investigate, "RUBRIC_LOCK", tmp_path / "rubric" / "frozen.json")
+    for field in ("project_endpoint", "chat_deployment", "compare_deployment", "judge_deployment"):
+        monkeypatch.setenv(f"HINDCAST_{field.upper()}", "gpt-6-luna")
+    created: list[tuple[str, dict]] = []
+    agents = SimpleNamespace(
+        list_versions=lambda name, **_: [],
+        create_version=lambda name, **kw: (
+            created.append((name, kw)) or SimpleNamespace(version="3")
+        ),
+    )
+    monkeypatch.setattr(models, "project_client", lambda: SimpleNamespace(agents=agents))
+    monkeypatch.setattr(models, "openai_client", lambda: client)
+    monkeypatch.setattr(models, "deployment_model", lambda d: ("gpt-6-luna", "2026-09-22"))
+    return created
+
+
+def test_main_writes_the_result_and_prints_counts_never_the_text(
+    capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    document = json.loads(json.dumps(FINAL))
+    document["findings"][0]["claim"] = "A SECRET CLAIM"
+    client = FakeClient(response(call()), final(document))
+    created = stub_command(monkeypatch, tmp_path, client)
+
+    main(["dev", "--out", str(tmp_path / "out")])
+
+    out = capsys.readouterr().out
+    assert "SECRET" not in out
+    assert out.startswith("complete\n")
+    assert "findings 1" in out
+    assert "rejected citations 0" in out
+    [(name, _)] = created
+    assert name == "hindcast-investigator-gpt-6-luna"
+    [path] = (tmp_path / "out" / "dev").glob("*-v3.json")
+    written = json.loads(path.read_text("utf-8"))
+    assert written["agent"] == {"name": "hindcast-investigator-gpt-6-luna", "version": "3"}
+    assert written["model"] == MODEL
+    assert (
+        written["provenance"]["evidence_sha256"]
+        == hashlib.sha256(evidence_json(EVIDENCE)).hexdigest()
+    )
+    assert set(written["provenance"]["prompt"]) >= {"dirty"}
+    assert set(written["provenance"]["code"]) == {"commit", "dirty"}
+
+
+def test_main_refuses_a_showcase_case_before_any_model_call(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    client = FakeClient(final())
+    created = stub_command(monkeypatch, tmp_path, client)
+    with pytest.raises(ScoredCaseLocked):
+        main(["show", "--out", str(tmp_path / "out")])
+    assert client.calls == []
+    assert created == []
+
+
+def test_main_fails_on_missing_evidence_before_any_model_call(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    client = FakeClient(final())
+    stub_command(monkeypatch, tmp_path, client)
+    with pytest.raises(FileNotFoundError, match="hindcast.ingest evidence"):
+        main(["inj", "--out", str(tmp_path / "out")])
+    assert client.calls == []
