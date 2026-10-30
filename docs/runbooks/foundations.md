@@ -1,6 +1,6 @@
 # Foundations: operator procedure
 
-Status: Written on 2026-10-25 for [milestone 1](../worklogs/01-foundations.md); "Re-check the model choice" added on 2026-10-26, after its steps ran on 2026-10-25 (steps 1 and 2) and 2026-10-26 (steps 3 to 8; in step 3 the role was assigned once and the check ran in this form afterwards). Every step ran once with the results the worklog records, but not in this order: the Azure foundation was created on 2026-10-24 and 2026-10-25 before the repository existed, and key access on the Foundry resource (step 4 under "Create the Azure foundation") was turned off before the prior-knowledge answers were collected. The Foundry resource, project, and deployments were created in the Foundry portal as it was that day. Not run again from an empty subscription.
+Status: Written on 2026-10-25 for [milestone 1](../worklogs/01-foundations.md); "Re-check the model choice" added on 2026-10-26, after its steps ran on 2026-10-25 (steps 1 and 2) and 2026-10-26 (steps 3 to 8; in step 3 the role was assigned once and the check ran in this form afterwards). Every step ran once with the results the worklog records, but not in this order: the Azure foundation was created on 2026-10-24 and 2026-10-25 before the repository existed, and key access on the Foundry resource (step 4 under "Create the Azure foundation") was turned off before the prior-knowledge answers were collected. The Foundry resource, project, and deployments were created in the Foundry portal as it was that day. Not run again from an empty subscription. "Check the repository" gained pyright on 2026-10-28 and ran in this form on 2026-10-30.
 
 Build the milestone 1 foundation from scratch: the repository checks, the GitHub repository and its protection, the Azure resources and roles, the case sources, and the prior-knowledge answers. [Decision 0009](../decisions/0009-hosting-and-identity.md) records why every call uses Entra ID and no keys.
 
@@ -24,11 +24,12 @@ export RG=<resource-group> STORAGE=<storage-account> GH_REPO=<owner>/hindcast
    ```bash
    uv sync --frozen
    uv run --frozen ruff check . && uv run --frozen ruff format --check .
+   uv run --frozen pyright
    uv run --frozen yamllint --strict .
    uv run --frozen pytest -q
    ```
 
-   Expected: `All checks passed!`, no yamllint output, and all tests passed.
+   Expected: `All checks passed!`, `files already formatted`, `0 errors` from pyright, no yamllint output, and all tests passed.
 
 ## Protect the repository on GitHub
 

@@ -1,6 +1,6 @@
 # Architecture
 
-How Hindcast is built now. What is planned is in the [roadmap](../roadmap.md) with the target architecture; the decisions behind both are in [decisions](../decisions/). Last compared with the code and the live resources on 2026-10-27, during [milestone 2](../worklogs/02-extraction.md).
+How Hindcast is built now. What is planned is in the [roadmap](../roadmap.md) with the target architecture; the decisions behind both are in [decisions](../decisions/). Last compared with the code, the pipeline, the repository settings, and the live resources on 2026-10-30, before milestone 4 started.
 
 ## What exists
 
@@ -21,7 +21,7 @@ Three cuts decide what the investigator can read. The evidence cut follows [deci
 | Settings | `hindcast.config` | Reads endpoints and deployment names from `HINDCAST_*` variables, one section per component (models, storage, extraction, search), and names every missing variable of that section at once. No keys. `hindcast.models` loads the model section, so the search values can stay empty until milestone 3. |
 | Capture | `hindcast.capture` | `status` takes one incident from a provider's status API as canonical JSON (Cloudflare and GitHub by incident ID; Google Cloud from its feed or a saved copy of it). `page` saves a postmortem page as served. Both refuse to overwrite a file, fetch only `https` URLs, and print the registry lines: URL, retrieval time, SHA-256. |
 | Case registry | `data/cases.yaml`, `hindcast.cases` | Four outages: three scored showcase cases and one development case, each with its start time. Each has its status updates (evidence) and its postmortem (answer key), each with URL, licence, attribution, retrieval time, and SHA-256; those files stay out of Git. The two Cloudflare cases also have Radar charts, committed under `data/charts/` because their licence (CC BY 4.0) allows it; the registry refuses a chart under any other licence. |
-| Model client | `hindcast.models` | One Responses API call through the Foundry project, signed in with `DefaultAzureCredential`. Sends the reasoning effort on every call, never `temperature` or `top_p`, and raises on an incomplete or empty answer. Reads model versions from the deployment. |
+| Model client | `hindcast.models` | One Responses API call through the Foundry project, signed in with `DefaultAzureCredential`. Sends the reasoning effort on every call and the image detail with every image, so a changed service default cannot change results; never sends `temperature` or `top_p`. Raises on an incomplete or empty answer and on a response without token usage. Reads model versions from the deployment. |
 | Prior-knowledge check | `prompts/prior_knowledge.md`, `hindcast.evaluation.prior` | Asks each model about each showcase outage from its provider, public title, and date only, and writes `eval/results/prior-<date>-<deployment>.json`. |
 | Evidence cut | `hindcast.evidence` | Applies [decision 0005](../decisions/0005-evidence-library-and-answer-key.md) per status format (Statuspage for Cloudflare and GitHub, Google Cloud's feed entry): keeps every update before the resolved one and only the resolved update's time and status, and drops report entries, unknown statuses, and anything after the resolved mark into a list without their text. Times are normalised to UTC. |
 | Blob access | `hindcast.storage` | Reads and writes Blob Storage with `DefaultAzureCredential`. A source is returned only if its SHA-256 matches the registry; an upload never overwrites unless asked. |
@@ -67,4 +67,6 @@ The Foundry User role at project scope does not reach the resource endpoint, whe
 
 ## Pipeline
 
-GitHub Actions runs three jobs on every pull request and every push to `main`: lint and tests (ruff, pytest), YAML and workflow checks (yamllint, zizmor, actionlint), and a dependency audit (pip-audit on the locked tree). `main` accepts changes only through a pull request with those checks passing and signed commits. The workflow is `.github/workflows/ci.yml`.
+GitHub Actions runs three jobs on every pull request and every push to `main`: lint, type checks, and tests (ruff, ruff format, pyright, pytest), YAML and workflow checks (yamllint, zizmor, actionlint), and a dependency audit (pip-audit on the locked tree). `main` accepts changes only through a pull request with those checks passing and signed commits. The workflow is `.github/workflows/ci.yml`.
+
+Dependabot proposes weekly updates for the actions and the Python dependencies ([`.github/dependabot.yml`](../../.github/dependabot.yml)); nothing merges automatically. Python stays on 3.14 because Dependabot supports no newer version ([#8](https://github.com/sindredg/hindcast/issues/8)). The uv version, the Python version, actionlint, and the runner image move by hand.
