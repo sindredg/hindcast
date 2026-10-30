@@ -196,9 +196,9 @@ def agent_turn(client: Any, name: str, version: str) -> Turn:
     return turn
 
 
-def code_provenance() -> dict:
-    commit = _git(Path("."), "rev-parse", "--verify", "--quiet", "HEAD")
-    status = _git(Path("."), "status", "--porcelain", "--", *CODE_PATHS)
+def code_provenance(repo: Path = Path(".")) -> dict:
+    commit = _git(repo, "rev-parse", "--verify", "--quiet", "HEAD")
+    status = _git(repo, "status", "--porcelain", "--", *CODE_PATHS)
     if commit.returncode != 0 or status.returncode != 0:
         raise RuntimeError("cannot read the Git state of the code")
     return {"commit": commit.stdout.strip(), "dirty": bool(status.stdout.strip())}

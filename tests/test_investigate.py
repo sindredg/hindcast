@@ -1,5 +1,6 @@
 import hashlib
 import json
+import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
 from types import SimpleNamespace
@@ -16,6 +17,7 @@ from hindcast.investigate import (
     ScoredCaseLocked,
     agent_turn,
     check_case_allowed,
+    code_provenance,
     main,
     run_investigation,
     write_result,
@@ -486,6 +488,29 @@ def test_main_writes_the_result_and_prints_counts_never_the_text(
     assert set(written["provenance"]["code"]) == {"commit", "dirty"}
 
 
+def git(repo: Path, *args: str) -> str:
+    config = ["-c", "user.name=test", "-c", "user.email=test@example.com"]
+    config += ["-c", "commit.gpgsign=false"]
+    command = ["git", "-C", str(repo), *config, *args]
+    done = subprocess.run(command, check=True, capture_output=True, text=True)  # noqa: S603, S607
+    return done.stdout.strip()
+
+
+def test_code_provenance_marks_a_change_under_the_code_paths_only(tmp_path: Path) -> None:
+    git(tmp_path, "init", "-q")
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src" / "m.py").write_text("v1", encoding="utf-8")
+    (tmp_path / "notes.md").write_text("v1", encoding="utf-8")
+    git(tmp_path, "add", "src/m.py", "notes.md")
+    git(tmp_path, "commit", "-q", "-m", "v1")
+    head = git(tmp_path, "rev-parse", "HEAD")
+    # A change outside src/, pyproject.toml, and uv.lock does not change what runs.
+    (tmp_path / "notes.md").write_text("v2", encoding="utf-8")
+    assert code_provenance(tmp_path) == {"commit": head, "dirty": False}
+    (tmp_path / "src" / "m.py").write_text("v2", encoding="utf-8")
+    assert code_provenance(tmp_path) == {"commit": head, "dirty": True}
+
+
 def test_main_refuses_a_showcase_case_before_any_model_call(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -501,7 +526,8 @@ def test_main_fails_on_missing_evidence_before_any_model_call(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     client = FakeClient(final())
-    stub_command(monkeypatch, tmp_path, client)
+    created = stub_command(monkeypatch, tmp_path, client)
     with pytest.raises(FileNotFoundError, match="hindcast.ingest evidence"):
         main(["inj", "--out", str(tmp_path / "out")])
     assert client.calls == []
+    assert created == []
