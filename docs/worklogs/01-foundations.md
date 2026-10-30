@@ -1,6 +1,6 @@
 # Milestone 1: Foundations
 
-Status: Built on 2026-10-25; the model re-check was tested live and the [independent review](#independent-review) ran on 2026-10-26, with its fixes in. The milestone state is in the [roadmap](../roadmap.md).
+Status: Verified on 2026-10-26. Built on 2026-10-25; the model re-check was tested live and the [independent review](#independent-review) ran on 2026-10-26, with its fixes in. The milestone state is in the [roadmap](../roadmap.md).
 
 ## Scope
 
