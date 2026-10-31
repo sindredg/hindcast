@@ -11,9 +11,11 @@ Each milestone has completion criteria: things shown to work, not things built. 
 | 3. Retrieval | Planned |
 | 4. Investigator | Slice 1 built on 2026-10-30: the investigator on case tools reconstructed the development outage with every citation resolving, and the caps, citation checks, and scored-case lock are tested with stubs ([gate](worklogs/04-investigator.md#gate)); the slice's [independent review](worklogs/04-investigator.md#independent-review) ran with its fixes in. Decision [0015](decisions/0015-investigation-result-and-citation-policy.md) accepted. Open: slice 2 (library search and citations, after milestone 3), the challenge, the interface, traces, and cost. |
 | 5. Evaluation | Planned |
-| 6. Deployment and release | Planned |
+| 6. Deployment and release | Slice 1 in progress on 2026-10-31: the app's resources are provisioned live, sign-in is required, and the deploying account signs in with no client secret ([live run](worklogs/06-deployment.md#live-run)); the image push, the deploy of the page, the telemetry check, and the rebuild from empty are open ([gate](worklogs/06-deployment.md#gate)). Decision [0016](decisions/0016-sign-in-credential-image-build-and-resource-group.md) accepted. |
 
 Milestone 4's first slice, the investigator on case tools only, runs before milestone 3: it de-risks the tool loop, the citation checks, and the caps, which no earlier milestone has touched, and AI Search bills per hour from creation ([decision 0004](decisions/0004-retrieval.md)), so creating it later costs less.
+
+Milestone 6 also starts with a slice: a page that renders one stored result, deployed behind Entra sign-in in a resource group of its own, proves the sign-in, the image path, and the telemetry before the app calls a model. The full-environment template comes when the milestone closes ([decision 0016](decisions/0016-sign-in-credential-image-build-and-resource-group.md)).
 
 ## Target architecture
 

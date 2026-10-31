@@ -1,6 +1,6 @@
 # Deployment: operator procedure
 
-Status: Written on 2026-10-30 for [milestone 6, slice 1](../worklogs/06-deployment.md). Steps marked "Expected, as observed" ran on the date given with the output shown; the others are reasoned from the templates and not yet run.
+Status: Written on 2026-10-30 for [milestone 6, slice 1](../worklogs/06-deployment.md); steps 1 to 8 validated live on 2026-10-31. Steps marked "Expected, as observed" ran on the date given with the output shown; steps 9 to 14 are reasoned from the templates and not yet run.
 
 The procedure deploys the Hindcast page to Azure Container Apps from one `azd up`, with Entra sign-in and telemetry, from an image CI builds. It creates nothing in the resource group that holds Foundry and the storage account; it reads two resources there by name ([decision 0016](../decisions/0016-sign-in-credential-image-build-and-resource-group.md)).
 
