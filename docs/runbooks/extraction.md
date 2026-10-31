@@ -219,7 +219,7 @@ export RG=<resource-group> RESOURCE=<foundry-resource>
     uv run --frozen pytest -q tests/test_keys.py
     ```
 
-    Expected: `17 passed`.
+    Expected: `20 passed` with the captured postmortems under `data/sources/` (`19 passed, 1 skipped` without them).
 
 ## Remove the Content Understanding role
 
