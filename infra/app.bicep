@@ -34,13 +34,15 @@ var authSecretName = useClientSecret
 
 // The image the app runs: the app image it already has when azd re-provisions,
 // the parameter otherwise. A placeholder is never kept, so a provision can
-// replace a broken one. "!" because Bicep cannot see that the existing
-// reference is set exactly when webExists is true. The public placeholder
-// that fills the first provision listens on port 80 and has no health path,
-// so the port and the probes follow the image: a revision whose probes never
-// pass fails the deployment.
+// replace a broken one. The public placeholder that fills the first provision
+// listens on port 80 and has no health path, so the port and the probes follow
+// the image: a revision whose probes never pass fails the deployment.
+module existingWeb 'fetch-image.bicep' = {
+  name: 'fetch-web-image'
+  params: { name: 'ca-hindcast', exists: webExists }
+}
 var placeholderRepository = 'mcr.microsoft.com/k8se/quickstart'
-var existingImage = webExists ? existingWeb!.properties.template.containers[0].image : ''
+var existingImage = existingWeb.outputs.image
 var image = webExists && !startsWith(existingImage, placeholderRepository) ? existingImage : imageName
 var placeholder = startsWith(image, placeholderRepository)
 var appPort = placeholder ? 80 : 8501
@@ -147,10 +149,6 @@ resource environmentLogs 'Microsoft.Insights/diagnosticSettings@2021-05-01-previ
 // azd updates the image at deploy time. On a later provision the app already
 // exists, and this reference keeps its image instead of resetting it to the
 // imageName parameter (azd's "exists" pattern).
-resource existingWeb 'Microsoft.App/containerApps@2026-01-01' existing = if (webExists) {
-  name: 'ca-hindcast'
-}
-
 resource web 'Microsoft.App/containerApps@2026-01-01' = {
   name: 'ca-hindcast'
   location: location
