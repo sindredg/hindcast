@@ -39,10 +39,10 @@ The procedure deploys the Hindcast page to Azure Container Apps from one `azd up
 
 ## Preview
 
-3. Preview the deployment. The pre-provision hook creates the Entra app registration `hindcast-app` (single tenant, ID tokens on) and writes its IDs into the azd environment; the what-if then lists what Bicep would create.
+3. Preview the deployment. The pre-provision hook creates the Entra app registration `hindcast-app` (single tenant, ID tokens on) and writes its IDs into the azd environment; the what-if then lists what Bicep would create. The hook runs by name first, because `--preview` skips hooks and would prompt for the three parameters the hook sets.
 
    ```bash
-   azd provision --preview
+   azd hooks run preprovision && azd provision --preview
    ```
 
    Expected: `app registration: hindcast-app (created)`, then a what-if with `rg-hindcast-app` and eleven resources as Create (two identities and a federated credential, the registry and two role assignments, the environment and its diagnostic setting, the container app and its auth config) and no change in the other resource group.
