@@ -99,23 +99,13 @@ The procedure deploys the Hindcast page to Azure Container Apps from one `azd up
 
 ## Image
 
-8. Create the `azure` deployment environment on the repository, limited to `main`, and set its four secrets. They hold IDs and a resource name, not credentials; the push step signs in with the workflow's OIDC token.
+8. Create the `azure` deployment environment on the repository, limited to `main`, and set its four secrets. The name matters: the CI identity's federated credential accepts the subject `repo:<owner>/<repo>:environment:azure`, and the branch policy is what keeps that environment to `main`. The secrets hold IDs and a resource name, not credentials; the push job signs in with the workflow's OIDC token.
 
    ```bash
-   gh api -X PUT repos/sindredg/hindcast/environments/azure --input - <<'EOF'
-   {"deployment_branch_policy": {"protected_branches": false, "custom_branch_policies": true}}
-   EOF
+   gh api -X PUT repos/sindredg/hindcast/environments/azure -F "deployment_branch_policy[protected_branches]=false" -F "deployment_branch_policy[custom_branch_policies]=true" --jq .name && gh api -X POST repos/sindredg/hindcast/environments/azure/deployment-branch-policies -f name=main -f type=branch --jq .name && gh secret set AZURE_CLIENT_ID --env azure --body "$(azd env get-value CI_IDENTITY_CLIENT_ID)" && gh secret set AZURE_TENANT_ID --env azure --body "$(az account show --query tenantId -o tsv)" && gh secret set AZURE_SUBSCRIPTION_ID --env azure --body "$(az account show --query id -o tsv)" && gh secret set AZURE_CONTAINER_REGISTRY_NAME --env azure --body "$(azd env get-value AZURE_CONTAINER_REGISTRY_NAME)" && gh secret list --env azure
    ```
 
-   ```bash
-   gh api -X POST repos/sindredg/hindcast/environments/azure/deployment-branch-policies -f name=main -f type=branch --jq '.name'
-   ```
-
-   ```bash
-   gh secret set AZURE_CLIENT_ID --env azure --body "$(azd env get-value CI_IDENTITY_CLIENT_ID)" && gh secret set AZURE_TENANT_ID --env azure --body "$(az account show --query tenantId -o tsv)" && gh secret set AZURE_SUBSCRIPTION_ID --env azure --body "$(az account show --query id -o tsv)" && gh secret set AZURE_CONTAINER_REGISTRY_NAME --env azure --body "$(azd env get-value AZURE_CONTAINER_REGISTRY_NAME)" && gh secret list --env azure
-   ```
-
-   Expected: the environment JSON, then `main`, then four secret names.
+   Expected, as observed on 2026-10-31: `azure`, then `main`, then four `Set Actions secret` lines and the four names in the list.
 
 9. Push the image: merge the pull request that carries this runbook, or run the workflow on `main` by hand. The `Push the image` job builds the image and pushes `hindcast:<sha>` and `hindcast:main`.
 

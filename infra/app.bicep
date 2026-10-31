@@ -69,18 +69,20 @@ resource appIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-3
   tags: tags
 }
 
-// The build's identity: GitHub Actions on this repository's main branch
-// exchanges its OIDC token for it and pushes the image. No stored credential.
+// The build's identity: the push job in this repository's "azure" deployment
+// environment exchanges its OIDC token for it and pushes the image. No stored
+// credential. A job in an environment presents the environment as its subject,
+// not the branch; the environment's branch policy admits only main.
 resource ciIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
   name: 'id-hindcast-ci'
   location: location
   tags: tags
 
   resource github 'federatedIdentityCredentials@2024-11-30' = {
-    name: 'github-main'
+    name: 'github-environment-azure'
     properties: {
       issuer: 'https://token.actions.githubusercontent.com'
-      subject: 'repo:${githubRepository}:ref:refs/heads/main'
+      subject: 'repo:${githubRepository}:environment:azure'
       audiences: ['api://AzureADTokenExchange']
     }
   }

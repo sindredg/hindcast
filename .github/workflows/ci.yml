@@ -138,9 +138,9 @@ jobs:
   image:
     name: Push the image
     # From main only: sign in to Azure with the run's OIDC token (no stored
-    # credential; the subject the federated credential accepts is this
-    # repository's main branch) and push the image. The job runs in the
-    # "azure" deployment environment, whose secrets hold the identity and
+    # credential) and push the image. The job runs in the "azure" deployment
+    # environment: its branch policy admits only main, its name is the subject
+    # the federated credential accepts, and its secrets hold the identity and
     # registry IDs: resource names and IDs, not keys, kept out of public logs.
     needs: infra
     if: >-

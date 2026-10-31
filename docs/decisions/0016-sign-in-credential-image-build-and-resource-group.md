@@ -43,7 +43,7 @@ A with B as the fallback, C, and F. The template carries both credential paths: 
 ## Trade-offs
 
 - The federated path rests on undocumented behaviour. The trigger to revisit: Microsoft documents it, or sign-in fails. Until then the fallback stays in the template, tested as a parameter path, not live.
-- GitHub to Entra is one more federated trust. Its subject is pinned to `refs/heads/main` of one repository, so a pull request or a fork cannot push an image.
+- GitHub to Entra is one more federated trust. Its subject is the `azure` deployment environment of one repository, and that environment admits only `main`, so a pull request or a fork cannot push an image. The guard is two settings, the subject in Bicep and the branch policy on GitHub; the branch policy is not in the template.
 - The image is built twice per push to `main`: once as the pull-request proof, once in the push job. Both builds are deterministic from digest-pinned bases.
 - Two resource groups mean two places to look at and two to delete. The full template, written when milestone 6 closes, decides whether it owns both.
 - Role assignments the app identity later gets on Foundry and storage live in the other resource group and are not removed by `azd down`; they are orphaned when the identity goes and cleaned up at teardown.
