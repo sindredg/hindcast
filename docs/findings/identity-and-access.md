@@ -2,6 +2,22 @@
 
 Findings about Entra ID roles, scopes, and keyless access. Hindcast uses no keys: every call carries an Entra token ([decision 0009](../decisions/0009-hosting-and-identity.md)).
 
+## Container Apps sign-in works with a managed identity through a federated credential (2026-10-31)
+
+**Seen:** Container Apps' built-in authentication signed a user in with no client secret. The app registration's client credential is the container app's user-assigned identity, through a federated credential on the registration that trusts that identity. Microsoft documents this for App Service; for Container Apps it is asked for in [microsoft/azure-container-apps#1693](https://github.com/microsoft/azure-container-apps/issues/1693) and not in the documentation.
+
+**Evidence:** tested live, 2026-10-31. The auth config's `clientSecretSettingName` is `override-use-mi-fic-assertion-client-id`, the only container secret, whose value is the identity's client ID (`az containerapp auth show`, `az containerapp secret list`). The registration holds the redirect URI and one federated credential, issuer `https://login.microsoftonline.com/<tenant>/v2.0`, subject the identity's principal ID, audience `api://AzureADTokenExchange`. In a browser, the deploying account went through Entra sign-in and reached the app's page.
+
+**For Hindcast:** no client secret is stored or rotated, and the client-secret fallback in the template stays unused ([decision 0016](../decisions/0016-sign-in-credential-image-build-and-resource-group.md)). The behaviour is undocumented, so a platform change can break it; the fallback is one environment value and a provision ([runbook](../runbooks/deployment.md#sign-in), step 7).
+
+## A GitHub job in a deployment environment presents the environment as its OIDC subject, not the branch (2026-10-31)
+
+**Seen:** the subject of a GitHub Actions OIDC token names the deployment environment when the job references one, and the branch is not in it. A federated credential for `repo:<owner>/<repo>:ref:refs/heads/main` refuses a job that runs in an environment, even on `main`.
+
+**Evidence:** read from the documentation, 2026-10-31: "The subject claim includes the branch name of the workflow, but only if the job doesn't reference an environment", with the format `repo:ORG-NAME/REPO-NAME:environment:ENVIRONMENT-NAME` ([OpenID Connect reference](https://docs.github.com/en/actions/reference/security/oidc)). Not yet observed live: the first push from `main` tests it.
+
+**For Hindcast:** the CI identity's federated credential trusts `repo:sindredg/hindcast:environment:azure`, and the environment's branch policy admits only `main`. The guard is two settings, the subject in Bicep and the branch policy on GitHub, and only the first is in the template.
+
 ## A removed role kept working on Content Understanding for about 11 minutes (2026-10-27)
 
 **Seen:** after the Content Understanding Contributor role was removed, reads on the Content Understanding endpoint kept succeeding for about 11 minutes before they were refused. Azure documents up to 10 minutes for a role change to take effect. Model calls through the project endpoint kept working on the project-scope role throughout, as expected.

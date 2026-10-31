@@ -2,6 +2,36 @@
 
 Failures that showed something about Hindcast, the platform, or a procedure: the symptom, the cause, the fix, and how the fix was verified. Newest first. A cause that was not confirmed is labelled as a hypothesis. The behaviour behind an entry is recorded once, in [findings](findings/), and linked from here.
 
+## Deployment: re-provision fails with a circular dependency (2026-10-31)
+
+**Symptom:** the second `azd provision` failed before any change with `InvalidTemplate: Deployment template validation failed: 'Circular dependency detected on resource: .../containerApps/ca-hindcast'`.
+
+**Cause:** confirmed. Once the container app exists, azd passes `webExists=true`, and the template read the app it was about to update ([finding](findings/deployment.md#reading-the-container-app-that-the-same-template-deploys-is-a-circular-dependency-2026-10-31)).
+
+**Fix:** `infra/fetch-image.bicep` reads the current image in a module of its own.
+
+**Verification:** tested live, 2026-10-31: `az deployment sub validate` failed on the old template and passed on the new one for both values of `webExists`; the next `azd provision` succeeded.
+
+## Deployment: first provision fails with `InternalServerError` on the container app (2026-10-31)
+
+**Symptom:** `azd provision` created the resource group, the registry, and the environment, then failed with `InternalServerError` on the container app and its auth config. The revision was `ActivationFailed`, and the system log showed `ImagePullFailure`.
+
+**Cause:** confirmed. The placeholder image's digest in the template did not exist on the registry: a request for that manifest returned `404`. A second cause would have followed: the placeholder listens on port 80 and has no `/_stcore/health`, so probes on port 8501 never pass. Hypothesis: the auth config failed because its parent app failed; it succeeded unchanged on the next run.
+
+**Fix:** the digest read from the registry for the current placeholder, and the port and probes follow the image.
+
+**Verification:** tested live, 2026-10-31: the next `azd provision` succeeded, the revision is `Healthy`, and the deploying account reached the placeholder through sign-in.
+
+## Deployment: `azd provision --preview` prompts for a parameter (2026-10-31)
+
+**Symptom:** the preview asked `Enter a value for the 'allowedUserObjectId' infrastructure parameter`.
+
+**Cause:** confirmed. The preview does not run the pre-provision hook that sets it ([finding](findings/deployment.md#azd-provision---preview-does-not-run-the-provision-hooks-2026-10-31)).
+
+**Fix:** run `azd hooks run preprovision` first.
+
+**Verification:** tested live, 2026-10-31: the preview then ran without a prompt and listed the resources as `Create`.
+
 ## Answer-key draft: most quotes reported as not found (2026-10-27)
 
 **Symptom:** `python -m hindcast.keys draft` reported 10 problems for one key, nearly all "quote not found word for word in the postmortem", although the quoted sentences were on the page.
