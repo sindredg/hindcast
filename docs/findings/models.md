@@ -48,7 +48,7 @@ Findings about the deployed models: [gpt-6-luna](../decisions/0012-models.md) 20
 
 **Evidence:** tested live, 2026-10-25. `az cognitiveservices account deployment list` and `deployment show` read `properties.rateLimits`: `request` 50 and `token` 50000 for gpt-6-luna, gpt-6.1-sol, and grok-4.7, `request` 237 and `token` 237000 for gpt-5-mini, each with `renewalPeriod` 60.
 
-**For Hindcast:** every agent turn and every tool round trip is one request. Nothing paces calls yet: the code makes one call at a time, and the `openai` client retries a 429 twice with backoff. The evaluation runner in milestone 5 has to stay under 50 requests per minute per deployment.
+**For Hindcast:** every agent turn and every tool round trip is one request. Nothing paces calls yet: the code makes one call at a time; `ask_model` keeps the `openai` client's two retries with backoff, and the investigator's agent calls make none, so a 429 fails the run. The evaluation runner in milestone 5 has to stay under 50 requests per minute per deployment.
 
 **Read more:** [Manage Azure OpenAI quota](https://learn.microsoft.com/azure/foundry/openai/how-to/quota).
 
