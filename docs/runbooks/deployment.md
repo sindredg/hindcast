@@ -87,7 +87,7 @@ The procedure deploys the Hindcast page to Azure Container Apps from one `azd up
 
 7. Open the URL in a browser and sign in with the deploying account. Another account from the tenant gets `403`.
 
-   Expected: the placeholder page (step 4) or the Hindcast page (step 10).
+   Expected, as observed on 2026-10-31 on the placeholder image: the Microsoft sign-in page, then "Your container app is running with a Hello World image". No client secret was needed. Expected after step 10: the Hindcast page. The `403` for another account is reasoned from the auth config, not observed.
 
    If the sign-in page returns an error that names an invalid client secret, the federated path did not work on this platform. Fall back to a client secret, which the template stores as the container secret `microsoft-provider-authentication-secret`:
 

@@ -36,11 +36,11 @@ Test suite after the slice: `uv run --frozen pytest -q` → 317 passed.
 
 | Criterion (slice) | Status | Evidence |
 |---|---|---|
-| `azd up` from an empty resource group creates the app's resources | pending | runbook step 4 |
+| `azd up` from an empty resource group creates the app's resources | tested, live, 2026-10-31 | `azd provision` → `SUCCESS` after three template fixes (see Live run); `azd up` from empty is runbook step 12, not run yet |
 | `azd down` removes them and leaves the other resource group | pending | runbook step 12 |
-| Sign-in is required; the health path is excluded | pending | runbook step 6 |
-| Other accounts are refused | pending | runbook step 7 |
-| No key stored; the one container secret is the identity's client ID | pending | runbook step 5 |
+| Sign-in is required; the health path is excluded | tested, live, 2026-10-31 | runbook step 6: browser request → `302` to `login.microsoftonline.com`, other client → `401`, `/_stcore/health` → `404` from the placeholder, not `302` |
+| Other accounts are refused | configured, not tested | `allowedPrincipals` holds one object ID (`az containerapp auth show`); no second account was tried. The deploying account signed in through the federated credential (runbook step 7) |
+| No key stored; the one container secret is the identity's client ID | tested, live, 2026-10-31 | runbook step 5: `az containerapp secret list` → `override-use-mi-fic-assertion-client-id` only; sign-in worked without a client secret (step 7) |
 | The image is built in CI and pushed without a stored credential | pending | runbook step 9 |
 | The page renders the result through the ingress (WebSocket) | pending | runbook step 10 |
 | A span reaches Application Insights | pending | runbook step 11 |
@@ -48,7 +48,19 @@ Test suite after the slice: `uv run --frozen pytest -q` → 317 passed.
 
 ## Live run
 
-Pending.
+On 2026-10-31, from `feat/thin-deploy`, against the live subscription. Each failure below was found on the live system, fixed in the template, and checked with `az deployment sub validate` for both values of `webExists` before the next run.
+
+| Run | Result | Cause | Fix |
+|---|---|---|---|
+| `azd provision --preview` | prompt for `allowedUserObjectId` | `--preview` does not run hooks, so the app registration did not exist yet | runbook step 3 runs `azd hooks run preprovision` first |
+| `azd provision` (1) | container app and auth config `InternalServerError` | the placeholder digest did not exist on the registry (`ImagePullFailure`), and the placeholder listens on port 80 with no health path | real digest; port and probes follow the image |
+| `azd provision` (2) | `InvalidTemplate: Circular dependency` on `ca-hindcast` | with the app existing, the template read the resource it was updating | the image is read in `infra/fetch-image.bicep`, a module of its own |
+| `azd provision` (3) | `SUCCESS` in 1 minute 21 seconds | | |
+| Push-job trust, before the first push | not run; found by reading the workflow against the credential | a job in the `azure` environment presents `repo:<repo>:environment:azure`, not the branch | credential subject changed, provisioned, the branch credential deleted |
+
+Sign-in (runbook step 7): the deploying account reached the placeholder page through Entra sign-in with no client secret, so the federated credential path works on Container Apps, and the client-secret fallback stays unused ([decision 0016](../decisions/0016-sign-in-credential-image-build-and-resource-group.md)).
+
+Steps 9 to 12 wait for the push job to exist on `main`.
 
 ## Issues opened
 
