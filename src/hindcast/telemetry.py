@@ -11,12 +11,16 @@ from contextlib import contextmanager
 
 from azure.monitor.opentelemetry import configure_azure_monitor
 from opentelemetry import trace
+from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 from opentelemetry.trace import Span
 
 CONNECTION_VAR = "APPLICATIONINSIGHTS_CONNECTION_STRING"
 # Read by the OpenTelemetry GenAI instrumentations: "true" records prompt and
 # completion text in spans. Decision 0011 keeps it off outside development.
 CONTENT_RECORDING_VAR = "OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"
+# Application Insights shows service.name as the role name. Without it, the
+# page's spans arrive as "unknown_service:python".
+SERVICE = "hindcast-web"
 
 # Streamlit re-runs the page script on every interaction. A second
 # configure_azure_monitor() would attach a second exporter, so the module
@@ -32,7 +36,11 @@ def configure(env: Mapping[str, str] = os.environ) -> bool:
         return False
     development = env.get("HINDCAST_ENV") == "development"
     os.environ[CONTENT_RECORDING_VAR] = "true" if development else "false"
-    configure_azure_monitor(connection_string=connection, enable_live_metrics=False)
+    configure_azure_monitor(
+        connection_string=connection,
+        enable_live_metrics=False,
+        resource=Resource.create({SERVICE_NAME: SERVICE}),
+    )
     _configured = True
     return True
 

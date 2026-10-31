@@ -31,6 +31,12 @@ def test_configure_once_per_process(recorded):
     assert recorded[0]["enable_live_metrics"] is False
 
 
+def test_configure_names_the_service(recorded):
+    telemetry.configure({"APPLICATIONINSIGHTS_CONNECTION_STRING": CONNECTION})
+
+    assert recorded[0]["resource"].attributes["service.name"] == "hindcast-web"
+
+
 @pytest.mark.parametrize(
     ("hindcast_env", "expected"),
     [("development", "true"), ("production", "false"), (None, "false")],
