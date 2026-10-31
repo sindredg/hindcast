@@ -13,13 +13,15 @@ for name in AUTH_CLIENT_ID AUTH_TENANT_ID SERVICE_WEB_URI SERVICE_WEB_IDENTITY_P
 done
 
 redirect="${SERVICE_WEB_URI}/.auth/login/aad/callback"
-# Keep the URIs already there: the update replaces the whole list.
-mapfile -t uris < <(az ad app show --id "$AUTH_CLIENT_ID" --query "web.redirectUris[]" -o tsv)
-if printf '%s\n' "${uris[@]}" | grep -qxF "$redirect"; then
+# The registration serves this one app, so its redirect list is exactly the
+# app's current callback. A rebuilt environment gets a new domain, and the old
+# callback goes instead of piling up.
+current="$(az ad app show --id "$AUTH_CLIENT_ID" --query "join(' ', web.redirectUris)" -o tsv)"
+if [ "$current" = "$redirect" ]; then
   redirect_state="present"
 else
-  az ad app update --id "$AUTH_CLIENT_ID" --web-redirect-uris "${uris[@]}" "$redirect"
-  redirect_state="added"
+  az ad app update --id "$AUTH_CLIENT_ID" --web-redirect-uris "$redirect"
+  redirect_state="set"
 fi
 
 # The platform signs in as the app by presenting the managed identity's token
