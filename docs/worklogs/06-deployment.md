@@ -1,13 +1,13 @@
 # Worklog 06: deployment, slice 1 (thin deploy)
 
-Status: In progress on 2026-10-31. The code, the templates, and the pipeline are built and checked; the app's resources are provisioned and sign-in is checked live (runbook steps 1 to 8). The image push, the deploy, the telemetry check, and the rebuild (steps 9 to 12) wait for the push job to reach `main`. Status lives in the [roadmap](../roadmap.md).
+Status: Built on 2026-10-31. The code, the templates, and the pipeline are built and checked; runbook steps 1 to 11 ran live: sign-in, the image push over OIDC, the deploy of the page, and a span in Application Insights ([After the merge](#after-the-merge)). The rebuild from empty (step 12) is an accepted gap ([gate](#gate)). Status lives in the [roadmap](../roadmap.md).
 
 Scope: one `azd up` puts a signed-in page on Azure Container Apps that renders the committed development-case result, with telemetry in Application Insights, from an image CI builds. No model call from the app yet, and no full-environment template: those come with the later slices of [milestone 6](../roadmap.md#6-deployment-and-release). The reasons for the sign-in credential, the build path, and the resource group are in [decision 0016](../decisions/0016-sign-in-credential-image-build-and-resource-group.md).
 
 ## Built
 
 - `app` extra in `pyproject.toml`: Streamlit 1.66.1 and azure-monitor-opentelemetry 1.8.11, installed and audited in CI with `--all-extras`.
-- `hindcast.telemetry`: the exporter configured once per process, only with a connection string; `hindcast.app`: the page. Tests in `tests/test_telemetry.py` (6) and `tests/test_app.py` (3, using Streamlit's `AppTest`).
+- `hindcast.telemetry`: the exporter configured once per process, only with a connection string, under the service name `hindcast-web`; `hindcast.app`: the page. Tests in `tests/test_telemetry.py` (7) and `tests/test_app.py` (3, using Streamlit's `AppTest`).
 - `Dockerfile` and `.dockerignore`: uv 0.13.5 and `python:3.14-slim-trixie`, both by digest; the `app` extra on its own layer; a fixed non-root UID that cannot write the code; Streamlit on port 8501.
 - `infra/main.bicep` (subscription scope) and `infra/app.bicep`: the app's resource group with `id-hindcast-app`, `id-hindcast-ci` and its GitHub federated credential, a Basic registry with `AcrPull` and `AcrPush`, a Container Apps environment logging through a diagnostic setting, the container app (0 to 1 replica; the image from `HINDCAST_IMAGE` on every provision, with port 8501 and probes on `/_stcore/health` for the app image and port 80 without probes for the placeholder), and the auth config with the federated-credential path by default and the client-secret path behind one parameter. `infra/bicepconfig.json` raises eight linter rules to errors. `azure.yaml` points azd at the image CI pushes (`imagePassthrough`).
 - `infra/scripts/app-registration.sh` and `app-registration-complete.sh`: the azd hooks that create the app registration and finish it with the one redirect URI and the federated credential. `infra/scripts/github-subject.sh`: reads the repository's OIDC subject prefix from GitHub for the CI credential.
@@ -26,6 +26,7 @@ Each new check was run once on a broken input before its pass was recorded. Loca
 | `az bicep lint` (local, 0.47.16 with the 0.48.1 rules) | `param unused string` in `app.bicep` | `Error no-unused-params`, exit 1 | no output, exit 0 |
 | shellcheck (local, 0.11.0) | `echo $1` | `SC2086`, exit 1 | no output, exit 0 |
 | `test_configure_once_per_process` | `enable_live_metrics=True` | 1 failed | 6 passed |
+| `test_configure_names_the_service` | `configure_azure_monitor` called without a resource | `KeyError: 'resource'`, 1 failed | 7 passed |
 | `test_page_renders_the_sections` | header `Timeline` renamed `Events` | 1 failed | 3 passed |
 | zizmor on the workflow | the push steps inside the lint job | `secrets-outside-env` ×6, `undocumented-permissions` | `No findings to report` after the push moved to its own job in the `azure` environment |
 
@@ -35,21 +36,21 @@ Each new check was run once on a broken input before its pass was recorded. Loca
 
 `az deployment sub what-if` with a registry image in place of the placeholder (read-only, live, 2026-10-31): `Modify` on `ca-hindcast`, target port 8501, liveness and readiness probes on `/_stcore/health:8501`.
 
-Test suite after the slice: `uv run --frozen pytest -q` → 317 passed.
+Test suite after the slice: `uv run --frozen pytest -q` → 317 passed; 318 after the service-name fix ([After the merge](#after-the-merge)).
 
 ## Gate
 
 | Criterion (slice) | Status | Evidence |
 |---|---|---|
-| `azd up` from an empty resource group creates the app's resources | configured, not tested | `azd up` from empty is runbook step 12, not run yet. `azd provision` succeeded on 2026-10-31 over resources that runs (1) and (2) had partly created (Live run) |
-| `azd down` removes them and leaves the other resource group | pending | runbook step 12 |
+| `azd up` from an empty resource group creates the app's resources | accepted gap | Runbook step 12 did not run for this slice: the resources were built by the provisions in the Live run, and a rebuild replaces the CI identity, so the `azure` environment's client ID has to be set again before the next push. The full-environment template at the end of milestone 6 is tested from empty instead. `azd provision` succeeded on 2026-10-31 over resources that runs (1) and (2) had partly created (Live run) |
+| `azd down` removes them and leaves the other resource group | accepted gap | Not run for this slice (same reason). Checked at teardown, runbook step 13 |
 | Sign-in is required; the health path is excluded | tested, live, 2026-10-31 | runbook step 6: browser request → `302` to `login.microsoftonline.com`, other client → `401`, `/_stcore/health` → `404` from the placeholder, not `302` |
 | Other accounts are refused | configured, not tested | `allowedPrincipals` holds one object ID (`az containerapp auth show`); no second account was tried. The deploying account signed in through the federated credential (runbook step 7) |
 | No key stored; the one container secret is the identity's client ID | tested, live, 2026-10-31 | runbook step 5: `az containerapp secret list` → `override-use-mi-fic-assertion-client-id` only; sign-in worked without a client secret (step 7) |
-| The image is built in CI and pushed without a stored credential | pending | built on every pull request (the Checks table); the push is runbook step 9 |
-| The page renders the result through the ingress (WebSocket) | pending | runbook step 10 |
-| A span reaches Application Insights | pending | runbook step 11 |
-| The push job's OIDC subject matches the CI identity's credential | configured, not tested | the repository uses immutable subjects (`gh api repos/sindredg/hindcast/actions/oidc/customization/sub` → `use_immutable_subject: true`); `az identity federated-credential list` → `repo:sindredg@<id>/hindcast@<id>:environment:azure` only, set from that prefix by the pre-provision hook. Tested by the first push (runbook step 9) |
+| The image is built in CI and pushed without a stored credential | tested, live, 2026-10-31 | [run 41208255994](https://github.com/sindredg/hindcast/actions/runs/41208255994): `Push the image` success after an OIDC sign-in; the registry holds `hindcast:<sha>` and `hindcast:main` ([After the merge](#after-the-merge)) |
+| The page renders the result through the ingress (WebSocket) | tested, live, 2026-10-31 | runbook step 10: revision `Healthy`, `/_stcore/health` → `ok` (the placeholder answered `404`); in the browser after sign-in, the page showed the development-case result and an expander opened |
+| A span reaches Application Insights | tested, live, 2026-10-31 | runbook step 11: one `page_view` row; the same query for `page_viewX` → 0 rows. The role name was `unknown_service:python`; the service name `hindcast-web` is tested with a stub and reaches the live app with the next image ([After the merge](#after-the-merge)) |
+| The push job's OIDC subject matches the CI identity's credential | tested, live, 2026-10-31 | the repository uses immutable subjects (`gh api repos/sindredg/hindcast/actions/oidc/customization/sub` → `use_immutable_subject: true`); `az identity federated-credential list` → `repo:sindredg@<id>/hindcast@<id>:environment:azure` only, set from that prefix by the pre-provision hook. The first push signed in with it ([run 41208255994](https://github.com/sindredg/hindcast/actions/runs/41208255994)) |
 | Each new linter fails on a broken input | tested | the Checks table |
 
 ## Live run
@@ -70,7 +71,20 @@ On 2026-10-31, from `feat/thin-deploy`, against the live subscription. Each fail
 
 Sign-in (runbook step 7): the deploying account reached the placeholder page through Entra sign-in with no client secret, so the federated credential path works on Container Apps, and the client-secret fallback stays unused ([decision 0016](../decisions/0016-sign-in-credential-image-build-and-resource-group.md)).
 
-Steps 9 to 12 wait for the push job to exist on `main`.
+Steps 9 to 11 ran after the merge ([After the merge](#after-the-merge)).
+
+## After the merge
+
+On 2026-10-31, from `main` at `52f1032`, against the live subscription.
+
+| Runbook step | Command | Result |
+|---|---|---|
+| 9. Push the image | the merge's CI run, [41208255994](https://github.com/sindredg/hindcast/actions/runs/41208255994); `az acr repository show-tags`; `az acr repository show --image hindcast:<sha> --query digest` | all five jobs success; tags `52f10323d928d9958bdbaaffa93a950b512a102a` and `main`; digest `sha256:eef721db08f377f734c7dc2be5f525bfc42cc388626127dd612914b8ffb6a7a4`, the same as the job log |
+| 10. Deploy | `azd provision --preview`, then `azd env set HINDCAST_IMAGE <registry>/hindcast:<sha> && azd provision` | preview: `Modify` on `ca-hindcast`, target port 80 → 8501, the container changed; provision: `SUCCESS` in 1 minute 16 seconds. Read back: image `hindcast:<sha>`, port 8501, liveness and readiness probes on `/_stcore/health:8501`; new revision `Healthy`, the placeholder's revision deprovisioning; `/_stcore/health` → `ok`; `/` without a session → `401` |
+| 10. Browser | sign in and open the page | the development-case result rendered and an expander opened, so the WebSocket is through the ingress |
+| 11. Telemetry | the runbook query, about five minutes after the page load | one row: `2026-10-31T20:02:58Z dependency page_view`. The same query for `page_viewX` → 0 rows |
+
+The span's role name (`cloud_RoleName`) was `unknown_service:python`: nothing set the OpenTelemetry service name, so the page's spans could not be told apart from another Python process writing to the same resource. `hindcast.telemetry` now passes the service name `hindcast-web` to the exporter, tested with a stub (the Checks table). The live app gets it with the next image from `main`; the runbook's step 11 query now reads the role name.
 
 ## Issues opened
 
