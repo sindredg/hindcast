@@ -55,7 +55,13 @@ The procedure deploys the Hindcast page to Azure Container Apps from one `azd up
    azd provision
    ```
 
-   Expected: `SUCCESS: Your application was provisioned in Azure`, with `redirect uri: added` and `federated credential: created` from the hook.
+   Expected, as observed on 2026-10-31: `SUCCESS: Your application was provisioned in Azure`. The hook prints `redirect uri: added` and `federated credential: created` in a terminal; when the output is piped, azd may not show hook output, so check the registration directly:
+
+   ```bash
+   APP=$(azd env get-value AUTH_CLIENT_ID) && az ad app show --id "$APP" --query "web.redirectUris" -o tsv && az ad app federated-credential list --id "$APP" --query "[].name" -o tsv
+   ```
+
+   Expected, as observed on 2026-10-31: `https://<app-host>/.auth/login/aad/callback`, then `container-app-identity`.
 
 5. Read the resources back and check that the one container secret is the override name, whose value is the identity's client ID, not a credential.
 
@@ -67,17 +73,17 @@ The procedure deploys the Hindcast page to Azure Container Apps from one `azd up
    az containerapp secret list -n ca-hindcast -g rg-hindcast-app --query "[].name" -o tsv && azd env get-value AZURE_CONTAINER_REGISTRY_NAME
    ```
 
-   Expected: one line per type (`Microsoft.App/containerApps`, `Microsoft.App/managedEnvironments`, `Microsoft.ContainerRegistry/registries`, two `Microsoft.ManagedIdentity/userAssignedIdentities`); then `override-use-mi-fic-assertion-client-id` and the registry name (`<registry>`).
+   Expected, as observed on 2026-10-31: one line per type (`Microsoft.App/containerApps`, `Microsoft.App/managedEnvironments`, `Microsoft.ContainerRegistry/registries`, two `Microsoft.ManagedIdentity/userAssignedIdentities`); then `override-use-mi-fic-assertion-client-id` and the registry name (`<registry>`).
 
 ## Sign-in
 
-6. A request without a session is redirected to sign-in; the health path is not.
+6. A browser request without a session is redirected to sign-in; the health path is not. The platform redirects only requests that look like a browser and answers `401` to other clients, so the first check sends a browser `User-Agent`.
 
    ```bash
-   URI=$(azd env get-value SERVICE_WEB_URI) && curl -sI "$URI/" | grep -i '^location' && curl -sIL "$URI/" | grep -i '^location' | tail -1 && curl -s -o /dev/null -w '%{http_code}\n' "$URI/_stcore/health"
+   URI=$(azd env get-value SERVICE_WEB_URI) && curl -s -o /dev/null -H 'User-Agent: Mozilla/5.0' -H 'Accept: text/html' -w '%{http_code} %{redirect_url}\n' "$URI/" | cut -c1-38 && curl -s -o /dev/null -w '%{http_code}\n' "$URI/" && curl -s -o /dev/null -w '%{http_code}\n' "$URI/_stcore/health"
    ```
 
-   Expected: a `Location: /.auth/login/aad?...` line, then one that starts `location: https://login.microsoftonline.com/`, then a status that is not `302` (`404` on the placeholder image, `200` once the app image runs).
+   Expected, as observed on 2026-10-31 on the placeholder image: `302 https://login.microsoftonline.com/`, then `401`, then `404` (the placeholder has no health path; `200` once the app image runs). Neither of the last two may be `302`.
 
 7. Open the URL in a browser and sign in with the deploying account. Another account from the tenant gets `403`.
 
