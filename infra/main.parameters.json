@@ -1,0 +1,36 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": {
+      "value": "${AZURE_ENV_NAME}"
+    },
+    "location": {
+      "value": "${AZURE_LOCATION}"
+    },
+    "applicationInsightsName": {
+      "value": "${APPLICATIONINSIGHTS_NAME}"
+    },
+    "logAnalyticsName": {
+      "value": "${LOG_ANALYTICS_NAME}"
+    },
+    "authClientId": {
+      "value": "${AUTH_CLIENT_ID}"
+    },
+    "authTenantId": {
+      "value": "${AUTH_TENANT_ID}"
+    },
+    "allowedUserObjectId": {
+      "value": "${AUTH_ALLOWED_USER_OBJECT_ID}"
+    },
+    "authClientSecret": {
+      "value": "${AUTH_CLIENT_SECRET=}"
+    },
+    "imageName": {
+      "value": "${HINDCAST_IMAGE}"
+    },
+    "githubSubjectPrefix": {
+      "value": "${GITHUB_SUBJECT_PREFIX}"
+    }
+  }
+}

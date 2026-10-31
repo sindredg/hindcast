@@ -1,6 +1,6 @@
 # 9. Hosting and identity: Azure Container Apps with a user-assigned managed identity
 
-Status: Accepted (2026-10-24).
+Status: Accepted (2026-10-24). The two checks left open under Trade-offs, and the image build path, are settled in [decision 0016](0016-sign-in-credential-image-build-and-resource-group.md).
 
 ## Context
 

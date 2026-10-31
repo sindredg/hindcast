@@ -2,6 +2,22 @@
 
 Findings about Entra ID roles, scopes, and keyless access. Hindcast uses no keys: every call carries an Entra token ([decision 0009](../decisions/0009-hosting-and-identity.md)).
 
+## Container Apps sign-in works with a managed identity through a federated credential (2026-10-31)
+
+**Seen:** Container Apps' built-in authentication signed a user in with no client secret. The app registration's client credential is the container app's user-assigned identity, through a federated credential on the registration that trusts that identity. Microsoft documents this for App Service; for Container Apps it is asked for in [microsoft/azure-container-apps#1693](https://github.com/microsoft/azure-container-apps/issues/1693) and not in the documentation.
+
+**Evidence:** tested live, 2026-10-31. The auth config's `clientSecretSettingName` is `override-use-mi-fic-assertion-client-id`, the only container secret, whose value is the identity's client ID (`az containerapp auth show`, `az containerapp secret list`). The registration holds the redirect URI and one federated credential, issuer `https://login.microsoftonline.com/<tenant>/v2.0`, subject the identity's principal ID, audience `api://AzureADTokenExchange`. In a browser, the deploying account went through Entra sign-in and reached the app's page.
+
+**For Hindcast:** no client secret is stored or rotated, and the client-secret fallback in the template stays unused ([decision 0016](../decisions/0016-sign-in-credential-image-build-and-resource-group.md)). The behaviour is undocumented, so a platform change can break it; the fallback is one environment value and a provision ([runbook](../runbooks/deployment.md#sign-in), step 7).
+
+## A GitHub job's OIDC subject names its environment, and this repository's subject carries IDs (2026-10-31)
+
+**Seen:** two rules decide the subject of a GitHub Actions OIDC token, and a federated credential must match it exactly. A job that references a deployment environment presents the environment, not the branch. A repository created after 2026-07-15 uses immutable subjects, which carry the owner and repository IDs: `repo:<owner>@<owner-id>/<repo>@<repo-id>:environment:<name>`. A credential for `repo:sindredg/hindcast:ref:refs/heads/main`, and one for `repo:sindredg/hindcast:environment:azure`, would both refuse the push job.
+
+**Evidence:** read from the documentation, 2026-10-31: "The subject claim includes the branch name of the workflow, but only if the job doesn't reference an environment", and "repositories created after July 15, 2026 now use an immutable default subject format" ([OpenID Connect reference](https://docs.github.com/en/actions/reference/security/oidc)). Read live, 2026-10-31: `gh api repos/sindredg/hindcast/actions/oidc/customization/sub` → `use_default: true`, `use_immutable_subject: true`, and a `sub_claim_prefix` with both IDs. Not yet observed in a token: the first push from `main` tests it.
+
+**For Hindcast:** the pre-provision hook reads the prefix from GitHub, and the CI identity's federated credential trusts `<prefix>:environment:azure`. The environment's branch policy admits only `main`. The guard is two settings, the subject in Bicep and the branch policy on GitHub; only the first is in the template.
+
 ## A removed role kept working on Content Understanding for about 11 minutes (2026-10-27)
 
 **Seen:** after the Content Understanding Contributor role was removed, reads on the Content Understanding endpoint kept succeeding for about 11 minutes before they were refused. Azure documents up to 10 minutes for a role change to take effect. Model calls through the project endpoint kept working on the project-scope role throughout, as expected.

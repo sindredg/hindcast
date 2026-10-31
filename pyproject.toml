@@ -17,6 +17,11 @@ dependencies = [
     "ruamel-yaml==0.19.1",
 ]
 
+[project.optional-dependencies]
+# The web page's runtime. An extra, not a core dependency: the capture,
+# ingest, keys, and investigate commands never import it.
+app = ["streamlit==1.66.1", "azure-monitor-opentelemetry==1.8.11"]
+
 # Exact pins. uv.lock records the full tree with hashes. Dependabot proposes
 # the updates (.github/dependabot.yml).
 [dependency-groups]

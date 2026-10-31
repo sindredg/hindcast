@@ -6,7 +6,7 @@ Given only what an outside engineer could see while an outage was happening, Hin
 
 ## Status
 
-Milestones 1 and 2 of 6 are verified, and the first slice of milestone 4 is built ([roadmap](docs/roadmap.md)). Built and run: the case sources are captured and pinned by hash, the status updates are cut into evidence that keeps every update before the resolved one and only the time of that one, a library of earlier postmortems is extracted into sections and described charts, the answer keys are frozen, and the investigator has reconstructed the development outage from its updates with every citation resolving ([worklog](docs/worklogs/04-investigator.md)). Not built yet: the library search, the interface, the evaluation, and the deployment.
+Milestones 1 and 2 of 6 are verified, the first slice of milestone 4 is built, and the first slice of milestone 6 is in progress ([roadmap](docs/roadmap.md)). Built and run: the case sources are captured and pinned by hash, the status updates are cut into evidence that keeps every update before the resolved one and only the time of that one, a library of earlier postmortems is extracted into sections and described charts, the answer keys are frozen, and the investigator has reconstructed the development outage from its updates with every citation resolving ([worklog](docs/worklogs/04-investigator.md)). A page that shows that stored result is built, and its Azure Container Apps environment is provisioned behind Entra sign-in; pushing the page's image and deploying it are still open ([worklog](docs/worklogs/06-deployment.md)). Not built yet: the library search, an interface that runs investigations, the evaluation, and the full-environment deployment.
 
 The current cases are all "not an attack" according to their postmortems, so the attack verdict is reported with its reasoning and citations, never as an accuracy rate ([answer keys](eval/keys/README.md#limits)).
 
@@ -65,19 +65,22 @@ A finding is an observation the evidence states, or an inference that names the 
 
 ## How it is built now
 
-![Hindcast as built: on an operator workstation signed in with Entra ID, Hindcast's capture command reads the providers' status pages and postmortems, and the Radar charts are downloaded in the browser. The Azure CLI and Hindcast's code store the captured files in Blob Storage, and Hindcast's ingestion reads them back and writes the evidence, the extracts, and the answer-key analyzer results there with its own Entra token. Hindcast's code calls the pinned model deployments through the Foundry project with the Responses API; its investigate command keeps the investigator prompt agent's version in the project, runs that agent, executes its case tools on the workstation, and writes the result file there. It calls Content Understanding on the Foundry resource, whose three analyzers use the gpt-5-mini and text-embedding-3-large deployments, with a role held only while extraction runs. During a portal evaluation run, the Foundry evaluation calls the deployments as the signed-in user. git reaches GitHub through pull requests. The project is connected to Application Insights, which the code does not use yet. The Foundry resource and the storage account accept no keys; traces use the Application Insights connection string](docs/diagrams/current-architecture.svg)
+![Hindcast as built: on an operator workstation signed in with Entra ID, Hindcast's capture command reads the providers' status pages and postmortems, and the Radar charts are downloaded in the browser. The Azure CLI and Hindcast's code store the captured files in Blob Storage, and Hindcast's ingestion reads them back and writes the evidence, the extracts, and the answer-key analyzer results there with its own Entra token. Hindcast's code calls the pinned model deployments through the Foundry project with the Responses API; its investigate command keeps the investigator prompt agent's version in the project, runs that agent, executes its case tools on the workstation, and writes the result file there. It calls Content Understanding on the Foundry resource, whose three analyzers use the gpt-5-mini and text-embedding-3-large deployments, with a role held only while extraction runs. During a portal evaluation run, the Foundry evaluation calls the deployments as the signed-in user. git reaches GitHub through pull requests. The project is connected to Application Insights, which the deployed page also writes to (the deployment diagram). The Foundry resource and the storage account accept no keys; traces use the Application Insights connection string](docs/diagrams/current-architecture.svg)
 
 ## Development
 
-Requires [uv](https://docs.astral.sh/uv/). It installs the Python version in `.python-version` and the locked tools. These are the checks CI runs on the code; the workflow also lints the YAML and audits the dependencies ([ci.yml](.github/workflows/ci.yml)).
+Requires [uv](https://docs.astral.sh/uv/). It installs the Python version in `.python-version` and the locked tools. These are the checks CI runs on the code; the workflow also lints the YAML, audits the dependencies, and builds the image ([ci.yml](.github/workflows/ci.yml)).
 
 ```bash
-uv sync --frozen
+uv sync --frozen --all-extras
 uv run --frozen ruff check .
 uv run --frozen ruff format --check .
 uv run --frozen pyright
 uv run --frozen pytest
+az bicep build --file infra/main.bicep --stdout > /dev/null && az bicep lint --file infra/main.bicep
 ```
+
+The page runs locally with `uv run --frozen streamlit run src/hindcast/app.py`; without a connection string it sends no telemetry. hadolint and shellcheck run in CI from their pinned releases; the Dockerfile builds there, since the image is pushed from `main` by the workflow, not from a workstation.
 
 The tests that read the captured status pages and postmortems skip when `data/sources/` is absent, which includes CI. The [runbooks](docs/runbooks/) capture them.
 
