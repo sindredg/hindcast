@@ -35,7 +35,7 @@ param allowedUserObjectId string
 param authClientSecret string = ''
 
 @description('Image the container app runs. The default is a public placeholder for the first provision, before CI has pushed the app image.')
-param imageName string = 'mcr.microsoft.com/k8se/quickstart@sha256:d278e30de23a1b5b5f4c987e830dbd915f9fafc1e2e574022eadf7e7ce1c05fb'
+param imageName string = 'mcr.microsoft.com/k8se/quickstart@sha256:3a4d93c34c6753f24765ab17a36f1754aee9b02082b7d9553d17697b9e8252c4'
 
 @description('Set by azd: true when the container app already exists, so provision keeps its current image.')
 param webExists bool = false

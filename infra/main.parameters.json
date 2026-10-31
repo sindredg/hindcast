@@ -11,7 +11,7 @@
     "allowedUserObjectId": { "value": "${AUTH_ALLOWED_USER_OBJECT_ID}" },
     "authClientSecret": { "value": "${AUTH_CLIENT_SECRET=}" },
     "imageName": {
-      "value": "${SERVICE_WEB_IMAGE_NAME=mcr.microsoft.com/k8se/quickstart@sha256:d278e30de23a1b5b5f4c987e830dbd915f9fafc1e2e574022eadf7e7ce1c05fb}"
+      "value": "${SERVICE_WEB_IMAGE_NAME=mcr.microsoft.com/k8se/quickstart@sha256:3a4d93c34c6753f24765ab17a36f1754aee9b02082b7d9553d17697b9e8252c4}"
     },
     "webExists": { "value": "${SERVICE_WEB_RESOURCE_EXISTS=false}" }
   }

@@ -32,6 +32,23 @@ var authSecretName = useClientSecret
   ? 'microsoft-provider-authentication-secret'
   : 'override-use-mi-fic-assertion-client-id'
 
+// The image the app runs: the app image it already has when azd re-provisions,
+// the parameter otherwise. A placeholder is never kept, so a provision can
+// replace a broken one. "!" because Bicep cannot see that the existing
+// reference is set exactly when webExists is true. The public placeholder
+// that fills the first provision listens on port 80 and has no health path,
+// so the port and the probes follow the image: a revision whose probes never
+// pass fails the deployment.
+var placeholderRepository = 'mcr.microsoft.com/k8se/quickstart'
+var existingImage = webExists ? existingWeb!.properties.template.containers[0].image : ''
+var image = webExists && !startsWith(existingImage, placeholderRepository) ? existingImage : imageName
+var placeholder = startsWith(image, placeholderRepository)
+var appPort = placeholder ? 80 : 8501
+var probes = placeholder ? [] : [
+  { type: 'Liveness', httpGet: { path: '/_stcore/health', port: appPort }, initialDelaySeconds: 10, periodSeconds: 30 }
+  { type: 'Readiness', httpGet: { path: '/_stcore/health', port: appPort }, initialDelaySeconds: 5, periodSeconds: 10 }
+]
+
 // Existing resources in the other resource group: read, never changed.
 resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing = {
   name: applicationInsightsName
@@ -149,7 +166,7 @@ resource web 'Microsoft.App/containerApps@2026-01-01' = {
       activeRevisionsMode: 'Single'
       ingress: {
         external: true
-        targetPort: 8501
+        targetPort: appPort
         transport: 'auto'
         allowInsecure: false
       }
@@ -165,9 +182,7 @@ resource web 'Microsoft.App/containerApps@2026-01-01' = {
       containers: [
         {
           name: 'web'
-          // "!" because Bicep cannot see that the existing reference is set
-          // exactly when webExists is true.
-          image: webExists ? existingWeb!.properties.template.containers[0].image : imageName
+          image: image
           resources: { cpu: json('0.5'), memory: '1Gi' }
           env: [
             // Configuration, not a credential: it can write telemetry and read
@@ -175,10 +190,7 @@ resource web 'Microsoft.App/containerApps@2026-01-01' = {
             { name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: applicationInsights.properties.ConnectionString }
             { name: 'HINDCAST_ENV', value: 'production' }
           ]
-          probes: [
-            { type: 'Liveness', httpGet: { path: '/_stcore/health', port: 8501 }, initialDelaySeconds: 10, periodSeconds: 30 }
-            { type: 'Readiness', httpGet: { path: '/_stcore/health', port: 8501 }, initialDelaySeconds: 5, periodSeconds: 10 }
-          ]
+          probes: probes
         }
       ]
       // One replica at most: a Streamlit session lives on one container, and

@@ -32,7 +32,7 @@ The procedure deploys the Hindcast page to Azure Container Apps from one `azd up
 2. Create the azd environment. Its files live under `.azure/`, which is git-ignored because they hold real resource names. `HINDCAST_IMAGE` starts as a public placeholder image, because the registry does not exist before the first provision; step 10 points it at the app image.
 
    ```bash
-   azd auth login && azd env new hindcast-app --no-prompt && azd env set AZURE_LOCATION swedencentral && azd env set APPLICATIONINSIGHTS_NAME <app-insights> && azd env set LOG_ANALYTICS_NAME <log-analytics> && azd env set HINDCAST_IMAGE mcr.microsoft.com/k8se/quickstart@sha256:d278e30de23a1b5b5f4c987e830dbd915f9fafc1e2e574022eadf7e7ce1c05fb && git status --short
+   azd auth login && azd env new hindcast-app --no-prompt && azd env set AZURE_LOCATION swedencentral && azd env set APPLICATIONINSIGHTS_NAME <app-insights> && azd env set LOG_ANALYTICS_NAME <log-analytics> && azd env set HINDCAST_IMAGE mcr.microsoft.com/k8se/quickstart@sha256:3a4d93c34c6753f24765ab17a36f1754aee9b02082b7d9553d17697b9e8252c4 && git status --short
    ```
 
    Expected: a browser sign-in, then `git status` prints nothing.
