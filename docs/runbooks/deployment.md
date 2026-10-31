@@ -1,6 +1,6 @@
 # Deployment: operator procedure
 
-Status: Written on 2026-10-30 for [milestone 6, slice 1](../worklogs/06-deployment.md); steps 1 to 8 validated live on 2026-10-31. Steps marked "Expected, as observed" ran on the date given with the output shown; steps 9 to 14 are reasoned from the templates and not yet run.
+Status: Written on 2026-10-30 for [milestone 6, slice 1](../worklogs/06-deployment.md); steps 1 to 11 validated live on 2026-10-31. Steps marked "Expected, as observed" ran on the date given with the output shown; steps 12 to 14 are reasoned from the templates and not yet run.
 
 The procedure deploys the Hindcast page to Azure Container Apps from one `azd up`, with Entra sign-in and telemetry, from an image CI builds. It creates nothing in the resource group that holds Foundry and the storage account; it reads two resources there by name ([decision 0016](../decisions/0016-sign-in-credential-image-build-and-resource-group.md)).
 
@@ -117,7 +117,7 @@ The procedure deploys the Hindcast page to Azure Container Apps from one `azd up
    az acr repository show-tags -n <registry> --repository hindcast -o tsv
    ```
 
-   Expected: the run ends green with `Push the image` as its last job, and the tag list holds `main` and a commit SHA (`<sha>`).
+   Expected, as observed on 2026-10-31: the run ends green with `Push the image` as its last job, and the tag list holds `main` and a commit SHA (`<sha>`).
 
 ## Deploy
 
@@ -131,17 +131,17 @@ The procedure deploys the Hindcast page to Azure Container Apps from one `azd up
     az containerapp revision list -n ca-hindcast -g rg-hindcast-app --query "[?properties.active].properties.healthState" -o tsv && curl -s "$(azd env get-value SERVICE_WEB_URI)/_stcore/health"
     ```
 
-    Expected: `SUCCESS: Your application was provisioned in Azure`, then `Healthy` and `ok`. A what-if with a registry image on 2026-10-31 showed the change: target port 8501, liveness and readiness probes on `/_stcore/health:8501`. In the browser, after sign-in, the Hindcast page shows the development-case result and an expander opens (the WebSocket is through).
+    Expected, as observed on 2026-10-31: `SUCCESS: Your application was provisioned in Azure`, then `Healthy` and `ok`. The provision changes the app's target port to 8501 and adds liveness and readiness probes on `/_stcore/health:8501`. In the browser, after sign-in, the Hindcast page shows the development-case result and an expander opens (the WebSocket is through).
 
 ## Telemetry
 
 11. Load the page once, wait about three minutes, then look for the page-view span.
 
     ```bash
-    az monitor app-insights query -g rg-hindcast -a <app-insights> --analytics-query "union requests, dependencies, traces | where timestamp > ago(30m) | where name == 'page_view' or operation_Name == 'page_view' | project timestamp, itemType, name | take 5" --query "tables[0].rows" -o tsv
+    az monitor app-insights query -g rg-hindcast -a <app-insights> --analytics-query "union requests, dependencies, traces | where timestamp > ago(30m) | where name == 'page_view' or operation_Name == 'page_view' | project timestamp, itemType, name, cloud_RoleName | take 5" --query "tables[0].rows" -o tsv
     ```
 
-    Expected: at least one row with `page_view`.
+    Expected: at least one row with `page_view` and the role name `hindcast-web`. Observed on 2026-10-31: one `page_view` row, with the role name `unknown_service:python` from the image built before the service name was set; `hindcast-web` is reasoned from the code, not observed.
 
 ## Remove and rebuild
 
