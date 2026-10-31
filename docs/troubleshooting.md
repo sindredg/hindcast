@@ -8,9 +8,9 @@ Failures that showed something about Hindcast, the platform, or a procedure: the
 
 **Cause:** confirmed. Once the container app exists, azd passes `webExists=true`, and the template read the app it was about to update ([finding](findings/deployment.md#reading-the-container-app-that-the-same-template-deploys-is-a-circular-dependency-2026-10-31)).
 
-**Fix:** `infra/fetch-image.bicep` reads the current image in a module of its own.
+**Fix:** first, a module of its own read the current image. Later the same day the template stopped reading the existing app: the image comes from `HINDCAST_IMAGE` on every provision ([worklog](worklogs/06-deployment.md#live-run)).
 
-**Verification:** tested live, 2026-10-31: `az deployment sub validate` failed on the old template and passed on the new one for both values of `webExists`; the next `azd provision` succeeded.
+**Verification:** tested live, 2026-10-31: `az deployment sub validate` failed on the old template and passed on both later ones; the provisions after each fix succeeded.
 
 ## Deployment: first provision fails with `InternalServerError` on the container app (2026-10-31)
 

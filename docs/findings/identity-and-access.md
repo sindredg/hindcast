@@ -10,13 +10,13 @@ Findings about Entra ID roles, scopes, and keyless access. Hindcast uses no keys
 
 **For Hindcast:** no client secret is stored or rotated, and the client-secret fallback in the template stays unused ([decision 0016](../decisions/0016-sign-in-credential-image-build-and-resource-group.md)). The behaviour is undocumented, so a platform change can break it; the fallback is one environment value and a provision ([runbook](../runbooks/deployment.md#sign-in), step 7).
 
-## A GitHub job in a deployment environment presents the environment as its OIDC subject, not the branch (2026-10-31)
+## A GitHub job's OIDC subject names its environment, and this repository's subject carries IDs (2026-10-31)
 
-**Seen:** the subject of a GitHub Actions OIDC token names the deployment environment when the job references one, and the branch is not in it. A federated credential for `repo:<owner>/<repo>:ref:refs/heads/main` refuses a job that runs in an environment, even on `main`.
+**Seen:** two rules decide the subject of a GitHub Actions OIDC token, and a federated credential must match it exactly. A job that references a deployment environment presents the environment, not the branch. A repository created after 2026-07-15 uses immutable subjects, which carry the owner and repository IDs: `repo:<owner>@<owner-id>/<repo>@<repo-id>:environment:<name>`. A credential for `repo:sindredg/hindcast:ref:refs/heads/main`, and one for `repo:sindredg/hindcast:environment:azure`, would both refuse the push job.
 
-**Evidence:** read from the documentation, 2026-10-31: "The subject claim includes the branch name of the workflow, but only if the job doesn't reference an environment", with the format `repo:ORG-NAME/REPO-NAME:environment:ENVIRONMENT-NAME` ([OpenID Connect reference](https://docs.github.com/en/actions/reference/security/oidc)). Not yet observed live: the first push from `main` tests it.
+**Evidence:** read from the documentation, 2026-10-31: "The subject claim includes the branch name of the workflow, but only if the job doesn't reference an environment", and "repositories created after July 15, 2026 now use an immutable default subject format" ([OpenID Connect reference](https://docs.github.com/en/actions/reference/security/oidc)). Read live, 2026-10-31: `gh api repos/sindredg/hindcast/actions/oidc/customization/sub` → `use_default: true`, `use_immutable_subject: true`, and a `sub_claim_prefix` with both IDs. Not yet observed in a token: the first push from `main` tests it.
 
-**For Hindcast:** the CI identity's federated credential trusts `repo:sindredg/hindcast:environment:azure`, and the environment's branch policy admits only `main`. The guard is two settings, the subject in Bicep and the branch policy on GitHub, and only the first is in the template.
+**For Hindcast:** the pre-provision hook reads the prefix from GitHub, and the CI identity's federated credential trusts `<prefix>:environment:azure`. The environment's branch policy admits only `main`. The guard is two settings, the subject in Bicep and the branch policy on GitHub; only the first is in the template.
 
 ## A removed role kept working on Content Understanding for about 11 minutes (2026-10-27)
 

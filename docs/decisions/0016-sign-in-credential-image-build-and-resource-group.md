@@ -25,7 +25,7 @@ Image build:
 
 | Option | Fit | Catch |
 |---|---|---|
-| C. GitHub Actions builds the image and pushes it to the registry, signed in with the workflow's OIDC token against a CI identity | No stored credential; the federated credential accepts only this repository's `main` branch; the pull stays the app identity's `AcrPull` | One more identity, a deployment environment with four secrets that hold IDs, and a first-run order: provision, set the secrets, push, deploy |
+| C. GitHub Actions builds the image and pushes it to the registry, signed in with the workflow's OIDC token against a CI identity | No stored credential; the federated credential accepts only this repository's `azure` deployment environment, which admits only `main`; the pull stays the app identity's `AcrPull` | One more identity, a deployment environment with four secrets that hold IDs, and a first-run order: provision, set the secrets, push, deploy |
 | D. GitHub Actions pushes to the GitHub container registry; the app pulls the public image | No Azure credential in GitHub, no registry in Bicep | A public image; the app pulls anonymously instead of with its identity |
 | E. A workstation with Docker | None of the above | Not available here |
 
@@ -42,8 +42,8 @@ A with B as the fallback, C, and F. The template carries both credential paths: 
 
 ## Trade-offs
 
-- The federated path rests on undocumented behaviour. The trigger to revisit: Microsoft documents it, or sign-in fails. Until then the fallback stays in the template, tested as a parameter path, not live.
-- GitHub to Entra is one more federated trust. Its subject is the `azure` deployment environment of one repository, and that environment admits only `main`, so a pull request or a fork cannot push an image. The guard is two settings, the subject in Bicep and the branch policy on GitHub; the branch policy is not in the template.
+- The federated path rests on undocumented behaviour. The trigger to revisit: Microsoft documents it, or sign-in fails. Until then the fallback stays in the template; `az deployment sub validate` with a client-secret value succeeds, and the path has not run live.
+- GitHub to Entra is one more federated trust. Its subject is the `azure` deployment environment of one repository, read from GitHub because it carries the repository's IDs, and that environment admits only `main`, so a pull request or a fork cannot push an image. The guard is two settings, the subject in Bicep and the branch policy on GitHub; the branch policy is not in the template.
 - The image is built twice per push to `main`: once as the pull-request proof, once in the push job. Both builds are deterministic from digest-pinned bases.
 - Two resource groups mean two places to look at and two to delete. The full template, written when milestone 6 closes, decides whether it owns both.
 - Role assignments the app identity later gets on Foundry and storage live in the other resource group and are not removed by `azd down`; they are orphaned when the identity goes and cleaned up at teardown.

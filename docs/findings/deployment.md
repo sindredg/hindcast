@@ -16,7 +16,7 @@ Findings about the Azure Developer CLI, Bicep, and Azure Container Apps. The dep
 
 **Evidence:** tested live, 2026-10-31. `az deployment sub validate` with `webExists=true` on the template at `ccec94d`: `Circular dependency detected on resource`, exit 1. With the read moved into a module (`infra/fetch-image.bicep`): `Succeeded` for `webExists=true` and `false`, and `azd provision` succeeded.
 
-**For Hindcast:** the existing image is read in a module of its own, and both values of `webExists` are validated before a provision ([worklog](../worklogs/06-deployment.md#checks)).
+**For Hindcast:** the template does not read the existing app at all: every provision takes the image from `HINDCAST_IMAGE` ([worklog](../worklogs/06-deployment.md#live-run)). `az deployment sub validate` runs before a provision; it catches template errors like this one, not parameter values.
 
 ## `azd provision --preview` does not run the provision hooks (2026-10-31)
 
