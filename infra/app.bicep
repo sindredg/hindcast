@@ -15,8 +15,7 @@ param allowedUserObjectId string
 @secure()
 param authClientSecret string
 param imageName string
-param webExists bool
-param githubRepository string
+param githubSubjectPrefix string
 
 // Built-in role definition IDs, read with `az role definition list` on 2026-10-30.
 var acrPullRoleId = '7f951dda-4ed3-4680-a7ca-43fe172d538d'
@@ -32,19 +31,13 @@ var authSecretName = useClientSecret
   ? 'microsoft-provider-authentication-secret'
   : 'override-use-mi-fic-assertion-client-id'
 
-// The image the app runs: the app image it already has when azd re-provisions,
-// the parameter otherwise. A placeholder is never kept, so a provision can
-// replace a broken one. The public placeholder that fills the first provision
-// listens on port 80 and has no health path, so the port and the probes follow
-// the image: a revision whose probes never pass fails the deployment.
-module existingWeb 'fetch-image.bicep' = {
-  name: 'fetch-web-image'
-  params: { name: 'ca-hindcast', exists: webExists }
-}
-var placeholderRepository = 'mcr.microsoft.com/k8se/quickstart'
-var existingImage = existingWeb.outputs.image
-var image = webExists && !startsWith(existingImage, placeholderRepository) ? existingImage : imageName
-var placeholder = startsWith(image, placeholderRepository)
+// The image comes from the parameter on every provision, never from the
+// running app: one source of truth, and the image switch is a provision, which
+// also sets the port and the probes (azd deploy changes only the image). The
+// public placeholder that fills the first provision listens on port 80 and has
+// no health path, so the port and the probes follow the image: a revision
+// whose probes never pass fails the deployment.
+var placeholder = startsWith(imageName, 'mcr.microsoft.com/k8se/quickstart')
 var appPort = placeholder ? 80 : 8501
 var probes = placeholder ? [] : [
   { type: 'Liveness', httpGet: { path: '/_stcore/health', port: appPort }, initialDelaySeconds: 10, periodSeconds: 30 }
@@ -72,7 +65,9 @@ resource appIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-3
 // The build's identity: the push job in this repository's "azure" deployment
 // environment exchanges its OIDC token for it and pushes the image. No stored
 // credential. A job in an environment presents the environment as its subject,
-// not the branch; the environment's branch policy admits only main.
+// not the branch; the environment's branch policy admits only main. The prefix
+// carries the owner and repository IDs when the repository uses GitHub's
+// immutable subjects, so the hook reads it from GitHub instead of building it.
 resource ciIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
   name: 'id-hindcast-ci'
   location: location
@@ -82,7 +77,7 @@ resource ciIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30
     name: 'github-environment-azure'
     properties: {
       issuer: 'https://token.actions.githubusercontent.com'
-      subject: 'repo:${githubRepository}:environment:azure'
+      subject: '${githubSubjectPrefix}:environment:azure'
       audiences: ['api://AzureADTokenExchange']
     }
   }
@@ -182,7 +177,7 @@ resource web 'Microsoft.App/containerApps@2026-01-01' = {
       containers: [
         {
           name: 'web'
-          image: image
+          image: imageName
           resources: { cpu: json('0.5'), memory: '1Gi' }
           env: [
             // Configuration, not a credential: it can write telemetry and read

@@ -34,14 +34,11 @@ param allowedUserObjectId string
 @description('Fallback only: a client secret for the sign-in when the federated credential does not work. Empty selects the federated credential.')
 param authClientSecret string = ''
 
-@description('Image the container app runs. The default is a public placeholder for the first provision, before CI has pushed the app image.')
-param imageName string = 'mcr.microsoft.com/k8se/quickstart@sha256:3a4d93c34c6753f24765ab17a36f1754aee9b02082b7d9553d17697b9e8252c4'
+@description('Image the container app runs, from HINDCAST_IMAGE: a public placeholder until CI has pushed the app image, then the registry image. Every provision sets it.')
+param imageName string
 
-@description('Set by azd: true when the container app already exists, so provision keeps its current image.')
-param webExists bool = false
-
-@description('GitHub repository whose main branch may push images, as owner/name.')
-param githubRepository string = 'sindredg/hindcast'
+@description('Start of the OIDC subject GitHub issues for this repository, read by the pre-provision hook, for example repo:owner@1/name@2.')
+param githubSubjectPrefix string
 
 var tags = { 'azd-env-name': environmentName }
 
@@ -66,8 +63,7 @@ module app 'app.bicep' = {
     allowedUserObjectId: allowedUserObjectId
     authClientSecret: authClientSecret
     imageName: imageName
-    webExists: webExists
-    githubRepository: githubRepository
+    githubSubjectPrefix: githubSubjectPrefix
   }
 }
 
