@@ -133,7 +133,26 @@ jobs:
           context: .
           platforms: linux/amd64
           push: false
+          load: true
           tags: hindcast:ci
+      # A build proves the Dockerfile, not that the page starts. Run the image
+      # as it runs on Azure: its own non-root user, the stored result loads
+      # from inside the image, and Streamlit answers on its health path.
+      - name: Run the image
+        run: |
+          test "$(docker run --rm hindcast:ci id -u)" = 10001
+          docker run --rm hindcast:ci python -c \
+            "from hindcast import app; print(app.load_result(app.RESULT_FILE).case_id)"
+          docker run -d --name page -p 8501:8501 hindcast:ci
+          for _ in $(seq 1 30); do
+            if [ "$(curl -fsS http://localhost:8501/_stcore/health || true)" = ok ]; then
+              echo "health: ok"
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs page
+          exit 1
 
   image:
     name: Push the image

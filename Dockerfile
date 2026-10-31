@@ -23,12 +23,13 @@ RUN uv sync --frozen --no-dev --extra app --no-install-project
 
 # The code and the one result the page shows.
 COPY src ./src
-COPY data/cases.yaml ./data/cases.yaml
 COPY eval/investigations ./eval/investigations
 
 # A fixed UID so the container never runs as root. USER takes the number, not
 # the name, so the platform can resolve it without the image's passwd file.
-RUN useradd --create-home --uid 10001 app && chown -R app /app
+# /app stays owned by root: the page only reads it, and the runtime user
+# cannot change its own code.
+RUN useradd --create-home --uid 10001 app
 USER 10001
 
 ENV PATH=/app/.venv/bin:$PATH \
