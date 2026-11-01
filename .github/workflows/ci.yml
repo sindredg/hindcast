@@ -120,15 +120,20 @@ jobs:
       # The runner's az CLI installs the pinned Bicep; infra/bicepconfig.json
       # raises the analyzer rules to errors. A compiler warning (a wrong
       # property type, BCP036) still exits 0, so any diagnostic fails the step.
+      # The version check is off: it prints a warning whenever a Bicep newer
+      # than the pin is released, which would fail the step on every run.
       - name: Bicep build and lint
+        env:
+          AZURE_BICEP_CHECK_VERSION: "false"
         run: |
           az bicep install --version "v${BICEP_VERSION}"
           az bicep version
           for file in infra/main.bicep infra/search.bicep; do
             log="$RUNNER_TEMP/bicep-$(basename "$file").log"
-            az bicep build --file "$file" --stdout 2> "$log" > /dev/null
-            az bicep lint --file "$file" 2>> "$log"
-            if [ -s "$log" ]; then cat "$log"; exit 1; fi
+            failed=0
+            az bicep build --file "$file" --stdout 2> "$log" > /dev/null || failed=1
+            az bicep lint --file "$file" 2>> "$log" || failed=1
+            if [ "$failed" -ne 0 ] || [ -s "$log" ]; then cat "$log"; exit 1; fi
           done
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069  # v4.4.1
       # Builds the image on every run and proves the Dockerfile; the push to
