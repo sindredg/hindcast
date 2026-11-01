@@ -133,7 +133,8 @@ def main(argv: list[str] | None = None) -> int:
             planted, texts = next(unstated_items(key))
             sources = sources | {PLANTED: f"An earlier page said: {texts[0]}"}
         found = hits(key, sources)
-        total += len(found)
+        # Only the planted source may report in a --plant run; any other hit is a leak.
+        total += sum(h.source_id != PLANTED for h in found)
         items = len(list(unstated_items(key)))
         print(
             f"{case_id}: {items} unstated items, {len(evidence)} evidence sources, "
@@ -145,7 +146,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.plant and (planted, PLANTED) not in [(h.item, h.source_id) for h in found]:
             print(f"  the planted chunk was not reported for {planted}")
             return 1
-    return 1 if total and not args.plant else 0
+    return 1 if total else 0
 
 
 if __name__ == "__main__":

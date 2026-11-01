@@ -104,3 +104,41 @@ def test_an_empty_filtered_library_is_refused():
 
     with pytest.raises(ValueError, match="no library chunks"):
         library_sources("cloudflare-2026-02-20", EmptySearch(), library, cases)
+
+
+def run_leak_main(monkeypatch, evidence_text, argv):
+    """leak.main over the committed keys, with the index and the evidence stubbed."""
+    import hindcast.config
+    import hindcast.index
+    import hindcast.leak as leak
+
+    monkeypatch.setattr(
+        hindcast.config, "load_settings", lambda section: type("S", (), {"search_index": "x"})
+    )
+    monkeypatch.setattr(hindcast.index, "clients", lambda name: (None, None))
+    monkeypatch.setattr(
+        leak, "library_sources", lambda *args: {"lib_doc_s1_p0": "An unrelated page."}
+    )
+    monkeypatch.setattr(leak, "evidence_sources", lambda path: {"u1": evidence_text(path.stem)})
+    return leak.main(argv)
+
+
+def first_unstated_quote(case_id):
+    from hindcast.keys import KEYS_DIR, load_key
+    from hindcast.leak import unstated_items
+
+    return next(unstated_items(load_key(KEYS_DIR / f"{case_id}.json")))[1][0]
+
+
+def test_plant_run_fails_on_a_real_hit_next_to_the_planted_one(monkeypatch):
+    def evidence(case_id):
+        # One case's evidence holds a key quote: a real leak, besides the plant.
+        if case_id == "cloudflare-2026-02-20":
+            return "An update said: " + first_unstated_quote(case_id)
+        return "Nothing related."
+
+    assert run_leak_main(monkeypatch, evidence, ["--plant"]) == 1
+
+
+def test_plant_run_passes_when_only_the_planted_item_is_reported(monkeypatch):
+    assert run_leak_main(monkeypatch, lambda case_id: "Nothing related.", ["--plant"]) == 0
