@@ -33,7 +33,7 @@ Verified on 2026-11-01: both indexes ran against the frozen `queries.json` (SHA-
 
 Decided by the rule above: the library index keeps 1,024 dimensions. The 3,072 index scored lower, not 0.05 higher. Both runs: 19 of 34 queries scored, embedding deployment `text-embedding-3-large` version 1, search API `2026-04-01`, code commit `f24792e`.
 
-The commits the results name (`code_commit` `f24792e…`, `queries_commit` `366fbfe…`) were made on the workstation and rebased onto `main` before the first push, so they are not in the public history ([#39](https://github.com/sindredg/hindcast/issues/39)). The content is: `git rev-parse <commit>:src` gives `4c1cc91b5a43bbfb7eb3eda1af1830aa837f772f` and `<commit>:eval/retrieval/library-v1/queries.json` gives `0b97a05bfb091b0cbf14cd54d0a8bbc3cbe2f91b`, the same at the run commits and at the commit that adds these results.
+The commits the results name (`code_commit` `f24792e…`, `queries_commit` `366fbfe…`) were made on the workstation and rebased onto `main` before the first push, so they are not in the public history ([#39](https://github.com/sindredg/hindcast/issues/39)). The content is: `git rev-parse <commit>:src` gives `4c1cc91b5a43bbfb7eb3eda1af1830aa837f772f` at the code commit and at the commit that adds these results, and `<commit>:eval/retrieval/library-v1/queries.json` gives `0b97a05bfb091b0cbf14cd54d0a8bbc3cbe2f91b` at both run commits and at that commit.
 
 ## Files
 
