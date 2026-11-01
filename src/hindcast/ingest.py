@@ -40,7 +40,7 @@ from azure.core.exceptions import AzureError, ResourceExistsError, ResourceNotFo
 
 from hindcast.capture import fetch
 from hindcast.cases import Case, SourceFile, load_cases
-from hindcast.evidence import CaseEvidence, cut, evidence_json, with_charts
+from hindcast.evidence import CaseEvidence, cut_all, evidence_json, with_charts
 from hindcast.extract import analyze
 from hindcast.library import LibraryDocument, load_library
 from hindcast.library_extract import (
@@ -79,8 +79,13 @@ def ingest_evidence(
     client: BlobContainer | None = None,
     uploader: BlobContainer | None = None,
 ) -> tuple[CaseEvidence, Literal["uploaded", "unchanged", "replaced"]]:
-    status = next(s for s in case.sources if s.kind == "status-updates")
-    evidence = cut(case, download_source(case.case_id, status, client=client))
+    # A case can span several status incidents (a recurrence); all are cut, in registry order.
+    snapshots = [
+        download_source(case.case_id, s, client=client)
+        for s in case.sources
+        if s.kind == "status-updates"
+    ]
+    evidence = cut_all(case, snapshots)
     charts = [s for s in case.sources if s.kind == "chart"]
     if charts:
         evidence = with_charts(

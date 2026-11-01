@@ -1,3 +1,4 @@
+import dataclasses
 import hashlib
 import json
 
@@ -95,6 +96,39 @@ def test_ingest_writes_the_cut_evidence_locally_and_to_blob(tmp_path):
     local = (tmp_path / "cloudflare-2026-02-20.json").read_bytes()
     assert local == evidence_json(cut(case(), SNAPSHOT))
     assert extracted.uploaded == [("evidence/cloudflare-2026-02-20.json", local, False)]
+
+
+def test_ingest_cuts_every_status_source_of_a_case(tmp_path):
+    recurrence = json.dumps(
+        {
+            "name": "Elevated errors again",
+            "started_at": "2026-02-21T08:00:00Z",
+            "incident_updates": [
+                {"created_at": "2026-02-21T08:00:00Z", "status": "investigating", "body": "Again."},
+                {"created_at": "2026-02-21T09:00:00Z", "status": "resolved", "body": "Done."},
+            ],
+        }
+    ).encode()
+    base = case()
+    second = dataclasses.replace(
+        base.sources[0],
+        doc_id="cloudflare-status-2026-02-21",
+        filename="cloudflare-status-2026-02-21.json",
+        sha256=hashlib.sha256(recurrence).hexdigest(),
+    )
+    two = Case(
+        base.case_id, base.title, base.provider, base.role, base.started_at, (*base.sources, second)
+    )
+    sources = FakeContainer(
+        existing={
+            f"{base.case_id}/{base.sources[0].filename}": SNAPSHOT,
+            f"{base.case_id}/{second.filename}": recurrence,
+        }
+    )
+
+    evidence, _ = ingest_evidence(two, out_dir=tmp_path, client=sources, uploader=FakeContainer())
+
+    assert [u.text for u in evidence.updates] == ["Errors.", None, "Again.", None]
 
 
 def test_ingest_writes_nothing_when_a_source_fails_its_hash(tmp_path):
