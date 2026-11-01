@@ -1,6 +1,6 @@
 # Extraction: operator procedure
 
-Status: Written on 2026-10-27 for [milestone 2](../worklogs/02-extraction.md). Every step ran on 2026-10-27 with the output shown, except where an "Expected:" line is marked as reasoned. Steps 1, 15 to 17, 19, and 20 ran again on 2026-11-01 for the key of GitHub 2026-10-07 ([worklog 05](../worklogs/05-sealed-reconstructions.md#the-october-case)).
+Status: Written on 2026-10-27 for [milestone 2](../worklogs/02-extraction.md). Every step ran on 2026-10-27 with the output shown, except where an "Expected:" line is marked as reasoned. Steps 1, 15 to 17, 19, and 20 ran again on 2026-11-01 for the key of GitHub 2026-10-07 ([worklog 05](../worklogs/05-sealed-reconstructions.md#the-october-case)). Steps 2 and 3 changed on 2026-11-01 for the extraction model ([decision 0018](../decisions/0018-extraction-model.md)): the deployment and mapping of gpt-5.4-mini ran then from the [retrieval runbook](retrieval.md#move-extraction-to-gpt-54-mini), and the creation of the analyzers on it in this form is reasoned.
 
 The procedure turns the captured sources into the case evidence, the library extracts, and the answer keys. Content Understanding needs a role on the Foundry resource only while it runs; the last section removes it.
 
@@ -28,23 +28,25 @@ export RG=<resource-group> RESOURCE=<foundry-resource>
 
    Expected: no output. Within a few minutes, step 3 can read the service.
 
-2. Deploy the embedding model the document analyzers require, pinned, with automatic upgrade off.
+2. Deploy the extraction model and the embedding model the document analyzers require, pinned, with automatic upgrade off.
 
    ```bash
-   az rest --method put \
-     --url "https://management.azure.com${RES_ID}/deployments/text-embedding-3-large?api-version=2026-09-01" \
-     --body '{"sku": {"name": "GlobalStandard", "capacity": 50}, "properties": {"model": {"format": "OpenAI", "name": "text-embedding-3-large", "version": "1"}, "versionUpgradeOption": "NoAutoUpgrade"}}' \
-     --query "{state:properties.provisioningState, upgrade:properties.versionUpgradeOption}" -o tsv
+   for model in gpt-5.4-mini:2026-03-17 text-embedding-3-large:1; do
+     az rest --method put \
+       --url "https://management.azure.com${RES_ID}/deployments/${model%%:*}?api-version=2026-09-01" \
+       --body "{\"sku\": {\"name\": \"GlobalStandard\", \"capacity\": 50}, \"properties\": {\"model\": {\"format\": \"OpenAI\", \"name\": \"${model%%:*}\", \"version\": \"${model#*:}\"}, \"versionUpgradeOption\": \"NoAutoUpgrade\"}}" \
+       --query "{state:properties.provisioningState, upgrade:properties.versionUpgradeOption}" -o tsv
+   done
    ```
 
-   Expected: `Succeeded	NoAutoUpgrade` (observed as JSON on 2026-10-27). The Azure CLI's `deployment create` cannot set the upgrade option, hence the REST call.
+   Expected: `Succeeded	NoAutoUpgrade` twice (observed as JSON, for text-embedding-3-large on 2026-10-27 and for gpt-5.4-mini on 2026-11-01). The Azure CLI's `deployment create` cannot set the upgrade option, hence the REST call. Set `HINDCAST_EXTRACTION_DEPLOYMENT=gpt-5.4-mini` in `.env`.
 
 3. Map the models Content Understanding uses to the deployments, and create the three analyzers from [`analyzers/`](../../analyzers/).
 
    ```bash
    PYTHONPATH=src uv run --frozen --env-file .env python -c "
    from hindcast.extract import cu_client, ensure_analyzers
-   print(cu_client().update_defaults(model_deployments={'gpt-5-mini': 'gpt-5-mini', 'text-embedding-3-large': 'text-embedding-3-large'}).as_dict())
+   print(cu_client().update_defaults(model_deployments={'gpt-5.4-mini': 'gpt-5.4-mini', 'text-embedding-3-large': 'text-embedding-3-large'}).as_dict())
    print('created:', ensure_analyzers())
    print('created:', ensure_analyzers())"
    ```

@@ -12,14 +12,16 @@ from hindcast.config import (
 FULL_ENV = {
     "HINDCAST_PROJECT_ENDPOINT": "https://example.services.ai.azure.com/api/projects/hindcast",
     "HINDCAST_SEARCH_ENDPOINT": "https://example.search.windows.net",
-    "HINDCAST_SEARCH_INDEX": "hindcast-evidence",
+    "HINDCAST_SEARCH_INDEX": "hindcast-library-1024",
     "HINDCAST_STORAGE_URL": "https://example.blob.core.windows.net",
     "HINDCAST_CHAT_DEPLOYMENT": "chat",
     "HINDCAST_JUDGE_DEPLOYMENT": "judge",
     "HINDCAST_COMPARE_DEPLOYMENT": "compare",
+    "HINDCAST_EMBEDDING_ENDPOINT": "https://example.services.ai.azure.com/",
     "HINDCAST_EMBEDDING_DEPLOYMENT": "embedding",
     "HINDCAST_EMBEDDING_DIMENSIONS": "3072",
     "HINDCAST_CU_ENDPOINT": "https://example.services.ai.azure.com/",
+    "HINDCAST_EXTRACTION_DEPLOYMENT": "extraction",
 }
 
 # The .env the foundations runbook writes: search and embedding stay empty
@@ -27,6 +29,7 @@ FULL_ENV = {
 RUNBOOK_ENV = FULL_ENV | {
     "HINDCAST_SEARCH_ENDPOINT": "",
     "HINDCAST_SEARCH_INDEX": "",
+    "HINDCAST_EMBEDDING_ENDPOINT": "",
     "HINDCAST_EMBEDDING_DEPLOYMENT": "",
     "HINDCAST_EMBEDDING_DIMENSIONS": "",
 }
@@ -43,8 +46,15 @@ def test_runbook_env_loads_what_milestone_2_needs():
         judge_deployment="judge",
     )
     assert load_settings(ExtractionSettings, RUNBOOK_ENV) == ExtractionSettings(
-        cu_endpoint="https://example.services.ai.azure.com/"
+        cu_endpoint="https://example.services.ai.azure.com/", extraction_deployment="extraction"
     )
+
+
+def test_extraction_settings_name_the_missing_deployment():
+    env = {k: v for k, v in RUNBOOK_ENV.items() if k != "HINDCAST_EXTRACTION_DEPLOYMENT"}
+
+    with pytest.raises(ConfigError, match="HINDCAST_EXTRACTION_DEPLOYMENT"):
+        load_settings(ExtractionSettings, env)
 
 
 def test_search_settings_name_every_missing_variable():
@@ -55,6 +65,7 @@ def test_search_settings_name_every_missing_variable():
     for name in (
         "HINDCAST_SEARCH_ENDPOINT",
         "HINDCAST_SEARCH_INDEX",
+        "HINDCAST_EMBEDDING_ENDPOINT",
         "HINDCAST_EMBEDDING_DEPLOYMENT",
     ):
         assert name in message
@@ -63,7 +74,8 @@ def test_search_settings_name_every_missing_variable():
 def test_search_settings_read_all_fields():
     assert load_settings(SearchSettings, FULL_ENV) == SearchSettings(
         search_endpoint="https://example.search.windows.net",
-        search_index="hindcast-evidence",
+        search_index="hindcast-library-1024",
+        embedding_endpoint="https://example.services.ai.azure.com/",
         embedding_deployment="embedding",
         embedding_dimensions=3072,
     )

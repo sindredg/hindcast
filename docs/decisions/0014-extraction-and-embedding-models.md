@@ -1,6 +1,6 @@
 # 14. Extraction and embedding models: gpt-5-mini and text-embedding-3-large
 
-Status: Accepted (2026-10-27).
+Status: Accepted (2026-10-27). The extraction model moved to gpt-5.4-mini in [decision 0018](0018-extraction-model.md).
 
 ## Context
 

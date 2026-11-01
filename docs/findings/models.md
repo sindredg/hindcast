@@ -2,6 +2,14 @@
 
 Findings about the deployed models: [gpt-6-luna](../decisions/0012-models.md) 2026-09-22 and gpt-6.1-sol 2026-09-29, Global Standard, Sweden Central.
 
+## The project endpoint serves no embeddings (2026-11-01)
+
+**Seen:** through the Foundry project's OpenAI-compatible endpoint (`<project endpoint>/openai/v1`), an embeddings call for the `text-embedding-3-large` deployment returned 404 with an empty body, while Responses API calls on the same client worked. The same project path with the API version `2024-10-21` returned 400, "API version not supported". The resource endpoint (`https://<resource>.services.ai.azure.com/openai/v1`) serves embeddings, but only to a role at resource scope.
+
+**Evidence:** tested live, 2026-11-01, between 12:01 and 12:20 UTC, with the developer's Entra token. With Foundry User on the project only, the resource endpoint answered 401 `PermissionDenied`, naming the data action `Microsoft.CognitiveServices/accounts/OpenAI/deployments/embeddings/action`. Cognitive Services OpenAI User was assigned on the resource at 12:45:56 UTC; a build at 12:51:06 still got 401, a one-text call at 12:51:19 succeeded, and both index builds then embedded all 267 chunks ([worklog](../worklogs/03-retrieval.md#live-run)).
+
+**For Hindcast:** embeddings go to the resource endpoint (`HINDCAST_EMBEDDING_ENDPOINT`), and the developer holds Cognitive Services OpenAI User on the resource until teardown ([decision 0019](../decisions/0019-library-index.md)). The app's identity will need the same role when the app searches the library.
+
 ## The smaller model reasoned longer, so its price advantage shrank (2026-10-25)
 
 **Seen:** on the three prior-knowledge questions at medium effort, gpt-6-luna wrote shorter answers than gpt-6.1-sol but used 1.5 times its output tokens. Luna's tokens cost a twentieth of sol's; the run cost about a thirteenth. The same pattern showed on the timeline task: 662 output tokens for luna against 409 for sol, for the same nine events.
@@ -58,7 +66,7 @@ Findings about the deployed models: [gpt-6-luna](../decisions/0012-models.md) 20
 
 **Evidence:** read from the documentation, not tested here: "What's new in Content Understanding", October 2026 entry. The analyzer's `supportedModels` could not be read yet (see [identity and access](identity-and-access.md)).
 
-**For Hindcast:** extraction needs a GPT-5.x deployment next to the investigator's model. It uses gpt-5-mini, read from `supportedModels` on 2026-10-27 ([extraction findings](extraction.md#gpt-5-mini-is-on-the-supported-list-of-the-ga-api-2026-10-27)).
+**For Hindcast:** extraction needs a GPT-5.x deployment next to the investigator's model. It used gpt-5-mini, read from `supportedModels` on 2026-10-27 ([extraction findings](extraction.md#gpt-5-mini-is-on-the-supported-list-of-the-ga-api-2026-10-27)), and runs on gpt-5.4-mini since 2026-11-01 ([decision 0018](../decisions/0018-extraction-model.md)).
 
 **Read more:** [What's new in Content Understanding](https://learn.microsoft.com/azure/ai-services/content-understanding/whats-new), [Model deployment options for Content Understanding analyzers](https://learn.microsoft.com/azure/ai-services/content-understanding/concepts/models-deployments), [Content Understanding service limits](https://learn.microsoft.com/azure/ai-services/content-understanding/service-limits).
 

@@ -1,0 +1,278 @@
+[
+  {
+    "query_id": "cloudflare-2025-11-18/q1",
+    "case_id": "cloudflare-2025-11-18",
+    "query": "Cloudflare is experiencing an internal service degradation.",
+    "relevant": []
+  },
+  {
+    "query_id": "cloudflare-2025-11-18/q2",
+    "case_id": "cloudflare-2025-11-18",
+    "query": "customers may continue to observe higher-than-normal error rates",
+    "relevant": [
+      "cloudflare-2019-07-02",
+      "cloudflare-2022-06-21",
+      "cloudflare-2024-06-20",
+      "google-cloud-2025-06-12"
+    ]
+  },
+  {
+    "query_id": "cloudflare-2025-11-18/q3",
+    "case_id": "cloudflare-2025-11-18",
+    "query": "elevated errors or latency across the network",
+    "relevant": [
+      "cloudflare-2024-06-20"
+    ]
+  },
+  {
+    "query_id": "cloudflare-2025-11-18/q4",
+    "case_id": "cloudflare-2025-11-18",
+    "query": "while we undergo global recovery",
+    "relevant": [
+      "cloudflare-2013-03-03"
+    ]
+  },
+  {
+    "query_id": "cloudflare-2025-11-18/q5",
+    "case_id": "cloudflare-2025-11-18",
+    "query": "restoring service for application services customers",
+    "relevant": []
+  },
+  {
+    "query_id": "cloudflare-2025-11-18/q6",
+    "case_id": "cloudflare-2025-11-18",
+    "query": "Users in London trying to access the Internet via WARP will see a failure to connect.",
+    "relevant": []
+  },
+  {
+    "query_id": "cloudflare-2025-11-18/q7",
+    "case_id": "cloudflare-2025-11-18",
+    "query": "Error levels for Access and WARP users have returned to pre-incident rates.",
+    "relevant": [
+      "cloudflare-2025-06-12"
+    ]
+  },
+  {
+    "query_id": "cloudflare-2025-11-18/q8",
+    "case_id": "cloudflare-2025-11-18",
+    "query": "issues logging into or using the Cloudflare dashboard",
+    "relevant": [
+      "cloudflare-2019-07-02",
+      "cloudflare-2023-11-02",
+      "cloudflare-2025-06-12",
+      "cloudflare-2025-09-12",
+      "google-cloud-2020-12-14"
+    ]
+  },
+  {
+    "query_id": "cloudflare-2025-11-18/q9",
+    "case_id": "cloudflare-2025-11-18",
+    "query": "Bot scores will be impacted intermittently",
+    "relevant": []
+  },
+  {
+    "query_id": "cloudflare-2026-02-20/q1",
+    "case_id": "cloudflare-2026-02-20",
+    "query": "Users may experience errors or timeouts reaching Cloudflare’s network or services.",
+    "relevant": [
+      "cloudflare-2013-03-03",
+      "cloudflare-2020-07-17",
+      "cloudflare-2022-06-21",
+      "cloudflare-2024-06-27",
+      "cloudflare-2025-08-21"
+    ]
+  },
+  {
+    "query_id": "cloudflare-2026-02-20/q2",
+    "case_id": "cloudflare-2026-02-20",
+    "query": "the last subset of prefixes which were withdrawn",
+    "relevant": [
+      "cloudflare-2022-06-21",
+      "cloudflare-2025-07-14",
+      "google-cloud-2016-04-11"
+    ]
+  },
+  {
+    "query_id": "cloudflare-2026-02-20/q3",
+    "case_id": "cloudflare-2026-02-20",
+    "query": "Cloudflare has identified impact to a subset of BYOIP prefixes.",
+    "relevant": []
+  },
+  {
+    "query_id": "cloudflare-2026-02-20/q4",
+    "case_id": "cloudflare-2026-02-20",
+    "query": "some customers are unable to reload their IPs through the dashboard",
+    "relevant": []
+  },
+  {
+    "query_id": "cloudflare-2026-02-20/q5",
+    "case_id": "cloudflare-2026-02-20",
+    "query": "a subset of BYOIP prefixes",
+    "relevant": []
+  },
+  {
+    "query_id": "github-2026-08-17/q1",
+    "case_id": "github-2026-08-17",
+    "query": "high error rates around 20% for web experiences and api traffic",
+    "relevant": [
+      "github-2016-01-28",
+      "github-2018-02-28",
+      "github-availability-2023-11"
+    ]
+  },
+  {
+    "query_id": "github-2026-08-17/q2",
+    "case_id": "github-2026-08-17",
+    "query": "Archive downloads and raw repository content downloads are experiencing an approximate 50% error rate.",
+    "relevant": []
+  },
+  {
+    "query_id": "github-2026-08-17/q3",
+    "case_id": "github-2026-08-17",
+    "query": "SAML and OIDC authentication, SCIM, and Team Sync are also impacted.",
+    "relevant": [
+      "cloudflare-2025-06-12",
+      "github-availability-2023-09"
+    ]
+  },
+  {
+    "query_id": "github-2026-08-17/q4",
+    "case_id": "github-2026-08-17",
+    "query": "residual impact in the form of sporadic authentication failures",
+    "relevant": [
+      "aws-2021-12-07",
+      "github-availability-2026-06",
+      "google-cloud-2020-12-14"
+    ]
+  },
+  {
+    "query_id": "github-2026-08-17/q5",
+    "case_id": "github-2026-08-17",
+    "query": "The degradation affecting API Requests, Actions, Git Operations, Issues, Pages, Pull Requests and Webhooks has been mitigated.",
+    "relevant": []
+  },
+  {
+    "query_id": "github-2026-08-17/q6",
+    "case_id": "github-2026-08-17",
+    "query": "an approximate 20% error rate across numerous experiences",
+    "relevant": [
+      "google-cloud-2025-06-12"
+    ]
+  },
+  {
+    "query_id": "github-2026-08-17/q7",
+    "case_id": "github-2026-08-17",
+    "query": "sporadic failures affecting Copilot authentication in some applications",
+    "relevant": []
+  },
+  {
+    "query_id": "github-2026-10-07/q1",
+    "case_id": "github-2026-10-07",
+    "query": "We are investigating reports of degraded availability for Actions, Git Operations and Pull Requests",
+    "relevant": []
+  },
+  {
+    "query_id": "github-2026-10-07/q2",
+    "case_id": "github-2026-10-07",
+    "query": "We observed widespread impact across GitHub services between 15:06 UTC and 15:16 UTC",
+    "relevant": [
+      "aws-2021-12-07",
+      "cloudflare-2023-11-02",
+      "github-2016-01-28",
+      "github-availability-2023-11",
+      "google-cloud-2025-06-12"
+    ]
+  },
+  {
+    "query_id": "github-2026-10-07/q3",
+    "case_id": "github-2026-10-07",
+    "query": "between 15:06 UTC and 15:16 UTC",
+    "relevant": [
+      "aws-2021-12-07",
+      "cloudflare-2023-11-02",
+      "github-2016-01-28",
+      "github-2018-02-28",
+      "github-availability-2023-11",
+      "google-cloud-2025-06-12"
+    ]
+  },
+  {
+    "query_id": "github-2026-10-07/q4",
+    "case_id": "github-2026-10-07",
+    "query": "This incident is a reoccurrence of the incident from earlier in the day",
+    "relevant": []
+  },
+  {
+    "query_id": "github-2026-10-07/q5",
+    "case_id": "github-2026-10-07",
+    "query": "Git Operations is experiencing degraded performance.",
+    "relevant": []
+  },
+  {
+    "query_id": "github-2026-10-07/q6",
+    "case_id": "github-2026-10-07",
+    "query": "Webhooks is experiencing degraded availability.",
+    "relevant": [
+      "github-availability-2026-06"
+    ]
+  },
+  {
+    "query_id": "github-2026-10-07/q7",
+    "case_id": "github-2026-10-07",
+    "query": "degraded availability for Actions",
+    "relevant": []
+  },
+  {
+    "query_id": "google-cloud-2026-07-14/q1",
+    "case_id": "google-cloud-2026-07-14",
+    "query": "Google Cloud VMware Engine (GCVE) Stretched Cluster customers are experiencing zonal outages",
+    "relevant": []
+  },
+  {
+    "query_id": "google-cloud-2026-07-14/q2",
+    "case_id": "google-cloud-2026-07-14",
+    "query": "inter-site communication failures to their GCVE environments within the affected zones",
+    "relevant": [
+      "github-2018-10-21",
+      "google-cloud-2018-10-11"
+    ]
+  },
+  {
+    "query_id": "google-cloud-2026-07-14/q3",
+    "case_id": "google-cloud-2026-07-14",
+    "query": "Border Gateway Protocol (BGP) session flapping between cluster zones",
+    "relevant": [
+      "cloudflare-2024-06-27",
+      "cloudflare-2025-07-14",
+      "google-cloud-2018-10-11",
+      "google-cloud-2019-04-04"
+    ]
+  },
+  {
+    "query_id": "google-cloud-2026-07-14/q4",
+    "case_id": "google-cloud-2026-07-14",
+    "query": "the cluster zones are unable to safely synchronize state",
+    "relevant": [
+      "github-2018-10-21",
+      "google-cloud-2019-04-04"
+    ]
+  },
+  {
+    "query_id": "google-cloud-2026-07-14/q5",
+    "case_id": "google-cloud-2026-07-14",
+    "query": "zonal outages impacting network connectivity across multiple regions",
+    "relevant": [
+      "cloudflare-2020-07-17",
+      "google-cloud-2016-04-11"
+    ]
+  },
+  {
+    "query_id": "google-cloud-2026-07-14/q6",
+    "case_id": "google-cloud-2026-07-14",
+    "query": "Storage and Compute services appear to be unaffected",
+    "relevant": [
+      "aws-2021-12-07",
+      "google-cloud-2016-04-11"
+    ]
+  }
+]

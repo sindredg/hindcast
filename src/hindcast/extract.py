@@ -1,10 +1,13 @@
 """Content Understanding analyzers for library pages, chart images, and answer keys.
 
 The analyzer definitions are JSON files in analyzers/, so every extract traces
-to a committed definition. ensure_analyzers refuses an analyzer in the service
-that differs from its file; analyze runs the analyzer it is given without that
-check (issue #15). replace_analyzer recreates an analyzer from its file; it
-needs no delete, which the Content Understanding Contributor role lacks.
+to a committed definition. ensure_analyzers and analyze refuse an analyzer in
+the service that differs from its file, and analyze also refuses one whose
+completion model is not the model of the extraction deployment. analyze
+returns the deployment's model name and version with each result, since the
+service's usage names the model but not its version. replace_analyzer
+recreates an analyzer from its file; it needs no delete, which the Content
+Understanding Contributor role lacks.
 
 Calls go to the Foundry resource endpoint with a DefaultAzureCredential token.
 They need a Content Understanding role at resource scope; the project-scope
@@ -13,6 +16,7 @@ role that covers model calls does not reach this endpoint.
 
 import functools
 import json
+from collections.abc import Callable
 from pathlib import Path
 
 from azure.ai.contentunderstanding import ContentUnderstandingClient
@@ -54,6 +58,36 @@ def _contains(served: object, wanted: object) -> bool:
     return served == wanted
 
 
+@functools.cache
+def extraction_model() -> dict:
+    """The extraction deployment's model name and version, read once per process."""
+    from hindcast.models import deployment_model
+
+    deployment = load_settings(ExtractionSettings).extraction_deployment
+    name, version = deployment_model(deployment)
+    return {"deployment": deployment, "name": name, "version": version}
+
+
+@functools.cache
+def check_analyzer(analyzer_id: str, client: ContentUnderstandingClient, model_name: str) -> None:
+    """Refuse an analyzer that differs from its file or names another completion model.
+
+    Cached, so each analyzer is read from the service once per process.
+    """
+    wanted = definition(analyzer_id)
+    named = wanted["models"]["completion"]
+    if named != model_name:
+        raise AnalyzerDiffers(
+            f"{analyzer_id}: {ANALYZERS[analyzer_id]} names {named}, "
+            f"the extraction deployment runs {model_name}"
+        )
+    if not _contains(client.get_analyzer(analyzer_id).as_dict(), wanted):
+        raise AnalyzerDiffers(
+            f"{analyzer_id}: the analyzer in the service differs from {ANALYZERS[analyzer_id]}; "
+            "replace it with replace_analyzer"
+        )
+
+
 def ensure_analyzers(client: ContentUnderstandingClient | None = None) -> list[str]:
     """Create the analyzers that do not exist yet; return the IDs created."""
     client = client or cu_client()
@@ -82,10 +116,17 @@ def replace_analyzer(analyzer_id: str, client: ContentUnderstandingClient | None
 
 
 def analyze(
-    analyzer_id: str, data: bytes, mime: str, client: ContentUnderstandingClient | None = None
+    analyzer_id: str,
+    data: bytes,
+    mime: str,
+    client: ContentUnderstandingClient | None = None,
+    model: Callable[[], dict] = extraction_model,
 ) -> dict:
-    """Run one analyzer on one file; the raw result and what it used (pages, tokens)."""
-    poller = (client or cu_client()).begin_analyze_binary(analyzer_id, data, content_type=mime)
+    """Run one checked analyzer on one file: the raw result, its usage, and the model."""
+    client = client or cu_client()
+    used = model()
+    check_analyzer(analyzer_id, client, used["name"])
+    poller = client.begin_analyze_binary(analyzer_id, data, content_type=mime)
     result = poller.result()
     usage = poller.usage
-    return {"result": result.as_dict(), "usage": usage.as_dict() if usage else {}}
+    return {"result": result.as_dict(), "usage": usage.as_dict() if usage else {}, "model": used}

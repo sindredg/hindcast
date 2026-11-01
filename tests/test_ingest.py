@@ -219,12 +219,16 @@ LIB_DOC = LibraryDocument(
 LIB_CASES = {"cloudflare-2026-02-20": case()}
 
 
+MODEL = {"deployment": "extraction", "name": "gpt-5.4-mini", "version": "2026-03-17"}
+
+
 def fake_analyzer(calls: list):
     def analyzer(analyzer_id, data, mime):
         calls.append(analyzer_id)
         return {
             "result": {"contents": [{"markdown": "# Example outage\n\nBody.\n"}]},
             "usage": {"contextualizationTokens": 1000},
+            "model": MODEL,
         }
 
     return analyzer
@@ -248,6 +252,20 @@ def test_library_writes_the_extract_locally_and_to_blob(tmp_path):
     assert extracted.uploaded == [("library/cloudflare-2025-06-12.json", data, False)]
     assert json.loads(data)["sections"][0]["section_id"] == "lib/cloudflare-2025-06-12/s1"
     assert usage == {"contextualizationTokens": 1000}
+
+
+def test_library_extract_records_the_model(tmp_path):
+    data, _, _ = ingest_library(
+        LIB_DOC,
+        LIB_CASES,
+        out_dir=tmp_path,
+        client=FakeContainer(LIB_PAGE),
+        uploader=FakeContainer(),
+        analyzer=fake_analyzer([]),
+        fetch=lambda url: b"",
+    )
+
+    assert json.loads(data)["model"] == MODEL
 
 
 def test_library_extract_already_in_blob_is_reused_without_calling_the_service(tmp_path):
@@ -304,7 +322,11 @@ def chart_analyzer(calls: list):
             "alt_text": {"valueString": "Prefixes over time."},
             "text_in_image": {"valueString": "AS13335"},
         }
-        return {"result": {"contents": [{"fields": fields}]}, "usage": {"tokens": {"x": 1}}}
+        return {
+            "result": {"contents": [{"fields": fields}]},
+            "usage": {"tokens": {"x": 1}},
+            "model": MODEL,
+        }
 
     return analyzer
 
@@ -326,6 +348,7 @@ def test_a_chart_is_described_once_and_then_reused(tmp_path):
     )
     assert (status, calls) == ("uploaded", [("hindcast_chart", "image/png")])
     assert json.loads(data)["description"] == "A step chart of announced prefixes."
+    assert json.loads(data)["model"] == MODEL
 
     extracted.existing = {name: blob for name, blob, _ in extracted.uploaded}
     _, again, _ = describe_chart(

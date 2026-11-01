@@ -3,7 +3,7 @@
   "description": "Earlier outage postmortems in the library: the article as markdown sections, its title, and its publish date.",
   "baseAnalyzerId": "prebuilt-document",
   "models": {
-    "completion": "gpt-5-mini",
+    "completion": "gpt-5.4-mini",
     "embedding": "text-embedding-3-large"
   },
   "config": {

@@ -35,12 +35,17 @@ class StorageSettings:
 @dataclass(frozen=True)
 class ExtractionSettings:
     cu_endpoint: str
+    # The deployment the analyzers' completion model maps to in the
+    # Content Understanding defaults; its version is recorded with each extract.
+    extraction_deployment: str
 
 
 @dataclass(frozen=True)
 class SearchSettings:
     search_endpoint: str
     search_index: str
+    # The Foundry resource endpoint: the project endpoint serves no embeddings.
+    embedding_endpoint: str
     embedding_deployment: str
     embedding_dimensions: int = 1024
 

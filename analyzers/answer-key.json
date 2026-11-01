@@ -3,7 +3,7 @@
   "description": "A provider's postmortem as an answer key: attack verdict and its basis, root cause, contributing factors, timeline, and fixes.",
   "baseAnalyzerId": "prebuilt-document",
   "models": {
-    "completion": "gpt-5-mini",
+    "completion": "gpt-5.4-mini",
     "embedding": "text-embedding-3-large"
   },
   "config": {

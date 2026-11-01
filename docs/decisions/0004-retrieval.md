@@ -1,6 +1,6 @@
 # 4. Retrieval: Azure AI Search Basic in Switzerland North, over the postmortem library
 
-Status: Accepted (2026-10-25).
+Status: Accepted (2026-10-25). The index, its access, and its embeddings, pushed from code with no managed identity, are in [decision 0019](0019-library-index.md).
 
 ## Context
 
