@@ -49,7 +49,7 @@ Test suite after the slice: `uv run --frozen pytest -q` → 317 passed; 318 afte
 | No key stored; the one container secret is the identity's client ID | tested, live, 2026-10-31 | runbook step 5: `az containerapp secret list` → `override-use-mi-fic-assertion-client-id` only; sign-in worked without a client secret (step 7) |
 | The image is built in CI and pushed without a stored credential | tested, live, 2026-10-31 | [run 41208255994](https://github.com/sindredg/hindcast/actions/runs/41208255994): `Push the image` success after an OIDC sign-in; the registry holds `hindcast:<sha>` and `hindcast:main` ([After the merge](#after-the-merge)) |
 | The page renders the result through the ingress (WebSocket) | tested, live, 2026-10-31 | runbook step 10: revision `Healthy`, `/_stcore/health` → `ok` (the placeholder answered `404`); in the browser after sign-in, the page showed the development-case result and an expander opened |
-| A span reaches Application Insights | tested, live, 2026-10-31 | runbook step 11: one `page_view` row; the same query for `page_viewX` → 0 rows. The role name was `unknown_service:python`; the service name `hindcast-web` is tested with a stub and reaches the live app with the next image ([After the merge](#after-the-merge)) |
+| A span reaches Application Insights | tested, live, 2026-10-31 | runbook step 11: one `page_view` row; the same query for `page_viewX` → 0 rows. The role name was `unknown_service:python` on the first image and `hindcast-web` on the image from `b0f7f62` (20:53:44Z) ([After the merge](#after-the-merge)) |
 | The push job's OIDC subject matches the CI identity's credential | tested, live, 2026-10-31 | the repository uses immutable subjects (`gh api repos/sindredg/hindcast/actions/oidc/customization/sub` → `use_immutable_subject: true`); `az identity federated-credential list` → `repo:sindredg@<id>/hindcast@<id>:environment:azure` only, set from that prefix by the pre-provision hook. The first push signed in with it ([run 41208255994](https://github.com/sindredg/hindcast/actions/runs/41208255994)) |
 | Each new linter fails on a broken input | tested | the Checks table |
 
@@ -85,6 +85,14 @@ On 2026-10-31, from `main` at `52f1032`, against the live subscription.
 | 11. Telemetry | the runbook query, about five minutes after the page load | one row: `2026-10-31T20:02:58Z dependency page_view`. The same query for `page_viewX` → 0 rows |
 
 The span's role name (`cloud_RoleName`) was `unknown_service:python`: nothing set the OpenTelemetry service name, so the page's spans could not be told apart from another Python process writing to the same resource. `hindcast.telemetry` now passes the service name `hindcast-web` to the exporter, tested with a stub (the Checks table). The live app gets it with the next image from `main`; the runbook's step 11 query now reads the role name.
+
+On 2026-10-31, from `main` at `b0f7f62`, steps 10 and 11 ran again with the image that carries the service name:
+
+| Runbook step | Command | Result |
+|---|---|---|
+| 9. Push the image | the merge's CI run, [41238622939](https://github.com/sindredg/hindcast/actions/runs/41238622939); `az acr repository show-tags` | success; tag `b0f7f62de18797eced35eef68e6807be21a57cdb`, digest `sha256:0d764bbd2b858e7370b3f7981c20d923ce1a914aa0f046f9e89c21fcdea13b34` |
+| 10. Deploy | `azd env set HINDCAST_IMAGE <registry>/hindcast:<sha>`, `azd provision --preview`, `azd provision --no-prompt` | preview: `Modify` on `ca-hindcast` with the container changed; provision: `SUCCESS`. Read back: revision `ca-hindcast--0000003` created 20:51:31Z on the new image, `Healthy`; `/_stcore/health` → `200` |
+| 11. Telemetry | the runbook query, restricted to spans after 20:51:31Z, polled every 30 seconds | `2026-10-31T20:53:44Z dependency page_view hindcast-web`. A span from the old image at 20:46:40Z still reads `unknown_service:python`, so the query tells the two images apart |
 
 ## Issues opened
 

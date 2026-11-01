@@ -141,7 +141,7 @@ The procedure deploys the Hindcast page to Azure Container Apps from one `azd up
     az monitor app-insights query -g rg-hindcast -a <app-insights> --analytics-query "union requests, dependencies, traces | where timestamp > ago(30m) | where name == 'page_view' or operation_Name == 'page_view' | project timestamp, itemType, name, cloud_RoleName | take 5" --query "tables[0].rows" -o tsv
     ```
 
-    Expected: at least one row with `page_view` and the role name `hindcast-web`. Observed on 2026-10-31: one `page_view` row, with the role name `unknown_service:python` from the image built before the service name was set; `hindcast-web` is reasoned from the code, not observed.
+    Expected: at least one row with `page_view` and the role name `hindcast-web`. Observed on 2026-10-31: one `page_view` row, with the role name `unknown_service:python` from the image built before the service name was set; on the image from `b0f7f62`, one row with `hindcast-web`.
 
 ## Remove and rebuild
 
