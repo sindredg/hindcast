@@ -77,7 +77,7 @@ uv run --frozen ruff check .
 uv run --frozen ruff format --check .
 uv run --frozen pyright
 uv run --frozen pytest
-az bicep build --file infra/main.bicep --stdout > /dev/null && az bicep lint --file infra/main.bicep
+for f in infra/main.bicep infra/search.bicep; do az bicep build --file "$f" --stdout > /dev/null && az bicep lint --file "$f"; done
 ```
 
 The page runs locally with `uv run --frozen streamlit run src/hindcast/app.py`; without a connection string it sends no telemetry. hadolint and shellcheck run in CI from their pinned releases; the Dockerfile builds there, since the image is pushed from `main` by the workflow, not from a workstation.
