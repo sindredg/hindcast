@@ -218,10 +218,14 @@ def test_raised_run_is_recorded_as_no_result(
     assert check_may_seal(SEALED, entries(seals), "gpt-6-luna", False) == 2
 
 
-def test_first_call_time_cap_is_no_result(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_first_call_time_cap_is_no_result(
+    capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     seals = stub_seal(monkeypatch, tmp_path, FakeClient(TimeoutError()), Uploads())
 
-    main(["run", "seal"])
+    # The operator retries on "no-result", so the output has to say it.
+    assert main(["run", "seal"]) == 1
+    assert capsys.readouterr().out.startswith("no-result: time-cap\n")
 
     [entry] = entries(seals)
     assert entry["status"] == "no-result"

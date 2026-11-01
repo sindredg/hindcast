@@ -162,9 +162,16 @@ def run(case: Case) -> int:
     # The hash is recorded before the upload, so a failed upload loses nothing.
     seals.append(entry)
     write_seals(SEALS, seals)
-    print(summary(replace(result, incomplete_reason=reason_prefix(result.incomplete_reason)), path))
+    lines = summary(
+        replace(result, incomplete_reason=reason_prefix(result.incomplete_reason)), path
+    )
+    if entry["status"] == "no-result":
+        # The first line is what the operator acts on: a no-result attempt may be retried.
+        lines = lines.replace("incomplete: ", "no-result: ", 1)
+    print(lines)
     print(f"sha256 {entry['sha256']}")
-    return _upload(case.case_id, entry, data, seals)
+    uploaded = _upload(case.case_id, entry, data, seals)
+    return 1 if entry["status"] == "no-result" else uploaded
 
 
 def _upload(case_id: str, entry: dict, data: bytes, seals: list[dict]) -> int:
