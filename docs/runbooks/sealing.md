@@ -1,6 +1,6 @@
 # Sealing: operator procedure
 
-Status: Written on 2026-11-01. Steps 1 to 9 ran on 2026-11-01 with the output shown. [Reveal a seal](#reveal-a-seal) and [Drop a seal](#drop-a-seal) are written, not run: no provider had published a cause for a sealed case by then.
+Status: Written on 2026-11-01. Steps 1 to 10 ran on 2026-11-01 with the output shown. [Reveal a seal](#reveal-a-seal) and [Drop a seal](#drop-a-seal) are written, not run: no provider had published a cause for a sealed case by then.
 
 The procedure seals a reconstruction of an outage whose provider has not yet published a cause: it runs the investigator once per deployment, commits the result's SHA-256, and keeps the file in private storage until the postmortem is out ([decision 0017](../decisions/0017-sealed-reconstructions.md)). Each seal makes at most 13 model calls on the deployment it names.
 
@@ -119,7 +119,13 @@ The procedure seals a reconstruction of an outage whose provider has not yet pub
     git commit -m "feat: seal <n> reconstructions"
     ```
 
-    Expected: the branch's pull request shows the commit. Observed on 2026-11-01: pushed at 08:21:55 UTC.
+    Expected: the branch's pull request shows the commit. Its public time is GitHub's record of the pull request, not the commit date, which the workstation sets:
+
+    ```bash
+    gh api repos/<owner>/<repo>/events --jq '.[] | select(.type=="PullRequestEvent" and .payload.action=="opened" and .payload.number==<pr>) | .created_at'
+    ```
+
+    Observed on 2026-11-01: pushed at 08:21:55 UTC by the workstation clock; `2026-11-01T08:22:15Z` for #32. GitHub keeps these events for a limited time, so record the value the day it is read.
 
 ## Reveal a seal
 

@@ -1,6 +1,6 @@
 # Milestone 5, first part: Sealed reconstructions and the October case
 
-Status: Built on 2026-11-01. Three October outages are sealed on both models, and GitHub 2026-10-07 is a fourth scored case with its evidence, prior-knowledge answers, library picks, and frozen key. The [independent review](#independent-review) is open. The milestone state is in the [roadmap](../roadmap.md).
+Status: Built on 2026-11-01. Three October outages are sealed on both models, and GitHub 2026-10-07 is a fourth scored case with its evidence, prior-knowledge answers, library picks, and frozen key. The [independent review](#independent-review) ran with its fixes in. The milestone state is in the [roadmap](../roadmap.md).
 
 ## Scope
 
@@ -15,7 +15,7 @@ The procedure is the [sealing runbook](../runbooks/sealing.md).
 
 ### Sealed cases and the seal command
 
-- `hindcast.cases` accepts the role `sealed`, which needs only status updates. `hindcast.investigate` refuses a sealed case at any time, so every sealed run goes through `python -m hindcast.seal`.
+- `hindcast.cases` accepts the role `sealed`, which needs only status updates. `hindcast.investigate` refuses a sealed case at any time, so a sealed case cannot run through it without its role changed first.
 - `hindcast.seal run <case_id>` refuses a case that is not sealed, a second seal for the same case, deployment, and library setting, and a changed `src/`, `prompts/`, `pyproject.toml`, `uv.lock`, or `data/cases.yaml`, all before any cloud call. It writes the result under `build/sealed/` (ignored by Git), records the entry in `eval/sealed/seals.json` with the hash and `blob: null`, then uploads the file to Blob `extracted/sealed/<case_id>/` without overwriting and records the blob. A failed upload leaves the hash recorded; `seal upload` sends the same bytes after checking them against it.
 - An attempt in which the model produced no output (the run raised, or the result has zero output tokens) is recorded as `no-result` and may be retried, up to three attempts. Any result with model output is final.
 - The command prints counts, usage, and the hash. For an incomplete run it prints only the reason's kind before the first colon, since a schema error echoes the rejected value and a tool error echoes the model's arguments.
@@ -73,7 +73,7 @@ At about 08:07 UTC the three status feeds were read. GitHub `nms1dpzmh9d9` (2026
 | Seal, gpt-6-luna | `seal run <id>` | three `complete` results, 0 rejected citations, 0 unsupported, agent version 2; 2 model calls and 2 tool calls each |
 | Seal, gpt-6.1-sol | `HINDCAST_CHAT_DEPLOYMENT=gpt-6.1-sol seal run <id>` | first try refused by Foundry on the agent name, before any model call; after the fix, three `complete` results, 0 rejected, 0 unsupported, agent version 1 |
 | Second seal | `seal run cloudflare-2026-10-20` | `SealRefused: cloudflare-2026-10-20 is already sealed on gpt-6-luna` |
-| Publish | push of `a372f32` to the pull request branch | 2026-11-01T08:21:55Z; CI green on that commit |
+| Publish | push of `a372f32`, then the pull request opened | pushed at 08:21:55Z by the workstation clock (`date -u`), which matched GitHub's `Date` header to the second when compared at 09:15Z. GitHub's Events API records `PullRequestEvent opened` for #32 at 2026-11-01T08:22:15Z (`gh api repos/sindredg/hindcast/events`), the server-side time for the seal; the event's payload shows the pull request's current head, so that the head was `a372f32` at opening rests on the next push coming at about 09:02Z. The pull request's `created_at` and the check runs read an hour later (09:22:15Z), later than the server clock at 09:15Z; not reconciled. CI green on `a372f32` |
 
 The six hashes, times, and commits are in [`eval/sealed/seals.json`](../../eval/sealed/seals.json). The files were not opened.
 
@@ -97,17 +97,31 @@ Three documents in the library were not picked for this case because their cause
 
 | Criterion | Status | Evidence |
 |---|---|---|
-| A sealed result is unchanged between sealing and scoring (milestone 5, sealed cases) | configured, not tested | the hashes are in [`seals.json`](../../eval/sealed/seals.json), pushed at 08:21:55Z; `tests/test_sealed_reveal.py` fails on a changed file (Checks table). No file is revealed yet, so the check has not run against a real one |
+| A sealed result is unchanged between sealing and scoring (milestone 5, sealed cases) | configured, not tested | the hashes are in [`seals.json`](../../eval/sealed/seals.json), public from the opening of #32 at 08:22:15Z; `tests/test_sealed_reveal.py` fails on a changed file (Checks table). No file is revealed yet, so the check has not run against a real one |
 | A sealed run is refused when it would break the rules | tested, locally and live | `tests/test_seal.py` (Checks table); live: the second `seal run` on a sealed case was refused before any cloud call |
 | A recurrence's updates are evidence, with each resolved text withheld | tested, locally and live | `test_two_incidents_merge_in_time_order`, `test_ingest_cuts_every_status_source_of_a_case`; live: 25 updates, two resolved marks without text |
 | The prior-knowledge answers for GitHub 2026-10-07 are recorded before any evidence reaches a model | tested, live | both result files written at 2026-11-01 before any investigator or extraction call on the case; committed unread |
-| The October key is reviewed and frozen | accepted gap | every field checked against the summary in two independent passes and every quote verified word for word in code; the corrections above are not yet approved one by one, as for the four earlier keys ([keys gate](02-extraction.md#gate)) |
+| The October key is reviewed and frozen | accepted gap | every field checked against the summary in two independent passes and every quote verified word for word in code. Unlike the four earlier keys, whose corrections were approved before freezing ([keys gate](02-extraction.md#gate)), the corrections above are not approved |
 | Each new check fails on a broken input | tested | the Checks table |
 
 ## Independent review
 
-Open: runs before the pull request leaves draft.
+On 2026-11-01 a read-only review of the whole branch (`b0f7f62..7d134fe`) checked the five focus items of the plan, the paths by which investigation text could leave a sealed run, and the documents against the code. It did not open the prior-knowledge answers or the sealed files. Each finding was checked against the code before acting on it.
+
+Fixed in this pull request:
+
+| Finding | Fix |
+|---|---|
+| The public time of the seals rested on the workstation clock; decision 0017 named "the commit time GitHub shows", which the committer sets | 0017 and the runbook name GitHub's record of the pull request as the time; the Live run table gives the Events API record (08:22:15Z) and the command |
+| The keys README said the corrections to every key were approved | It now says the October key's corrections are not approved, as the gate states |
+| A first-call time cap printed `incomplete: time-cap` and exited 0, though it was recorded as `no-result` and may be retried | `seal run` prints `no-result` first and exits 1; `test_first_call_time_cap_is_no_result` failed before the fix and passes after |
+| The as-built diagram and its alt text did not show the seal command; the sealing runbook's status line left out step 10 | Label and alt text updated (README, architecture page, diagram); status line corrected |
+| The worklog said every sealed run goes through the seal command | Reworded: `hindcast.investigate` refuses a sealed case unless its role is changed first |
 
 ## Issues opened
 
-None yet.
+- [#33](https://github.com/sindredg/hindcast/issues/33): nothing checks that the seal record only grows.
+- [#34](https://github.com/sindredg/hindcast/issues/34): a revealed sealed case as showcase falls under rules decision 0017 exempts it from.
+- [#35](https://github.com/sindredg/hindcast/issues/35): the reveal does not record when the provider published its cause.
+- [#36](https://github.com/sindredg/hindcast/issues/36): a status-page summary is read as a postmortem without checking it states a cause.
+- [#37](https://github.com/sindredg/hindcast/issues/37): `seal upload` cannot finish an upload that succeeded but reported an error.
