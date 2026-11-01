@@ -1,0 +1,97 @@
+{
+  "attack": "not an attack",
+  "attack_basis": "implied",
+  "attack_quote": "When this node came online, it incorrectly modified routing configuration with the outdated records, routing write requests to non-existent database servers.",
+  "case_id": "github-2026-10-07",
+  "contributing_factors": [
+    {
+      "source_quote": "At 16:52 UTC, an automated maintenance task that did not honor the pause put it back in charge, and the outage happened again.",
+      "stated_during_incident": false,
+      "text": "An automated maintenance task did not honor the pause and put the new machine back in charge, which caused the second outage."
+    },
+    {
+      "source_quote": "the automation now honors the pause, which was a new regression due to an update of our puppet infrastructure.",
+      "stated_during_incident": false,
+      "text": "The automation ignored the pause because of a regression from an update of the puppet infrastructure."
+    }
+  ],
+  "fixes": [
+    {
+      "source_quote": "we are clearing retired database servers from the service's records before any new machine is added",
+      "stated_during_incident": false,
+      "text": "Clear retired database servers from the service's records before adding new machines."
+    },
+    {
+      "source_quote": "we are keeping new machines from being elected leader until their records have been checked.",
+      "stated_during_incident": false,
+      "text": "Prevent new machines from being elected leader until their records have been checked."
+    },
+    {
+      "source_quote": "We are also changing our systems to reject configuration that point to servers that don't exist and to keep using the last known-good settings instead.",
+      "stated_during_incident": false,
+      "text": "Change systems to reject configurations that point to non-existent servers and keep using last known-good settings."
+    },
+    {
+      "source_quote": "we are giving responders a faster way to take a misbehaving machine out of service",
+      "stated_during_incident": false,
+      "text": "Give responders a faster way to take a misbehaving machine out of service."
+    },
+    {
+      "source_quote": "and adding alerts so changes like this are spotted within seconds.",
+      "stated_during_incident": false,
+      "text": "Add alerts so such configuration changes are spotted within seconds."
+    },
+    {
+      "source_quote": "the automation now honors the pause",
+      "stated_during_incident": false,
+      "text": "Made the maintenance automation honor a pause again."
+    },
+    {
+      "source_quote": "have since removed it",
+      "stated_during_incident": false,
+      "text": "Removed the new machine from the service."
+    }
+  ],
+  "root_cause": {
+    "source_quote": "one of the new machines started with an outdated copy of its records, which still listed database servers we had already retired. When this node came online, it incorrectly modified routing configuration with the outdated records, routing write requests to non-existent database servers.",
+    "stated_during_incident": false,
+    "text": "A new machine of the internal service that tracks which database servers receive new and updated data started, during routine machine replacement, with an outdated copy of its records that still listed retired database servers; when it came online it modified routing configuration to send write requests to database servers that no longer existed."
+  },
+  "timeline": [
+    {
+      "event": "First outage began: write operations failed across Git operations, pull requests, issues, Actions, the API, webhooks, and other services.",
+      "source_quote": "The first ran from 15:06 to 15:16 UTC (about 10 minutes)",
+      "stated_during_incident": true,
+      "time": "2026-10-07T15:06Z",
+      "time_as_written": "15:06 UTC"
+    },
+    {
+      "event": "First outage ended.",
+      "source_quote": "The first ran from 15:06 to 15:16 UTC (about 10 minutes)",
+      "stated_during_incident": true,
+      "time": "2026-10-07T15:16Z",
+      "time_as_written": "15:16 UTC"
+    },
+    {
+      "event": "Second outage began when an automated maintenance task that did not honor the pause put the new machine back in charge.",
+      "source_quote": "At 16:52 UTC, an automated maintenance task that did not honor the pause put it back in charge, and the outage happened again.",
+      "stated_during_incident": true,
+      "time": "2026-10-07T16:52Z",
+      "time_as_written": "16:52 UTC"
+    },
+    {
+      "event": "Second outage ended.",
+      "source_quote": "the second from 16:52 to 17:01 UTC (about 9 minutes).",
+      "stated_during_incident": true,
+      "time": "2026-10-07T17:01Z",
+      "time_as_written": "17:01 UTC"
+    },
+    {
+      "event": "GitHub shut the new machine down.",
+      "source_quote": "We shut that machine down at 17:02 UTC",
+      "stated_during_incident": false,
+      "time": "2026-10-07T17:02Z",
+      "time_as_written": "17:02 UTC"
+    }
+  ]
+}
