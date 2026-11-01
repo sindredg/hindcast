@@ -4,7 +4,8 @@
     PYTHONPATH=src uv run --frozen python -m hindcast.keys freeze <case_id>
 
 draft: downloads the case's postmortem (hash-checked), cuts out the article
-(and, in a monthly report, the case's incident), runs the answer-key analyzer,
+(and, in a monthly report, the case's incident; from a status snapshot, the
+resolved update's summary), runs the answer-key analyzer,
 and writes build/keys/<case_id>-draft.json and a review sheet next to it. An
 existing draft is kept, since it may hold review edits. The analyzer's raw
 result is kept in Blob extracted/keys/ and reused.
@@ -29,7 +30,7 @@ from typing import Literal
 
 from azure.core.exceptions import ResourceNotFoundError
 
-from hindcast.cases import Case
+from hindcast.cases import Case, SourceFile
 from hindcast.evidence import CaseEvidence
 
 KEYS_DIR = Path("eval/keys")
@@ -306,9 +307,35 @@ def incident_part(article_html: str, heading: str) -> str:
     raise ValueError(f"no incident heading starting {heading!r} in the report")
 
 
+def statuspage_summary(snapshot: bytes) -> tuple[str, str]:
+    """The incident's name and its resolved update as HTML paragraphs.
+
+    GitHub writes its summary of the cause into the resolved update days after
+    the incident; for such a case that update is the postmortem.
+    """
+    incident = json.loads(snapshot)
+    resolved = sorted(
+        (u for u in incident["incident_updates"] if u["status"] == "resolved"),
+        key=lambda u: u["created_at"],
+    )
+    if not resolved:
+        raise ValueError(f"{incident['name']!r}: no resolved update to read a summary from")
+    paragraphs = [p.strip() for p in resolved[0]["body"].split("\n\n") if p.strip()]
+    return incident["name"], "".join(f"<p>{html.escape(p)}</p>" for p in paragraphs)
+
+
+def postmortem_page(source: SourceFile, data: bytes) -> tuple[str, str]:
+    """The postmortem's title and body HTML: a status snapshot's summary, or a page's article."""
+    if source.filename.endswith(".json"):
+        return statuspage_summary(data)
+    from hindcast.library_extract import article
+
+    found = article(data, source.url)
+    return found.title, found.html
+
+
 def _draft(case: Case, evidence: CaseEvidence) -> None:
     from hindcast.extract import analyze
-    from hindcast.library_extract import article
     from hindcast.storage import container, download_source, upload_bytes
 
     name = f"keys/{case.case_id}-result.json"
@@ -317,11 +344,10 @@ def _draft(case: Case, evidence: CaseEvidence) -> None:
         outcome = "reused"
     except ResourceNotFoundError:
         source = next(s for s in case.sources if s.kind == "postmortem")
-        found = article(download_source(case.case_id, source), source.url)
-        body = found.html
+        title, body = postmortem_page(source, download_source(case.case_id, source))
         if case.case_id in INCIDENT_HEADINGS:
             body = incident_part(body, INCIDENT_HEADINGS[case.case_id])
-        page = f"<html><body><h1>{html.escape(found.title)}</h1>{body}</body></html>"
+        page = f"<html><body><h1>{html.escape(title)}</h1>{body}</body></html>"
         stored = analyze("hindcast_answer_key", page.encode(), "text/html")
         upload_bytes("extracted", name, (json.dumps(stored, ensure_ascii=False) + "\n").encode())
         outcome = "uploaded"
