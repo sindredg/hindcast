@@ -1,6 +1,6 @@
 # Architecture
 
-How Hindcast is built now. What is planned is in the [roadmap](../roadmap.md) with the target architecture; the decisions behind both are in [decisions](../decisions/). Last compared with the code, the pipeline, the repository settings, and the live resources on 2026-10-30, before milestone 4 started; the investigator's parts on 2026-10-30, during [milestone 4](../worklogs/04-investigator.md); the deployment's parts on 2026-10-31 against the live resources, during [milestone 6](../worklogs/06-deployment.md), and again after the first deploy of the page's image.
+How Hindcast is built now. What is planned is in the [roadmap](../roadmap.md) with the target architecture; the decisions behind both are in [decisions](../decisions/). Last compared with the code, the pipeline, the repository settings, and the live resources on 2026-10-30, before milestone 4 started; the investigator's parts on 2026-10-30, during [milestone 4](../worklogs/04-investigator.md); the deployment's parts on 2026-10-31 against the live resources, during [milestone 6](../worklogs/06-deployment.md), and again after the first deploy of the page's image; the agents, the storage, and the callers on 2026-11-01 against the live resources, before milestone 3 started.
 
 ## What exists
 
@@ -71,13 +71,13 @@ Two resource groups in Sweden Central. The first holds Foundry, storage, and tel
 | Resource | Role in Hindcast | Access |
 |---|---|---|
 | Foundry resource and project | Hosts the model deployments; the project is the endpoint Hindcast calls | Entra ID only: key access is off |
-| Investigator agent `hindcast-investigator-gpt-6-luna` | The prompt agent each investigation runs; version 1 created on 2026-10-30 by the first run | Called through the project endpoint |
+| Investigator agents `hindcast-investigator-gpt-6-luna` and `hindcast-investigator-gpt-6-1-sol` | The prompt agent each investigation or seal runs, one per chat deployment. On 2026-11-01 the luna agent had versions 1 (2026-10-30, the first run) and 2 (the first seal, with prompt v2), and the sol agent had version 1 (the first sol seal) | Called through the project endpoint |
 | gpt-6-luna 2026-09-22 | Investigator model | Global Standard, 50,000 tokens and 50 requests per minute, automatic version upgrade off |
 | gpt-6.1-sol 2026-09-29 | Comparison model and interim judge | Same as gpt-6-luna |
 | gpt-5-mini 2025-08-07 | Content Understanding's completion model ([decision 0014](../decisions/0014-extraction-and-embedding-models.md)) | Global Standard, automatic version upgrade on ([#13](https://github.com/sindredg/hindcast/issues/13)) |
 | text-embedding-3-large 1 | Named by the document analyzers, which require an embedding model; retrieval reuses it in milestone 3 ([decision 0014](../decisions/0014-extraction-and-embedding-models.md)) | Global Standard, 50,000 tokens per minute, automatic version upgrade off |
 | grok-4.7 | Candidate judge; not called by the code | Global Standard, automatic version upgrade on |
-| Storage account | `sources` holds the captured status snapshots and postmortem pages under `<case_id>/` and the library pages under `library/`; `extracted` holds the case evidence (`evidence/`), the chart descriptions (`charts/`), the library extracts (`library/`), and the answer-key analyzer results (`keys/`) | Entra ID only: shared keys and anonymous access are off |
+| Storage account | `sources` holds the captured status snapshots and postmortem pages under `<case_id>/` and the library pages under `library/`; `extracted` holds the case evidence (`evidence/`), the chart descriptions (`charts/`), the library extracts (`library/`), the answer-key analyzer results (`keys/`), and the sealed results (`sealed/`), which are never overwritten | Entra ID only: shared keys and anonymous access are off |
 | Application Insights and Log Analytics | Connected to the project for tracing, and the app's telemetry and console logs go to them. Creating Application Insights also created its "Application Insights Smart Detection" action group, which Hindcast does not use | The project connection holds the Application Insights connection string ([decision 0011](../decisions/0011-telemetry-and-cost.md)) |
 
 Read from `infra/app.bicep` and from the live resources on 2026-10-31 ([worklog](../worklogs/06-deployment.md#live-run)):
@@ -94,9 +94,9 @@ The app registration `hindcast-app` lives in Entra ID, not in a resource group. 
 
 | Caller | Target | Credential | Role and scope |
 |---|---|---|---|
-| Developer, `hindcast.models` and `hindcast.investigate` (agent versions, deployment reads, agent calls) | Foundry project endpoint | Entra token from the Azure CLI sign-in | Foundry User on the project |
+| Developer, `hindcast.models`, `hindcast.investigate`, and `hindcast.seal` (agent versions, deployment reads, agent calls) | Foundry project endpoint | Entra token from the Azure CLI sign-in | Foundry User on the project |
 | Developer, Azure CLI | Blob Storage | Entra token | Storage Blob Data Contributor on the account |
-| Developer, `hindcast.ingest` and `hindcast.storage` | Blob Storage | Entra token from the Azure CLI sign-in | Storage Blob Data Contributor on the account |
+| Developer, `hindcast.ingest`, `hindcast.seal`, and `hindcast.storage` | Blob Storage | Entra token from the Azure CLI sign-in | Storage Blob Data Contributor on the account |
 | Developer, `hindcast.extract`, `hindcast.ingest`, `hindcast.keys` | Content Understanding on the Foundry resource endpoint | Entra token from the Azure CLI sign-in | Cognitive Services Content Understanding Contributor on the Foundry resource, held only while extraction ran (2026-10-27, then removed; [runbook](../runbooks/extraction.md#remove-the-content-understanding-role)) |
 | Container app | Container registry | `id-hindcast-app` | AcrPull on the registry |
 | GitHub Actions push job, `azure` environment | Container registry | OIDC token exchanged for `id-hindcast-ci` | AcrPush on the registry |
