@@ -12,7 +12,13 @@ from hindcast.cases import load_cases
 from test_investigate import FakeClient, call, final, response, stub_command
 
 SRC = Path("src")
-INVESTIGATOR = ("hindcast.investigate", "hindcast.tools", "hindcast.result", "hindcast.agent")
+INVESTIGATOR = (
+    "hindcast.investigate",
+    "hindcast.seal",
+    "hindcast.tools",
+    "hindcast.result",
+    "hindcast.agent",
+)
 
 
 def _module_path(module: str) -> Path:

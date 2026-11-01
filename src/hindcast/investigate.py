@@ -165,6 +165,12 @@ class ScoredCaseLocked(PermissionError):
 
 
 def check_case_allowed(case: Case, rubric_lock: Path = RUBRIC_LOCK) -> None:
+    # A sealed run is recorded by its hash, so it goes through hindcast.seal
+    # only; a run from here would be one nobody could account for.
+    if case.role == "sealed":
+        raise ScoredCaseLocked(
+            f"{case.case_id} is a sealed case: it runs only through python -m hindcast.seal"
+        )
     # Reading a showcase investigation before the rubric exists would shape the
     # rubric around what the model produced.
     if case.role in UNSCORED_ROLES or rubric_lock.is_file():
@@ -260,19 +266,20 @@ def summary(result: RunResult, path: Path) -> str:
     return "\n".join(lines)
 
 
-def main(argv: list[str] | None = None) -> None:
-    parser = argparse.ArgumentParser(prog="python -m hindcast.investigate")
-    parser.add_argument("case_id")
-    parser.add_argument("--out", type=Path, default=OUT_DIR)
-    args = parser.parse_args(argv)
+@dataclass(frozen=True)
+class Setup:
+    """Everything a run needs, made ready before its first model call."""
 
-    cases = load_cases()
-    if args.case_id not in cases:
-        parser.error(f"unknown case {args.case_id!r}")
-    case = cases[args.case_id]
-    # Both refusals come before any cloud call.
-    check_case_allowed(case, RUBRIC_LOCK)
-    evidence_path = EVIDENCE_DIR / f"{case.case_id}.json"
+    turn: Turn
+    tools: CaseTools
+    agent: dict
+    model: dict
+    provenance: dict
+
+
+def prepare(case: Case, evidence_dir: Path | None = None) -> Setup:
+    """Read the evidence, make the agent version, and record what the run rests on."""
+    evidence_path = (evidence_dir or EVIDENCE_DIR) / f"{case.case_id}.json"
     tools = CaseTools(load_evidence(evidence_path))
 
     # Imported here so the loop and its tests do not need the SDK.
@@ -288,16 +295,35 @@ def main(argv: list[str] | None = None) -> None:
         "code": code_provenance(),
         "evidence_sha256": hashlib.sha256(evidence_path.read_bytes()).hexdigest(),
     }
-
-    result = run_investigation(
-        agent_turn(models.openai_client(), name, version), tools, case_id=case.case_id
-    )
-    path = write_result(
-        result,
-        case_id=case.case_id,
+    return Setup(
+        turn=agent_turn(models.openai_client(), name, version),
+        tools=tools,
         agent={"name": name, "version": version},
         model={"deployment": deployment, "name": model_name, "version": model_version},
         provenance=provenance,
+    )
+
+
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(prog="python -m hindcast.investigate")
+    parser.add_argument("case_id")
+    parser.add_argument("--out", type=Path, default=OUT_DIR)
+    args = parser.parse_args(argv)
+
+    cases = load_cases()
+    if args.case_id not in cases:
+        parser.error(f"unknown case {args.case_id!r}")
+    case = cases[args.case_id]
+    # Both refusals come before any cloud call.
+    check_case_allowed(case, RUBRIC_LOCK)
+    setup = prepare(case)
+    result = run_investigation(setup.turn, setup.tools, case_id=case.case_id)
+    path = write_result(
+        result,
+        case_id=case.case_id,
+        agent=setup.agent,
+        model=setup.model,
+        provenance=setup.provenance,
         out_dir=args.out,
         now=datetime.now(UTC),
     )

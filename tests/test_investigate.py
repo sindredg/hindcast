@@ -326,6 +326,16 @@ def test_showcase_case_runs_once_the_rubric_is_frozen(tmp_path: Path) -> None:
     check_case_allowed(CASES["show"], rubric_lock=lock)
 
 
+def test_investigate_refuses_a_sealed_case(tmp_path: Path) -> None:
+    # Sealed runs go only through hindcast.seal, so every one is recorded,
+    # and the rubric lock does not open them.
+    lock = tmp_path / "frozen.json"
+    lock.write_text("{}")
+    sealed = Case("sealed", "Slow pages", "GitHub", "sealed", "2026-10-21T14:52:49Z", (SOURCE,))
+    with pytest.raises(ScoredCaseLocked, match="hindcast.seal"):
+        check_case_allowed(sealed, rubric_lock=lock)
+
+
 def complete_result() -> Any:
     return run(ScriptedTurn(response(call()), final()))
 
