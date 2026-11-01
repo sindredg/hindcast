@@ -398,7 +398,10 @@ def check_chunks(indexed: list[dict], expected: list[Chunk]) -> list[str]:
     for i in sorted(want.keys() & have.keys()):
         if have[i]["ref"] != want[i].ref:
             problems.append(f"ref differs: {i}")
-        if have[i]["content_sha256"] != want[i].content_sha256:
+        # Hash the indexed text itself: the stored hash field alone would pass
+        # text that changed after the build wrote it.
+        text_hash = hashlib.sha256(have[i]["content"].encode("utf-8")).hexdigest()
+        if text_hash != want[i].content_sha256 or have[i]["content_sha256"] != text_hash:
             problems.append(f"content differs: {i}")
     return problems
 
@@ -646,7 +649,7 @@ def main(argv: list[str] | None = None) -> int:
         )
         print(f"{settings.search_index}: {len(cases)} cases, {len(problems)} problems")
     else:
-        indexed = list(search_client.search("*", select=["id", "ref", "content_sha256"]))
+        indexed = list(search_client.search("*", select=["id", "ref", "content", "content_sha256"]))
         problems = check_chunks(indexed, load_chunks(_library()))
         print(
             f"{settings.search_index}: {len(indexed)} chunks listed, "

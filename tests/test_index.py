@@ -398,11 +398,22 @@ def test_check_filter_reports_a_leak_from_a_query():
     assert any("may not read" in p for p in problems)
 
 
+def indexed_copy(chunk: Chunk) -> dict:
+    return {
+        "id": chunk.id,
+        "ref": chunk.ref,
+        "content": chunk.content,
+        "content_sha256": chunk.content_sha256,
+    }
+
+
 def test_check_chunks_reports_missing_extra_and_changed():
     expected = sample_chunks()
-    indexed = [{"id": c.id, "ref": c.ref, "content_sha256": c.content_sha256} for c in expected[1:]]
+    indexed = [indexed_copy(c) for c in expected[1:]]
     indexed[0]["content_sha256"] = "0" * 64
-    indexed.append({"id": "lib_doc_s9_p0", "ref": "lib/doc/s9", "content_sha256": "1" * 64})
+    indexed.append(
+        {"id": "lib_doc_s9_p0", "ref": "lib/doc/s9", "content": "x", "content_sha256": "1" * 64}
+    )
 
     problems = check_chunks(indexed, expected)
 
@@ -411,13 +422,16 @@ def test_check_chunks_reports_missing_extra_and_changed():
         "not in the extracts: lib_doc_s9_p0",
         "content differs: lib_doc_s2_p0",
     ]
-    assert (
-        check_chunks(
-            [{"id": c.id, "ref": c.ref, "content_sha256": c.content_sha256} for c in expected],
-            expected,
-        )
-        == []
-    )
+    assert check_chunks([indexed_copy(c) for c in expected], expected) == []
+
+
+def test_check_chunks_hashes_the_indexed_text():
+    # The stored hash field still matches; only the text in the index changed.
+    expected = sample_chunks()
+    indexed = [indexed_copy(c) for c in expected]
+    indexed[0]["content"] = indexed[0]["content"] + "!"
+
+    assert check_chunks(indexed, expected) == [f"content differs: {expected[0].id}"]
 
 
 def test_queries_are_deterministic():
