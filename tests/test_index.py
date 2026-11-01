@@ -418,3 +418,77 @@ def test_check_chunks_reports_missing_extra_and_changed():
         )
         == []
     )
+
+
+def test_queries_are_deterministic():
+    from hindcast.index import quality_inputs, quality_queries
+
+    assert quality_queries(*quality_inputs()) == quality_queries(*quality_inputs())
+
+
+def test_relevance_comes_from_the_reason_quote():
+    from hindcast.index import quality_queries
+
+    cases, _, _ = gate_library()
+    library = {
+        "quoted": doc(
+            doc_id="quoted",
+            serves=("cloudflare-2026-02-20",),
+            reason='Same symptom, as in "errors for some customers" during the change.',
+        ),
+        "serves-only": doc(doc_id="serves-only", serves=("cloudflare-2026-02-20",)),
+        "other-case": doc(
+            doc_id="other-case",
+            serves=("cloudflare-2025-11-18",),
+            reason="errors for some customers",
+        ),
+    }
+    symptoms = {"cloudflare-2026-02-20": ["errors for some customers", "slow dashboard"]}
+
+    queries = quality_queries(cases, library, symptoms)
+
+    assert queries == [
+        {
+            "query_id": "cloudflare-2026-02-20/q1",
+            "case_id": "cloudflare-2026-02-20",
+            "query": "errors for some customers",
+            "relevant": ["quoted"],
+        },
+        {
+            "query_id": "cloudflare-2026-02-20/q2",
+            "case_id": "cloudflare-2026-02-20",
+            "query": "slow dashboard",
+            "relevant": [],
+        },
+    ]
+
+
+def test_sealed_cases_have_no_quality_queries():
+    from hindcast.cases import load_cases
+    from hindcast.index import quality_queries
+
+    cases = load_cases(Path("data/cases.yaml"))
+    sealed = next(c for c in cases.values() if c.role == "sealed")
+    library = {"x": doc(doc_id="x", serves=(sealed.case_id,), reason="anything at all")}
+
+    assert quality_queries(cases, library, {sealed.case_id: ["anything"]}) == []
+
+
+def test_recall_counts_distinct_documents():
+    from hindcast.index import recall_at, reciprocal_rank
+
+    ranked = ["a", "a", "b", "c", "a", "d", "e", "f"]
+
+    assert recall_at(ranked, ["a", "f"]) == 0.5
+    assert recall_at(ranked, ["b", "e"]) == 1.0
+    assert recall_at(ranked, ["z"]) == 0.0
+    assert reciprocal_rank(ranked, ["c"]) == 1 / 3
+    assert reciprocal_rank(ranked, ["z"]) == 0.0
+
+
+def test_queries_file_matches_the_registry():
+    from hindcast.index import QUERIES, quality_inputs, quality_queries
+
+    committed = json.loads(QUERIES.read_text(encoding="utf-8"))
+
+    assert committed == quality_queries(*quality_inputs())

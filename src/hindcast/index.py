@@ -50,6 +50,9 @@ from hindcast.library import LibraryDocument
 from hindcast.storage import BlobContainer, SourceMismatch
 
 CHUNK_CHARS = 4000
+# The data-plane version, pinned so a result names the version it ran on;
+# 2026-04-01 is the newest stable one the 12.0.0 client knows.
+SEARCH_API_VERSION = "2026-04-01"
 EMBED_BATCH = 16
 EXTRACTS_DIR = Path("build/extracted/library")
 SEMANTIC_CONFIG = "library"
@@ -378,6 +381,112 @@ def check_chunks(indexed: list[dict], expected: list[Chunk]) -> list[str]:
     return problems
 
 
+QUALITY_DIR = Path("eval/retrieval/library-v1")
+QUERIES = QUALITY_DIR / "queries.json"
+QUALITY_K = 5
+# Chunks fetched per query, so the top QUALITY_K distinct documents exist.
+QUALITY_TOP = 50
+
+
+def quality_inputs() -> tuple[dict[str, Case], dict[str, LibraryDocument], dict[str, list[str]]]:
+    from hindcast.cases import load_cases
+
+    return load_cases(), _library(), symptom_quotes()
+
+
+def quality_queries(
+    cases: Mapping[str, Case],
+    library: Mapping[str, LibraryDocument],
+    symptoms: Mapping[str, list[str]],
+) -> list[dict]:
+    """One query per symptom quote of a scored or development case, with its relevant documents.
+
+    A document is relevant to a query when it serves the case and its pick
+    reason quotes that symptom (decision 0013 records a quote per pick).
+    """
+    queries = []
+    for case_id in sorted(symptoms):
+        if cases[case_id].role not in ("showcase", "development"):
+            continue
+        for n, quote in enumerate(symptoms[case_id], start=1):
+            relevant = sorted(
+                d
+                for d, doc in library.items()
+                if case_id in doc.serves and quote in " ".join(doc.reason.split())
+            )
+            queries.append(
+                {
+                    "query_id": f"{case_id}/q{n}",
+                    "case_id": case_id,
+                    "query": quote,
+                    "relevant": relevant,
+                }
+            )
+    return queries
+
+
+def _distinct(ranked: list[str]) -> list[str]:
+    return list(dict.fromkeys(ranked))
+
+
+def recall_at(ranked: list[str], relevant: list[str], k: int = QUALITY_K) -> float:
+    """Share of the relevant documents among the first k distinct documents."""
+    return len(set(_distinct(ranked)[:k]) & set(relevant)) / len(relevant) if relevant else 0.0
+
+
+def reciprocal_rank(ranked: list[str], relevant: list[str]) -> float:
+    for rank, doc_id in enumerate(_distinct(ranked), start=1):
+        if doc_id in relevant:
+            return 1 / rank
+    return 0.0
+
+
+def quality(
+    queries: list[dict],
+    *,
+    cases: Mapping[str, Case],
+    library: Mapping[str, LibraryDocument],
+    refs: Collection[str],
+    client: Any,
+    embed: Embed,
+) -> dict:
+    """Recall at QUALITY_K and reciprocal rank per scored query, over every earlier document."""
+    from hindcast.search import search_library
+
+    rows = []
+    for q in queries:
+        hits = search_library(
+            q["case_id"],
+            q["query"],
+            top=QUALITY_TOP,
+            # Every earlier document: within the picks, every hit is relevant.
+            picks_only=False,
+            cases=cases,
+            library=library,
+            refs=refs,
+            client=client,
+            embed=embed,
+        )
+        ranked = [h.doc_id for h in hits]
+        rows.append(
+            {
+                "query_id": q["query_id"],
+                "scored": bool(q["relevant"]),
+                "top": _distinct(ranked)[:QUALITY_K],
+                "recall_at_5": recall_at(ranked, q["relevant"]),
+                "reciprocal_rank": reciprocal_rank(ranked, q["relevant"]),
+            }
+        )
+    scored = [r for r in rows if r["scored"]]
+    return {
+        "queries": len(rows),
+        "scored": len(scored),
+        "mean_recall_at_5": sum(r["recall_at_5"] for r in scored) / len(scored),
+        "mean_reciprocal_rank": sum(r["reciprocal_rank"] for r in scored) / len(scored),
+        "rows": rows,
+    }
+
+
 def symptom_quotes(path: Path = Path("data/library.yaml")) -> dict[str, list[str]]:
     from ruamel.yaml import YAML
 
@@ -402,7 +511,10 @@ def clients(name: str):
 
     endpoint = load_settings(SearchSettings).search_endpoint
     credential = DefaultAzureCredential()
-    return SearchIndexClient(endpoint, credential), SearchClient(endpoint, name, credential)
+    return (
+        SearchIndexClient(endpoint, credential, api_version=SEARCH_API_VERSION),
+        SearchClient(endpoint, name, credential, api_version=SEARCH_API_VERSION),
+    )
 
 
 def _library() -> dict[str, LibraryDocument]:
@@ -410,6 +522,60 @@ def _library() -> dict[str, LibraryDocument]:
     from hindcast.library import load_library
 
     return load_library(Path("data/library.yaml"), load_cases(Path("data/cases.yaml")))
+
+
+def _git(*args: str) -> str:
+    from hindcast.evaluation.prior import _git as run_git
+
+    done = run_git(Path("."), *args)
+    if done.returncode != 0:
+        raise SystemExit(f"git {' '.join(args)} failed: {done.stderr.strip()}")
+    return done.stdout.strip()
+
+
+def _quality(name: str) -> int:
+    from datetime import UTC, datetime
+
+    from hindcast.search import extract_refs
+
+    data = QUERIES.read_bytes()
+    # The query set is frozen by its commit: a changed or uncommitted file,
+    # or one the registries no longer produce, is refused before any query.
+    if _git("status", "--porcelain", "--", str(QUERIES)) or not _git("ls-files", str(QUERIES)):
+        raise SystemExit(f"{QUERIES} is not committed; commit it before the run")
+    if json.loads(data) != quality_queries(*quality_inputs()):
+        raise SystemExit(f"{QUERIES} differs from what the registries give; make a new version")
+    dimensions = int(name.rsplit("-", 1)[1])
+    cases, library, _ = quality_inputs()
+    _, search_client = clients(name)
+    result = quality(
+        json.loads(data),
+        cases=cases,
+        library=library,
+        refs=extract_refs(),
+        client=search_client,
+        embed=embedder(dimensions),
+    )
+    record = {
+        "index": name,
+        "dimensions": dimensions,
+        "queries_sha256": hashlib.sha256(data).hexdigest(),
+        "queries_commit": _git("log", "-1", "--format=%H", "--", str(QUERIES)),
+        "library_commit": _git("log", "-1", "--format=%H", "--", "data/library.yaml"),
+        "embedding": embedding_model(),
+        "search_api_version": SEARCH_API_VERSION,
+        "code_commit": _git("rev-parse", "HEAD"),
+        "run_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+    } | result
+    out = QUALITY_DIR / f"results-{name}.json"
+    with out.open("x", encoding="utf-8") as file:
+        file.write(json.dumps(record, indent=2, ensure_ascii=False) + "\n")
+    print(
+        f"{name}: {result['scored']} of {result['queries']} queries scored, "
+        f"mean recall@5 {result['mean_recall_at_5']:.3f}, "
+        f"MRR {result['mean_reciprocal_rank']:.3f}; written to {out}"
+    )
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -421,7 +587,21 @@ def main(argv: list[str] | None = None) -> int:
     filter_cmd = commands.add_parser("check-filter", help="check the live filter for every case")
     filter_cmd.add_argument("--shift-start", metavar="CASE_ID", help="the broken-input run")
     commands.add_parser("check-chunks", help="check every chunk against the extracts")
+    commands.add_parser("queries", help="write the quality check's query set")
+    quality_cmd = commands.add_parser("quality", help="run the frozen quality check on one index")
+    quality_cmd.add_argument(
+        "--index", required=True, choices=[index_name(d) for d in (1024, 3072)]
+    )
     args = parser.parse_args(argv)
+
+    if args.command == "queries":
+        QUERIES.parent.mkdir(parents=True, exist_ok=True)
+        data = json.dumps(quality_queries(*quality_inputs()), indent=2, ensure_ascii=False) + "\n"
+        QUERIES.write_text(data, encoding="utf-8")
+        print(f"{QUERIES}: sha256 {hashlib.sha256(data.encode()).hexdigest()}")
+        return 0
+    if args.command == "quality":
+        return _quality(args.index)
 
     if args.command == "build":
         name = index_name(args.dimensions)
