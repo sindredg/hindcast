@@ -180,7 +180,10 @@ def test_incident_part_keeps_only_the_case_incident():
 
 def test_frozen_keys_match_their_hashes():
     # Every scored and development case has a frozen key; an empty folder fails.
-    expected = sorted(c for c, case in load_cases().items() if case.role != "injection")
+    # A sealed case gets its key after its provider publishes the postmortem.
+    expected = sorted(
+        c for c, case in load_cases().items() if case.role not in ("injection", "sealed")
+    )
     frozen = json.loads(FROZEN.read_text()) if FROZEN.is_file() else {}
     files = sorted(p.stem for p in KEYS_DIR.glob("*.json") if p != FROZEN)
 
@@ -293,7 +296,7 @@ def test_every_frozen_quote_appears_in_its_postmortem():
     # is not in the repository: CI skips this.
     checked = 0
     for case in load_cases().values():
-        if case.role == "injection":
+        if case.role in ("injection", "sealed"):
             continue
         source = next(s for s in case.sources if s.kind == "postmortem")
         path = Path("data/sources") / case.case_id / source.filename

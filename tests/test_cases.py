@@ -175,6 +175,34 @@ def test_injection_case_loads_without_postmortem(tmp_path):
     assert [s.kind for s in cases["example-2026"].sources] == ["status-updates"]
 
 
+def test_sealed_case_needs_no_postmortem(tmp_path):
+    # A sealed case is run before its provider has published a cause.
+    text = ONE_CASE.replace(POSTMORTEM_SOURCE, "").replace("role: showcase", "role: sealed")
+
+    cases = load_cases(write_registry(tmp_path, text.replace("{sha256}", ABC_SHA256)))
+    case = cases["example-2026"]
+
+    assert case.role == "sealed"
+
+
+def test_showcase_still_needs_a_postmortem(tmp_path):
+    text = ONE_CASE.replace(POSTMORTEM_SOURCE, "")
+
+    with pytest.raises(ValueError, match="no source of kind postmortem"):
+        load_cases(write_registry(tmp_path, text.replace("{sha256}", ABC_SHA256)))
+
+
+def test_two_status_sources_load(tmp_path):
+    second = STATUS_SOURCE.replace("example-status", "example-status-2")
+    text = ONE_CASE.replace(POSTMORTEM_SOURCE, second + POSTMORTEM_SOURCE)
+
+    cases = load_cases(write_registry(tmp_path, text.replace("{sha256}", ABC_SHA256)))
+    case = cases["example-2026"]
+
+    status = [s.doc_id for s in case.sources if s.kind == "status-updates"]
+    assert status == ["example-status", "example-status-2"]
+
+
 def test_load_cases_rejects_missing_field(tmp_path):
     text = registry().replace("        licence: Copyright Cloudflare; not redistributed\n", "", 1)
 

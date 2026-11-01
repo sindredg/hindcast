@@ -1,9 +1,11 @@
 """Case registry: the outages Hindcast investigates and their source files.
 
 The registry is data/cases.yaml. Each case has the provider's live status
-updates (the evidence) and, unless it is an injection copy, the provider's
-postmortem (the answer key). The source files themselves are not in the
-repository; verify_local_files checks local copies against the pinned hashes.
+updates (the evidence), from one or more status incidents, and the provider's
+postmortem (the answer key). An injection copy is never scored, and a sealed
+case is run before its postmortem exists, so neither needs one. The source
+files themselves are not in the repository; verify_local_files checks local
+copies against the pinned hashes.
 """
 
 import hashlib
@@ -35,7 +37,7 @@ class Case:
     case_id: str
     title: str
     provider: Literal["Cloudflare", "GitHub", "Google Cloud"]
-    role: Literal["showcase", "development", "injection"]
+    role: Literal["showcase", "development", "injection", "sealed"]
     # When the outage began, as the provider's status snapshot states it (UTC).
     # The library's date bound is set from it.
     started_at: str
@@ -103,9 +105,12 @@ def load_cases(path: Path = Path("data/cases.yaml")) -> dict[str, Case]:
                 "must be a UTC time like 2026-10-26T08:00:00Z"
             )
         # Every case needs its evidence; a scored or development case also needs
-        # the answer key. An injection copy is never scored.
+        # the answer key. An injection copy is never scored, and a sealed case
+        # gets its postmortem source (and the role showcase) once it is published.
         needed = (
-            {"status-updates"} if case.role == "injection" else {"status-updates", "postmortem"}
+            {"status-updates"}
+            if case.role in ("injection", "sealed")
+            else {"status-updates", "postmortem"}
         )
         missing = sorted(needed - {source.kind for source in sources})
         if missing:
