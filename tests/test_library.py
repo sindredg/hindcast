@@ -5,7 +5,7 @@ import pytest
 from ruamel.yaml import YAML
 
 from hindcast.cases import Case, SourceFile, load_cases
-from hindcast.evidence import cut
+from hindcast.evidence import cut_all
 from hindcast.library import cutoff, load_library
 
 LIBRARY = Path("data/library.yaml")
@@ -17,7 +17,9 @@ def symptoms() -> dict[str, list[dict]]:
 
 
 def test_every_case_has_tagged_symptoms():
-    cases = load_cases()
+    # A sealed case has no picks, so no tags: it searches the whole library
+    # within its date bound (decision 0017).
+    cases = {c: case for c, case in load_cases().items() if case.role != "sealed"}
     tagged = symptoms()
 
     assert sorted(tagged) == sorted(cases)
@@ -35,11 +37,17 @@ def test_symptom_quotes_appear_in_their_update():
     # cut evidence word for word, never the postmortem.
     checked = 0
     for case in load_cases().values():
-        status = next(s for s in case.sources if s.kind == "status-updates")
-        path = Path("data/sources") / case.case_id / status.filename
-        if not path.is_file():
+        if case.role == "sealed":
             continue
-        updates = {u.update_id: u.text for u in cut(case, path.read_bytes()).updates}
+        paths = [
+            Path("data/sources") / case.case_id / s.filename
+            for s in case.sources
+            if s.kind == "status-updates"
+        ]
+        if not all(path.is_file() for path in paths):
+            continue
+        evidence = cut_all(case, [path.read_bytes() for path in paths])
+        updates = {u.update_id: u.text for u in evidence.updates}
         for tag in symptoms()[case.case_id]:
             # A bool, so a failure names the tag without printing the update.
             text = updates.get(tag["update_id"])

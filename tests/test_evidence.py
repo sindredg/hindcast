@@ -7,6 +7,7 @@ from hindcast.evidence import (
     ChartEvidence,
     Dropped,
     cut,
+    cut_all,
     cut_google,
     cut_statuspage,
     evidence_json,
@@ -237,3 +238,64 @@ def test_chart_evidence_ids_follow_the_case():
     )
     assert json.loads(evidence_json(charted))["charts"][1]["chart_id"] == "c/chart2"
     assert ev.charts == ()
+
+
+GITHUB_CASE = Case("c", "t", "GitHub", "showcase", "2026-10-07T15:14:45Z", ())
+
+
+def test_two_incidents_merge_in_time_order():
+    # A recurrence is its own status incident: its updates come after the
+    # first incident's resolved mark and are kept, each incident ending at its own.
+    first = statuspage(
+        update("2026-10-07T10:30:00Z", "resolved", "Cause A."),
+        update("2026-10-07T10:00:00Z", "investigating"),
+    )
+    second = statuspage(
+        update("2026-10-07T11:00:00Z", "investigating"),
+        update("2026-10-07T11:30:00Z", "resolved", "Cause B."),
+    )
+    snapshots = [json.dumps(first).encode(), json.dumps(second).encode()]
+
+    ev = cut_all(GITHUB_CASE, snapshots)
+
+    assert [u.update_id for u in ev.updates] == ["c/u1", "c/u2", "c/u3", "c/u4"]
+    assert [u.time[11:16] for u in ev.updates] == ["10:00", "10:30", "11:00", "11:30"]
+    assert [u.time[11:16] for u in ev.updates if u.text is None] == ["10:30", "11:30"]
+    assert ev.dropped == ()
+    assert ev.title == "Elevated errors"
+
+
+def test_cut_all_of_one_snapshot_is_cut():
+    snapshot = json.dumps(
+        statuspage(
+            update("2026-02-20T18:45:00Z", "investigating"),
+            update("2026-02-20T19:00:00Z", "resolved"),
+        )
+    ).encode()
+
+    assert cut_all(GITHUB_CASE, [snapshot]) == cut(GITHUB_CASE, snapshot)
+
+
+def test_backfilled_started_at_uses_the_first_update():
+    # Statuspage can set started_at to the resolved time when it is filled in
+    # afterwards; the outage was visible from the first update at the latest.
+    incident = statuspage(
+        update("2026-10-07T15:14:45.614Z", "investigating"),
+        update("2026-10-07T16:25:14.000Z", "resolved"),
+    ) | {"started_at": "2026-10-07T16:25:14.000Z"}
+
+    ev = cut_statuspage("c", incident, "GitHub")
+
+    assert ev.started_at == "2026-10-07T15:14:45Z"
+
+
+def test_started_at_before_the_first_update_is_kept():
+    ev = cut_statuspage(
+        "c",
+        statuspage(
+            update("2026-02-20T19:00:00Z", "investigating"),
+            update("2026-02-20T20:00:00Z", "resolved"),
+        ),
+    )
+
+    assert ev.started_at == "2026-02-20T18:45:16Z"

@@ -7,17 +7,22 @@
 # the exact file and retrieved_at says when it was taken, so a changed upstream
 # copy fails verify_local_files instead of being read.
 #
-# kind status-updates is the evidence. kind chart is a Cloudflare Radar image,
-# committed under data/charts/<case_id>/ (CC BY 4.0, see its README), and
-# described as evidence. kind postmortem is the answer key and
-# never reaches the investigator. Google Cloud's status snapshot also holds the
+# kind status-updates is the evidence; a case can have several, one per status
+# incident (an outage and its recurrence), cut and merged by time. kind chart
+# is a Cloudflare Radar image, committed under data/charts/<case_id>/ (CC BY
+# 4.0, see its README), and described as evidence. kind postmortem is the
+# answer key and never reaches the investigator. Google Cloud's status snapshot also holds the
 # incident report entries Google adds after the outage; the evidence cut
 # removes them.
 #
 # title is the incident's public title on the status page, as the provider
 # wrote it. started_at is when the outage began, as the status snapshot states
-# it (Statuspage started_at, Google begin), in UTC to the second; the library
-# only serves a case documents published before it.
+# it (Statuspage started_at, Google begin), or the first update if that is
+# earlier, in UTC to the second; the library only serves a case documents
+# published before it.
+#
+# role sealed marks an outage reconstructed before its provider published a
+# cause; it has no postmortem source yet (decision 0017).
 
 cases:
   - case_id: cloudflare-2025-11-18
@@ -76,6 +81,40 @@ cases:
         attribution: 'GitHub blog, "GitHub availability report: August 2026"'
         sha256: 41f451eca678340f0434fd9896adc3e15bf34552e5162eeb9df417d87d1561a3
         retrieved_at: "2026-10-25T21:09:32Z"
+        kind: postmortem
+
+  # Began after both pinned model versions were released. Two status
+  # incidents: the outage and its recurrence. GitHub's summary of both is the
+  # resolved update of the first, captured again as the postmortem.
+  - case_id: github-2026-10-07
+    title: Incident with Git Operations, Pull Requests and Actions
+    provider: GitHub
+    role: showcase
+    started_at: "2026-10-07T15:14:45Z"
+    sources:
+      - doc_id: github-status-2026-10-07
+        filename: github-status-2026-10-07.json
+        url: https://www.githubstatus.com/api/v2/incidents/djlmxz2zd0j7.json
+        licence: Copyright GitHub; not redistributed
+        attribution: GitHub status page
+        sha256: b80f8c12eea1063d7c2ba05ff21c86dd3f94f6c419a23f53c79702a093f101c9
+        retrieved_at: "2026-11-01T08:26:24Z"
+        kind: status-updates
+      - doc_id: github-status-2026-10-07-recurrence
+        filename: github-status-2026-10-07-recurrence.json
+        url: https://www.githubstatus.com/api/v2/incidents/qpfv5p86dmrl.json
+        licence: Copyright GitHub; not redistributed
+        attribution: GitHub status page
+        sha256: aae25e648bb6ff7702eb4af316cbc2a776b1e5f5287ad4801534d94806bd3cd6
+        retrieved_at: "2026-11-01T08:26:25Z"
+        kind: status-updates
+      - doc_id: github-summary-2026-10-07
+        filename: github-summary-2026-10-07.json
+        url: https://www.githubstatus.com/api/v2/incidents/djlmxz2zd0j7.json
+        licence: Copyright GitHub; not redistributed
+        attribution: GitHub status page, resolved update of incident djlmxz2zd0j7
+        sha256: b80f8c12eea1063d7c2ba05ff21c86dd3f94f6c419a23f53c79702a093f101c9
+        retrieved_at: "2026-11-01T08:26:25Z"
         kind: postmortem
 
   - case_id: google-cloud-2026-07-14
@@ -146,3 +185,51 @@ cases:
         sha256: be0a94a963c5594d8ca333d4ade0daefe516d7399ef039e1355986c8a71f11e3
         retrieved_at: "2026-10-27T17:21:49Z"
         kind: chart
+
+  # Sealed cases: run before the provider has published a cause, recorded by
+  # the hash of each result in eval/sealed/seals.json (decision 0017). Each
+  # gets its postmortem source and the role showcase once it is published.
+  - case_id: cloudflare-2026-10-20
+    title: Cloudflare Zero Trust connectivity
+    provider: Cloudflare
+    role: sealed
+    started_at: "2026-10-20T03:20:42Z"
+    sources:
+      - doc_id: cloudflare-status-2026-10-20
+        filename: cloudflare-status-2026-10-20.json
+        url: https://www.cloudflarestatus.com/api/v2/incidents/0eqtn0khkz87.json
+        licence: Copyright Cloudflare; not redistributed
+        attribution: Cloudflare status page
+        sha256: 52e4a1dc3ee73612b81b294020be2887d7d0b357bed2706a90452dc2a7d35118
+        retrieved_at: "2026-11-01T08:15:52Z"
+        kind: status-updates
+
+  - case_id: github-2026-10-21
+    title: Delays for Pull Requests and Webhook deliveries
+    provider: GitHub
+    role: sealed
+    started_at: "2026-10-21T14:52:49Z"
+    sources:
+      - doc_id: github-status-2026-10-21
+        filename: github-status-2026-10-21.json
+        url: https://www.githubstatus.com/api/v2/incidents/nms1dpzmh9d9.json
+        licence: Copyright GitHub; not redistributed
+        attribution: GitHub status page
+        sha256: 3b90d46afbd3b1f2567bbafeab1bdb622c8272e976b36f57820b4b4f69b043c4
+        retrieved_at: "2026-11-01T08:15:51Z"
+        kind: status-updates
+
+  - case_id: github-2026-10-22
+    title: Project updates delayed
+    provider: GitHub
+    role: sealed
+    started_at: "2026-10-22T15:28:03Z"
+    sources:
+      - doc_id: github-status-2026-10-22
+        filename: github-status-2026-10-22.json
+        url: https://www.githubstatus.com/api/v2/incidents/wq8305lppdc2.json
+        licence: Copyright GitHub; not redistributed
+        attribution: GitHub status page
+        sha256: 401dcc1087581ef13f27bcbfde93b685d6f0ce3a0ed15a3216aaa0bb7c506e40
+        retrieved_at: "2026-11-01T08:15:51Z"
+        kind: status-updates

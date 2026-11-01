@@ -38,7 +38,7 @@ The procedure runs one investigation of a case through the investigator prompt a
    build/investigations/cloudflare-2026-02-20/20261030T040215Z-v1.json
    ```
 
-   The first run creates agent `hindcast-investigator-<deployment>` version 1 in the project. A later run reuses the latest version while `prompts/investigator.md`, the tools, the schema, and the effort are unchanged, and creates the next version when any of them changes. A run that stops early prints `incomplete: <reason>` (`tool-cap`, `time-cap`, `tool-error: ...`, `empty-result`, or `schema: ...`) and still writes the file.
+   The first run creates agent `hindcast-investigator-<deployment>` version 1 in the project, with any character Foundry refuses in a name replaced by a hyphen (`gpt-6.1-sol` gives `hindcast-investigator-gpt-6-1-sol`). A later run reuses the latest version while `prompts/investigator.md`, the tools, the schema, and the effort are unchanged, and creates the next version when any of them changes. A run that stops early prints `incomplete: <reason>` (`tool-cap`, `time-cap`, `tool-error: ...`, `empty-result`, or `schema: ...`) and still writes the file.
 
 3. A showcase case is refused until the rubric is frozen.
 

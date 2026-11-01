@@ -9,6 +9,7 @@ and an unchanged one reuses the latest.
 
 import hashlib
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -24,8 +25,9 @@ PROMPT_PATH = Path("prompts/investigator.md")
 
 def agent_name(deployment: str) -> str:
     # One agent per deployment: a run on the comparison model is a second agent
-    # with the same instructions, not a new version of this one.
-    return f"hindcast-investigator-{deployment}"
+    # with the same instructions, not a new version of this one. Foundry takes
+    # letters, digits, and inner hyphens only, and gpt-6.1-sol has a dot.
+    return f"hindcast-investigator-{re.sub(r'[^A-Za-z0-9-]', '-', deployment)}"
 
 
 def load_definition(deployment: str, prompt_path: Path = PROMPT_PATH) -> dict:

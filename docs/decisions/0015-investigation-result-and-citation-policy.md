@@ -2,6 +2,8 @@
 
 Status: Accepted (2026-10-30).
 
+Sealed cases, which run before their postmortem exists and only through `python -m hindcast.seal`, follow [decision 0017](0017-sealed-reconstructions.md).
+
 ## Context
 
 The investigator returns a structured reconstruction: an attack verdict, findings, a timeline, a root cause, contributing factors, and open questions. Every item cites what it rests on. [Decision 0006](0006-evaluation-design.md) scores an item as supported only when its evidence states it, or, for an inference, when the findings it rests on are supported. The roadmap requires that a bad citation is rejected with a reason and the rest of the investigation survives.

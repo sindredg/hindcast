@@ -11,8 +11,8 @@ from pathlib import Path
 from hindcast.evidence import CaseEvidence, ChartEvidence, Dropped, EvidenceUpdate
 
 UPDATES_NOTE = (
-    "These are the provider's public status updates, in order. The evidence ends at the "
-    "resolved update, whose text is withheld: it has a time and a status only."
+    "These are the provider's public status updates, in order. Each status incident ends "
+    "at its resolved update, whose text is withheld: it has a time and a status only."
 )
 # Issue #16: a chart description is model output about an image, not data.
 CHARTS_NOTE = (

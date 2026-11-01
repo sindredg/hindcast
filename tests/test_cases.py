@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from hindcast.cases import Case, SourceFile, load_cases, verify_local_files
-from hindcast.evidence import cut
+from hindcast.evidence import cut_all
 
 # sha256 of b"abc" (FIPS 180-2 test vector).
 ABC_SHA256 = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
@@ -139,10 +139,14 @@ def test_started_at_matches_the_cut_evidence():
     # so it has to be the start the provider's own snapshot states.
     checked = 0
     for case in load_cases().values():
-        status = next(s for s in case.sources if s.kind == "status-updates")
-        path = Path("data/sources") / case.case_id / status.filename
-        if path.is_file():
-            assert case.started_at == cut(case, path.read_bytes()).started_at, case.case_id
+        paths = [
+            Path("data/sources") / case.case_id / s.filename
+            for s in case.sources
+            if s.kind == "status-updates"
+        ]
+        if all(path.is_file() for path in paths):
+            snapshots = [path.read_bytes() for path in paths]
+            assert case.started_at == cut_all(case, snapshots).started_at, case.case_id
             checked += 1
     if not checked:
         pytest.skip("no local status snapshots under data/sources/")
@@ -173,6 +177,34 @@ def test_injection_case_loads_without_postmortem(tmp_path):
     cases = load_cases(write_registry(tmp_path, text.replace("{sha256}", ABC_SHA256)))
 
     assert [s.kind for s in cases["example-2026"].sources] == ["status-updates"]
+
+
+def test_sealed_case_needs_no_postmortem(tmp_path):
+    # A sealed case is run before its provider has published a cause.
+    text = ONE_CASE.replace(POSTMORTEM_SOURCE, "").replace("role: showcase", "role: sealed")
+
+    cases = load_cases(write_registry(tmp_path, text.replace("{sha256}", ABC_SHA256)))
+    case = cases["example-2026"]
+
+    assert case.role == "sealed"
+
+
+def test_showcase_still_needs_a_postmortem(tmp_path):
+    text = ONE_CASE.replace(POSTMORTEM_SOURCE, "")
+
+    with pytest.raises(ValueError, match="no source of kind postmortem"):
+        load_cases(write_registry(tmp_path, text.replace("{sha256}", ABC_SHA256)))
+
+
+def test_two_status_sources_load(tmp_path):
+    second = STATUS_SOURCE.replace("example-status", "example-status-2")
+    text = ONE_CASE.replace(POSTMORTEM_SOURCE, second + POSTMORTEM_SOURCE)
+
+    cases = load_cases(write_registry(tmp_path, text.replace("{sha256}", ABC_SHA256)))
+    case = cases["example-2026"]
+
+    status = [s.doc_id for s in case.sources if s.kind == "status-updates"]
+    assert status == ["example-status", "example-status-2"]
 
 
 def test_load_cases_rejects_missing_field(tmp_path):

@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from hindcast.cases import Case, load_cases
+from hindcast.cases import Case, SourceFile, load_cases
 from hindcast.evidence import CaseEvidence, EvidenceUpdate
 from hindcast.keys import (
     FROZEN,
@@ -16,10 +16,11 @@ from hindcast.keys import (
     incident_part,
     key_json,
     load_key,
+    postmortem_page,
     review_sheet,
+    statuspage_summary,
     write_draft,
 )
-from hindcast.library_extract import article
 
 CASE = Case("example-2026", "Elevated errors", "Cloudflare", "showcase", "2026-02-20T18:45:16Z", ())
 MARKDOWN = (
@@ -180,7 +181,10 @@ def test_incident_part_keeps_only_the_case_incident():
 
 def test_frozen_keys_match_their_hashes():
     # Every scored and development case has a frozen key; an empty folder fails.
-    expected = sorted(c for c, case in load_cases().items() if case.role != "injection")
+    # A sealed case gets its key after its provider publishes the postmortem.
+    expected = sorted(
+        c for c, case in load_cases().items() if case.role not in ("injection", "sealed")
+    )
     frozen = json.loads(FROZEN.read_text()) if FROZEN.is_file() else {}
     files = sorted(p.stem for p in KEYS_DIR.glob("*.json") if p != FROZEN)
 
@@ -293,17 +297,16 @@ def test_every_frozen_quote_appears_in_its_postmortem():
     # is not in the repository: CI skips this.
     checked = 0
     for case in load_cases().values():
-        if case.role == "injection":
+        if case.role in ("injection", "sealed"):
             continue
         source = next(s for s in case.sources if s.kind == "postmortem")
         path = Path("data/sources") / case.case_id / source.filename
         if not path.is_file():
             continue
-        found = article(path.read_bytes(), source.url)
-        body = found.html
+        title, body = postmortem_page(source, path.read_bytes())
         if case.case_id in INCIDENT_HEADINGS:
             body = incident_part(body, INCIDENT_HEADINGS[case.case_id])
-        page = _plain(f"{found.title} {body}")
+        page = _plain(f"{title} {body}")
         key = load_key(KEYS_DIR / f"{case.case_id}.json")
         quotes = [key.attack_quote, key.root_cause.source_quote]
         quotes += [i.source_quote for i in (*key.contributing_factors, *key.fixes)]
@@ -313,3 +316,52 @@ def test_every_frozen_quote_appears_in_its_postmortem():
         checked += 1
     if not checked:
         pytest.skip("no captured postmortems under data/sources/")
+
+
+def snapshot(*updates: tuple[str, str, str]) -> bytes:
+    return json.dumps(
+        {
+            "name": "Incident with Git Operations",
+            "started_at": "2026-10-07T15:14:45Z",
+            "incident_updates": [{"created_at": t, "status": s, "body": b} for t, s, b in updates],
+        }
+    ).encode()
+
+
+def test_statuspage_summary_takes_the_resolved_text() -> None:
+    # GitHub writes its summary of the cause into the resolved update.
+    data = snapshot(
+        ("2026-10-07T16:25:14Z", "resolved", "The cause was A & B.\n\nWe fixed it."),
+        ("2026-10-07T15:14:45Z", "investigating", "We are investigating."),
+    )
+
+    title, body = statuspage_summary(data)
+
+    assert title == "Incident with Git Operations"
+    assert body == "<p>The cause was A &amp; B.</p><p>We fixed it.</p>"
+
+
+def test_statuspage_summary_without_a_resolved_update_raises() -> None:
+    data = snapshot(("2026-10-07T15:14:45Z", "investigating", "We are investigating."))
+
+    with pytest.raises(ValueError, match="no resolved update"):
+        statuspage_summary(data)
+
+
+def test_postmortem_page_reads_a_status_snapshot_by_its_file_name() -> None:
+    data = snapshot(("2026-10-07T16:25:14Z", "resolved", "The cause was A."))
+    source = SourceFile(
+        "s",
+        "s.json",
+        "https://www.githubstatus.com/api/v2/incidents/x.json",
+        "l",
+        "a",
+        "0" * 64,
+        "2026-11-01T08:26:25Z",
+        "postmortem",
+    )
+
+    assert postmortem_page(source, data) == (
+        "Incident with Git Operations",
+        "<p>The cause was A.</p>",
+    )

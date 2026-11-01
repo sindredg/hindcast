@@ -1,0 +1,55 @@
+{
+  "check": "prior-knowledge",
+  "collected_at": "2026-11-01T08:27:36Z",
+  "deployment": "gpt-6-luna",
+  "model_name": "gpt-6-luna",
+  "model_version": "2026-09-22",
+  "reasoning_effort": "medium",
+  "prompt_path": "prompts/prior_knowledge.md",
+  "prompt_git_blob": "ee30625c14eb4a5b7a2fe55784421928cd3e874f",
+  "cases_path": "data/cases.yaml",
+  "cases_git_blob": "6df49049681c5824beb3911745dee77d4d2a4add",
+  "code_commit": "07a63433c7b11ffbfd3979fb0918f7cc6051e7a4",
+  "entries": [
+    {
+      "case_id": "cloudflare-2025-11-18",
+      "question": "What do you know about this Cloudflare incident: Cloudflare Global Network experiencing issues, on 18 November 2025? Describe what happened, in order, whether it was an attack, and the root cause and contributing factors that Cloudflare's own review found.",
+      "answer": "I know the broad outline, but not enough to give a fully reliable, timestamp-by-timestamp account of Cloudflare’s review. **The details below about the trigger and contributing factors are partly uncertain.**\n\n**In order, as I understand it:**\n\n1. A change involving Cloudflare’s database or the data pipeline for its Bot Management system led to an unexpectedly large Bot Management feature file being generated. **I’m unsure of the exact change; my recollection is that it caused the generation query to return more rows than expected.**\n2. That file was distributed to Cloudflare’s network. The proxy software encountered a size or data condition it did not handle safely, and edge traffic began failing, producing widespread errors.\n3. Cloudflare mitigated the problem by stopping or reversing the problematic rollout/data and restoring service. **I don’t know the exact recovery steps or timings reliably.**\n\n**Was it an attack?** Cloudflare’s account, as I recall it, attributed the incident to an internal failure—not an external attack.\n\n**Root cause and contributing factors:** The broad root cause was an unexpected output from the Bot Management data/configuration pipeline, coupled with proxy software that failed when it received that output. **I’m unsure of the precise database change and which additional factors Cloudflare formally listed.** In particular, I can’t reliably say whether Cloudflare’s review identified specific gaps in testing, validation, rollout controls, or alerting, so I don’t want to present those as confirmed findings.",
+      "usage": {
+        "input_tokens": 150,
+        "cached_input_tokens": 0,
+        "output_tokens": 2712
+      }
+    },
+    {
+      "case_id": "github-2026-08-17",
+      "question": "What do you know about this GitHub incident: Incident with GitHub.com, on 17 August 2026? Describe what happened, in order, whether it was an attack, and the root cause and contributing factors that GitHub's own review found.",
+      "answer": "I don’t know of a specific GitHub.com incident on 17 August 2026, and I can’t verify that it occurred. I therefore can’t reliably describe what happened, say whether it was an attack, or report root causes or contributing factors from GitHub’s review. I don’t want to infer details from other GitHub incidents.",
+      "usage": {
+        "input_tokens": 149,
+        "cached_input_tokens": 0,
+        "output_tokens": 283
+      }
+    },
+    {
+      "case_id": "github-2026-10-07",
+      "question": "What do you know about this GitHub incident: Incident with Git Operations, Pull Requests and Actions, on 7 October 2026? Describe what happened, in order, whether it was an attack, and the root cause and contributing factors that GitHub's own review found.",
+      "answer": "I don’t know of a GitHub incident matching that description. The stated date, **7 October 2026**, is beyond my available knowledge, so I can’t say what happened, whether it was an attack, or what GitHub’s review found about the root cause or contributing factors. I can’t confirm whether the incident is real or whether the date is a typo. If you share GitHub’s incident report or a link excerpt, I can summarize it in order.",
+      "usage": {
+        "input_tokens": 153,
+        "cached_input_tokens": 0,
+        "output_tokens": 425
+      }
+    },
+    {
+      "case_id": "google-cloud-2026-07-14",
+      "question": "What do you know about this Google Cloud incident: Google Cloud VMware Engine (GCVE) Stretched Cluster customers are experiencing zonal outages impacting network connectivity across multiple regions., on 14 July 2026? Describe what happened, in order, whether it was an attack, and the root cause and contributing factors that Google Cloud's own review found.",
+      "answer": "I don’t have reliable information about this specific incident or a Google Cloud review of it. I therefore can’t say what happened in sequence, whether it was an attack, or what root cause and contributing factors Google found.\n\nThe date you gave is July 14, 2026. If you’re asking before that date, the incident has not yet occurred; otherwise, I can’t verify the details from my own knowledge.",
+      "usage": {
+        "input_tokens": 167,
+        "cached_input_tokens": 0,
+        "output_tokens": 391
+      }
+    }
+  ]
+}

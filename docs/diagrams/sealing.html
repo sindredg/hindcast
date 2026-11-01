@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sealing a reconstruction</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #2d3142;
+      --color-ink:     #f5f5f5;
+      --color-muted:   #bfc0c0;
+      --color-accent:  #f08a59;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+    .frame { max-width: 1200px; width: 100%; }
+    .diagram-container { width: 100%; overflow-x: auto; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 1.5rem;
+    }
+    svg { width: 100%; min-width: 1000px; display: block; }
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+      <div class="frame">
+    <p class="eyebrow">Evaluation · sealed reconstructions</p>
+    <h1>Sealing a reconstruction</h1>
+    <div class="diagram-container">
+      <svg viewBox="0 0 1000 832" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="sealing-title sealing-desc">
+        <title id="sealing-title">Sealing a reconstruction</title>
+        <desc id="sealing-desc">The seal command refuses, before any model call, a case that is not sealed, a case and deployment that already have a seal, or a changed tree; otherwise it investigates once from the status updates, records an attempt with no model output as no-result, which may be retried up to three attempts in all, and otherwise commits the result's SHA-256 publicly and uploads the file to private storage; if the provider publishes its cause by 2026-11-09 the file is revealed after the rubric is frozen, checked against its hash, and scored, and if not the case is dropped with its record kept.</desc>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#bfc0c0"/></marker>
+        </defs>
+
+        <rect width="100%" height="100%" fill="#2d3142"/>
+
+        <!-- Arrows -->
+        <line x1="360" y1="168" x2="360" y2="200" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="360" y1="264" x2="360" y2="296" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="360" y1="392" x2="360" y2="424" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="360" y1="488" x2="360" y2="520" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="360" y1="648" x2="360" y2="680" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="520" y1="104" x2="640" y2="104" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="488" y1="344" x2="640" y2="344" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="520" y1="584" x2="640" y2="584" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- Arrow labels -->
+        <rect x="368" y="178" width="28" height="12" rx="2" fill="#2d3142"/>
+        <text x="382" y="187" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">YES</text>
+        <rect x="368" y="402" width="28" height="12" rx="2" fill="#2d3142"/>
+        <text x="382" y="411" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">YES</text>
+        <rect x="368" y="658" width="28" height="12" rx="2" fill="#2d3142"/>
+        <text x="382" y="667" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">YES</text>
+        <rect x="568" y="84" width="24" height="12" rx="2" fill="#2d3142"/>
+        <text x="580" y="93" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">NO</text>
+        <rect x="552" y="324" width="24" height="12" rx="2" fill="#2d3142"/>
+        <text x="564" y="333" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">NO</text>
+        <rect x="568" y="564" width="24" height="12" rx="2" fill="#2d3142"/>
+        <text x="580" y="573" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">NO</text>
+
+        <!-- Nodes -->
+        <polygon points="360,40 520,104 360,168 200,104" fill="#2d3142"/>
+        <polygon points="360,40 520,104 360,168 200,104" fill="#393e53" stroke="#f5f5f5" stroke-width="1"/>
+        <text x="360" y="92" fill="#f5f5f5" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">seal run: a sealed case,</text>
+        <text x="360" y="108" fill="#f5f5f5" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">no seal yet, and a</text>
+        <text x="360" y="124" fill="#f5f5f5" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">clean tree?</text>
+        <rect x="240" y="200" width="240" height="64" rx="6" fill="#2d3142"/>
+        <rect x="240" y="200" width="240" height="64" rx="6" fill="rgba(240,138,89,0.10)" stroke="#f08a59" stroke-width="1"/>
+        <text x="360" y="230" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Investigate once</text>
+        <text x="360" y="246" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">status updates only</text>
+        <polygon points="360,296 488,344 360,392 232,344" fill="#2d3142"/>
+        <polygon points="360,296 488,344 360,392 232,344" fill="#393e53" stroke="#f5f5f5" stroke-width="1"/>
+        <text x="360" y="340" fill="#f5f5f5" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Did the model</text>
+        <text x="360" y="356" fill="#f5f5f5" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">produce output?</text>
+        <rect x="240" y="424" width="240" height="64" rx="6" fill="#2d3142"/>
+        <rect x="240" y="424" width="240" height="64" rx="6" fill="#393e53" stroke="#f5f5f5" stroke-width="1"/>
+        <text x="360" y="454" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Commit the hash, upload the file</text>
+        <text x="360" y="470" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">seals.json public · Blob private</text>
+        <polygon points="360,520 520,584 360,648 200,584" fill="#2d3142"/>
+        <polygon points="360,520 520,584 360,648 200,584" fill="#393e53" stroke="#f5f5f5" stroke-width="1"/>
+        <text x="360" y="572" fill="#f5f5f5" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Provider publishes</text>
+        <text x="360" y="588" fill="#f5f5f5" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">its cause by</text>
+        <text x="360" y="604" fill="#f5f5f5" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">2026-11-09?</text>
+        <rect x="216" y="680" width="288" height="56" rx="20" fill="#2d3142"/>
+        <rect x="216" y="680" width="288" height="56" rx="20" fill="rgba(191,192,192,0.10)" stroke="#949eb2" stroke-width="1"/>
+        <text x="360" y="706" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Reveal after the rubric, then score</text>
+        <text x="360" y="722" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">CI checks the file against its hash</text>
+        <rect x="640" y="72" width="240" height="64" rx="6" fill="#2d3142"/>
+        <rect x="640" y="72" width="240" height="64" rx="6" fill="rgba(240,138,89,0.05)" stroke="rgba(240,138,89,0.50)" stroke-width="1" stroke-dasharray="4,4"/>
+        <text x="760" y="102" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Refuse, call no model</text>
+        <text x="760" y="118" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">SealRefused · exit 1</text>
+        <rect x="640" y="312" width="240" height="64" rx="6" fill="#2d3142"/>
+        <rect x="640" y="312" width="240" height="64" rx="6" fill="#393e53" stroke="#f5f5f5" stroke-width="1"/>
+        <text x="760" y="342" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Record a no-result attempt</text>
+        <text x="760" y="358" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">retry · three attempts in all</text>
+        <rect x="640" y="556" width="240" height="56" rx="20" fill="#2d3142"/>
+        <rect x="640" y="556" width="240" height="56" rx="20" fill="rgba(191,192,192,0.10)" stroke="#949eb2" stroke-width="1"/>
+        <text x="760" y="582" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Dropped</text>
+        <text x="760" y="598" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">entry kept, marked dropped</text>
+
+        <!-- Legend strip -->
+        <line x1="40" y1="776" x2="960" y2="776" stroke="rgba(245,245,245,0.10)" stroke-width="0.8"/>
+        <text x="40" y="792" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+
+        <rect x="40" y="804" width="22" height="10" rx="5" fill="rgba(191,192,192,0.10)" stroke="#949eb2" stroke-width="1"/>
+        <text x="68" y="812" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">End</text>
+
+        <rect x="112" y="804" width="14" height="10" rx="2" fill="#393e53" stroke="#f5f5f5" stroke-width="1"/>
+        <text x="132" y="812" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">Step</text>
+
+        <polygon points="188,803 196,809 188,815 180,809" fill="#393e53" stroke="#f5f5f5" stroke-width="1"/>
+        <text x="204" y="812" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">Decision</text>
+
+        <rect x="264" y="804" width="14" height="10" rx="2" fill="rgba(240,138,89,0.10)" stroke="#f08a59" stroke-width="1"/>
+        <text x="284" y="812" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">Model calls</text>
+
+        <rect x="364" y="804" width="14" height="10" rx="2" fill="rgba(240,138,89,0.05)" stroke="rgba(240,138,89,0.50)" stroke-width="1" stroke-dasharray="4,4"/>
+        <text x="384" y="812" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">Refusal</text>
+
+        <text x="960" y="792" fill="#949eb2" font-size="8.5" font-family="'Geist', sans-serif" text-anchor="end">The file stays private until its provider has published</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

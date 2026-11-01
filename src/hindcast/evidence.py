@@ -111,7 +111,11 @@ def _cut(
         EvidenceUpdate(f"{case_id}/u{n}", time, status, text)
         for n, (time, status, text) in enumerate(kept, start=1)
     )
-    return CaseEvidence(case_id, provider, title, utc(started_at), updates, tuple(dropped))
+    # Statuspage can backfill started_at with a time after the first update
+    # (GitHub's 2026-10-07 incident has its resolved time). The outage was
+    # visible from that update at the latest, so the earlier of the two counts.
+    start = min(_parse(started_at), entries_by_time[0][0])
+    return CaseEvidence(case_id, provider, title, utc(start.isoformat()), updates, tuple(dropped))
 
 
 def cut_statuspage(case_id: str, incident: dict, provider: str = "Cloudflare") -> CaseEvidence:
@@ -149,6 +153,33 @@ def cut(case: Case, snapshot: bytes) -> CaseEvidence:
     if case.provider == "Google Cloud":
         return cut_google(case.case_id, incident)
     raise ValueError(f"{case.case_id}: no evidence rules for provider {case.provider!r}")
+
+
+def cut_all(case: Case, snapshots: list[bytes]) -> CaseEvidence:
+    """One case's evidence from several status incidents (a recurrence, say).
+
+    Each snapshot is cut by the same rules, so every incident keeps its own
+    resolved mark with the text withheld. The updates are then merged by time
+    and numbered again; the title is the first incident's.
+    """
+    if not snapshots:
+        raise ValueError(f"{case.case_id}: no status snapshot")
+    parts = [cut(case, snapshot) for snapshot in snapshots]
+    if len(parts) == 1:
+        return parts[0]
+    # A stable sort: on a tie in whole seconds, registry order decides.
+    merged = sorted((u for part in parts for u in part.updates), key=lambda u: u.time)
+    updates = tuple(
+        replace(u, update_id=f"{case.case_id}/u{n}") for n, u in enumerate(merged, start=1)
+    )
+    return CaseEvidence(
+        case.case_id,
+        case.provider,
+        parts[0].title,
+        min(part.started_at for part in parts),
+        updates,
+        tuple(d for part in parts for d in part.dropped),
+    )
 
 
 def with_charts(

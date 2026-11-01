@@ -8,7 +8,7 @@
 # comes from word for word. The quotes are short excerpts from the provider's
 # status page; source and attribution are in data/cases.yaml.
 #
-# No update in these four cases mentions an attack, so no tag says one.
+# No update in these five cases mentions an attack, so no tag says one.
 #
 # documents are the picks, added after the symptoms. Like the case sources,
 # the pages themselves are not committed.
@@ -109,6 +109,31 @@ symptoms:
       quote: a subset of BYOIP prefixes
       update_id: cloudflare-2026-02-20/u2
 
+  github-2026-10-07:
+    - tag: "symptom: degraded availability"
+      quote: >-
+        We are investigating reports of degraded availability for Actions, Git
+        Operations and Pull Requests
+      update_id: github-2026-10-07/u1
+    - tag: "scale: many services at once"
+      quote: We observed widespread impact across GitHub services between 15:06 UTC and 15:16 UTC
+      update_id: github-2026-10-07/u6
+    - tag: "symptom: outage of about ten minutes"
+      quote: between 15:06 UTC and 15:16 UTC
+      update_id: github-2026-10-07/u6
+    - tag: "symptom: recurrence the same day"
+      quote: This incident is a reoccurrence of the incident from earlier in the day
+      update_id: github-2026-10-07/u22
+    - tag: "product: Git operations"
+      quote: Git Operations is experiencing degraded performance.
+      update_id: github-2026-10-07/u5
+    - tag: "product: webhooks"
+      quote: Webhooks is experiencing degraded availability.
+      update_id: github-2026-10-07/u4
+    - tag: "product: Actions"
+      quote: degraded availability for Actions
+      update_id: github-2026-10-07/u1
+
 documents:
   - doc_id: cloudflare-2025-06-12
     provider: Cloudflare
@@ -176,11 +201,12 @@ documents:
     licence: Copyright Google; not redistributed
     attribution: Google Cloud Service Health, incident ow5i3PPK96RduMcb1SsW
     kind: other-provider
-    serves: [cloudflare-2025-11-18, github-2026-08-17]
+    serves: [cloudflare-2025-11-18, github-2026-08-17, github-2026-10-07]
     reason: >-
       Global HTTP 503 errors on external API requests across dozens of products, with console and
       IAM access issues, as in "customers may continue to observe higher-than-normal error rates"
-      and "an approximate 20% error rate across numerous experiences".
+      and "an approximate 20% error rate across numerous experiences", and for GitHub 2026-10-07 "We
+      observed widespread impact across GitHub services between 15:06 UTC and 15:16 UTC".
 
   - doc_id: google-cloud-2020-12-14
     provider: Google Cloud
@@ -248,11 +274,13 @@ documents:
     licence: Copyright GitHub; not redistributed
     attribution: 'GitHub blog, "GitHub availability report: June 2026"'
     kind: same-provider
-    serves: [github-2026-08-17]
+    serves: [github-2026-08-17, github-2026-10-07]
     reason: >-
       June 10 incident: intermittent authentication failures on about 9% of REST and GraphQL API
       requests, as in "residual impact in the form of sporadic authentication failures"; June 8
-      incident: HTTP 504 errors on about 17% of signed-out web requests.
+      incident: HTTP 504 errors on about 17% of signed-out web requests. For GitHub 2026-10-07: the
+      June 25 incident delayed pull requests, pushes, Actions workflows, and webhooks for 23
+      minutes, as in "Webhooks is experiencing degraded availability."
 
   - doc_id: github-availability-2023-11
     provider: GitHub
@@ -265,10 +293,12 @@ documents:
     licence: Copyright GitHub; not redistributed
     attribution: 'GitHub blog, "GitHub Availability Report: November 2023"'
     kind: same-provider
-    serves: [github-2026-08-17]
+    serves: [github-2026-08-17, github-2026-10-07]
     reason: >-
       November 3 incident: failed authorization checks returned 404 or error responses on most page
-      and API requests, as in "high error rates around 20% for web experiences and api traffic".
+      and API requests, as in "high error rates around 20% for web experiences and api traffic". For
+      GitHub 2026-10-07: degraded performance across GitHub services for 38 minutes, as in "We
+      observed widespread impact across GitHub services between 15:06 UTC and 15:16 UTC".
 
   - doc_id: aws-2021-12-07
     provider: AWS
@@ -283,12 +313,14 @@ documents:
       AWS post-event summary, "Summary of the AWS Service Event in the Northern Virginia (US-EAST-1)
       Region"
     kind: other-provider
-    serves: [github-2026-08-17, google-cloud-2026-07-14]
+    serves: [github-2026-08-17, google-cloud-2026-07-14, github-2026-10-07]
     reason: >-
       API errors across many services at once, with console sign-in failures and STS latency causing
       login failures, as in "residual impact in the form of sporadic authentication failures";
       congestion between two internal networks while running instances kept working, close to
-      "Storage and Compute services appear to be unaffected".
+      "Storage and Compute services appear to be unaffected". For GitHub 2026-10-07: EC2 APIs,
+      Amazon Connect, API Gateway, and other services failed at once, as in "We observed widespread
+      impact across GitHub services between 15:06 UTC and 15:16 UTC".
 
   - doc_id: github-2018-02-28
     provider: GitHub
@@ -301,11 +333,12 @@ documents:
     licence: Copyright GitHub; not redistributed
     attribution: 'GitHub blog, "February 28th DDoS Incident Report"'
     kind: attack-suspected
-    serves: [github-2026-08-17]
+    serves: [github-2026-08-17, github-2026-10-07]
     reason: >-
       GitHub.com fully and then intermittently unavailable for all web and API users, a site-wide
       form of "high error rates around 20% for web experiences and api traffic"; the report confirms
-      a DDoS attack.
+      a DDoS attack. For GitHub 2026-10-07: GitHub.com unavailable from 17:21 to 17:26 UTC and
+      intermittently until 17:30 UTC, an outage of minutes as in "between 15:06 UTC and 15:16 UTC".
 
   - doc_id: github-2016-01-28
     provider: GitHub
@@ -318,11 +351,12 @@ documents:
     licence: Copyright GitHub; not redistributed
     attribution: 'GitHub blog, "January 28th Incident Report"'
     kind: attack-suspected
-    serves: [github-2026-08-17]
+    serves: [github-2026-08-17, github-2026-10-07]
     reason: >-
       Site-wide HTTP 503 errors for two hours across web and API, a stronger form of "high error
       rates around 20% for web experiences and api traffic"; the team first brought up DDoS defenses
-      and later ruled an attack out.
+      and later ruled an attack out. For GitHub 2026-10-07: the whole site was down at once, as in
+      "We observed widespread impact across GitHub services between 15:06 UTC and 15:16 UTC".
 
   - doc_id: google-cloud-2018-10-11
     provider: Google Cloud
@@ -481,11 +515,13 @@ documents:
       Cloudflare blog, "Post mortem on the Cloudflare Control Plane and Analytics
       Outage"
     kind: decoy
-    serves: [cloudflare-2025-11-18]
+    serves: [cloudflare-2025-11-18, github-2026-10-07]
     reason: >-
       Intermittent errors when making changes in the dashboard and API, with logs and analytics down
       for most customers, as in "issues logging into or using the Cloudflare dashboard". Decoy: the
-      same symptom, with a cause checked to differ from the case's.
+      same symptom, with a cause checked to differ from the case's. For GitHub 2026-10-07: the
+      control plane and analytics services down together, as in "We observed widespread impact
+      across GitHub services between 15:06 UTC and 15:16 UTC". Its cause also differs.
 
   - doc_id: github-availability-2023-09
     provider: GitHub
