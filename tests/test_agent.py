@@ -47,6 +47,12 @@ def test_agent_name_carries_the_deployment() -> None:
     assert agent_name("gpt-6-luna") == "hindcast-investigator-gpt-6-luna"
 
 
+def test_agent_name_replaces_characters_foundry_refuses() -> None:
+    # Agent names take letters, digits, and inner hyphens only; a deployment
+    # name can carry a dot.
+    assert agent_name("gpt-6.1-sol") == "hindcast-investigator-gpt-6-1-sol"
+
+
 def test_fingerprint_changes_with_the_instructions_and_the_deployment(tmp_path: Path) -> None:
     prompt = tmp_path / "investigator.md"
     prompt.write_text("v1", encoding="utf-8")
