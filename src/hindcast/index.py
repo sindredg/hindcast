@@ -261,12 +261,13 @@ def build(
         exists = False
     if exists and not replace and search_client.get_document_count():
         raise ValueError(f"{name} already holds documents; rebuild it with --replace")
-    if exists:
-        index_client.delete_index(name)
-    index_client.create_index(index_definition(name, dimensions))
+    # Embed before touching the index, so a failed embedding leaves it as it was.
     vectors = embed([c.embedded_text for c in chunk_list])
     if len(vectors) != len(chunk_list) or any(len(v) != dimensions for v in vectors):
         raise ValueError(f"the embeddings do not give one {dimensions}-value vector per chunk")
+    if exists:
+        index_client.delete_index(name)
+    index_client.create_index(index_definition(name, dimensions))
     documents = [
         asdict(c) | {"serves": list(c.serves), "content_sha256": c.content_sha256, VECTOR_FIELD: v}
         for c, v in zip(chunk_list, vectors, strict=True)

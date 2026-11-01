@@ -226,6 +226,26 @@ def test_build_pushes_every_chunk_with_its_vector():
     assert search.uploaded[0]["serves"] == ["case-a", "case-b"]
 
 
+def test_failed_embedding_leaves_the_index_alone():
+    # A rebuild that cannot embed must not have deleted or created anything.
+    indexes = FakeIndexes()
+
+    def failing_embed(texts):
+        raise RuntimeError("401")
+
+    with pytest.raises(RuntimeError, match="401"):
+        build(
+            "hindcast-library-1024",
+            1024,
+            sample_chunks(),
+            replace=True,
+            index_client=indexes,
+            search_client=FakeSearch(count=3),
+            embed=failing_embed,
+        )
+    assert indexes.deleted == [] and indexes.created == []
+
+
 def test_build_with_replace_recreates_the_index():
     indexes = FakeIndexes()
 
