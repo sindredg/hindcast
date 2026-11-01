@@ -1,6 +1,6 @@
 # Milestone 3: Retrieval
 
-Status: Built on 2026-11-01. The library index is live and its [gate](#gate) checks pass on it; the independent review has not run yet. The milestone state is in the [roadmap](../roadmap.md).
+Status: Verified on 2026-11-01. The library index is live, its [gate](#gate) checks pass on it, and the [independent review](#independent-review) ran with its fixes in. The milestone state is in the [roadmap](../roadmap.md).
 
 ## Scope
 
