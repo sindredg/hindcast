@@ -162,6 +162,7 @@ def describe_chart(
             field: field_value(content, field)
             for field in ("description", "alt_text", "text_in_image")
         },
+        "model": result["model"],
     }
     data = (json.dumps(described, indent=2, ensure_ascii=False) + "\n").encode()
     upload_bytes("extracted", name, data, overwrite=replace, client=uploader)

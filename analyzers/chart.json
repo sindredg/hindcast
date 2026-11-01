@@ -3,7 +3,7 @@
   "description": "Traffic and routing charts: what is visible in the image, the text in it, and alt text.",
   "baseAnalyzerId": "prebuilt-image",
   "models": {
-    "completion": "gpt-5-mini"
+    "completion": "gpt-5.4-mini"
   },
   "fieldSchema": {
     "name": "chart",

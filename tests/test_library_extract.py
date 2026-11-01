@@ -169,7 +169,11 @@ class FakeAnalyzer:
                     "text_in_image": {"valueString": "Requests"},
                 }
             }
-        return {"result": {"contents": [content]}, "usage": {"tokens": {"gpt-5-mini-input": 10}}}
+        return {
+            "result": {"contents": [content]},
+            "usage": {"tokens": {"gpt-5.4-mini-input": 10}},
+            "model": {"deployment": "extraction", "name": "gpt-5.4-mini", "version": "2026-03-17"},
+        }
 
 
 def test_published_date_must_match_the_registry():
@@ -192,7 +196,12 @@ def test_extract_document_describes_each_figure_and_never_displays_it():
     assert all(f.display is False and f.description == "A line chart." for f in extracted.figures)
     assert analyzer.calls[0] == ("hindcast_postmortem", "text/html")
     assert analyzer.calls[1:] == [("hindcast_chart", "image/png")] * 2
-    assert usage["tokens"]["gpt-5-mini-input"] == 30
+    assert usage["tokens"]["gpt-5.4-mini-input"] == 30
+    assert extracted.model == {
+        "deployment": "extraction",
+        "name": "gpt-5.4-mini",
+        "version": "2026-03-17",
+    }
     assert json.loads(extracted.to_json())["doc_id"] == "cloudflare-2025-06-12"
 
 

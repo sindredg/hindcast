@@ -20,6 +20,7 @@ FULL_ENV = {
     "HINDCAST_EMBEDDING_DEPLOYMENT": "embedding",
     "HINDCAST_EMBEDDING_DIMENSIONS": "3072",
     "HINDCAST_CU_ENDPOINT": "https://example.services.ai.azure.com/",
+    "HINDCAST_EXTRACTION_DEPLOYMENT": "extraction",
 }
 
 # The .env the foundations runbook writes: search and embedding stay empty
@@ -43,8 +44,15 @@ def test_runbook_env_loads_what_milestone_2_needs():
         judge_deployment="judge",
     )
     assert load_settings(ExtractionSettings, RUNBOOK_ENV) == ExtractionSettings(
-        cu_endpoint="https://example.services.ai.azure.com/"
+        cu_endpoint="https://example.services.ai.azure.com/", extraction_deployment="extraction"
     )
+
+
+def test_extraction_settings_name_the_missing_deployment():
+    env = {k: v for k, v in RUNBOOK_ENV.items() if k != "HINDCAST_EXTRACTION_DEPLOYMENT"}
+
+    with pytest.raises(ConfigError, match="HINDCAST_EXTRACTION_DEPLOYMENT"):
+        load_settings(ExtractionSettings, env)
 
 
 def test_search_settings_name_every_missing_variable():

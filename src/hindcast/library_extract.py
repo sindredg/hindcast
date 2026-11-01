@@ -52,6 +52,9 @@ class ExtractedDocument:
     sections: tuple[Section, ...]
     figures: tuple[Figure, ...]
     dropped: tuple[str, ...]
+    # The extraction model's deployment, name, and version. None only in
+    # extracts made before it was recorded (2026-10-27, gpt-5-mini 2025-08-07).
+    model: dict | None = None
 
     def to_json(self) -> bytes:
         return (json.dumps(asdict(self), indent=2, ensure_ascii=False) + "\n").encode()
@@ -419,7 +422,12 @@ def extract_document(
         )
     return (
         ExtractedDocument(
-            doc.doc_id, doc.published_at, tuple(sections), tuple(figures), tuple(dropped)
+            doc.doc_id,
+            doc.published_at,
+            tuple(sections),
+            tuple(figures),
+            tuple(dropped),
+            result["model"],
         ),
         usage,
     )

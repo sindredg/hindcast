@@ -11,10 +11,21 @@ from hindcast.extract import (
     ANALYZERS,
     AnalyzerDiffers,
     analyze,
+    check_analyzer,
     definition,
     ensure_analyzers,
     replace_analyzer,
 )
+
+MODEL = {"deployment": "extraction", "name": "gpt-5.4-mini", "version": "2026-03-17"}
+
+
+@pytest.fixture(autouse=True)
+def fresh_checks():
+    # Each analyzer is checked once per process; a test starts with none checked.
+    check_analyzer.cache_clear()
+    yield
+    check_analyzer.cache_clear()
 
 
 def test_every_analyzer_file_is_valid_json_with_its_id():
@@ -22,10 +33,10 @@ def test_every_analyzer_file_is_valid_json_with_its_id():
     for analyzer_id, path in ANALYZERS.items():
         data = json.loads(Path(path).read_text(encoding="utf-8"))
         assert data["analyzerId"] == analyzer_id
-        # gpt-5-mini is a deployed model on the GA API's supported list. The
-        # document base also needs an embedding model; named here, the base's
-        # own alias is never resolved.
-        models = {"completion": "gpt-5-mini"}
+        # gpt-5.4-mini is a pinned deployment on the GA API's supported list.
+        # The document base also needs an embedding model; named here, the
+        # base's own alias is never resolved.
+        models = {"completion": "gpt-5.4-mini"}
         if data["baseAnalyzerId"] == "prebuilt-document":
             models["embedding"] = "text-embedding-3-large"
         assert data["models"] == models, analyzer_id
@@ -145,18 +156,62 @@ def test_an_analyzer_that_differs_from_its_file_is_refused():
     assert client.created == []
 
 
-def test_analyze_returns_the_result_and_its_usage():
-    class Client:
-        def begin_analyze_binary(self, analyzer_id, binary_input, *, content_type):
-            self.call = (analyzer_id, binary_input, content_type)
-            return FakePoller(FakeAnalyzer({"contents": []}), FakeAnalyzer({"tokens": {"a": 1}}))
+class AnalyzeClient(FakeClient):
+    """Serves the committed analyzers and records each analysis."""
 
-    client = Client()
+    def __init__(self, existing: dict[str, dict] | None = None):
+        super().__init__(
+            existing or {analyzer_id: as_served(analyzer_id) for analyzer_id in ANALYZERS}
+        )
+        self.gets: list[str] = []
+        self.calls: list[tuple] = []
 
-    out = analyze("hindcast_chart", b"\x89PNG", "image/png", client=cast(CU, client))
+    def get_analyzer(self, analyzer_id: str) -> FakeAnalyzer:
+        self.gets.append(analyzer_id)
+        return super().get_analyzer(analyzer_id)
 
-    assert client.call == ("hindcast_chart", b"\x89PNG", "image/png")
-    assert out == {"result": {"contents": []}, "usage": {"tokens": {"a": 1}}}
+    def begin_analyze_binary(self, analyzer_id, binary_input, *, content_type):
+        self.calls.append((analyzer_id, binary_input, content_type))
+        return FakePoller(FakeAnalyzer({"contents": []}), FakeAnalyzer({"tokens": {"a": 1}}))
+
+
+def test_analyze_returns_the_result_its_usage_and_the_model():
+    client = AnalyzeClient()
+
+    out = analyze(
+        "hindcast_chart", b"\x89PNG", "image/png", client=cast(CU, client), model=lambda: MODEL
+    )
+
+    assert client.calls == [("hindcast_chart", b"\x89PNG", "image/png")]
+    assert out == {"result": {"contents": []}, "usage": {"tokens": {"a": 1}}, "model": MODEL}
+
+
+def test_analyze_refuses_a_changed_analyzer():
+    client = AnalyzeClient()
+    client.existing["hindcast_chart"]["fieldSchema"]["fields"].pop("alt_text")
+
+    with pytest.raises(AnalyzerDiffers, match="hindcast_chart"):
+        analyze("hindcast_chart", b"x", "image/png", client=cast(CU, client), model=lambda: MODEL)
+    assert client.calls == []
+
+
+def test_analyze_refuses_a_model_mismatch():
+    client = AnalyzeClient()
+    older = MODEL | {"name": "gpt-5-mini", "version": "2025-08-07"}
+
+    with pytest.raises(AnalyzerDiffers, match="gpt-5-mini"):
+        analyze("hindcast_chart", b"x", "image/png", client=cast(CU, client), model=lambda: older)
+    assert client.calls == []
+
+
+def test_analyze_checks_each_analyzer_once():
+    client = AnalyzeClient()
+
+    for _ in range(2):
+        analyze("hindcast_chart", b"x", "image/png", client=cast(CU, client), model=lambda: MODEL)
+
+    assert client.gets == ["hindcast_chart"]
+    assert len(client.calls) == 2
 
 
 def test_replace_analyzer_recreates_it_from_its_file_without_a_delete():
