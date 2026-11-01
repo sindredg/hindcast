@@ -1,9 +1,20 @@
 import json
+import re
+from dataclasses import asdict
+from pathlib import Path
 
 import pytest
 from azure.core.exceptions import ResourceNotFoundError
 
-from hindcast.index import Chunk, build, chunks, index_definition, load_chunks
+from hindcast.index import (
+    Chunk,
+    build,
+    check_chunks,
+    check_filter,
+    chunks,
+    index_definition,
+    load_chunks,
+)
 from hindcast.library import LibraryDocument
 from hindcast.storage import SourceMismatch
 
@@ -282,3 +293,128 @@ def test_build_checks_the_extract_against_its_blob(tmp_path):
     assert len(load_chunks({"doc": doc()}, tmp_path, FakeBlobs({"library/doc.json": local}))) == 1
     with pytest.raises(SourceMismatch, match="doc"):
         load_chunks({"doc": doc()}, tmp_path, FakeBlobs({"library/doc.json": local + b" "}))
+
+
+# The gate checks run against the live index; here a stub applies the filter.
+FILTER_DATE = re.compile(r"published_at lt (\S+)")
+FILTER_SERVES = re.compile(r"serves/any\(s: s eq '([^']+)'\)")
+
+
+class FilteringSearch:
+    """Applies the two filter clauses hindcast.search builds to canned documents."""
+
+    def __init__(self, documents: list[dict]):
+        self.documents = documents
+
+    def search(self, search_text=None, **kwargs):
+        query_filter = kwargs.get("filter") or ""
+        out = self.documents
+        if date := FILTER_DATE.search(query_filter):
+            out = [d for d in out if d["published_at"] < date.group(1)]
+        if serves := FILTER_SERVES.search(query_filter):
+            out = [d for d in out if serves.group(1) in d["serves"]]
+        return iter(
+            [d | {"@search.score": 1.0, "@search.reranker_score": None} for d in out][
+                : kwargs.get("top") or None
+            ]
+        )
+
+
+def gate_library():
+    from hindcast.cases import load_cases
+
+    cases = load_cases(Path("data/cases.yaml"))
+    dev = cases["cloudflare-2026-02-20"]
+    scored = cases["cloudflare-2025-11-18"]
+    library = {
+        "pick-dev": doc(doc_id="pick-dev", published_at="2025-06-12", serves=(dev.case_id,)),
+        "pick-scored": doc(
+            doc_id="pick-scored", published_at="2025-06-12", serves=(scored.case_id,)
+        ),
+    }
+    cases = {dev.case_id: dev, scored.case_id: scored}
+    indexed: list[dict] = [
+        asdict(c) | {"serves": list(c.serves)}
+        for d in library.values()
+        for c in chunks(
+            extract([section(1, "Body.") | {"section_id": f"lib/{d.doc_id}/s1"}])
+            | {"doc_id": d.doc_id},
+            d,
+        )
+    ]
+    return cases, library, indexed
+
+
+def test_check_filter_passes_on_an_exact_set():
+    cases, library, indexed = gate_library()
+    refs = {str(d["ref"]) for d in indexed}
+
+    problems = check_filter(
+        cases,
+        library,
+        {},
+        client=FilteringSearch(indexed),
+        embed=lambda texts: [[0.1] for _ in texts],
+        refs=refs,
+    )
+
+    assert problems == []
+
+
+def test_check_filter_reports_a_shifted_start():
+    cases, library, indexed = gate_library()
+
+    problems = check_filter(
+        cases,
+        library,
+        {},
+        client=FilteringSearch(indexed),
+        embed=lambda texts: [[0.1] for _ in texts],
+        refs={str(d["ref"]) for d in indexed},
+        shift_start="cloudflare-2025-11-18",
+    )
+
+    assert problems and "cloudflare-2025-11-18" in problems[0] and "pick-scored" in problems[0]
+
+
+def test_check_filter_reports_a_leak_from_a_query():
+    cases, library, indexed = gate_library()
+
+    class Leaky(FilteringSearch):
+        def search(self, search_text=None, **kwargs):
+            if search_text == "*":
+                return super().search(search_text, **kwargs)
+            return super().search(search_text, top=kwargs.get("top"))
+
+    problems = check_filter(
+        cases,
+        library,
+        {},
+        client=Leaky(indexed),
+        embed=lambda texts: [[0.1] for _ in texts],
+        refs={str(d["ref"]) for d in indexed},
+    )
+
+    assert any("may not read" in p for p in problems)
+
+
+def test_check_chunks_reports_missing_extra_and_changed():
+    expected = sample_chunks()
+    indexed = [{"id": c.id, "ref": c.ref, "content_sha256": c.content_sha256} for c in expected[1:]]
+    indexed[0]["content_sha256"] = "0" * 64
+    indexed.append({"id": "lib_doc_s9_p0", "ref": "lib/doc/s9", "content_sha256": "1" * 64})
+
+    problems = check_chunks(indexed, expected)
+
+    assert problems == [
+        "missing from the index: lib_doc_s1_p0",
+        "not in the extracts: lib_doc_s9_p0",
+        "content differs: lib_doc_s2_p0",
+    ]
+    assert (
+        check_chunks(
+            [{"id": c.id, "ref": c.ref, "content_sha256": c.content_sha256} for c in expected],
+            expected,
+        )
+        == []
+    )

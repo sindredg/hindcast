@@ -22,8 +22,8 @@ import functools
 import hashlib
 import json
 import re
-from collections.abc import Callable, Iterable, Mapping
-from dataclasses import asdict, dataclass
+from collections.abc import Callable, Collection, Iterable, Mapping
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import Any, Literal, Protocol
 
@@ -45,6 +45,7 @@ from azure.search.documents.indexes.models import (
     VectorSearchProfile,
 )
 
+from hindcast.cases import Case
 from hindcast.library import LibraryDocument
 from hindcast.storage import BlobContainer, SourceMismatch
 
@@ -304,6 +305,89 @@ def embedder(dimensions: int) -> Embed:
     return embed
 
 
+HOSTILE_QUERIES = (
+    "' or 1 eq 1 or '",
+    '") or (published_at gt 2000-01-01',
+    "$filter=published_at gt 2030-01-01",
+    "*",
+)
+
+
+def _listed_docs(client: Any, query_filter: str) -> set[str]:
+    return {d["doc_id"] for d in client.search("*", filter=query_filter, select=["doc_id"])}
+
+
+def check_filter(
+    cases: Mapping[str, Case],
+    library: Mapping[str, LibraryDocument],
+    symptoms: Mapping[str, list[str]],
+    *,
+    client: Any,
+    embed: Embed,
+    refs: Collection[str],
+    shift_start: str | None = None,
+) -> list[str]:
+    """Problems with the live filter: a listed set that differs from the registry's, or a leak.
+
+    shift_start moves that case's start a year earlier when the filter is
+    built, and only then, so a working check reports the documents it loses.
+    """
+    from hindcast.search import LibraryLeak, allowed, library_filter, search_library
+
+    problems = []
+    for case_id, case in sorted(cases.items()):
+        built_from = case
+        if case_id == shift_start:
+            built_from = replace(
+                case, started_at=f"{int(case.started_at[:4]) - 1}{case.started_at[4:]}"
+            )
+        expected = {d for d, doc in library.items() if allowed(case, doc)}
+        listed = _listed_docs(client, library_filter(built_from, library))
+        if listed != expected:
+            problems.append(
+                f"{case_id}: listed but not allowed {sorted(listed - expected)}, "
+                f"allowed but not listed {sorted(expected - listed)}"
+            )
+        for query in [*symptoms.get(case_id, []), *HOSTILE_QUERIES]:
+            try:
+                search_library(
+                    case_id,
+                    query,
+                    cases=cases,
+                    library=library,
+                    refs=refs,
+                    client=client,
+                    embed=embed,
+                )
+            except LibraryLeak as leak:
+                problems.append(str(leak))
+    return problems
+
+
+def check_chunks(indexed: list[dict], expected: list[Chunk]) -> list[str]:
+    """Chunks missing from the index, extra in it, or with other content or another ref."""
+    have = {d["id"]: d for d in indexed}
+    want = {c.id: c for c in expected}
+    problems = [f"missing from the index: {i}" for i in sorted(want.keys() - have.keys())]
+    problems += [f"not in the extracts: {i}" for i in sorted(have.keys() - want.keys())]
+    for i in sorted(want.keys() & have.keys()):
+        if have[i]["ref"] != want[i].ref:
+            problems.append(f"ref differs: {i}")
+        if have[i]["content_sha256"] != want[i].content_sha256:
+            problems.append(f"content differs: {i}")
+    return problems
+
+
+def symptom_quotes(path: Path = Path("data/library.yaml")) -> dict[str, list[str]]:
+    from ruamel.yaml import YAML
+
+    data = YAML(typ="safe", pure=True).load(path)
+    return {
+        case_id: [tag["quote"] for tag in tags if tag["quote"].strip()]
+        for case_id, tags in (data.get("symptoms") or {}).items()
+    }
+
+
 def index_name(dimensions: int) -> str:
     return f"hindcast-library-{dimensions}"
 
@@ -334,6 +418,9 @@ def main(argv: list[str] | None = None) -> int:
     build_cmd = commands.add_parser("build", help="create one index and push the library")
     build_cmd.add_argument("--dimensions", type=int, choices=(1024, 3072), required=True)
     build_cmd.add_argument("--replace", action="store_true")
+    filter_cmd = commands.add_parser("check-filter", help="check the live filter for every case")
+    filter_cmd.add_argument("--shift-start", metavar="CASE_ID", help="the broken-input run")
+    commands.add_parser("check-chunks", help="check every chunk against the extracts")
     args = parser.parse_args(argv)
 
     if args.command == "build":
@@ -355,7 +442,37 @@ def main(argv: list[str] | None = None) -> int:
             f"{name}: {count} chunks ({kinds['section']} section parts, {kinds['figure']} figures)"
         )
         print(f"  embedding: {model['deployment']} {model['name']} {model['version']}")
-    return 0
+        return 0
+
+    from hindcast.cases import load_cases
+    from hindcast.config import SearchSettings, load_settings
+
+    settings = load_settings(SearchSettings)
+    _, search_client = clients(settings.search_index)
+    if args.command == "check-filter":
+        from hindcast.search import extract_refs
+
+        cases = load_cases()
+        problems = check_filter(
+            cases,
+            _library(),
+            symptom_quotes(),
+            client=search_client,
+            embed=embedder(settings.embedding_dimensions),
+            refs=extract_refs(),
+            shift_start=args.shift_start,
+        )
+        print(f"{settings.search_index}: {len(cases)} cases, {len(problems)} problems")
+    else:
+        indexed = list(search_client.search("*", select=["id", "ref", "content_sha256"]))
+        problems = check_chunks(indexed, load_chunks(_library()))
+        print(
+            f"{settings.search_index}: {len(indexed)} chunks listed, "
+            f"{search_client.get_document_count()} counted, {len(problems)} problems"
+        )
+    for problem in problems:
+        print(f"  {problem}")
+    return 1 if problems else 0
 
 
 if __name__ == "__main__":
