@@ -4,7 +4,7 @@ One frozen key per case: what the provider's own postmortem says happened. Miles
 
 ## Status
 
-Frozen on 2026-10-27, before any scored run, with the prior-knowledge answers still unread. [`frozen.json`](frozen.json) records each key's SHA-256, and `tests/test_keys.py` fails if a key file changes or a frozen key has no file. A changed key is a new review, not an edit.
+Four keys frozen on 2026-10-27 and `github-2026-10-07` on 2026-11-01, each before any scored run, with the prior-knowledge answers still unread. A sealed case gets its key once its provider has published a cause ([decision 0017](../../docs/decisions/0017-sealed-reconstructions.md)). [`frozen.json`](frozen.json) records each key's SHA-256, and `tests/test_keys.py` fails if a key file changes or a frozen key has no file. A changed key is a new review, not an edit.
 
 ## Files
 
@@ -13,6 +13,7 @@ Frozen on 2026-10-27, before any scored run, with the prior-knowledge answers st
 | [`cloudflare-2025-11-18.json`](cloudflare-2025-11-18.json) | Scored case |
 | [`github-2026-08-17.json`](github-2026-08-17.json) | Scored case |
 | [`google-cloud-2026-07-14.json`](google-cloud-2026-07-14.json) | Scored case |
+| [`github-2026-10-07.json`](github-2026-10-07.json) | Scored case, began after both pinned model versions were released |
 | [`cloudflare-2026-02-20.json`](cloudflare-2026-02-20.json) | Development case, not scored |
 | [`frozen.json`](frozen.json) | SHA-256 of each key |
 
@@ -34,11 +35,11 @@ Frozen on 2026-10-27, before any scored run, with the prior-knowledge answers st
 
 ## How the keys were made
 
-Each postmortem was cut to its article (and, for GitHub's monthly report, to the case's incident) and extracted with the `hindcast_answer_key` analyzer ([`analyzers/answer-key.json`](../../analyzers/answer-key.json)). Each draft was then checked field by field against its postmortem: wrong values corrected, missing factors and events added, steps taken during the outage moved out of the fixes, and every time converted to UTC. Every quote, including those added in review, appears word for word in the captured postmortem: `tests/test_keys.py::test_every_frozen_quote_appears_in_its_postmortem` checks it where the captured pages are present. The corrections were approved before freezing. The procedure is in the [extraction runbook](../../docs/runbooks/extraction.md).
+Each postmortem was cut to its article (for GitHub's monthly report, to the case's incident; for GitHub 2026-10-07, to the resolved update of its status incident, where GitHub wrote its summary of both outages) and extracted with the `hindcast_answer_key` analyzer ([`analyzers/answer-key.json`](../../analyzers/answer-key.json)). Each draft was then checked field by field against its postmortem: wrong values corrected, missing factors and events added, steps taken during the outage moved out of the fixes, and every time converted to UTC. Every quote, including those added in review, appears word for word in the captured postmortem: `tests/test_keys.py::test_every_frozen_quote_appears_in_its_postmortem` checks it where the captured pages are present. The corrections were approved before freezing. The procedure is in the [extraction runbook](../../docs/runbooks/extraction.md).
 
 ## Limits
 
-- All four keys say `not an attack`. A reconstruction that always answers "not an attack" gets every verdict right, so the evaluation reports the attack verdict together with its reasoning and citations, never as accuracy alone.
+- All five keys say `not an attack`. A reconstruction that always answers "not an attack" gets every verdict right, so the evaluation reports the attack verdict together with its reasoning and citations, never as accuracy alone.
 - A postmortem can disagree with itself. Where it gives two times for the same event, both are kept with their own quotes (Cloudflare 2025-11-18 gives 11:20 and 11:28 for the start). The GitHub key's end time is 13:40 UTC plus the duration in the report's heading; the report's impact summary gives a shorter duration.
 - `stated_during_incident` is a judgment about meaning, not a string match.
 - The keys have been public in this repository since 2026-10-27. The prior-knowledge check covers the postmortems, not this repository, so a model version released after that day may have seen the keys. Every model version pinned today predates it; the evaluation report records the comparison per model ([roadmap, milestone 5](../../docs/roadmap.md#5-evaluation)).
@@ -52,4 +53,5 @@ Each key quotes short passages from the provider's postmortem, under the copyrig
 | `cloudflare-2025-11-18` | Cloudflare blog, [Cloudflare outage on November 18, 2025](https://blog.cloudflare.com/18-november-2025-outage/) |
 | `github-2026-08-17` | GitHub blog, [GitHub availability report: August 2026](https://github.blog/news-insights/company-news/github-availability-report-august-2026/), incident of August 17 |
 | `google-cloud-2026-07-14` | Google Cloud Service Health, [incident T8gmtofFSTGT5tbhyciF](https://status.cloud.google.com/incidents/T8gmtofFSTGT5tbhyciF) |
+| `github-2026-10-07` | GitHub status page, [incident djlmxz2zd0j7](https://www.githubstatus.com/incidents/djlmxz2zd0j7), resolved update |
 | `cloudflare-2026-02-20` | Cloudflare blog, [Cloudflare outage on February 20, 2026](https://blog.cloudflare.com/cloudflare-outage-february-20-2026/) |

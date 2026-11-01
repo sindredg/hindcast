@@ -7,17 +7,22 @@
 # the exact file and retrieved_at says when it was taken, so a changed upstream
 # copy fails verify_local_files instead of being read.
 #
-# kind status-updates is the evidence. kind chart is a Cloudflare Radar image,
-# committed under data/charts/<case_id>/ (CC BY 4.0, see its README), and
-# described as evidence. kind postmortem is the answer key and
-# never reaches the investigator. Google Cloud's status snapshot also holds the
+# kind status-updates is the evidence; a case can have several, one per status
+# incident (an outage and its recurrence), cut and merged by time. kind chart
+# is a Cloudflare Radar image, committed under data/charts/<case_id>/ (CC BY
+# 4.0, see its README), and described as evidence. kind postmortem is the
+# answer key and never reaches the investigator. Google Cloud's status snapshot also holds the
 # incident report entries Google adds after the outage; the evidence cut
 # removes them.
 #
 # title is the incident's public title on the status page, as the provider
 # wrote it. started_at is when the outage began, as the status snapshot states
-# it (Statuspage started_at, Google begin), in UTC to the second; the library
-# only serves a case documents published before it.
+# it (Statuspage started_at, Google begin), or the first update if that is
+# earlier, in UTC to the second; the library only serves a case documents
+# published before it.
+#
+# role sealed marks an outage reconstructed before its provider published a
+# cause; it has no postmortem source yet (decision 0017).
 
 cases:
   - case_id: cloudflare-2025-11-18
