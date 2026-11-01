@@ -146,3 +146,51 @@ cases:
         sha256: be0a94a963c5594d8ca333d4ade0daefe516d7399ef039e1355986c8a71f11e3
         retrieved_at: "2026-10-27T17:21:49Z"
         kind: chart
+
+  # Sealed cases: run before the provider has published a cause, recorded by
+  # the hash of each result in eval/sealed/seals.json (decision 0017). Each
+  # gets its postmortem source and the role showcase once it is published.
+  - case_id: cloudflare-2026-10-20
+    title: Cloudflare Zero Trust connectivity
+    provider: Cloudflare
+    role: sealed
+    started_at: "2026-10-20T03:20:42Z"
+    sources:
+      - doc_id: cloudflare-status-2026-10-20
+        filename: cloudflare-status-2026-10-20.json
+        url: https://www.cloudflarestatus.com/api/v2/incidents/0eqtn0khkz87.json
+        licence: Copyright Cloudflare; not redistributed
+        attribution: Cloudflare status page
+        sha256: 52e4a1dc3ee73612b81b294020be2887d7d0b357bed2706a90452dc2a7d35118
+        retrieved_at: "2026-11-01T08:15:52Z"
+        kind: status-updates
+
+  - case_id: github-2026-10-21
+    title: Delays for Pull Requests and Webhook deliveries
+    provider: GitHub
+    role: sealed
+    started_at: "2026-10-21T14:52:49Z"
+    sources:
+      - doc_id: github-status-2026-10-21
+        filename: github-status-2026-10-21.json
+        url: https://www.githubstatus.com/api/v2/incidents/nms1dpzmh9d9.json
+        licence: Copyright GitHub; not redistributed
+        attribution: GitHub status page
+        sha256: 3b90d46afbd3b1f2567bbafeab1bdb622c8272e976b36f57820b4b4f69b043c4
+        retrieved_at: "2026-11-01T08:15:51Z"
+        kind: status-updates
+
+  - case_id: github-2026-10-22
+    title: Project updates delayed
+    provider: GitHub
+    role: sealed
+    started_at: "2026-10-22T15:28:03Z"
+    sources:
+      - doc_id: github-status-2026-10-22
+        filename: github-status-2026-10-22.json
+        url: https://www.githubstatus.com/api/v2/incidents/wq8305lppdc2.json
+        licence: Copyright GitHub; not redistributed
+        attribution: GitHub status page
+        sha256: 401dcc1087581ef13f27bcbfde93b685d6f0ce3a0ed15a3216aaa0bb7c506e40
+        retrieved_at: "2026-11-01T08:15:51Z"
+        kind: status-updates
