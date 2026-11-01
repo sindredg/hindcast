@@ -1,7 +1,7 @@
 import pytest
 
 from hindcast.keys import AnswerKey, KeyItem, TimelineEvent
-from hindcast.leak import RUN_WORDS, LeakHit, hits, runs
+from hindcast.leak import RUN_WORDS, LeakHit, hits, library_sources, runs
 
 CAUSE = "a database permissions change doubled the size of the feature file"
 FACTOR = "the proxy had a hard limit on the number of features it could load"
@@ -85,3 +85,22 @@ def test_a_key_with_no_unstated_items_is_refused():
 def test_no_sources_is_refused():
     with pytest.raises(ValueError, match="could not fail"):
         hits(key(), {})
+
+
+class EmptySearch:
+    def search(self, search_text=None, **kwargs):
+        return iter([])
+
+
+def test_an_empty_filtered_library_is_refused():
+    # Evidence alone would satisfy hits(); a wrong or empty index must not pass as 0 hits.
+    from pathlib import Path
+
+    from hindcast.cases import load_cases
+    from hindcast.library import load_library
+
+    cases = load_cases(Path("data/cases.yaml"))
+    library = load_library(Path("data/library.yaml"), cases)
+
+    with pytest.raises(ValueError, match="no library chunks"):
+        library_sources("cloudflare-2026-02-20", EmptySearch(), library, cases)

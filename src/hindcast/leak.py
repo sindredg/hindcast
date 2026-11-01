@@ -96,10 +96,17 @@ def library_sources(
     from hindcast.search import library_filter
 
     query_filter = library_filter(cases[case_id], library)
-    return {
+    found = {
         d["id"]: d["content"]
         for d in client.search("*", filter=query_filter, select=["id", "content"])
     }
+    # Every keyed case has picks, so an empty result means a wrong or empty
+    # index, and the library half of the check could not fail.
+    if not found:
+        raise ValueError(
+            f"{case_id}: the filter returned no library chunks; the check could not fail"
+        )
+    return found
 
 
 def main(argv: list[str] | None = None) -> int:
