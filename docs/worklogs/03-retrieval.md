@@ -29,8 +29,8 @@ The investigator's library tool and library citations are milestone 4's second s
 ### Gate checks
 
 - `python -m hindcast.index check-filter` lists, for every case, the documents the live filter returns for `*` and compares the set with one computed from the registries. It then runs each case's symptom quotes and four hostile queries (`' or 1 eq 1 or '`, `") or (published_at gt 2000-01-01`, `$filter=published_at gt 2030-01-01`, `*`) through the bound search. `--shift-start <case_id>` moves one case's start a year earlier in memory: the broken-input run.
-- `python -m hindcast.index check-chunks` compares every indexed chunk with the chunks rebuilt from the extracts, by ID, `ref`, and content SHA-256, in both directions.
-- `python -m hindcast.leak` normalizes each answer-key item not stated during the incident and reports any 8-word run it shares with the case's evidence updates or with a chunk the case's filter returns from the live index. It refuses a case with nothing to compare. `--plant` adds one in-memory chunk holding a key item's quote and requires that item among the hits.
+- `python -m hindcast.index check-chunks` compares every indexed chunk with the chunks rebuilt from the extracts, in both directions, by ID, `ref`, and the SHA-256 of the indexed text.
+- `python -m hindcast.leak` normalizes each answer-key item not stated during the incident and reports any 8-word run it shares with the case's evidence updates or with a chunk the case's filter returns from the live index. It refuses a case with nothing to compare, or whose filter returns no library chunk. `--plant` adds one in-memory chunk holding a key item's quote, requires that item among the hits, and fails on any other hit.
 
 ### The frozen quality check
 
@@ -52,7 +52,7 @@ All on 2026-11-01, live, from the developer's sign-in. Times are UTC.
 | First build | 404 on embeddings through the project endpoint ([troubleshooting](../troubleshooting.md#retrieval-the-first-index-build-fails-with-404-on-embeddings-2026-11-01)); embeddings moved to the resource endpoint |
 | Builds | `build --dimensions 1024`, 12:51:36 to 12:53:55, and `--dimensions 3072`, 12:53:58 to 12:56:17: each `267 chunks (202 section parts, 65 figures)`, embedding `text-embedding-3-large` version 1 |
 | Quality | Query set SHA-256 checked before the run. 1,024: mean recall@5 0.640, MRR 0.702. 3,072: 0.544, 0.695. The frozen rule keeps 1,024 ([results](../../eval/retrieval/library-v1/README.md#status)) |
-| Clean-up | Content Understanding Contributor removed at 13:18:02; gpt-5-mini deleted at 13:18:04; `hindcast-library-3072` deleted at 13:18:06 (204). Read back: OpenAI User is the only role left on the resource, the deployment list has no gpt-5-mini, and the service lists one index |
+| Clean-up | Content Understanding Contributor removed at 13:18:02; gpt-5-mini deleted at 13:18:04; `hindcast-library-3072` deleted at 13:18:06 (204). Read back: OpenAI User is the only role left on the resource, the deployment list has no gpt-5-mini, and the service lists one index. Content Understanding still accepted reads and a defaults write more than 85 minutes after the role was removed; the refusal was not observed ([finding](../findings/identity-and-access.md#content-understanding-kept-answering-for-more-than-85-minutes-after-its-role-was-removed-2026-11-01)) |
 
 The results files name the run commits from before the branch was rebased onto `main`; the results README gives the tree hashes that tie them to the public history ([#39](https://github.com/sindredg/hindcast/issues/39)).
 
@@ -62,8 +62,8 @@ The results files name the run commits from before the branch was rebased onto `
 |---|---|---|
 | The search service exists and the code reaches it with an Entra token; a request without a token is refused, and key access is off | Tested live | 12:01:39: `disableLocalAuth: true` read from the service; no credential 401; the real admin key in `api-key` 401 (403 expected, [finding](../findings/identity-and-access.md#an-admin-key-gets-401-not-403-when-local-authentication-is-off-2026-11-01)); a bearer token 200. Every build, check, and query below ran with an Entra token |
 | A library search for a case returns only documents published before its outage began and none about the case, including for a query with quotes or a filter expression | Tested live | `check-filter` at 12:57:49: `8 cases, 0 problems`, exit 0, over every case's symptom quotes and the four hostile queries. Broken input `check-filter --shift-start cloudflare-2025-11-18` at 12:58:22: `1 problems`, three documents allowed but not listed, exit 1. "None about the case": the library registry refuses a case's own postmortem, and a sealed case's postmortem would be dated after its start |
-| Every chunk in the index resolves to a section or a chart of a library document | Tested live | `check-chunks` at 12:58:55: `267 chunks listed, 267 counted, 0 problems`, exit 0. The broken inputs (a changed character, a missing section, an extra chunk) ran locally only, in `test_check_chunks_reports_missing_extra_and_changed` |
-| The leak check finds no answer-key fact in a case's evidence or its filtered library, except facts the key marks as stated during the incident | Tested live | `python -m hindcast.leak` at 12:59:10: 0 hits for each of the five cases with a frozen key (17, 17, 8, 11, and 9 unstated items). Broken input `leak --plant` at 12:59:13: each case reports its planted item, exit 0. Sealed cases have no key and are not checked |
+| Every chunk in the index resolves to a section or a chart of a library document | Tested live | `check-chunks` at 12:58:55: `267 chunks listed, 267 counted, 0 problems`, exit 0. Again at 14:39:22, after the check began hashing the indexed text (review fix): the same. The broken inputs (changed indexed text, a changed hash, a missing chunk, an extra chunk) ran locally only, in `test_check_chunks_hashes_the_indexed_text` and `test_check_chunks_reports_missing_extra_and_changed` |
+| The leak check finds no answer-key fact in a case's evidence or its filtered library, except facts the key marks as stated during the incident | Tested live | `python -m hindcast.leak` at 12:59:10: 0 hits for each of the five cases with a frozen key (17, 17, 8, 11, and 9 unstated items), against 143, 74, 79, 44, and 88 library chunks. Broken input `leak --plant` at 12:59:13: each case reports its planted item, exit 0. Both again at 14:39:30 and 14:43:15, after the review fixes (an empty filtered library is refused; a planted run fails on any other hit): the same. Sealed cases have no key and are not checked |
 | The extraction model is pinned, and each result records it (#13) | Tested live | Live run above: `NoAutoUpgrade`, and the test analysis carried `model` |
 | An analyzer that differs from its file, or names another model, is refused before analysis (#15) | Tested live and locally | Live: `AnalyzerDiffers` before the replace. Locally: the tests in the next table |
 | One bound search for the development case returns hits from its picks | Tested live | `python -m hindcast.search cloudflare-2026-02-20 "the last subset of prefixes which were withdrawn"` at 12:59:28: 5 hits, all sections of two documents published in 2022 and 2025, exit 0 |
@@ -85,9 +85,13 @@ Every new check was run once against a broken input on 2026-11-01, locally. Each
 | Relevance taken from `serves` alone | `test_relevance_comes_from_the_reason_quote`, `test_queries_file_matches_the_registry` |
 | A changed query set accepted by `quality` | none at first: the suite passed. Two tests were added, and the break then failed `test_quality_refuses_a_query_set_the_registries_do_not_give` |
 | An uncommitted query set accepted by `quality` | `test_quality_refuses_an_uncommitted_query_set` |
-| CI's Bicep step on a template with a `BCP036` warning | The step's commands, run locally on a copy of `infra/search.bicep` with `replicaCount: '1'`: build exit 0, the step fails on the printed warning; on the committed template it passes |
+| Indexed text changed, its stored hash field not (review fix: added test, failed before the fix) | `test_check_chunks_hashes_the_indexed_text` |
+| The filter returns no library chunk (review fix: added test, failed before the fix) | `test_an_empty_filtered_library_is_refused` |
+| A real hit next to the planted one in a `--plant` run (review fix: added test, failed before the fix) | `test_plant_run_fails_on_a_real_hit_next_to_the_planted_one` |
+| An embedding that fails during `build --replace` (review fix: added test, failed before the fix) | `test_failed_embedding_leaves_the_index_alone` |
+| CI's Bicep step on a template with a `BCP036` warning, and on one that does not build | The step's commands, run locally under `bash -e` with `AZURE_BICEP_CHECK_VERSION=false` (review fix): the committed templates pass; the warning copy (`replicaCount: '1'`) fails with the warning printed; a copy with a syntax error fails with the error printed. Before the fix, the syntax-error copy failed with nothing printed |
 
-With every file restored: `uv run --frozen pytest -q`, 403 passed.
+With every file restored: `uv run --frozen pytest -q`, 403 passed; after the review fixes, 408.
 
 ## A step taken out of order
 
@@ -95,8 +99,25 @@ The October case's answer key was drafted on 2026-11-01, before this milestone, 
 
 ## Independent review
 
-Not run yet.
+On 2026-11-01 a read-only review of the branch at `b80cc25` checked the gate, the filter, the chunks, the leak check, the quality check, the analyzer check, three rows of the broken-input table, the live resources and roles, the findings, the runbook, the decisions, the public text, the versions, and the diagrams. It re-ran the live gate checks and got the recorded output. Each finding was checked against the code before acting on it.
+
+Fixed in this pull request:
+
+| Finding | Fix |
+|---|---|
+| The CI Bicep step fails on any output, and `az bicep build` warns whenever a Bicep newer than the pin is released, so every run would fail after the next release; under `bash -e` a failed build also hid its log | `AZURE_BICEP_CHECK_VERSION=false`; the step records a failure and prints the log (table above) |
+| `check-chunks` compared the stored hash field, never the indexed text | It hashes the indexed text; test added |
+| The leak check passed with an empty filtered library, since evidence alone satisfied its refusal | A case whose filter returns no chunk is refused; test added; the live counts are in the gate row |
+| `leak --plant` exited 0 whatever else it found | Any hit outside the planted source fails the run; tests added |
+| `build --replace` deleted the index before embedding, so a failed embedding left it empty | Embedding runs first; test added |
+| The Content Understanding role removal was never seen refused, and the pages said the role is held only while extraction runs | The [identity findings](../findings/identity-and-access.md) and the pages that state the role record what was observed |
+| The results README gave one `src` tree hash for both run commits; it holds at the code commit only | Reworded |
+| The retrieval diagram said "4,000 characters at most"; three chunks are longer, since a single row or line stays whole | Label corrected |
+
+Planned, not fixed here: [#41](https://github.com/sindredg/hindcast/issues/41), [#42](https://github.com/sindredg/hindcast/issues/42), the commit provenance of `quality` added to [#39](https://github.com/sindredg/hindcast/issues/39), and the Foundry IQ comparison as an open item in the [roadmap](../roadmap.md).
 
 ## Issues opened
 
 - [#39](https://github.com/sindredg/hindcast/issues/39): run results name a commit that a rebase or squash merge rewrites.
+- [#41](https://github.com/sindredg/hindcast/issues/41): extraction does not check that the defaults map its model to the extraction deployment.
+- [#42](https://github.com/sindredg/hindcast/issues/42): the library day bound assumes publish dates are UTC days.
