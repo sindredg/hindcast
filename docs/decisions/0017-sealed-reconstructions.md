@@ -40,6 +40,6 @@ Seal by hash, and add after-release cases where they exist.
 
 - The drop rule loses every case whose provider is slow. GitHub writes a root-cause summary into the resolved update within days; Google Cloud publishes incident reports within days; Cloudflare writes a postmortem only for some incidents, so a Cloudflare seal is the most likely to be dropped. Choosing which seals to keep after seeing their scores would undo the point, so the rule is fixed before the first seal.
 - Sealed cases skip the prior-knowledge check and the single-search baseline (the comparison model runs in the agent's place instead). Their scores are not directly comparable with the showcase cases' baseline columns, and the report has to say so.
-- Without per-case picks, a sealed case tests the library as it stands, decoys included by accident rather than by design.
+- Without per-case picks, a sealed case tests the library as it stands: a document acts as a decoy only if it happens to match, not because it was chosen as one.
 - The hash proves the file is unchanged after the commit time GitHub shows for the push, not that no other run happened. The refusals and the record of every attempt cover that, in code that is itself committed. Someone with access to the Blob container and the workstation could still run the investigator outside the seal command; the record cannot show a run that never went through it.
 - The sealed run happens before the rubric is frozen. Nothing reads the output until then, but the rubric is written knowing that sealed results exist.
