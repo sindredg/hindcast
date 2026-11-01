@@ -1,6 +1,6 @@
 # Extraction: operator procedure
 
-Status: Written on 2026-10-27 for [milestone 2](../worklogs/02-extraction.md). Every step ran on 2026-10-27 with the output shown, except where an "Expected:" line is marked as reasoned. Steps 1, 15 to 17, and 19 ran again on 2026-11-01 for the key of GitHub 2026-10-07 ([worklog 05](../worklogs/05-sealed-reconstructions.md#the-october-case)).
+Status: Written on 2026-10-27 for [milestone 2](../worklogs/02-extraction.md). Every step ran on 2026-10-27 with the output shown, except where an "Expected:" line is marked as reasoned. Steps 1, 15 to 17, 19, and 20 ran again on 2026-11-01 for the key of GitHub 2026-10-07 ([worklog 05](../worklogs/05-sealed-reconstructions.md#the-october-case)).
 
 The procedure turns the captured sources into the case evidence, the library extracts, and the answer keys. Content Understanding needs a role on the Foundry resource only while it runs; the last section removes it.
 
