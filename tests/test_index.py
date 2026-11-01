@@ -494,6 +494,45 @@ def test_queries_file_matches_the_registry():
     assert committed == quality_queries(*quality_inputs())
 
 
+@pytest.fixture
+def frozen_queries(tmp_path, monkeypatch):
+    """A committed query set, with clients() failing so a refusal must come first."""
+    import hindcast.index as index
+
+    queries = tmp_path / "queries.json"
+    queries.write_text(json.dumps([{"query_id": "q1"}]), encoding="utf-8")
+    monkeypatch.setattr(index, "QUERIES", queries)
+    monkeypatch.setattr(index, "quality_inputs", lambda: ({}, {}, {}))
+    monkeypatch.setattr(index, "quality_queries", lambda *_: [{"query_id": "q1"}])
+    monkeypatch.setattr(index, "_git", lambda *args: "" if args[0] == "status" else "queries.json")
+
+    def no_clients(name):
+        raise AssertionError("the run reached the search service")
+
+    monkeypatch.setattr(index, "clients", no_clients)
+    return index
+
+
+def test_quality_refuses_an_uncommitted_query_set(frozen_queries, monkeypatch):
+    monkeypatch.setattr(frozen_queries, "_git", lambda *args: " M queries.json")
+
+    with pytest.raises(SystemExit, match="is not committed"):
+        frozen_queries._quality("hindcast-library-1024")
+
+
+def test_quality_refuses_a_query_set_the_registries_do_not_give(frozen_queries, monkeypatch):
+    monkeypatch.setattr(frozen_queries, "quality_queries", lambda *_: [{"query_id": "q2"}])
+
+    with pytest.raises(SystemExit, match="differs from what the registries give"):
+        frozen_queries._quality("hindcast-library-1024")
+
+
+def test_quality_with_a_frozen_query_set_reaches_the_service(frozen_queries):
+    # The positive case: without it, both refusals above could pass on any early exit.
+    with pytest.raises(AssertionError, match="reached the search service"):
+        frozen_queries._quality("hindcast-library-1024")
+
+
 class FakeEmbeddings:
     def __init__(self):
         self.calls: list[dict] = []
