@@ -44,6 +44,8 @@ class ExtractionSettings:
 class SearchSettings:
     search_endpoint: str
     search_index: str
+    # The Foundry resource endpoint: the project endpoint serves no embeddings.
+    embedding_endpoint: str
     embedding_deployment: str
     embedding_dimensions: int = 1024
 

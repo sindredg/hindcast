@@ -37,6 +37,22 @@ def openai_client() -> OpenAI:
     return project_client().get_openai_client()
 
 
+@functools.cache
+def resource_openai_client(endpoint: str) -> OpenAI:
+    """An openai.OpenAI client on the Foundry resource's /openai/v1 endpoint.
+
+    The project endpoint answers embeddings with 404, so the embedding calls
+    go to the resource, signed in with an Entra token for its audience. They
+    need Cognitive Services OpenAI User on the resource (decision 0019).
+    """
+    from azure.identity import get_bearer_token_provider
+
+    token = get_bearer_token_provider(
+        DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default"
+    )
+    return OpenAI(base_url=f"{endpoint.rstrip('/')}/openai/v1/", api_key=token)
+
+
 def _image_part(image: bytes) -> ResponseInputImageParam:
     mime = next((t for magic, t in IMAGE_TYPES.items() if image.startswith(magic)), None)
     if mime is None:

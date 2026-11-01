@@ -11,7 +11,7 @@ publish date and the cases the document serves, which the search filter
 reads (hindcast.search).
 
 Embeddings are computed here and pushed with the chunks, through the Foundry
-project with an Entra token: no indexer, no skillset, and no key. The index
+resource endpoint with an Entra token: no indexer, no skillset, and no key. The index
 is built from the local extracts after each is checked against its blob in
 Blob Storage, so the index holds what the extraction stored. The command
 prints counts and the embedding model, never chunk text.
@@ -288,13 +288,15 @@ def embedding_model() -> dict:
     return {"deployment": deployment, "name": model_name, "version": version}
 
 
-def embedder(dimensions: int) -> Embed:
-    """Embeds through the Foundry project, EMBED_BATCH texts per call."""
-    from hindcast.config import SearchSettings, load_settings
-    from hindcast.models import openai_client
+def embedder(dimensions: int, *, deployment: str | None = None, client: Any = None) -> Embed:
+    """Embeds through the Foundry resource endpoint, EMBED_BATCH texts per call."""
+    if deployment is None or client is None:
+        from hindcast.config import SearchSettings, load_settings
+        from hindcast.models import resource_openai_client
 
-    deployment = load_settings(SearchSettings).embedding_deployment
-    client = openai_client()
+        settings = load_settings(SearchSettings)
+        deployment = deployment or settings.embedding_deployment
+        client = client or resource_openai_client(settings.embedding_endpoint)
 
     def embed(texts: list[str]) -> list[list[float]]:
         out: list[list[float]] = []
@@ -306,6 +308,26 @@ def embedder(dimensions: int) -> Embed:
         return out
 
     return embed
+
+
+def index_name(dimensions: int) -> str:
+    return f"hindcast-library-{dimensions}"
+
+
+def clients(name: str):
+    """Index and document clients for the configured service, with an Entra token."""
+    from azure.identity import DefaultAzureCredential
+    from azure.search.documents import SearchClient
+    from azure.search.documents.indexes import SearchIndexClient
+
+    from hindcast.config import SearchSettings, load_settings
+
+    endpoint = load_settings(SearchSettings).search_endpoint
+    credential = DefaultAzureCredential()
+    return (
+        SearchIndexClient(endpoint, credential, api_version=SEARCH_API_VERSION),
+        SearchClient(endpoint, name, credential, api_version=SEARCH_API_VERSION),
+    )
 
 
 HOSTILE_QUERIES = (
@@ -495,26 +517,6 @@ def symptom_quotes(path: Path = Path("data/library.yaml")) -> dict[str, list[str
         case_id: [tag["quote"] for tag in tags if tag["quote"].strip()]
         for case_id, tags in (data.get("symptoms") or {}).items()
     }
-
-
-def index_name(dimensions: int) -> str:
-    return f"hindcast-library-{dimensions}"
-
-
-def clients(name: str):
-    """Index and document clients for the configured service, with an Entra token."""
-    from azure.identity import DefaultAzureCredential
-    from azure.search.documents import SearchClient
-    from azure.search.documents.indexes import SearchIndexClient
-
-    from hindcast.config import SearchSettings, load_settings
-
-    endpoint = load_settings(SearchSettings).search_endpoint
-    credential = DefaultAzureCredential()
-    return (
-        SearchIndexClient(endpoint, credential, api_version=SEARCH_API_VERSION),
-        SearchClient(endpoint, name, credential, api_version=SEARCH_API_VERSION),
-    )
 
 
 def _library() -> dict[str, LibraryDocument]:

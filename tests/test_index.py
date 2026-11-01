@@ -492,3 +492,53 @@ def test_queries_file_matches_the_registry():
     committed = json.loads(QUERIES.read_text(encoding="utf-8"))
 
     assert committed == quality_queries(*quality_inputs())
+
+
+class FakeEmbeddings:
+    def __init__(self):
+        self.calls: list[dict] = []
+
+    def create(self, *, model, input, dimensions):
+        self.calls.append({"model": model, "input": list(input), "dimensions": dimensions})
+
+        class Item:
+            def __init__(self, index, text):
+                self.index, self.embedding = index, [float(len(text))] * dimensions
+
+        class Response:
+            # Out of order on purpose: the service gives each item its index.
+            data = [Item(i, t) for i, t in reversed(list(enumerate(input)))]
+
+        return Response()
+
+
+def test_embedder_batches_and_keeps_the_input_order():
+    from types import SimpleNamespace
+
+    from hindcast.index import EMBED_BATCH, embedder
+
+    embeddings = FakeEmbeddings()
+    embed = embedder(4, deployment="embedding", client=SimpleNamespace(embeddings=embeddings))
+    texts = ["x" * n for n in range(1, 2 * EMBED_BATCH + 2)]
+
+    vectors = embed(texts)
+
+    assert [v[0] for v in vectors] == [float(len(t)) for t in texts]
+    assert [len(c["input"]) for c in embeddings.calls] == [EMBED_BATCH, EMBED_BATCH, 1]
+    assert {(c["model"], c["dimensions"]) for c in embeddings.calls} == {("embedding", 4)}
+
+
+def test_embeddings_go_to_the_resource_endpoint():
+    from hindcast.config import SearchSettings
+    from hindcast.models import resource_openai_client
+
+    settings = SearchSettings(
+        search_endpoint="https://example.search.windows.net",
+        search_index="hindcast-library-1024",
+        embedding_endpoint="https://example.services.ai.azure.com/",
+        embedding_deployment="embedding",
+    )
+
+    client = resource_openai_client(settings.embedding_endpoint)
+
+    assert str(client.base_url) == "https://example.services.ai.azure.com/openai/v1/"
