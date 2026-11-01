@@ -24,10 +24,19 @@ Whether the library index finds the documents a case's picks were chosen for, an
 
 ## Status
 
-Written on 2026-11-01. Not run.
+Verified on 2026-11-01: both indexes ran against the frozen `queries.json` (SHA-256 checked before the run), live, with `python -m hindcast.index quality --index <index>`.
+
+| Index | Mean recall@5 | MRR | Run (UTC) |
+|---|---|---|---|
+| `hindcast-library-1024` | 0.640 | 0.702 | 2026-11-01T12:56:53Z |
+| `hindcast-library-3072` | 0.544 | 0.695 | 2026-11-01T12:57:16Z |
+
+Decided by the rule above: the library index keeps 1,024 dimensions. The 3,072 index scored lower, not 0.05 higher. Both runs: 19 of 34 queries scored, embedding deployment `text-embedding-3-large` version 1, search API `2026-04-01`, code commit `f24792e`.
 
 ## Files
 
 | File | What it is |
 |---|---|
 | `queries.json` | The frozen query set: 34 queries, 19 with relevant documents. SHA-256 `70ad097a9f2464aae89f3290c294ae3d7fb068145ba05ce2f21cd49893915f43` |
+| `results-hindcast-library-1024.json` | Per-query ranked documents and scores for the 1,024-dimension index, with the run's provenance |
+| `results-hindcast-library-3072.json` | The same for the 3,072-dimension index |
