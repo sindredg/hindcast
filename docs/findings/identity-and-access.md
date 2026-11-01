@@ -2,6 +2,17 @@
 
 Findings about Entra ID roles, scopes, and keyless access. Hindcast uses no keys: every call carries an Entra token ([decision 0009](../decisions/0009-hosting-and-identity.md)).
 
+## Content Understanding kept answering for more than 85 minutes after its role was removed (2026-11-01)
+
+**Seen:** after Content Understanding Contributor was removed from the Foundry resource, Content Understanding kept accepting the developer's calls: analyzer reads, a defaults read, and a defaults write that changed nothing. Azure RBAC lists no Content Understanding permission for the developer on the resource. The [earlier removal](#a-removed-role-kept-working-on-content-understanding-for-about-11-minutes-2026-10-27) was refused after about 11 minutes, and one on the morning of the same day after about 2. The cause is not known.
+
+**Evidence:** tested live, 2026-11-01, from the developer's sign-in. `az role assignment delete` at 13:18:02 UTC; by 13:18:13 the assignment list on the resource held only Cognitive Services OpenAI User, and Foundry User stayed on the project. `get_analyzer("hindcast_chart")`, polled every 30 seconds and then every 2 minutes, succeeded every time up to 14:45:33. At 14:13:10, `update_defaults` with the current mapping succeeded. `GET .../providers/Microsoft.Authorization/permissions` on the resource at about 13:58 listed only the OpenAI User data actions (`Microsoft.CognitiveServices/accounts/OpenAI/*` and its listed actions). Hypotheses:
+
+- A token cached from before the removal: refuted. The token in use until 14:43:48 was issued at 13:16:30, before the removal, but a token issued at 14:34:26 kept working.
+- The service authorizes Content Understanding calls on Cognitive Services OpenAI User at resource scope, which the earlier removals did not have: not tested. Removing that role for a while and polling again would test it.
+
+**For Hindcast:** the assignment list does not show what an identity can do on Content Understanding, and neither does the permissions API. A removal is checked by retrying a refused call ([retrieval runbook](../runbooks/retrieval.md), step 17); until that call is refused, the developer is treated as able to run and change analyzers.
+
 ## An admin key gets 401, not 403, when local authentication is off (2026-11-01)
 
 **Seen:** an Azure AI Search service with `disableLocalAuth: true` refused a request that carried its real admin key with 401, the same status as a request with no credential. The gate's expected value was 403, reasoned and not read from the documentation.
