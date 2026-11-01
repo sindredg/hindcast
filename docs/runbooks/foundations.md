@@ -163,7 +163,7 @@ export RG=<resource-group> STORAGE=<storage-account> GH_REPO=<owner>/hindcast
      --query "[].{name:name, version:properties.model.version, sku:sku.name, capacity:sku.capacity, upgrade:properties.versionUpgradeOption}" -o table
    ```
 
-   Expected: both deployments with their version, `GlobalStandard`, capacity `50`, and `NoAutoUpgrade`. The milestone 1 build also kept gpt-5-mini and grok-4.7 as candidates for later decisions ([decision 0012](../decisions/0012-models.md)); they are optional here.
+   Expected: both deployments with their version, `GlobalStandard`, capacity `50`, and `NoAutoUpgrade`. The milestone 1 build also kept gpt-5-mini and grok-4.7 as candidates for later decisions ([decision 0012](../decisions/0012-models.md)); they are optional here. gpt-5-mini was deleted on 2026-11-01, when extraction moved to gpt-5.4-mini ([decision 0018](../decisions/0018-extraction-model.md)).
 
 7. Create the storage account with shared keys and public access off, give the developer the data role, and create the containers. The container loop retries while the new role takes effect.
 
@@ -201,7 +201,7 @@ export RG=<resource-group> STORAGE=<storage-account> GH_REPO=<owner>/hindcast
 
    Expected: one connection, category `AppInsights` with authentication type `ApiKey`. If there is none, connect it in the portal: the project, **Agents**, **Traces**, **Connect**, and create or select an Application Insights resource.
 
-9. Write `.env` from `.env.example` with these values. The search and embedding values stay empty until milestone 3.
+9. Write `.env` from `.env.example` with these values. The extraction, search, and embedding values are set by the [extraction](extraction.md) and [retrieval](retrieval.md) runbooks.
 
    | Variable | Value |
    |---|---|

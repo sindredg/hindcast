@@ -2,6 +2,14 @@
 
 Findings about Content Understanding as Hindcast's extraction service ([decision 0003](../decisions/0003-document-extraction.md)): analyzers, model deployments, and what an analysis returns. Newest first.
 
+## gpt-5.4-mini runs under Content Understanding (2026-11-01)
+
+**Seen:** `prebuilt-document` lists gpt-5.4-mini among its supported completion models, and an analysis ran on a gpt-5.4-mini deployment once the defaults mapped it and the analyzers named it. The usage keys carry the name `gpt-5.4-mini`, which here is both the model's and the deployment's name, and no version. The defaults take a JSON merge patch: a mapping set to `null` is removed.
+
+**Evidence:** tested live, 2026-11-01, with Content Understanding Contributor on the Foundry resource. `supportedModels.completion` read at 12:49 UTC: gpt-4o, gpt-4o-mini, gpt-4.1, gpt-4.1-mini, gpt-4.1-nano, gpt-5, gpt-5-mini, gpt-5-nano, gpt-5.1, gpt-5.2, gpt-5.4, gpt-5.4-mini, and gpt-5.5. `update_defaults` with `gpt-5.4-mini`, `text-embedding-3-large`, and `gpt-5-mini: null`, then `get_defaults`: exactly the first two. `hindcast_chart` on a development-case chart at 12:50:04 UTC: usage `gpt-5.4-mini-input` 403, `gpt-5.4-mini-output` 390, `contextualizationTokens` 1,000, and a description, its alt text, and the text in the image. The output was not stored.
+
+**For Hindcast:** extraction runs on the pinned gpt-5.4-mini deployment, and Hindcast records the deployment's version with each result, since the usage does not ([decision 0018](../decisions/0018-extraction-model.md)).
+
 ## A chart description gets times roughly right and can invent a value (2026-10-27)
 
 **Seen:** describing two Cloudflare Radar charts, the chart analyzer placed the visible changes within about half an hour of where the axis puts them, but gave a value no label in the image shows. The analyzer's definition asks for nothing beyond what is visible.
@@ -58,6 +66,6 @@ Findings about Content Understanding as Hindcast's extraction service ([decision
 
 **Evidence:** tested live, 2026-10-27, `GET /contentunderstanding/analyzers/prebuilt-document` and `prebuilt-imageSearch` with API `2025-11-01`, signed in with Cognitive Services Content Understanding Contributor on the Foundry resource. Before any defaults were set, `GET /contentunderstanding/defaults` returned `DefaultsNotSet`.
 
-**For Hindcast:** extraction uses the existing gpt-5-mini 2025-08-07 deployment, which retires on 2027-02-09, after the project's live phase.
+**For Hindcast:** extraction uses the existing gpt-5-mini 2025-08-07 deployment, which retires on 2027-02-09, after the project's live phase. Since 2026-11-01 extraction runs on gpt-5.4-mini 2026-03-17 ([decision 0018](../decisions/0018-extraction-model.md)).
 
 **Read more:** [Content Understanding service limits](https://learn.microsoft.com/azure/ai-services/content-understanding/service-limits).

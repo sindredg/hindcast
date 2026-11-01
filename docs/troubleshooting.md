@@ -2,6 +2,16 @@
 
 Failures that showed something about Hindcast, the platform, or a procedure: the symptom, the cause, the fix, and how the fix was verified. Newest first. A cause that was not confirmed is labelled as a hypothesis. The behaviour behind an entry is recorded once, in [findings](findings/), and linked from here.
 
+## Retrieval: the first index build fails with 404 on embeddings (2026-11-01)
+
+**Symptom:** `python -m hindcast.index build --dimensions 1024` failed at its first embeddings call with `404`, an empty body, through the Foundry project endpoint. It had already created the empty index `hindcast-library-1024`.
+
+**Cause:** confirmed. The project's OpenAI-compatible endpoint serves the Responses API but no embeddings; the resource endpoint does, to a role at resource scope ([finding](findings/models.md#the-project-endpoint-serves-no-embeddings-2026-11-01)).
+
+**Fix:** embeddings go to the resource endpoint (`HINDCAST_EMBEDDING_ENDPOINT`, `models.resource_openai_client`), with Cognitive Services OpenAI User on the Foundry resource ([decision 0019](decisions/0019-library-index.md)). The empty index needed no `--replace`: the build refuses only an index that holds documents.
+
+**Verification:** tested live, 2026-11-01: after the role took effect, `build --dimensions 1024` (12:51:36 to 12:53:55 UTC) and `--dimensions 3072` each pushed 267 chunks ([worklog](worklogs/03-retrieval.md#live-run)).
+
 ## Deployment: re-provision fails with a circular dependency (2026-10-31)
 
 **Symptom:** the second `azd provision` failed before any change with `InvalidTemplate: Deployment template validation failed: 'Circular dependency detected on resource: .../containerApps/ca-hindcast'`.

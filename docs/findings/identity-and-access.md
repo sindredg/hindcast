@@ -2,6 +2,14 @@
 
 Findings about Entra ID roles, scopes, and keyless access. Hindcast uses no keys: every call carries an Entra token ([decision 0009](../decisions/0009-hosting-and-identity.md)).
 
+## An admin key gets 401, not 403, when local authentication is off (2026-11-01)
+
+**Seen:** an Azure AI Search service with `disableLocalAuth: true` refused a request that carried its real admin key with 401, the same status as a request with no credential. The gate's expected value was 403, reasoned and not read from the documentation.
+
+**Evidence:** tested live, 2026-11-01, 12:01 UTC, a few minutes after the service was created. `az search service show` read `disableLocalAuth: true`. A `GET` on the service's indexes without a credential: 401. With the admin key from `az search admin-key show` in the `api-key` header (never printed): 401. With a bearer token for `https://search.azure.com`: 200.
+
+**For Hindcast:** the status alone cannot tell a refused key from a missing credential. The gate pairs the key request with the setting read from the service and with a token request that succeeds, so the check can fail ([worklog](../worklogs/03-retrieval.md#gate)).
+
 ## Container Apps sign-in works with a managed identity through a federated credential (2026-10-31)
 
 **Seen:** Container Apps' built-in authentication signed a user in with no client secret. The app registration's client credential is the container app's user-assigned identity, through a federated credential on the registration that trusts that identity. Microsoft documents this for App Service; for Container Apps it is asked for in [microsoft/azure-container-apps#1693](https://github.com/microsoft/azure-container-apps/issues/1693) and not in the documentation.

@@ -2,6 +2,14 @@
 
 Findings about the Azure Developer CLI, Bicep, and Azure Container Apps. The deployment is described in the [architecture](../architecture/README.md#the-deployment), and the procedure in the [deployment runbook](../runbooks/deployment.md).
 
+## A Bicep compiler warning exits 0 (2026-11-01)
+
+**Seen:** `az bicep build` reports a property of the wrong type (`BCP036`) as a warning and exits 0. `infra/bicepconfig.json` raises the linter's rules to errors, but compiler diagnostics are not linter rules, so a check on the exit code passes a template the resource provider may reject.
+
+**Evidence:** tested locally, 2026-11-01, Bicep CLI 0.48.1 through Azure CLI 2.88.0. A copy of `infra/search.bicep` with `replicaCount: '1'` (a string where an integer belongs): `az bicep build` exit 0, with `Warning BCP036` on standard error; `az bicep lint` printed it again. The committed template printed nothing.
+
+**For Hindcast:** the CI step fails when build or lint prints anything, not on the exit code alone. Run against both files above, it passed the committed template and failed the copy.
+
 ## Built-in authentication answers 401 to a client that does not look like a browser (2026-10-31)
 
 **Seen:** with `unauthenticatedClientAction: RedirectToLoginPage`, a request without a session is redirected to Entra sign-in only when it carries a browser `User-Agent`. `curl` with its own user agent gets `401`, with or without `Accept: text/html`, for `GET` and `HEAD`.
