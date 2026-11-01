@@ -31,6 +31,15 @@ cases:
       - retry
       - authentication
       - load balancer
+  github-2026-10-07:
+    date: 7 October 2026
+    key_facts:
+      - outdated
+      - retired
+      - routing configuration
+      - quorum
+      - leader
+      - puppet
   google-cloud-2026-07-14:
     date: 14 July 2026
     key_facts:

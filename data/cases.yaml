@@ -78,6 +78,40 @@ cases:
         retrieved_at: "2026-10-25T21:09:32Z"
         kind: postmortem
 
+  # Began after both pinned model versions were released. Two status
+  # incidents: the outage and its recurrence. GitHub's summary of both is the
+  # resolved update of the first, captured again as the postmortem.
+  - case_id: github-2026-10-07
+    title: Incident with Git Operations, Pull Requests and Actions
+    provider: GitHub
+    role: showcase
+    started_at: "2026-10-07T15:14:45Z"
+    sources:
+      - doc_id: github-status-2026-10-07
+        filename: github-status-2026-10-07.json
+        url: https://www.githubstatus.com/api/v2/incidents/djlmxz2zd0j7.json
+        licence: Copyright GitHub; not redistributed
+        attribution: GitHub status page
+        sha256: b80f8c12eea1063d7c2ba05ff21c86dd3f94f6c419a23f53c79702a093f101c9
+        retrieved_at: "2026-11-01T08:26:24Z"
+        kind: status-updates
+      - doc_id: github-status-2026-10-07-recurrence
+        filename: github-status-2026-10-07-recurrence.json
+        url: https://www.githubstatus.com/api/v2/incidents/qpfv5p86dmrl.json
+        licence: Copyright GitHub; not redistributed
+        attribution: GitHub status page
+        sha256: aae25e648bb6ff7702eb4af316cbc2a776b1e5f5287ad4801534d94806bd3cd6
+        retrieved_at: "2026-11-01T08:26:25Z"
+        kind: status-updates
+      - doc_id: github-summary-2026-10-07
+        filename: github-summary-2026-10-07.json
+        url: https://www.githubstatus.com/api/v2/incidents/djlmxz2zd0j7.json
+        licence: Copyright GitHub; not redistributed
+        attribution: GitHub status page, resolved update of incident djlmxz2zd0j7
+        sha256: b80f8c12eea1063d7c2ba05ff21c86dd3f94f6c419a23f53c79702a093f101c9
+        retrieved_at: "2026-11-01T08:26:25Z"
+        kind: postmortem
+
   - case_id: google-cloud-2026-07-14
     title: >-
       Google Cloud VMware Engine (GCVE) Stretched Cluster customers are
