@@ -8,7 +8,7 @@
 # comes from word for word. The quotes are short excerpts from the provider's
 # status page; source and attribution are in data/cases.yaml.
 #
-# No update in these four cases mentions an attack, so no tag says one.
+# No update in these five cases mentions an attack, so no tag says one.
 #
 # documents are the picks, added after the symptoms. Like the case sources,
 # the pages themselves are not committed.
@@ -108,6 +108,31 @@ symptoms:
     - tag: "scale: a subset of customers"
       quote: a subset of BYOIP prefixes
       update_id: cloudflare-2026-02-20/u2
+
+  github-2026-10-07:
+    - tag: "symptom: degraded availability"
+      quote: >-
+        We are investigating reports of degraded availability for Actions, Git
+        Operations and Pull Requests
+      update_id: github-2026-10-07/u1
+    - tag: "scale: many services at once"
+      quote: We observed widespread impact across GitHub services between 15:06 UTC and 15:16 UTC
+      update_id: github-2026-10-07/u6
+    - tag: "symptom: outage of about ten minutes"
+      quote: between 15:06 UTC and 15:16 UTC
+      update_id: github-2026-10-07/u6
+    - tag: "symptom: recurrence the same day"
+      quote: This incident is a reoccurrence of the incident from earlier in the day
+      update_id: github-2026-10-07/u22
+    - tag: "product: Git operations"
+      quote: Git Operations is experiencing degraded performance.
+      update_id: github-2026-10-07/u5
+    - tag: "product: webhooks"
+      quote: Webhooks is experiencing degraded availability.
+      update_id: github-2026-10-07/u4
+    - tag: "product: Actions"
+      quote: degraded availability for Actions
+      update_id: github-2026-10-07/u1
 
 documents:
   - doc_id: cloudflare-2025-06-12
