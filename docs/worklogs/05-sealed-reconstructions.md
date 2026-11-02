@@ -1,6 +1,6 @@
 # Milestone 5, first part: Sealed reconstructions and the October case
 
-Status: Built on 2026-11-01. Three October outages are sealed on both models, and GitHub 2026-10-07 is a fourth scored case with its evidence, prior-knowledge answers, library picks, and frozen key. The [independent review](#independent-review) ran with its fixes in. The milestone state is in the [roadmap](../roadmap.md).
+Status: Built on 2026-11-01. Three October outages are sealed on both models, and GitHub 2026-10-07 is a fourth scored case with its evidence, prior-knowledge answers, library picks, and frozen key. The [independent review](#independent-review) ran with its fixes in. On 2026-11-02 the three cases were [sealed again with the library search](#second-seals-with-the-library-2026-11-02), still before any provider published a cause. The milestone state is in the [roadmap](../roadmap.md).
 
 ## Scope
 
@@ -125,3 +125,24 @@ Fixed in this pull request:
 - [#35](https://github.com/sindredg/hindcast/issues/35): the reveal does not record when the provider published its cause.
 - [#36](https://github.com/sindredg/hindcast/issues/36): a status-page summary is read as a postmortem without checking it states a cause.
 - [#37](https://github.com/sindredg/hindcast/issues/37): `seal upload` cannot finish an upload that succeeded but reported an error.
+
+## Second seals, with the library (2026-11-02)
+
+The second series ([decision 0017](../decisions/0017-sealed-reconstructions.md), rule 6): the same three cases, sealed once per model with the investigator's library search from [milestone 4, slice 2](04-investigator.md#slice-2-the-library-search-tool). Its independent review and fixes came first, and no fix changed the agent definition, so the seals ran on the agent versions that met the development pass bar: `hindcast-investigator-gpt-6-luna` version 3 and `hindcast-investigator-gpt-6-1-sol` version 2.
+
+Before the runs, at 18:44 UTC, each sealed incident was read again: no postmortem status, and each resolved update unchanged (180, 180, and 32 characters). GitHub's blog had published no October availability report (the newest is September 2026), and Cloudflare's blog no post on the 2026-10-20 incident.
+
+Each seal ran `python -m hindcast.seal run <case_id>` with `--env-file .env`, from commit `5fd90c0`, pushed and clean, between 18:44 and 18:48 UTC. Each one made the preflight search, which answered.
+
+| Case | Deployment | Status | Searches | Library citations kept | Rejected, unsupported | Seconds | Tokens in (cached) / out |
+|---|---|---|---|---|---|---|---|
+| `cloudflare-2026-10-20` | gpt-6-luna | complete | 1 | 0 | 0, 0 | 24.617 | 8,627 (4,633) / 2,619 |
+| `github-2026-10-21` | gpt-6-luna | complete | 1 | 0 | 0, 0 | 27.3 | 7,757 (5,227) / 3,555 |
+| `github-2026-10-22` | gpt-6-luna | complete | 1 | 0 | 0, 0 | 23.885 | 7,952 (5,291) / 2,838 |
+| `cloudflare-2026-10-20` | gpt-6.1-sol | complete | 1 | 1 | 0, 0 | 34.482 | 8,055 (4,633) / 2,350 |
+| `github-2026-10-21` | gpt-6.1-sol | complete | 1 | 1 | 0, 0 | 40.221 | 8,844 (5,227) / 2,906 |
+| `github-2026-10-22` | gpt-6.1-sol | complete | 1 | 1 | 0, 0 | 41.314 | 8,485 (5,291) / 2,968 |
+
+All six are first attempts, uploaded to Blob `extracted/sealed/<case_id>/`, with their SHA-256 in [`seals.json`](../../eval/sealed/seals.json) under `library: true`. The luna runs searched but cited no library section; the sol runs each kept one. A seventh `seal run` on `cloudflare-2026-10-20` was refused before any cloud call: `SealRefused: cloudflare-2026-10-20 is already sealed on gpt-6-luna`.
+
+`seals.json` was committed as `974febf` and pushed at 18:49:12 UTC by the workstation clock. GitHub's check runs for that commit started at 18:49:21Z, which is GitHub's own record that the commit was on GitHub by then. `test_committed_seal_record_only_grows` passes on it: the six first-series entries are unchanged.

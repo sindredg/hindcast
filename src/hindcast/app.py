@@ -19,7 +19,7 @@ from hindcast.result import Citation, Investigation, parse_investigation
 # to the repository root, because Streamlit runs the script from its own
 # directory; in the image the root is /app.
 ROOT = Path(__file__).resolve().parents[2]
-RESULT_FILE = ROOT / "eval/investigations/cloudflare-2026-02-20/20261030T040215Z-v1.json"
+RESULT_FILE = ROOT / "eval/investigations/cloudflare-2026-02-20/20261102T181721Z-v3.json"
 # Test seam: points the page at another result file.
 RESULT_FILE_VAR = "HINDCAST_RESULT_FILE"
 

@@ -7,10 +7,17 @@ prints the status, the counts, and the usage, never the investigation text.
 
 Hindcast runs the loop, not the service: one model call, run every function
 call it returns, send the outputs back, repeat. The caps and the checks hold
-here in code; the prompt only asks.
+here in code; the prompt only asks. The 12-call cap counts library searches
+too.
+
+The result file lists every tool call in order, with each search's query and
+the refs it returned, never the hit text: a library citation is kept only for
+a ref in that list (hindcast.result). The provenance names the library
+registry, the index, and the embedding model the searches ran on.
 """
 
 import argparse
+import functools
 import hashlib
 import json
 import time
@@ -22,7 +29,7 @@ from typing import Any, Literal, Protocol
 
 from hindcast.agent import agent_name, ensure_agent_version, load_definition, prompt_provenance
 from hindcast.cases import Case, load_cases
-from hindcast.config import ModelSettings, load_settings
+from hindcast.config import ModelSettings, SearchSettings, load_settings
 from hindcast.evaluation.prior import _git
 from hindcast.result import (
     Checks,
@@ -32,9 +39,11 @@ from hindcast.result import (
     investigation_dict,
     parse_investigation,
 )
+from hindcast.search import search_library
 from hindcast.tools import CaseTools, load_evidence
 
 EVIDENCE_DIR = Path("build/evidence")
+LIBRARY_REGISTRY = Path("data/library.yaml")
 OUT_DIR = Path("build/investigations")
 # Written by milestone 5 when the rubric is frozen.
 RUBRIC_LOCK = Path("eval/rubric/frozen.json")
@@ -68,6 +77,7 @@ class RunResult:
     investigation: Investigation | None
     checks: Checks
     usage: Usage
+    tool_calls: tuple[dict, ...] = ()
 
 
 class Turn(Protocol):
@@ -89,6 +99,7 @@ def run_investigation(
 ) -> RunResult:
     start = clock()
     model_calls = tool_calls = input_tokens = cached_tokens = output_tokens = 0
+    record: list[dict] = []
 
     def end(
         reason: str | None, investigation: Investigation | None = None, checks: Checks = NO_CHECKS
@@ -102,7 +113,7 @@ def run_investigation(
             output_tokens,
         )
         status = "complete" if reason is None else "incomplete"
-        return RunResult(status, reason, investigation, checks, usage)
+        return RunResult(status, reason, investigation, checks, usage, tuple(record))
 
     items: list[dict] = [START]
     previous: str | None = None
@@ -138,7 +149,9 @@ def run_investigation(
                 investigation = parse_investigation(response.output_text or "")
             except ResultError as error:
                 return end(str(error))
-            checked, checks = check_citations(investigation, tools.refs, case_id)
+            checked, checks = check_citations(
+                investigation, tools.refs, case_id, frozenset(tools.retrieved)
+            )
             return end(None, checked, checks)
 
         outputs: list[dict] = []
@@ -147,6 +160,7 @@ def run_investigation(
                 return end("tool-cap")
             if clock() - start > time_cap:
                 return end("time-cap")
+            called = clock()
             try:
                 output = tools.call(call.name, call.arguments)
             except Exception as error:
@@ -154,6 +168,9 @@ def run_investigation(
                 # message; the model never sees a half answer.
                 return end(f"tool-error: {call.name}: {error}")
             tool_calls += 1
+            record.append(
+                {"name": call.name, "seconds": round(clock() - called, 3), **tools.last_call}
+            )
             outputs.append(
                 {"type": "function_call_output", "call_id": call.call_id, "output": output}
             )
@@ -232,6 +249,7 @@ def write_result(
             "rejected_citations": [asdict(r) for r in result.checks.rejected_citations],
             "unsupported": list(result.checks.unsupported),
         },
+        "tool_calls": list(result.tool_calls),
         "usage": asdict(result.usage),
     }
     path = out_dir / case_id / f"{now:%Y%m%dT%H%M%SZ}-v{agent['version']}.json"
@@ -240,6 +258,11 @@ def write_result(
     with path.open("x", encoding="utf-8") as file:
         file.write(json.dumps(document, indent=2, ensure_ascii=False) + "\n")
     return path
+
+
+def _all_citations(i: Investigation) -> list:
+    items = [i.attack, *i.findings, *i.timeline, i.root_cause, *i.contributing_factors]
+    return [c for item in items for c in item.citations]
 
 
 def summary(result: RunResult, path: Path) -> str:
@@ -253,9 +276,12 @@ def summary(result: RunResult, path: Path) -> str:
             f"findings {len(i.findings)}, timeline events {len(i.timeline)}, "
             f"factors {len(i.contributing_factors)}, open questions {len(i.open_questions)}"
         )
+    searches = sum(1 for c in result.tool_calls if c["name"] == "search_library")
+    library_kept = 0 if i is None else sum(1 for c in _all_citations(i) if c.source == "library")
     lines.append(
         f"rejected citations {len(result.checks.rejected_citations)}, "
-        f"unsupported {len(result.checks.unsupported)}"
+        f"unsupported {len(result.checks.unsupported)}, "
+        f"searches {searches}, library citations kept {library_kept}"
     )
     u = result.usage
     lines.append(
@@ -280,10 +306,22 @@ class Setup:
 def prepare(case: Case, evidence_dir: Path | None = None) -> Setup:
     """Read the evidence, make the agent version, and record what the run rests on."""
     evidence_path = (evidence_dir or EVIDENCE_DIR) / f"{case.case_id}.json"
-    tools = CaseTools(load_evidence(evidence_path))
+    evidence = load_evidence(evidence_path)
+    # Missing search settings fail here, before the agent version is made.
+    search_settings = load_settings(SearchSettings)
 
     # Imported here so the loop and its tests do not need the SDK.
-    from hindcast import models
+    from hindcast import index, models
+
+    # One embedder and one search client for the run; the case is bound here
+    # and the model supplies only the query.
+    search = functools.partial(
+        search_library,
+        case.case_id,
+        embed=index.embedder(search_settings.embedding_dimensions),
+        client=index.clients(search_settings.search_index)[1],
+    )
+    tools = CaseTools(evidence, search)
 
     deployment = load_settings(ModelSettings).chat_deployment
     definition = load_definition(deployment)
@@ -294,6 +332,13 @@ def prepare(case: Case, evidence_dir: Path | None = None) -> Setup:
         "prompt": prompt_provenance(),
         "code": code_provenance(),
         "evidence_sha256": hashlib.sha256(evidence_path.read_bytes()).hexdigest(),
+        "library": {
+            "registry": prompt_provenance(LIBRARY_REGISTRY),
+            "index": search_settings.search_index,
+            "search_api_version": index.SEARCH_API_VERSION,
+            "embedding": index.embedding_model()
+            | {"dimensions": search_settings.embedding_dimensions},
+        },
     }
     return Setup(
         turn=agent_turn(models.openai_client(), name, version),

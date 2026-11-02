@@ -22,6 +22,7 @@ from hindcast.investigate import (
     run_investigation,
     write_result,
 )
+from hindcast.search import LibraryHit, LibraryLeak
 from hindcast.tools import CaseTools, ToolError
 
 EVIDENCE = CaseEvidence(
@@ -57,8 +58,16 @@ def usage(tokens: int = 10) -> SimpleNamespace:
     )
 
 
-def call(name: str = "list_updates", call_id: str = "c1") -> SimpleNamespace:
-    return SimpleNamespace(type="function_call", name=name, arguments="{}", call_id=call_id)
+def call(name: str = "list_updates", call_id: str = "c1", arguments: str = "{}") -> SimpleNamespace:
+    return SimpleNamespace(type="function_call", name=name, arguments=arguments, call_id=call_id)
+
+
+def search_call(query: str, call_id: str = "s1") -> SimpleNamespace:
+    return call("search_library", call_id, json.dumps({"query": query}))
+
+
+def hit(ref: str) -> LibraryHit:
+    return LibraryHit(ref, ref.split("/")[1], "T", "H", "2025-01-01", "Text.", 1.0, 2.0)
 
 
 def response(*calls: SimpleNamespace, text: str = "", tokens: int = 10) -> SimpleNamespace:
@@ -101,8 +110,8 @@ class ScriptedTurn:
 class Tools(CaseTools):
     """Real case tools with a hook that runs on every call (a slow tool, a failing one)."""
 
-    def __init__(self, on_call: Any = None) -> None:
-        super().__init__(EVIDENCE)
+    def __init__(self, on_call: Any = None, search: Any = None) -> None:
+        super().__init__(EVIDENCE, search)
         self.on_call = on_call
 
     def call(self, name: str, arguments: str) -> str:
@@ -281,6 +290,63 @@ def test_cut_response_is_an_error() -> None:
         run(ScriptedTurn(reply))
 
 
+def test_tool_calls_are_recorded_in_order_with_queries_and_refs() -> None:
+    clock = Clock()
+
+    def slow(name: str) -> None:
+        clock.now += 1.5 if name == "search_library" else 0.25
+
+    turn = ScriptedTurn(response(call(), search_call("errors in ENAM", "c2")), final())
+    tools = Tools(slow, search=lambda q: [hit("lib/a/s1"), hit("lib/b/fig2")])
+    result = run(turn, tools, clock)
+    assert result.tool_calls == (
+        {"name": "list_updates", "seconds": 0.25},
+        {
+            "name": "search_library",
+            "seconds": 1.5,
+            "query": "errors in ENAM",
+            "refs": ["lib/a/s1", "lib/b/fig2"],
+        },
+    )
+
+
+def test_library_citation_from_a_search_is_kept_and_an_unretrieved_one_rejected() -> None:
+    document = json.loads(json.dumps(FINAL))
+    document["findings"][0]["citations"] += [
+        {"source": "library", "ref": "lib/a/s1"},
+        {"source": "library", "ref": "lib/a/s2"},
+    ]
+    turn = ScriptedTurn(response(search_call("x")), final(document))
+    result = run(turn, Tools(search=lambda q: [hit("lib/a/s1")]))
+    assert result.status == "complete"
+    assert [c.ref for c in result.investigation.findings[0].citations] == ["dev/u1", "lib/a/s1"]
+    assert [(r.ref, r.reason) for r in result.checks.rejected_citations] == [
+        ("lib/a/s2", "not-retrieved")
+    ]
+
+
+def test_search_error_ends_the_run_and_keeps_earlier_calls() -> None:
+    def leak(query: str) -> list[LibraryHit]:
+        raise LibraryLeak("dev: hit from x, which the case may not read")
+
+    turn = ScriptedTurn(response(call(), search_call("x", "c2")), final())
+    result = run(turn, Tools(search=leak))
+    assert result.status == "incomplete"
+    assert result.incomplete_reason.startswith("tool-error: search_library: dev: hit from x")
+    assert result.tool_calls == ({"name": "list_updates", "seconds": 0.0},)
+    assert result.investigation is None
+
+
+def test_thirteenth_call_being_a_search_is_tool_cap() -> None:
+    calls = [call(call_id=f"c{i}") for i in range(12)] + [search_call("x", "c12")]
+    searched: list[str] = []
+    tools = Tools(search=lambda q: searched.append(q) or [])
+    result = run(ScriptedTurn(response(*calls), final()), tools)
+    assert result.incomplete_reason == "tool-cap"
+    assert searched == []
+    assert len(result.tool_calls) == 12
+
+
 # The command, its guards, and the result file.
 
 SOURCE = SourceFile(
@@ -361,6 +427,7 @@ def test_result_file_has_the_spec_shape(tmp_path: Path) -> None:
         "incomplete_reason",
         "investigation",
         "checks",
+        "tool_calls",
         "usage",
     }
     assert (written["case_id"], written["agent"], written["model"]) == ("dev", AGENT, MODEL)
@@ -369,6 +436,8 @@ def test_result_file_has_the_spec_shape(tmp_path: Path) -> None:
     assert written["investigation"] == FINAL
     assert written["checks"] == {"rejected_citations": [], "unsupported": []}
     assert written["usage"]["tool_calls"] == 1
+    assert written["tool_calls"] == [{"name": "list_updates", "seconds": 0.0}]
+    assert list(written)[list(written).index("checks") + 1] == "tool_calls"
 
 
 def test_result_file_is_never_overwritten(tmp_path: Path) -> None:
@@ -443,6 +512,23 @@ def test_agent_turn_maps_the_client_timeout_to_timeout_error() -> None:
         agent_turn(client, "a", "1")([], None, timeout=1.0)
 
 
+def stub_search(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Search settings in the environment and no search, embedding, or model-info call."""
+    from hindcast import index
+
+    monkeypatch.setenv("HINDCAST_SEARCH_ENDPOINT", "https://search.example.org")
+    monkeypatch.setenv("HINDCAST_SEARCH_INDEX", "library-test")
+    monkeypatch.setenv("HINDCAST_EMBEDDING_ENDPOINT", "https://ai.example.org")
+    monkeypatch.setenv("HINDCAST_EMBEDDING_DEPLOYMENT", "embed")
+    monkeypatch.setattr(index, "embedder", lambda dimensions: lambda texts: [[0.0]])
+    monkeypatch.setattr(index, "clients", lambda name: (None, None))
+    monkeypatch.setattr(
+        index,
+        "embedding_model",
+        lambda: {"deployment": "embed", "name": "text-embedding-3-large", "version": "1"},
+    )
+
+
 def stub_command(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, client: FakeClient
 ) -> list[tuple[str, dict]]:
@@ -456,6 +542,7 @@ def stub_command(
     monkeypatch.setattr(investigate, "RUBRIC_LOCK", tmp_path / "rubric" / "frozen.json")
     for field in ("project_endpoint", "chat_deployment", "compare_deployment", "judge_deployment"):
         monkeypatch.setenv(f"HINDCAST_{field.upper()}", "gpt-6-luna")
+    stub_search(monkeypatch)
     created: list[tuple[str, dict]] = []
     agents = SimpleNamespace(
         list_versions=lambda name, **_: [],
@@ -496,6 +583,18 @@ def test_main_writes_the_result_and_prints_counts_never_the_text(
     )
     assert set(written["provenance"]["prompt"]) >= {"dirty"}
     assert set(written["provenance"]["code"]) == {"commit", "dirty"}
+    assert "searches 0, library citations kept 0" in out
+    library = written["provenance"]["library"]
+    assert set(library) == {"registry", "index", "search_api_version", "embedding"}
+    assert set(library["registry"]) >= {"dirty"}
+    assert library["index"] == "library-test"
+    assert library["embedding"] == {
+        "deployment": "embed",
+        "name": "text-embedding-3-large",
+        "version": "1",
+        "dimensions": 1024,
+    }
+    assert written["tool_calls"] == [{"name": "list_updates", "seconds": 0.0}]
 
 
 def git(repo: Path, *args: str) -> str:
@@ -541,3 +640,15 @@ def test_main_fails_on_missing_evidence_before_any_model_call(
         main(["inj", "--out", str(tmp_path / "out")])
     assert client.calls == []
     assert created == []
+
+
+def test_main_fails_on_missing_search_settings_before_any_model_call(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    client = FakeClient()
+    created = stub_command(monkeypatch, tmp_path, client)
+    monkeypatch.delenv("HINDCAST_SEARCH_INDEX")
+    with pytest.raises(Exception, match="HINDCAST_SEARCH_INDEX"):
+        main(["dev", "--out", str(tmp_path / "out")])
+    assert created == []
+    assert client.calls == []

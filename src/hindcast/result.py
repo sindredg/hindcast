@@ -4,9 +4,16 @@ The model fills the investigation under INVESTIGATION_SCHEMA. The app checks
 every citation against the bound case afterwards: a bad citation is removed and
 listed with its reason, the item stays, and an item left with nothing behind it
 is listed as unsupported (decision 0006 counts it as unsupported, not a hit).
+
+A library citation is kept only for a ref a search in this run returned, by
+exact string: a ref the model knows from training, or a near miss of a real
+one, is rejected as not-retrieved. A kept library citation does not support
+an item on its own: a library document is another outage, so a claim about
+this one that rests only on it is unsupported (decision 0006).
 """
 
 import json
+from collections.abc import Collection
 from dataclasses import dataclass, replace
 from typing import Any, Literal
 
@@ -25,7 +32,8 @@ def _object(**properties: dict) -> dict:
 
 _STRING = {"type": "string"}
 _IDS = {"type": "array", "items": _STRING}
-_CITATION = _object(source={"type": "string", "enum": ["case"]}, ref=_STRING)
+_CITATION = _object(source={"type": "string", "enum": ["case", "library"]}, ref=_STRING)
+LIBRARY_PREFIX = "lib/"
 
 
 def _schema(citation: dict) -> dict:
@@ -73,13 +81,13 @@ INVESTIGATION_SCHEMA = _schema(_CITATION)
 # check_citations and is rejected on its own instead of failing the whole result.
 _LOCAL_SCHEMA = _schema({})
 
-Reason = Literal["malformed", "unknown", "other-case", "unknown-finding"]
+Reason = Literal["malformed", "unknown", "other-case", "unknown-finding", "not-retrieved"]
 
 
 @dataclass(frozen=True)
 class Citation:
-    # Anything but "case" (including "" for a citation that was not an object
-    # with string fields) is rejected as malformed.
+    # Anything but "case" or "library" (including "" for a citation that was
+    # not an object with string fields) is rejected as malformed.
     source: str
     ref: str
 
@@ -203,8 +211,14 @@ def parse_investigation(text: str) -> Investigation:
     )
 
 
-def _reason(citation: Citation, refs: frozenset[str], case_id: str) -> Reason | None:
-    if citation.source != "case" or not citation.ref:
+def _reason(
+    citation: Citation, refs: frozenset[str], case_id: str, retrieved: Collection[str]
+) -> Reason | None:
+    if citation.source == "library":
+        if not citation.ref.startswith(LIBRARY_PREFIX):
+            return "malformed"
+        return None if citation.ref in retrieved else "not-retrieved"
+    if citation.source != "case" or not citation.ref or citation.ref.startswith(LIBRARY_PREFIX):
         return "malformed"
     # Another case's prefix is named as such even when the suffix exists here.
     if "/" in citation.ref and not citation.ref.startswith(case_id + "/"):
@@ -215,7 +229,10 @@ def _reason(citation: Citation, refs: frozenset[str], case_id: str) -> Reason | 
 
 
 def check_citations(
-    investigation: Investigation, refs: frozenset[str], case_id: str
+    investigation: Investigation,
+    refs: frozenset[str],
+    case_id: str,
+    retrieved: Collection[str] = frozenset(),
 ) -> tuple[Investigation, Checks]:
     """Remove and list bad citations and rests_on ids; list items left with no support."""
     finding_ids = {f.id for f in investigation.findings}
@@ -225,7 +242,7 @@ def check_citations(
     def check[T: (Attack, Finding, TimelineEvent, RootCause, Factor)](where: str, item: T) -> T:
         kept: list[Citation] = []
         for citation in item.citations:
-            reason = _reason(citation, refs, case_id)
+            reason = _reason(citation, refs, case_id, retrieved)
             if reason is None:
                 kept.append(citation)
             else:
@@ -238,7 +255,7 @@ def check_citations(
                     rejected.append(RejectedCitation(where, finding_id, "unknown-finding"))
             rests_on = tuple(i for i in rests_on if i in finding_ids)
             changes["rests_on"] = rests_on
-        if not kept and not rests_on:
+        if not any(c.source == "case" for c in kept) and not rests_on:
             unsupported.append(where)
         return replace(item, **changes)
 

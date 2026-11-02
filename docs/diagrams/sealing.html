@@ -61,7 +61,7 @@
     <div class="diagram-container">
       <svg viewBox="0 0 1000 832" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="sealing-title sealing-desc">
         <title id="sealing-title">Sealing a reconstruction</title>
-        <desc id="sealing-desc">The seal command refuses, before any model call, a case that is not sealed, a case and deployment that already have a seal, or a changed tree; otherwise it investigates once from the status updates, records an attempt with no model output as no-result, which may be retried up to three attempts in all, and otherwise commits the result's SHA-256 publicly and uploads the file to private storage; if the provider publishes its cause by 2026-11-09 the file is revealed after the rubric is frozen, checked against its hash, and scored, and if not the case is dropped with its record kept.</desc>
+        <desc id="sealing-desc">The seal command refuses, before any model call, a case that is not sealed, a case and deployment that already have a seal in this series, a changed tree, a seal record that does not extend the committed one, or a library search that does not answer; otherwise it investigates once from the status updates, the charts, and the library search, records an attempt with no model output as no-result, which may be retried up to three attempts in all, and otherwise commits the result's SHA-256 publicly and uploads the file to private storage; if the provider publishes its cause by 2026-11-09 the file is revealed after the rubric is frozen, checked against its hash, and scored, and if not the case is dropped with its record kept.</desc>
         <defs>
           <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#bfc0c0"/></marker>
         </defs>
@@ -95,13 +95,13 @@
         <!-- Nodes -->
         <polygon points="360,40 520,104 360,168 200,104" fill="#2d3142"/>
         <polygon points="360,40 520,104 360,168 200,104" fill="#393e53" stroke="#f5f5f5" stroke-width="1"/>
-        <text x="360" y="92" fill="#f5f5f5" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">seal run: a sealed case,</text>
-        <text x="360" y="108" fill="#f5f5f5" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">no seal yet, and a</text>
-        <text x="360" y="124" fill="#f5f5f5" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">clean tree?</text>
+        <text x="360" y="92" fill="#f5f5f5" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">seal run: sealed case, no seal</text>
+        <text x="360" y="108" fill="#f5f5f5" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">in this series, clean tree,</text>
+        <text x="360" y="124" fill="#f5f5f5" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">record grown, search answers?</text>
         <rect x="240" y="200" width="240" height="64" rx="6" fill="#2d3142"/>
         <rect x="240" y="200" width="240" height="64" rx="6" fill="rgba(240,138,89,0.10)" stroke="#f08a59" stroke-width="1"/>
         <text x="360" y="230" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Investigate once</text>
-        <text x="360" y="246" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">status updates only</text>
+        <text x="360" y="246" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">updates · charts · library search</text>
         <polygon points="360,296 488,344 360,392 232,344" fill="#2d3142"/>
         <polygon points="360,296 488,344 360,392 232,344" fill="#393e53" stroke="#f5f5f5" stroke-width="1"/>
         <text x="360" y="340" fill="#f5f5f5" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Did the model</text>
