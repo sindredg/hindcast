@@ -1,6 +1,8 @@
-# Milestone 4, slice 1: The investigator on case tools
+# Milestone 4: The investigator
 
-Status: Built on 2026-10-30. The live run on the development case met its pass bar, and the [independent review](#independent-review) ran with its fixes in. The milestone state is in the [roadmap](../roadmap.md).
+Status: Slice 1 built on 2026-10-30: the live run on the development case met its pass bar, and the [independent review](#independent-review) ran with its fixes in. [Slice 2](#slice-2-the-library-search-tool) built on 2026-11-02: the live runs on both models met their pass bar; its independent review has not run yet. The milestone state is in the [roadmap](../roadmap.md).
+
+The sections up to [Independent review](#independent-review) are slice 1, the investigator on case tools.
 
 ## Scope
 
@@ -156,3 +158,72 @@ Written before the runs. One run of `python -m hindcast.investigate cloudflare-2
 The `gpt-6-luna` run is the evidence for the first criterion of [milestone 4](../roadmap.md#4-investigator) in full. The `gpt-6.1-sol` run checks that the comparison model handles the tool before its seals; a miss is recorded and does not hold its seals. A run that misses the bar is recorded as it was. A second run is a new file and says why.
 
 Commit threshold, also written before the run: the passing `gpt-6-luna` run is committed only if it repeats no library text at length. The measure is the longest fragment repeated word for word, found with `difflib` (matches of 25 characters or more) against each library section the run retrieved. A fragment over 120 characters keeps the run out of the repository as it is.
+
+### Slice 2 work completed
+
+The procedure is the [investigator runbook](../runbooks/investigator.md); the citation policy is [decision 0020](../decisions/0020-library-citations.md), which extends decision 0015.
+
+- **Tool** (`hindcast.tools`): `search_library` takes one argument, `query`, a non-empty string of at most 1,000 characters. Any other key, a case ID or `top` included, is refused. The command binds `hindcast.search.search_library` to the case with one embedder and one search client per run, so the date bound and the picks come from the registries. The tool returns five hits with ref, document, title, heading, date, and content, no scores, and a note that a hit is another outage. Every returned ref joins the run's `retrieved` set. Zero hits is an answer.
+- **Citations** (`hindcast.result`): the schema's `source` takes `case` or `library`. A library citation is kept only for an exact ref in `retrieved`, else `not-retrieved`; a `lib/` ref under `case`, or a case ref under `library`, is `malformed`. An item whose kept citations are all library citations and that has no kept `rests_on` is unsupported.
+- **Result file** (`hindcast.investigate`): `tool_calls` lists every successful call in order with its own duration, and for a search the query and the returned refs, never the hit text. `provenance.library` holds the library registry's blob, the index, the search API version, and the embedding model with its dimensions. Missing search settings fail before the agent version is made. The 12-call cap counts searches.
+- **Prompt v3** asks for `list_updates`, `list_charts`, and at least one search, and says a library citation never stands alone.
+- **Seals** (`hindcast.seal`): new seals carry `library: true`, a second series; `data/library.yaml` joins the paths that must be committed. `seals.json` may only grow ([#33](https://github.com/sindredg/hindcast/issues/33)): earlier entries keep every value, a null `blob` may be filled once, and the only keys a later commit may add are `revealed: true` and `dropped: true`. `seal run` and `seal upload` refuse a record that does not extend HEAD's, and a test walks every committed version of the file. The CI Python job checks out the full history for it; a shallow clone fails the test instead of skipping it.
+- **Page** (`hindcast.app`): shows the slice 2 run; a library citation renders as `library:<ref>`.
+
+### Slice 2 live runs
+
+Both runs used `python -m hindcast.investigate cloudflare-2026-02-20` with the variables exported from `.env`, at commit `764b37e`, pushed to the branch before the first run, clean tree.
+
+1. **`gpt-6-luna`, 18:04 UTC: missed the bar.** `incomplete: tool-error: search_library: [SSL: UNEXPECTED_EOF_WHILE_READING] ...` after `list_updates` and `list_charts`; 3 model calls, 2 tool calls, 0 searches. The search endpoint refused TLS for a few minutes ([troubleshooting](../troubleshooting.md#investigator-a-library-search-ends-the-run-with-an-ssl-error-2026-11-02)). The run created agent version 3. The file stays local; it is not a model miss, so the rerun below is not the one prompt fix the pass bar allows.
+2. **`gpt-6-luna`, 18:17 UTC, rerun after the endpoint answered: passed.**
+
+   ```
+   complete
+   findings 6, timeline events 9, factors 1, open questions 3
+   rejected citations 0, unsupported 0, searches 1, library citations kept 1
+   model calls 3, tool calls 3, seconds 39.258, tokens in 10151 (cached 5525) out 3340
+   build/investigations/cloudflare-2026-02-20/20261102T181721Z-v3.json
+   ```
+
+   The search took 9.688 s and returned five sections: `lib/cloudflare-2022-06-21/s4`, three of `cloudflare-2025-07-14`, and one of `cloudflare-2024-06-27`. The kept library citation is `lib/cloudflare-2022-06-21/s4` ("Cloudflare outage on June 21, 2022"), on finding F4, next to two case citations and `rests_on` F2 and F3.
+3. **`gpt-6.1-sol`, 18:18 UTC: failed** with `openai.APIConnectionError` on a model call after the agent version was made, and wrote nothing ([#23](https://github.com/sindredg/hindcast/issues/23)). Every endpoint answered right after.
+4. **`gpt-6.1-sol`, 18:19 UTC, retry: passed.** `complete`; 8 findings, 9 timeline events, 2 factors, 3 open questions; 0 rejected, 0 unsupported; 1 search (4.157 s, five sections, four of them shared with the luna run), 1 library citation kept, the same `lib/cloudflare-2022-06-21/s4`; 3 model calls, 42.319 s, 9,926 input tokens (7,228 cached), 2,764 output tokens. Agent `hindcast-investigator-gpt-6-1-sol` version 2. The file stays local.
+
+Read against the evidence, not the answer key:
+
+- Each of the luna run's 6 findings matches the updates it cites. The library citation backs a sentence that calls the earlier postmortem context for reading the updates, "not evidence of this incident's trigger", which is what the prompt asks.
+- The attack verdict is `cannot tell`, and the root cause is an inference on F2, F3, and F4: loss of advertisement for some customer BYOIP prefixes, the trigger not stated.
+- The first timeline event now cites update 1 at its own time, 18:45:17; slice 1's run gave the case header's 18:45:16. Update 4 (19:45:56) has no timeline event.
+- `list_charts` ran (`tool_calls` now records it), but no item cites a chart, so the lead that both charts move before the first update is still unused.
+
+Overlap, measured with `difflib` on 2026-11-02 against the sources, counting matches of 25 characters or more: the luna run repeats the updates in 17.6% of its text, in fragments of at most 56 characters, and repeats none of the five library sections it retrieved (longest shared fragment 22 characters, under the 120-character threshold). The sol run: 10.7% and at most 50 characters against the updates, longest 20 against the library.
+
+The luna run is committed unchanged in [`eval/investigations/cloudflare-2026-02-20/`](../../eval/investigations/cloudflare-2026-02-20/README.md), and the page renders it. Switching the live app to the new image is a provision, not done in this slice.
+
+### Slice 2 gate
+
+| Criterion | Status | Evidence |
+|---|---|---|
+| An investigation of the development case returns an attack assessment, a timeline, findings, contributing factors, and open questions, each item with a citation that resolves, and library citations marked as such | Tested live | Luna run 2 above: `complete`, 0 rejected, 0 unsupported, 1 search, 1 library citation kept with `source: library`. `tests/test_committed_investigation.py`: every item but the open questions keeps a case citation that resolves (local, evidence present), and every library citation is a ref the run's search returned (runs in CI) |
+| A library citation the run did not retrieve is rejected; a `lib/` ref under `case` and a case ref under `library` are malformed; an item backed only by the library is unsupported | Tested locally | `tests/test_result.py`: a ref that exists nowhere, with a trailing space, with other case, or a prefix, each `not-retrieved`; both crossed sources `malformed`; a library-only finding and attack verdict unsupported; a rejected case citation leaving an item library-only. `tests/test_investigate.py`: through the loop, a retrieved ref kept and an unretrieved one rejected |
+| The search is bound to the case in the tool | Tested locally | `tests/test_tools.py`: the search receives only the query; a call with `case_id` or `top` is refused before the search runs. `tests/test_investigate.py`: a search that raises `LibraryLeak` ends the run as `tool-error: search_library: ...` and keeps the earlier calls; `tests/test_search.py` (milestone 3) shows a disallowed hit raises `LibraryLeak`. A tool error from the search was also seen live, in luna run 1 |
+| The 12-call cap counts searches | Tested locally | `tests/test_investigate.py::test_thirteenth_call_being_a_search_is_tool_cap`: the search never runs |
+| A malformed query is refused | Tested locally | `tests/test_tools.py::test_search_refuses_bad_arguments`: missing, empty, blank, a number, 1,001 characters, extra keys, not JSON; 1,000 characters accepted |
+| The seal record only grows | Tested locally | `tests/test_seal.py`: removed, reordered, changed, and dropped fields and unknown keys are problems; an appended entry, a filled blob, and `revealed` or `dropped` set to true are not; a history with an edited hash or a restored record is reported; a shallow clone is refused; the repository's own history passes. Configured, not tested: the full-history checkout in CI until this branch's CI run |
+
+Every new check was run once against a broken input on 2026-11-02, locally, and failed:
+
+| Broken input | Failed tests |
+|---|---|
+| The extra-keys check in the search tool loosened to "has a query" | `test_search_refuses_bad_arguments[top]`, `[case-id]` |
+| Any kept citation counted as support | `test_library_only_finding_is_unsupported`, `test_library_only_attack_verdict_is_unsupported`, `test_rejected_case_citation_leaves_a_library_only_item_unsupported` |
+| An empty `retrieved` set passed to the citation check | `test_library_citation_from_a_search_is_kept_and_an_unretrieved_one_rejected` |
+| `data/library.yaml` removed from the seal's clean paths | `test_library_registry_change_is_refused` |
+| `LIBRARY = False` | `test_run_records_hash_then_uploads`, `test_a_seal_without_the_library_does_not_block_one_with_it` |
+| The record check compares key presence only | `test_record_change_is_a_problem[reordered]`, `[hash]`, `test_filled_blob_cannot_change`, `test_history_with_a_changed_hash_is_a_problem` |
+| The history walk skips the parent comparison | `test_history_with_a_changed_hash_is_a_problem`, `test_history_restored_from_an_earlier_commit_is_a_problem` |
+| A committed run's library citation changed to a ref the run did not retrieve (a copy) | `test_library_citations_were_retrieved_in_the_run`, `test_every_item_but_the_open_questions_cites_the_case[...v3...]` |
+| A 150-character fragment of a retrieved section added to a finding (a copy) | `test_library_text_is_not_repeated_at_length` |
+| The page pointed back at the slice 1 run | `test_page_marks_a_library_citation` |
+
+The committed file was restored byte for byte (`cmp` against the run's original). With every file restored, the suite passed: `uv run --frozen pytest -q`, 467 passed (408 on `main` before the slice). The search API version is recorded from `hindcast.index.SEARCH_API_VERSION`, the version the search client is built with.

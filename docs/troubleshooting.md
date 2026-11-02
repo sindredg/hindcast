@@ -2,6 +2,16 @@
 
 Failures that showed something about Hindcast, the platform, or a procedure: the symptom, the cause, the fix, and how the fix was verified. Newest first. A cause that was not confirmed is labelled as a hypothesis. The behaviour behind an entry is recorded once, in [findings](findings/), and linked from here.
 
+## Investigator: a library search ends the run with an SSL error (2026-11-02)
+
+**Symptom:** the first slice 2 development run on `gpt-6-luna` ended as `incomplete: tool-error: search_library: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol`, after `list_updates` and `list_charts` and before any search returned. `python -m hindcast.search` failed the same way.
+
+**Cause:** not confirmed. The search service read as running, with public network access on and no IP rules (`az search service show`). A TCP connection to its endpoint opened, but the TLS handshake got no answer for any server name, from WSL (curl, openssl, Python `ssl`) and from the Windows host (`curl.exe`), while the Foundry endpoints, Blob Storage, and Azure Resource Manager answered. The Azure status page listed no active event. Hypothesis: a short fault on the service's frontend or on the network path to it; the two were not told apart.
+
+**Fix:** none. About ten minutes later the endpoint answered again (`401` without a token, 0.29 s), and the run was repeated as a new file ([worklog](worklogs/04-investigator.md#slice-2-live-runs)). A failed search ends a run as a tool error by design (decision 0015's rule for any tool failure). Under [decision 0017](decisions/0017-sealed-reconstructions.md), a seal attempt that ends this way after the model has produced output is the seal and is not rerun.
+
+**Verification:** tested live, 2026-11-02 ~18:16 UTC: the endpoint answered, and the repeated run completed with one search. A minute later a `gpt-6.1-sol` run failed on `openai.APIConnectionError` and wrote nothing ([#23](https://github.com/sindredg/hindcast/issues/23)); its retry completed.
+
 ## Retrieval: the first index build fails with 404 on embeddings (2026-11-01)
 
 **Symptom:** `python -m hindcast.index build --dimensions 1024` failed at its first embeddings call with `404`, an empty body, through the Foundry project endpoint. It had already created the empty index `hindcast-library-1024`.

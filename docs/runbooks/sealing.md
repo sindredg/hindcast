@@ -1,15 +1,16 @@
 # Sealing: operator procedure
 
-Status: Written on 2026-11-01. Steps 1 to 10 ran on 2026-11-01 with the output shown. [Reveal a seal](#reveal-a-seal) and [Drop a seal](#drop-a-seal) are written, not run: no provider had published a cause for a sealed case by then.
+Status: Written on 2026-11-01. Steps 1 to 10 ran on 2026-11-01 with the output shown, for the first series (`library: false`). Updated on 2026-11-02 for the second series, with the library search (`library: true`): its seals have not run yet. [Reveal a seal](#reveal-a-seal) and [Drop a seal](#drop-a-seal) are written, not run: no provider had published a cause for a sealed case by then.
 
-The procedure seals a reconstruction of an outage whose provider has not yet published a cause: it runs the investigator once per deployment, commits the result's SHA-256, and keeps the file in private storage until the postmortem is out ([decision 0017](../decisions/0017-sealed-reconstructions.md)). Each seal makes at most 13 model calls on the deployment it names.
+The procedure seals a reconstruction of an outage whose provider has not yet published a cause: it runs the investigator once per deployment, commits the result's SHA-256, and keeps the file in private storage until the postmortem is out ([decision 0017](../decisions/0017-sealed-reconstructions.md)). Each seal makes at most 13 model calls on the deployment it names and, in the second series, one embedding call and one search query per library search.
 
 ![Sealing a reconstruction: the seal command refuses, before any model call, a case that is not sealed, a case and deployment that already have a seal, or a changed tree; otherwise it investigates once, records an attempt with no model output as no-result, which may be retried up to three attempts in all, and otherwise commits the hash and uploads the file to private storage. If the provider publishes its cause by 2026-11-09, the file is revealed after the rubric is frozen, checked against its hash, and scored; if not, the case is dropped with its record kept](../diagrams/sealing.svg)
 
 ## Inputs and access
 
 - The [foundations runbook](foundations.md) completed: `.env` written, with `HINDCAST_CHAT_DEPLOYMENT` (gpt-6-luna) and `HINDCAST_COMPARE_DEPLOYMENT` (gpt-6.1-sol).
-- Signed in with `az login` as a user with Foundry User on the project and Storage Blob Data Contributor on the storage account.
+- For the second series, the [retrieval runbook](retrieval.md) completed: the library index built, its four search and embedding values in `.env`, and the library extracts under `build/extracted/library/`.
+- Signed in with `az login` as a user with Foundry User on the project and Storage Blob Data Contributor on the storage account; for the second series also Search Index Data Contributor on the search service and Cognitive Services OpenAI User on the Foundry resource.
 - Signed commits, and push access to a branch with an open pull request: the push time is the seal's public timestamp.
 - Commands run from the repository root.
 
@@ -59,7 +60,7 @@ The procedure seals a reconstruction of an outage whose provider has not yet pub
 
    Expected: the update count including the resolved mark, the resolved time, `dropped 0`, and `blob: uploaded`. Observed on 2026-11-01: 9 updates for `cloudflare-2026-10-20`, 15 for `github-2026-10-21`, 18 for `github-2026-10-22`.
 
-6. Commit the registry. A seal refuses to run while `src/`, `prompts/`, `pyproject.toml`, `uv.lock`, or `data/cases.yaml` differs from the last commit.
+6. Commit the registry. A seal refuses to run while `src/`, `prompts/`, `pyproject.toml`, `uv.lock`, `data/cases.yaml`, or `data/library.yaml` differs from the last commit, or while `eval/sealed/seals.json` does not extend the committed one.
 
    ```bash
    git add data/cases.yaml
@@ -69,7 +70,7 @@ The procedure seals a reconstruction of an outage whose provider has not yet pub
    git commit -m "feat: register <n> outages as sealed cases"
    ```
 
-   Expected: `git status --short -- src prompts pyproject.toml uv.lock data/cases.yaml` prints nothing.
+   Expected: `git status --short -- src prompts pyproject.toml uv.lock data/cases.yaml data/library.yaml` prints nothing.
 
 ## Seal
 
@@ -90,6 +91,8 @@ The procedure seals a reconstruction of an outage whose provider has not yet pub
    sha256 1eaab346304c7de8bb25817a9507de52d7f747f70a1f0a6fa9eba28c42eeec06
    uploaded extracted/sealed/cloudflare-2026-10-20/20261101T081712Z-v2.json
    ```
+
+   In the second series the checks line ends with `searches <n>, library citations kept <m>`, and the entries carry `library: true`. One seal per case, deployment, and series: the first series does not block the second.
 
    The command never prints the investigation, and for an incomplete run it prints only the kind of reason (`schema`, `time-cap`, `tool-cap`, `tool-error`, `empty-result`). If it prints `no-result`, the model produced nothing; run it again, up to three attempts in all. If it prints `upload failed`, the hash is already recorded; upload the same file with `python -m hindcast.seal upload <case_id> <file>`, which checks the file against its hash first.
 
