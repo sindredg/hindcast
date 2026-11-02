@@ -321,6 +321,8 @@ def test_record_may_append_fill_a_blob_and_mark_a_reveal() -> None:
     assert record_problems([E1], [E1, E2]) == []
     assert record_problems([E1], [E1 | {"blob": "sealed/a/r.json"}]) == []
     assert record_problems([E2], [E2 | {"revealed": True}]) == []
+    # The sealing runbook drops a case whose provider never publishes.
+    assert record_problems([E2], [E2 | {"dropped": True}]) == []
 
 
 @pytest.mark.parametrize(
@@ -332,8 +334,17 @@ def test_record_may_append_fill_a_blob_and_mark_a_reveal() -> None:
         ([{k: v for k, v in E1.items() if k != "status"}, E2], "entry 0 changed: status"),
         ([E1 | {"note": "y"}, E2], "entry 0 gained note"),
         ([E1 | {"revealed": False}, E2], "entry 0 gained revealed"),
+        ([E1 | {"dropped": "yes"}, E2], "entry 0 gained dropped"),
     ],
-    ids=["removed", "reordered", "hash", "dropped-field", "new-key", "revealed-false"],
+    ids=[
+        "removed",
+        "reordered",
+        "hash",
+        "dropped-field",
+        "new-key",
+        "revealed-false",
+        "dropped-str",
+    ],
 )
 def test_record_change_is_a_problem(new: list[dict], problem: str) -> None:
     assert problem in record_problems([E1, E2], new)

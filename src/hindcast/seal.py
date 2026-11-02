@@ -23,9 +23,10 @@ result with model output, complete or not, is the seal: it is never rerun or
 replaced, so a bad answer cannot be swapped for a better one.
 
 The record only grows: entries are appended, an upload fills a null blob
-once, and a reveal adds "revealed": true; nothing else in an earlier entry
-changes. run and upload refuse a record on disk that does not extend HEAD's,
-and a test walks every committed version of the file (issue #33).
+once, and a reveal or a drop adds "revealed": true or "dropped": true; nothing
+else in an earlier entry changes. run and upload refuse a record on disk that
+does not extend HEAD's, and a test walks every committed version of the file
+(issue #33).
 """
 
 import argparse
@@ -116,6 +117,11 @@ def write_seals(path: Path, seals: list[dict]) -> None:
     path.write_text(json.dumps({"seals": seals}, indent=2) + "\n", encoding="utf-8")
 
 
+# The only keys a later commit may add to an entry, each as true: a reveal
+# and a drop (decision 0017, the sealing runbook).
+MARKS = frozenset({"revealed", "dropped"})
+
+
 def record_problems(old: list[dict], new: list[dict]) -> list[str]:
     """One line per way the new record fails to extend the old one."""
     problems = []
@@ -129,7 +135,7 @@ def record_problems(old: list[dict], new: list[dict]) -> list[str]:
             if (key not in after or after[key] != value) and not filled_blob:
                 problems.append(f"entry {i} changed: {key}")
         for key in sorted(after.keys() - before.keys()):
-            if key != "revealed" or after[key] is not True:
+            if key not in MARKS or after[key] is not True:
                 problems.append(f"entry {i} gained {key}")
     return problems
 
