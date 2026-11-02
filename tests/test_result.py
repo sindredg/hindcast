@@ -5,6 +5,7 @@ import pytest
 
 from hindcast.result import (
     INVESTIGATION_SCHEMA,
+    Checks,
     Citation,
     Investigation,
     ResultError,
@@ -219,3 +220,78 @@ def test_unsupported_lists_every_item_kind_in_walk_order() -> None:
     )
     _, checks = check_citations(parse(document), REFS, CASE)
     assert checks.unsupported == ("attack", "timeline[0]", "contributing_factors[0]")
+
+
+RETRIEVED = frozenset({"lib/a/s1", "lib/b/fig2"})
+LIB = {"source": "library", "ref": "lib/a/s1"}
+
+
+def test_schema_offers_case_and_library_sources() -> None:
+    citation = INVESTIGATION_SCHEMA["properties"]["attack"]["properties"]["citations"]["items"]
+    assert citation["properties"]["source"]["enum"] == ["case", "library"]
+
+
+def test_retrieved_library_citation_is_kept() -> None:
+    investigation = _with_first_finding_citations([U1, LIB])
+    checked, checks = check_citations(investigation, REFS, CASE, RETRIEVED)
+    assert checked.findings[0].citations == (
+        Citation("case", "dev/u1"),
+        Citation("library", "lib/a/s1"),
+    )
+    assert checks == Checks()
+
+
+@pytest.mark.parametrize("ref", ["lib/a/s9", "lib/a/s1 ", "lib/A/s1", "lib/a/s"])
+def test_library_citation_not_retrieved_is_rejected(ref: str) -> None:
+    # Exact match only: a ref the run never saw, a near miss, or a prefix.
+    investigation = _with_first_finding_citations([U1, {"source": "library", "ref": ref}])
+    checked, checks = check_citations(investigation, REFS, CASE, frozenset({"lib/a/s1"}))
+    assert [(r.where, r.ref, r.reason) for r in checks.rejected_citations] == [
+        ("findings[0]", ref, "not-retrieved")
+    ]
+    assert checked.findings[0].citations == (Citation("case", "dev/u1"),)
+
+
+def test_library_citation_with_nothing_retrieved_is_rejected() -> None:
+    investigation = _with_first_finding_citations([U1, LIB])
+    _, checks = check_citations(investigation, REFS, CASE)
+    assert checks.rejected_citations[0].reason == "not-retrieved"
+
+
+@pytest.mark.parametrize(
+    "citation",
+    [{"source": "case", "ref": "lib/a/s1"}, {"source": "library", "ref": "dev/u1"}],
+)
+def test_library_ref_under_case_and_case_ref_under_library_are_malformed(
+    citation: dict,
+) -> None:
+    investigation = _with_first_finding_citations([U1, citation])
+    _, checks = check_citations(investigation, REFS, CASE, RETRIEVED)
+    assert [r.reason for r in checks.rejected_citations] == ["malformed"]
+
+
+def test_library_only_finding_is_unsupported() -> None:
+    investigation = _with_first_finding_citations([LIB])
+    checked, checks = check_citations(investigation, REFS, CASE, RETRIEVED)
+    assert checked.findings[0].citations == (Citation("library", "lib/a/s1"),)
+    assert checks.rejected_citations == ()
+    assert checks.unsupported == ("findings[0]",)
+
+
+def test_library_only_attack_verdict_is_unsupported() -> None:
+    document = doc(attack={"verdict": "not an attack", "reasoning": "r", "citations": [LIB]})
+    _, checks = check_citations(parse(document), REFS, CASE, RETRIEVED)
+    assert checks.unsupported == ("attack",)
+
+
+def test_library_citation_with_rests_on_is_supported() -> None:
+    document = doc(root_cause={"claim": "A change.", "rests_on": ["f2"], "citations": [LIB]})
+    _, checks = check_citations(parse(document), REFS, CASE, RETRIEVED)
+    assert checks == Checks()
+
+
+def test_rejected_case_citation_leaves_a_library_only_item_unsupported() -> None:
+    investigation = _with_first_finding_citations([LIB, {"source": "case", "ref": "dev/u99"}])
+    _, checks = check_citations(investigation, REFS, CASE, RETRIEVED)
+    assert [r.reason for r in checks.rejected_citations] == ["unknown"]
+    assert checks.unsupported == ("findings[0]",)
