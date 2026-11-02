@@ -60,7 +60,7 @@ The shape `hindcast.result` and `hindcast.investigate` write, shortened: one ite
 }
 ```
 
-A finding is an observation the evidence states, or an inference that names the findings it `rests_on`. A citation that does not resolve to the case's evidence is removed and listed in `checks` with a reason, and an item left with no support stays and is listed as unsupported. A run that exceeds 12 tool calls or 120 seconds, or whose tool fails or answer does not fit the schema, ends as `incomplete` with a reason. A library citation (`"source": "library"`) is kept only for a ref that a search in the same run returned, which `tool_calls` lists, and it never supports an item on its own ([decision 0020](docs/decisions/0020-library-citations.md)).
+A finding is an observation the evidence states, or an inference that names the findings it `rests_on`. A citation that does not resolve to the case's evidence is removed and listed in `checks` with a reason, and an item left with no support stays and is listed as unsupported. A run that reaches 12 tool calls or 120 seconds, or whose tool fails or answer does not fit the schema, ends as `incomplete` with a reason. The time cap is checked before each model call and each tool call, so a search already running when the time runs out is not cut off. A library citation (`"source": "library"`) is kept only for a ref that a search in the same run returned, which `tool_calls` lists, and it never supports an item on its own ([decision 0020](docs/decisions/0020-library-citations.md)).
 
 ## Documentation
 

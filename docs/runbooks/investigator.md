@@ -27,10 +27,14 @@ The procedure runs one investigation of a case through the investigator prompt a
 2. Run the investigator on the development case.
 
    ```bash
-   PYTHONPATH=src uv run --frozen --env-file .env python -m hindcast.investigate cloudflare-2026-02-20
+   set -a; . ./.env; set +a
    ```
 
-   Expected, as observed on 2026-11-02 with prompt v3 and the variables exported from `.env` (the counts and the usage vary per run):
+   ```bash
+   PYTHONPATH=src uv run --frozen python -m hindcast.investigate cloudflare-2026-02-20
+   ```
+
+   Expected, as observed on 2026-11-02 with prompt v3 (the counts and the usage vary per run):
 
    ```
    complete

@@ -10,7 +10,7 @@ Two development runs, read against the evidence and not scored. The answer key s
 | Case | `cloudflare-2026-02-20` (Cloudflare status incident `kwy3dt82bwbt`, 10 updates, 2 charts) | same |
 | Agent | `hindcast-investigator-gpt-6-luna`, version 1 | `hindcast-investigator-gpt-6-luna`, version 3 |
 | Model | deployment `gpt-6-luna`, model gpt-6-luna version 2026-09-22 | same |
-| Prompt | `prompts/investigator.md` v2, blob `fb660e15cf20654c2d05696c89a63a313cc2ffe4`, clean | `prompts/investigator.md` v3, blob `1d0911f407e73fd3d4def4f4e14ab8763c6cfbbc`, clean |
+| Prompt | `prompts/investigator.md` v1, blob `fb660e15cf20654c2d05696c89a63a313cc2ffe4`, clean | `prompts/investigator.md` v3, blob `1d0911f407e73fd3d4def4f4e14ab8763c6cfbbc`, clean |
 | Code | commit `7c27d84`, clean | commit `764b37e`, clean |
 | Evidence | `build/evidence/cloudflare-2026-02-20.json`, SHA-256 `ee6be350c1f4d19b393e12b13f87dfa97a0ba6341aed57e58fd9c2285381e074` | same |
 | Library | none | `data/library.yaml` blob `ca5fb507e65dab71001a76adb9ae2258aae261b4`; index `hindcast-library-1024`; search API `2026-04-01`; text-embedding-3-large version 1, 1,024 dimensions |
