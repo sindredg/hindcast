@@ -92,6 +92,8 @@ The procedure seals a reconstruction of an outage whose provider has not yet pub
    uploaded extracted/sealed/cloudflare-2026-10-20/20261101T081712Z-v2.json
    ```
 
+   Before the first model call, the command runs one library search and refuses with `SealRefused: the library search did not answer (<error type>); seal again later` while it fails, recording nothing. Wait and run it again.
+
    In the second series the checks line ends with `searches <n>, library citations kept <m>`, and the entries carry `library: true`. One seal per case, deployment, and series: the first series does not block the second.
 
    The command never prints the investigation, and for an incomplete run it prints only the kind of reason (`schema`, `time-cap`, `tool-cap`, `tool-error`, `empty-result`). If it prints `no-result`, the model produced nothing; run it again, up to three attempts in all. If it prints `upload failed`, the hash is already recorded; upload the same file with `python -m hindcast.seal upload <case_id> <file>`, which checks the file against its hash first.
