@@ -1,6 +1,6 @@
 # Sealing: operator procedure
 
-Status: Written on 2026-11-01. Steps 1 to 10 ran on 2026-11-01 with the output shown, for the first series (`library: false`). Updated on 2026-11-02 for the second series, with the library search (`library: true`): its seals have not run yet. [Reveal a seal](#reveal-a-seal) and [Drop a seal](#drop-a-seal) are written, not run: no provider had published a cause for a sealed case by then.
+Status: Written on 2026-11-01. Steps 1 to 10 ran on 2026-11-01 with the output shown, for the first series (`library: false`). Updated on 2026-11-02 for the second series, with the library search (`library: true`): steps 7 to 10 ran on 2026-11-02 for it ([worklog 05](../worklogs/05-sealed-reconstructions.md#second-seals-with-the-library-2026-11-02)). [Reveal a seal](#reveal-a-seal) and [Drop a seal](#drop-a-seal) are written, not run: no provider had published a cause for a sealed case by then.
 
 The procedure seals a reconstruction of an outage whose provider has not yet published a cause: it runs the investigator once per deployment, commits the result's SHA-256, and keeps the file in private storage until the postmortem is out ([decision 0017](../decisions/0017-sealed-reconstructions.md)). Each seal makes at most 13 model calls on the deployment it names and, in the second series, one embedding call and one search query per library search.
 
@@ -92,6 +92,18 @@ The procedure seals a reconstruction of an outage whose provider has not yet pub
    uploaded extracted/sealed/cloudflare-2026-10-20/20261101T081712Z-v2.json
    ```
 
+   For the second series, as observed on 2026-11-02:
+
+   ```
+   complete
+   findings 6, timeline events 6, factors 2, open questions 3
+   rejected citations 0, unsupported 0, searches 1, library citations kept 0
+   model calls 3, tool calls 3, seconds 24.617, tokens in 8627 (cached 4633) out 2619
+   build/sealed/cloudflare-2026-10-20/20261102T184430Z-v3.json
+   sha256 5a492fe38b2bced49a0159ef651f0504c10a1b378db0cfc04a66e7123b9c3e61
+   uploaded extracted/sealed/cloudflare-2026-10-20/20261102T184430Z-v3.json
+   ```
+
    Before the first model call, the command runs one library search and refuses with `SealRefused: the library search did not answer (<error type>); seal again later` while it fails, recording nothing. Wait and run it again.
 
    In the second series the checks line ends with `searches <n>, library citations kept <m>`, and the entries carry `library: true`. One seal per case, deployment, and series: the first series does not block the second.
@@ -104,7 +116,7 @@ The procedure seals a reconstruction of an outage whose provider has not yet pub
    HINDCAST_CHAT_DEPLOYMENT=gpt-6.1-sol PYTHONPATH=src uv run --frozen --env-file .env python -m hindcast.seal run cloudflare-2026-10-20
    ```
 
-   Expected: the same shape. The first run creates agent `hindcast-investigator-gpt-6-1-sol` (Foundry agent names take no dot). Observed on 2026-11-01: six seals, all `complete`, all uploaded.
+   Expected: the same shape. The first run creates agent `hindcast-investigator-gpt-6-1-sol` (Foundry agent names take no dot). Observed on 2026-11-01: six seals, all `complete`, all uploaded. Observed on 2026-11-02 for the second series: six more, all `complete` on the first attempt, each with one search, all uploaded.
 
 9. Confirm a second seal is refused.
 
@@ -112,7 +124,7 @@ The procedure seals a reconstruction of an outage whose provider has not yet pub
    PYTHONPATH=src uv run --frozen --env-file .env python -m hindcast.seal run cloudflare-2026-10-20 2>&1 | tail -1
    ```
 
-   Expected, as observed on 2026-11-01: `SealRefused: cloudflare-2026-10-20 is already sealed on gpt-6-luna`, before any cloud call.
+   Expected, as observed on 2026-11-01 and again on 2026-11-02 for the second series: `SealRefused: cloudflare-2026-10-20 is already sealed on gpt-6-luna`, before any cloud call.
 
 10. Commit `eval/sealed/seals.json` and push it the same day. The push time GitHub records is the seal's public timestamp.
 
