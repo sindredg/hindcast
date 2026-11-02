@@ -21,6 +21,11 @@ An attempt in which the model produced no output (the run raised, or the time
 cap ended the first call) may be retried, up to three attempts in all. A
 result with model output, complete or not, is the seal: it is never rerun or
 replaced, so a bad answer cannot be swapped for a better one.
+
+The record only grows: entries are appended, an upload fills a null blob
+once, and a reveal adds "revealed": true; nothing else in an earlier entry
+changes. run and upload refuse a record on disk that does not extend HEAD's,
+and a test walks every committed version of the file (issue #33).
 """
 
 import argparse
@@ -111,6 +116,71 @@ def write_seals(path: Path, seals: list[dict]) -> None:
     path.write_text(json.dumps({"seals": seals}, indent=2) + "\n", encoding="utf-8")
 
 
+def record_problems(old: list[dict], new: list[dict]) -> list[str]:
+    """One line per way the new record fails to extend the old one."""
+    problems = []
+    for i, before in enumerate(old):
+        if i >= len(new):
+            problems.append(f"entry {i} removed")
+            continue
+        after = new[i]
+        for key, value in before.items():
+            filled_blob = key == "blob" and value is None and isinstance(after.get(key), str)
+            if (key not in after or after[key] != value) and not filled_blob:
+                problems.append(f"entry {i} changed: {key}")
+        for key in sorted(after.keys() - before.keys()):
+            if key != "revealed" or after[key] is not True:
+                problems.append(f"entry {i} gained {key}")
+    return problems
+
+
+def _version(repo: Path, rev: str, path: Path) -> list[dict]:
+    """The record at a commit; empty only when the commit has no such file."""
+    if _git(repo, "rev-parse", "--verify", "--quiet", f"{rev}^{{commit}}").returncode != 0:
+        raise RuntimeError(f"cannot read commit {rev}")
+    if _git(repo, "cat-file", "-e", f"{rev}:{path.as_posix()}").returncode != 0:
+        return []
+    shown = _git(repo, "show", f"{rev}:{path.as_posix()}")
+    if shown.returncode != 0:
+        raise RuntimeError(f"cannot read {path} at {rev}")
+    return json.loads(shown.stdout)["seals"]
+
+
+def history_problems(repo: Path = Path("."), path: Path = SEALS) -> list[str]:
+    """Every committed version of the record checked against the one before it."""
+    shallow = _git(repo, "rev-parse", "--is-shallow-repository")
+    if shallow.returncode != 0:
+        raise RuntimeError("cannot read the Git history")
+    # A shallow clone hides the earlier versions, so the walk would pass on
+    # whatever is left. CI checks out with fetch-depth: 0.
+    if shallow.stdout.strip() == "true":
+        raise RuntimeError(f"the clone is shallow: checking {path} needs the full history")
+    listing = _git(repo, "rev-list", "--parents", "HEAD", "--", path.as_posix())
+    if listing.returncode != 0:
+        raise RuntimeError(f"cannot list the history of {path}")
+    problems = []
+    for line in listing.stdout.splitlines():
+        # With a path, the parents are the nearest earlier commits that
+        # changed the file, so each version is compared with the one before.
+        commit, *parents = line.split()
+        new = _version(repo, commit, path)
+        for parent in parents:
+            old = _version(repo, parent, path)
+            problems += [f"{commit[:12]}: {p}" for p in record_problems(old, new)]
+    return problems
+
+
+def check_record_grows(repo: Path = Path(".")) -> None:
+    """Refuse a record on disk that does not extend the one committed at HEAD."""
+    try:
+        committed = _version(repo, "HEAD", SEALS)
+    except RuntimeError as error:
+        raise SealRefused(str(error)) from error
+    problems = record_problems(committed, load_seals(repo / SEALS))
+    if problems:
+        raise SealRefused(f"{SEALS} does not extend HEAD's: {'; '.join(problems)}")
+
+
 def reason_prefix(reason: str | None) -> str | None:
     # A schema error echoes the value it rejected and a tool error the model's
     # arguments, so only the kind before the first colon is printed.
@@ -127,6 +197,7 @@ def run(case: Case) -> int:
     # Both refusals come before any cloud call.
     attempt = check_may_seal(case, seals, deployment, LIBRARY)
     commit = check_clean()
+    check_record_grows()
     setup = prepare(case)
     now = _now()
     entry = {
@@ -202,6 +273,7 @@ def _upload(case_id: str, entry: dict, data: bytes, seals: list[dict]) -> int:
 
 def upload(case_id: str, file: str) -> int:
     """Upload a sealed file whose upload failed, after checking it against its hash."""
+    check_record_grows()
     seals = load_seals(SEALS)
     found = [s for s in seals if s["case_id"] == case_id and s["file"] == file]
     if len(found) != 1:

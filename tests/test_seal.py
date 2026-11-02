@@ -10,7 +10,15 @@ import pytest
 from hindcast import seal
 from hindcast.cases import Case
 from hindcast.evidence import evidence_json
-from hindcast.seal import SealRefused, check_clean, check_may_seal, main
+from hindcast.seal import (
+    SealRefused,
+    check_clean,
+    check_may_seal,
+    check_record_grows,
+    history_problems,
+    main,
+    record_problems,
+)
 from test_investigate import (
     EVIDENCE,
     FINAL,
@@ -126,6 +134,8 @@ def stub_seal(
     monkeypatch.setattr(seal, "SEALS", seals)
     monkeypatch.setattr(seal, "OUT_DIR", tmp_path / "sealed")
     monkeypatch.setattr(seal, "check_clean", lambda: "c" * 40)
+    # The temp record is not in Git; the record check has tests of its own.
+    monkeypatch.setattr(seal, "check_record_grows", lambda: None)
     monkeypatch.setattr(seal, "upload_bytes", uploads)
     monkeypatch.setattr(seal, "_now", lambda: NOW)
     return seals
@@ -298,3 +308,112 @@ def test_a_seal_without_the_library_does_not_block_one_with_it(
     assert main(["run", "seal"]) == 0
 
     assert [e["library"] for e in entries(seals)] == [False, True]
+
+
+# Issue #33: the seal record only grows.
+
+E1 = {"case_id": "a", "sha256": "1" * 64, "blob": None, "status": "complete"}
+E2 = {"case_id": "b", "sha256": "2" * 64, "blob": "sealed/b/r.json", "status": "complete"}
+
+
+def test_record_may_append_fill_a_blob_and_mark_a_reveal() -> None:
+    assert record_problems([], [E1]) == []
+    assert record_problems([E1], [E1, E2]) == []
+    assert record_problems([E1], [E1 | {"blob": "sealed/a/r.json"}]) == []
+    assert record_problems([E2], [E2 | {"revealed": True}]) == []
+
+
+@pytest.mark.parametrize(
+    ("new", "problem"),
+    [
+        ([E1], "entry 1 removed"),
+        ([E2, E1], "entry 0 changed: case_id"),
+        ([E1 | {"sha256": "3" * 64}, E2], "entry 0 changed: sha256"),
+        ([{k: v for k, v in E1.items() if k != "status"}, E2], "entry 0 changed: status"),
+        ([E1 | {"note": "y"}, E2], "entry 0 gained note"),
+        ([E1 | {"revealed": False}, E2], "entry 0 gained revealed"),
+    ],
+    ids=["removed", "reordered", "hash", "dropped-field", "new-key", "revealed-false"],
+)
+def test_record_change_is_a_problem(new: list[dict], problem: str) -> None:
+    assert problem in record_problems([E1, E2], new)
+
+
+def test_filled_blob_cannot_change() -> None:
+    assert record_problems([E2], [E2 | {"blob": "sealed/b/other.json"}]) == [
+        "entry 0 changed: blob"
+    ]
+
+
+def _record(repo: Path, seals: list[dict], message: str) -> None:
+    (repo / "eval" / "sealed").mkdir(parents=True, exist_ok=True)
+    (repo / "eval" / "sealed" / "seals.json").write_text(json.dumps({"seals": seals}))
+    git(repo, "add", "eval/sealed/seals.json")
+    git(repo, "commit", "-q", "-m", message)
+
+
+def test_history_that_only_grows_has_no_problem(tmp_path: Path) -> None:
+    git(tmp_path, "init", "-q")
+    _record(tmp_path, [E1], "one")
+    _record(tmp_path, [E1, E2], "two")
+    assert history_problems(tmp_path) == []
+
+
+def test_history_with_a_changed_hash_is_a_problem(tmp_path: Path) -> None:
+    git(tmp_path, "init", "-q")
+    _record(tmp_path, [E1, E2], "two")
+    _record(tmp_path, [E1 | {"sha256": "9" * 64}, E2], "edit")
+    [problem] = history_problems(tmp_path)
+    assert "entry 0 changed: sha256" in problem
+
+
+def test_history_restored_from_an_earlier_commit_is_a_problem(tmp_path: Path) -> None:
+    git(tmp_path, "init", "-q")
+    _record(tmp_path, [E1], "one")
+    _record(tmp_path, [E1, E2], "two")
+    _record(tmp_path, [E1], "restore")
+    [problem] = history_problems(tmp_path)
+    assert "entry 1 removed" in problem
+
+
+def test_history_on_a_shallow_clone_is_refused(tmp_path: Path) -> None:
+    origin = tmp_path / "origin"
+    origin.mkdir()
+    git(origin, "init", "-q")
+    _record(origin, [E1], "one")
+    _record(origin, [E1, E2], "two")
+    clone = tmp_path / "clone"
+    git(tmp_path, "clone", "-q", "--depth", "1", f"file://{origin}", str(clone))
+    with pytest.raises(RuntimeError, match="shallow"):
+        history_problems(clone)
+
+
+def test_local_record_must_extend_head(tmp_path: Path) -> None:
+    git(tmp_path, "init", "-q")
+    _record(tmp_path, [E1, E2], "two")
+    path = tmp_path / "eval" / "sealed" / "seals.json"
+    path.write_text(json.dumps({"seals": [E1, E2, E1]}))
+    check_record_grows(tmp_path)
+    path.write_text(json.dumps({"seals": [E1]}))
+    with pytest.raises(SealRefused, match="entry 1 removed"):
+        check_record_grows(tmp_path)
+
+
+def test_run_refuses_a_shrunk_record_before_any_cloud_call(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    client = FakeClient(final())
+    stub_seal(monkeypatch, tmp_path, client, Uploads())
+
+    def shrunk(repo: Path = Path(".")) -> None:
+        raise SealRefused("entry 0 removed")
+
+    monkeypatch.setattr(seal, "check_record_grows", shrunk)
+    with pytest.raises(SealRefused, match="removed"):
+        main(["run", "seal"])
+    assert client.calls == []
+
+
+def test_committed_seal_record_only_grows() -> None:
+    # Runs on the repository itself; CI checks out the full history for it.
+    assert history_problems(Path(".")) == []
