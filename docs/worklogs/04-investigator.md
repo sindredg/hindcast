@@ -140,3 +140,19 @@ Opened as issues for later:
 The result does not record which tool each call used; the milestone 4 criterion for a trace per investigation covers it.
 
 After the fixes, locally: `uv run --frozen pytest -q`, 306 passed; `ruff check`, `ruff format --check`, `pyright`, and `yamllint` clean.
+
+## Slice 2: the library search tool
+
+### Pass bar for the slice 2 live runs
+
+Written before the runs. One run of `python -m hindcast.investigate cloudflare-2026-02-20` per model, `gpt-6-luna` first, then `gpt-6.1-sol`, each from a commit pushed to the branch. A run passes when:
+
+- its status is `complete`,
+- `checks.rejected_citations` is empty,
+- `checks.unsupported` is empty,
+- `tool_calls` holds at least one `search_library` call, and
+- at least one library citation is kept.
+
+The `gpt-6-luna` run is the evidence for the first criterion of [milestone 4](../roadmap.md#4-investigator) in full. The `gpt-6.1-sol` run checks that the comparison model handles the tool before its seals; a miss is recorded and does not hold its seals. A run that misses the bar is recorded as it was. A second run is a new file and says why.
+
+Commit threshold, also written before the run: the passing `gpt-6-luna` run is committed only if it repeats no library text at length. The measure is the longest fragment repeated word for word, found with `difflib` (matches of 25 characters or more) against each library section the run retrieved. A fragment over 120 characters keeps the run out of the repository as it is.
