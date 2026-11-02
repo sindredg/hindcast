@@ -14,7 +14,9 @@ the rubric is frozen: a model's account of a real company's outage is not made
 public before the company's own (decision 0017). The committed hash is what
 makes the file checkable when it is revealed.
 
-One seal per case, deployment, and library setting. Every attempt is recorded.
+One seal per case, deployment, and library setting. Seals made since the
+investigator searches the library carry library: true; the earlier ones, made
+without the search, keep library: false. Every attempt is recorded.
 An attempt in which the model produced no output (the run raised, or the time
 cap ended the first call) may be retried, up to three attempts in all. A
 result with model output, complete or not, is the seal: it is never rerun or
@@ -39,11 +41,20 @@ OUT_DIR = Path("build/sealed")
 CONTAINER = "extracted"
 BLOB_PREFIX = "sealed"
 # Everything that shapes a run, so the recorded commit names the exact prompt,
-# agent definition, code, and case registry.
-CLEAN_PATHS = ("src", "prompts", "pyproject.toml", "uv.lock", "data/cases.yaml")
+# agent definition, code, case registry, and the library registry that bounds
+# the searches.
+CLEAN_PATHS = (
+    "src",
+    "prompts",
+    "pyproject.toml",
+    "uv.lock",
+    "data/cases.yaml",
+    "data/library.yaml",
+)
 MAX_ATTEMPTS = 3
-# The investigator has no library tool until milestone 4 slice 2.
-LIBRARY = False
+# The second series: the investigator searches the library (decision 0017,
+# rule 6). The first series, sealed without it, keeps library: false.
+LIBRARY = True
 ENTRY_FIELDS = (
     "case_id",
     "attempt",

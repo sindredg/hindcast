@@ -88,6 +88,18 @@ def test_dirty_tree_is_refused(tmp_path: Path) -> None:
         check_clean(tmp_path)
 
 
+def test_library_registry_change_is_refused(tmp_path: Path) -> None:
+    # The library registry decides what a sealed case's searches can return.
+    git(tmp_path, "init", "-q")
+    (tmp_path / "data").mkdir()
+    (tmp_path / "data" / "library.yaml").write_text("v1", encoding="utf-8")
+    git(tmp_path, "add", "data/library.yaml")
+    git(tmp_path, "commit", "-q", "-m", "v1")
+    (tmp_path / "data" / "library.yaml").write_text("v2", encoding="utf-8")
+    with pytest.raises(SealRefused, match="library.yaml"):
+        check_clean(tmp_path)
+
+
 class Uploads:
     """Records uploads; fails the first `failures` calls."""
 
@@ -142,7 +154,8 @@ def test_run_records_hash_then_uploads(monkeypatch: pytest.MonkeyPatch, tmp_path
     assert entry["agent_name"] == "hindcast-investigator-gpt-6-luna"
     assert entry["code_commit"] == "c" * 40
     assert entry["evidence_sha256"] == hashlib.sha256(evidence_json(EVIDENCE)).hexdigest()
-    assert entry["library"] is False
+    # The second series: sealed with the library search.
+    assert entry["library"] is True
     assert entry["sealed_at"] == "2026-11-01T10:00:00Z"
     assert set(entry) == set(seal.ENTRY_FIELDS)
 
@@ -215,7 +228,7 @@ def test_raised_run_is_recorded_as_no_result(
     assert entry["blob"] is None
     assert "SECRET" not in capsys.readouterr().out
     # The model produced nothing, so another attempt is allowed.
-    assert check_may_seal(SEALED, entries(seals), "gpt-6-luna", False) == 2
+    assert check_may_seal(SEALED, entries(seals), "gpt-6-luna", seal.LIBRARY) == 2
 
 
 def test_first_call_time_cap_is_no_result(
@@ -230,7 +243,7 @@ def test_first_call_time_cap_is_no_result(
     [entry] = entries(seals)
     assert entry["status"] == "no-result"
     assert entry["file"] is not None
-    assert check_may_seal(SEALED, entries(seals), "gpt-6-luna", False) == 2
+    assert check_may_seal(SEALED, entries(seals), "gpt-6-luna", seal.LIBRARY) == 2
 
 
 def test_time_cap_after_output_is_final(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -243,13 +256,15 @@ def test_time_cap_after_output_is_final(monkeypatch: pytest.MonkeyPatch, tmp_pat
     [entry] = entries(seals)
     assert entry["status"] == "incomplete"
     with pytest.raises(SealRefused, match="already sealed"):
-        check_may_seal(SEALED, entries(seals), "gpt-6-luna", False)
+        check_may_seal(SEALED, entries(seals), "gpt-6-luna", seal.LIBRARY)
 
 
 def test_run_refuses_before_any_cloud_call(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     client = FakeClient(final())
     seals = stub_seal(monkeypatch, tmp_path, client, Uploads())
-    seals.write_text(json.dumps({"seals": [attempt("complete")]}), encoding="utf-8")
+    seals.write_text(
+        json.dumps({"seals": [attempt("complete", library=seal.LIBRARY)]}), encoding="utf-8"
+    )
 
     with pytest.raises(SealRefused):
         main(["run", "seal"])
@@ -271,3 +286,15 @@ def test_dirty_tree_refuses_before_any_cloud_call(
     with pytest.raises(SealRefused):
         main(["run", "seal"])
     assert client.calls == []
+
+
+def test_a_seal_without_the_library_does_not_block_one_with_it(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    # The six first-series seals stay; run adds the library series next to them.
+    seals = stub_seal(monkeypatch, tmp_path, FakeClient(response(call()), final()), Uploads())
+    seals.write_text(json.dumps({"seals": [attempt("complete", library=False)]}), encoding="utf-8")
+
+    assert main(["run", "seal"]) == 0
+
+    assert [e["library"] for e in entries(seals)] == [False, True]

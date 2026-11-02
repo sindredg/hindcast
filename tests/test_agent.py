@@ -128,3 +128,16 @@ def test_no_prior_knowledge_key_fact_in_the_instructions() -> None:
     assert facts
     for fact in facts:
         assert not re.search(rf"\b{re.escape(fact)}\b", instructions, re.IGNORECASE), fact
+
+
+def test_definition_offers_the_three_tools() -> None:
+    names = [tool["name"] for tool in load_definition("gpt-6-luna")["tools"]]
+    assert names == ["list_updates", "list_charts", "search_library"]
+
+
+def test_instructions_ask_for_a_search_and_name_the_library_citation() -> None:
+    instructions = Path("prompts/investigator.md").read_text("utf-8")
+    assert instructions.startswith("<!-- investigator prompt v3 -->")
+    assert "search the library at least once" in instructions
+    assert '{"source": "library", "ref": "<ref>"}' in instructions
+    assert "never stands alone" in instructions
