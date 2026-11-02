@@ -8,7 +8,7 @@ from streamlit.testing.v1 import AppTest
 from hindcast import app
 
 ROOT = Path(__file__).resolve().parents[1]
-RESULT = ROOT / "eval/investigations/cloudflare-2026-02-20/20261030T040215Z-v1.json"
+RESULT = ROOT / "eval/investigations/cloudflare-2026-02-20/20261102T181721Z-v3.json"
 # AppTest resolves a relative path against this file, so the page's path is absolute.
 PAGE = ROOT / "src/hindcast/app.py"
 SECTIONS = [
@@ -57,3 +57,10 @@ def test_render_incomplete_result(tmp_path, monkeypatch):
 
     assert not at.exception
     assert any("time-cap" in warning.value for warning in at.warning)
+
+
+def test_page_marks_a_library_citation():
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+
+    assert not at.exception
+    assert any("`library:lib/" in block.value for block in at.markdown)
