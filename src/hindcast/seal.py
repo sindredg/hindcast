@@ -27,6 +27,9 @@ once, and a reveal or a drop adds "revealed": true or "dropped": true; nothing
 else in an earlier entry changes. run and upload refuse a record on disk that
 does not extend HEAD's, and a test walks every committed version of the file
 (issue #33).
+
+run makes one library search before the first model call and refuses while
+the search does not answer.
 """
 
 import argparse
@@ -41,6 +44,7 @@ from hindcast.config import ModelSettings, load_settings
 from hindcast.evaluation.prior import _git
 from hindcast.investigate import prepare, run_investigation, summary, write_result
 from hindcast.storage import upload_bytes
+from hindcast.tools import CaseTools
 
 SEALS = Path("eval/sealed/seals.json")
 OUT_DIR = Path("build/sealed")
@@ -187,6 +191,25 @@ def check_record_grows(repo: Path = Path(".")) -> None:
         raise SealRefused(f"{SEALS} does not extend HEAD's: {'; '.join(problems)}")
 
 
+PREFLIGHT_QUERY = "service outage"
+
+
+def preflight_search(tools: CaseTools) -> None:
+    """Refuse a seal, before the first model call, while the library search fails."""
+    # A search that fails mid-run ends it as a tool error, and a seal with
+    # model output is final (decision 0017). One search first keeps a search
+    # outage from using up the case's seal; a mid-run failure stays possible.
+    if tools.search is None:
+        raise SealRefused("no library search is bound")
+    try:
+        tools.search(PREFLIGHT_QUERY)
+    except Exception as error:
+        # Only the type: the message can carry the service's response.
+        raise SealRefused(
+            f"the library search did not answer ({type(error).__name__}); seal again later"
+        ) from None
+
+
 def reason_prefix(reason: str | None) -> str | None:
     # A schema error echoes the value it rejected and a tool error the model's
     # arguments, so only the kind before the first colon is printed.
@@ -205,6 +228,7 @@ def run(case: Case) -> int:
     commit = check_clean()
     check_record_grows()
     setup = prepare(case)
+    preflight_search(setup.tools)
     now = _now()
     entry = {
         "case_id": case.case_id,

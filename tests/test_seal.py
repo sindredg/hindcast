@@ -7,7 +7,7 @@ from typing import Any
 
 import pytest
 
-from hindcast import seal
+from hindcast import investigate, seal
 from hindcast.cases import Case
 from hindcast.evidence import evidence_json
 from hindcast.seal import (
@@ -136,6 +136,8 @@ def stub_seal(
     monkeypatch.setattr(seal, "check_clean", lambda: "c" * 40)
     # The temp record is not in Git; the record check has tests of its own.
     monkeypatch.setattr(seal, "check_record_grows", lambda: None)
+    # The preflight search answers with no hits; the runs make no search.
+    monkeypatch.setattr(investigate, "search_library", lambda *args, **kwargs: [])
     monkeypatch.setattr(seal, "upload_bytes", uploads)
     monkeypatch.setattr(seal, "_now", lambda: NOW)
     return seals
@@ -428,3 +430,35 @@ def test_run_refuses_a_shrunk_record_before_any_cloud_call(
 def test_committed_seal_record_only_grows() -> None:
     # Runs on the repository itself; CI checks out the full history for it.
     assert history_problems(Path(".")) == []
+
+
+def test_run_refuses_when_the_search_does_not_answer(
+    capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    # A search that fails mid-run would make a seal with model output final.
+    client = FakeClient(response(call()), final())
+    seals = stub_seal(monkeypatch, tmp_path, client, Uploads())
+
+    def down(*args: Any, **kwargs: Any) -> list:
+        raise OSError("SECRET-BODY tls")
+
+    monkeypatch.setattr(investigate, "search_library", down)
+    with pytest.raises(SealRefused, match="library search did not answer.*OSError") as refused:
+        main(["run", "seal"])
+    # The traceback would print a chained error's message, which can carry
+    # the service's response.
+    assert refused.value.__cause__ is None
+    assert "SECRET" not in str(refused.value)
+    assert client.calls == []
+    assert entries(seals) == []
+
+
+def test_preflight_search_runs_on_the_case(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    searched: list[tuple] = []
+    seals = stub_seal(monkeypatch, tmp_path, FakeClient(response(call()), final()), Uploads())
+    monkeypatch.setattr(
+        investigate, "search_library", lambda *args, **kwargs: searched.append(args) or []
+    )
+    assert main(["run", "seal"]) == 0
+    assert [args[0] for args in searched] == ["seal"]
+    assert len(entries(seals)) == 1
