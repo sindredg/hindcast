@@ -60,7 +60,7 @@
     <div class="diagram-container">
       <svg viewBox="0 0 1000 744" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="investigation-loop-title investigation-loop-desc">
         <title id="investigation-loop-title">The investigation loop</title>
-        <desc id="investigation-loop-desc">The investigate command refuses a scored case before the rubric is frozen, or a case without its evidence file or its search settings, before any model call. Otherwise it calls the investigator agent with the time left as the call's timeout; while the response holds function calls, it runs each tool, the case evidence or the library search bound to the case, passes the result through the screen, and sends the outputs back in the next turn. A response without function calls is parsed against the schema and its citations are checked: a library citation is kept only if a search in the run returned it. A model call that times out, a thirteenth tool call, a tool call that would start after 120 seconds, a tool error, an empty answer, or a schema error ends the run as incomplete with the reason. Either way the result file is written and the command prints counts, never the investigation text.</desc>
+        <desc id="investigation-loop-desc">The investigate command refuses a scored case before the rubric is frozen, a sealed case at any time, or a case without its evidence file or its search settings, before any model call. Otherwise it calls the investigator agent with the time left as the call's timeout; while the response holds function calls, it runs each tool, the case evidence or the library search bound to the case, passes the result through the screen, and sends the outputs back in the next turn. A response without function calls is parsed against the schema and its citations are checked: a library citation is kept only if a search in the run returned it. A model call that times out, a thirteenth tool call, a tool call that would start after 120 seconds, a tool error, an empty answer, or a schema error ends the run as incomplete with the reason. Either way the result file is written and the command prints counts, never the investigation text.</desc>
         <defs>
           <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#bfc0c0"/></marker>
         </defs>
@@ -107,9 +107,9 @@
         <text x="360" y="64" fill="#f5f5f5" font-size="10" font-weight="400" font-family="'Geist Mono', monospace" text-anchor="middle">investigate &lt;case_id&gt;</text>
         <polygon points="360,96 520,152 360,208 200,152" fill="#2d3142"/>
         <polygon points="360,96 520,152 360,208 200,152" fill="#393e53" stroke="#f5f5f5" stroke-width="1"/>
-        <text x="360" y="141" fill="#f5f5f5" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Unscored case, or the</text>
-        <text x="360" y="156" fill="#f5f5f5" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">rubric frozen, and the</text>
-        <text x="360" y="171" fill="#f5f5f5" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">evidence and settings?</text>
+        <text x="360" y="141" fill="#f5f5f5" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Unscored, or rubric frozen</text>
+        <text x="360" y="156" fill="#f5f5f5" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">and not sealed; evidence</text>
+        <text x="360" y="171" fill="#f5f5f5" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">and settings present?</text>
         <rect x="640" y="120" width="240" height="64" rx="6" fill="#2d3142"/>
         <rect x="640" y="120" width="240" height="64" rx="6" fill="rgba(240,138,89,0.05)" stroke="rgba(240,138,89,0.50)" stroke-width="1" stroke-dasharray="4,4"/>
         <text x="760" y="146" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Refuse, call no model</text>
