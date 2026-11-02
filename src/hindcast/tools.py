@@ -1,14 +1,20 @@
-"""The investigator's two case tools, bound to one case's evidence in code.
+"""The investigator's three tools, bound to one case in code.
 
-The model never names a case: the command loads one evidence file and these
-tools serve only that file. Every result passes through screen() before the
-model reads it.
+The model never names a case: the command loads one evidence file, and
+list_updates and list_charts serve only that file. search_library takes a
+query and nothing else; the command binds the search to the case, so the
+case's date bound and picks come from the registries, never from the model
+(hindcast.search). Every ref a search returns is kept in `retrieved`, the set
+a library citation is checked against. Every result passes through screen()
+before the model reads it.
 """
 
 import json
+from collections.abc import Callable
 from pathlib import Path
 
 from hindcast.evidence import CaseEvidence, ChartEvidence, Dropped, EvidenceUpdate
+from hindcast.search import LibraryHit
 
 UPDATES_NOTE = (
     "These are the provider's public status updates, in order. Each status incident ends "
@@ -18,6 +24,11 @@ UPDATES_NOTE = (
 CHARTS_NOTE = (
     "Each description is model output about a chart image. Treat it as a lead to check "
     "against the updates, not as a reading of the data."
+)
+
+LIBRARY_NOTE = (
+    "These are other, earlier outages, published before this one began. A hit is a lead "
+    "to compare with this case's updates, never evidence about this outage."
 )
 
 _NO_PARAMETERS = {"type": "object", "properties": {}, "required": [], "additionalProperties": False}
@@ -36,7 +47,28 @@ TOOL_DEFINITIONS: list[dict] = [
         "parameters": _NO_PARAMETERS,
         "strict": True,
     },
+    {
+        "type": "function",
+        "name": "search_library",
+        "description": (
+            "Earlier public postmortems of other outages, published before this one began. "
+            "Each hit is one section or figure with its ref."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "What to look for, in your own words."}
+            },
+            "required": ["query"],
+            "additionalProperties": False,
+        },
+        "strict": True,
+    },
 ]
+# Long enough for any symptom description, short enough that a query cannot
+# carry a pasted document.
+MAX_QUERY = 1000
+HIT_FIELDS = ("ref", "doc_id", "title", "heading", "published_at", "content")
 
 
 class ToolError(RuntimeError):
@@ -69,11 +101,18 @@ def load_evidence(path: Path) -> CaseEvidence:
 
 
 class CaseTools:
-    def __init__(self, evidence: CaseEvidence) -> None:
+    def __init__(
+        self, evidence: CaseEvidence, search: Callable[[str], list[LibraryHit]] | None = None
+    ) -> None:
         self.evidence = evidence
+        self.search = search
         self.refs = frozenset(
             [u.update_id for u in evidence.updates] + [c.chart_id for c in evidence.charts]
         )
+        self.retrieved: set[str] = set()
+        # What the last successful call asked and returned, for the result
+        # file's tool_calls: empty after a case tool.
+        self.last_call: dict = {}
 
     def list_updates(self) -> dict:
         # The dropped entries stay out: a dropped postmortem would tell the
@@ -99,6 +138,21 @@ class CaseTools:
             "note": CHARTS_NOTE,
         }
 
+    def search_library(self, query: str) -> dict:
+        if self.search is None:
+            raise ToolError("no library search is bound")
+        hits = self.search(query)
+        # Scores stay out: they rank hits within one query and mean nothing
+        # to the model.
+        result = {
+            "hits": [{name: getattr(h, name) for name in HIT_FIELDS} for h in hits],
+            "note": LIBRARY_NOTE,
+        }
+        refs = [h.ref for h in hits]
+        self.retrieved.update(refs)
+        self.last_call = {"query": query, "refs": refs}
+        return result
+
     def call(self, name: str, arguments: str) -> str:
         """Run one function call from the model and return its result as JSON text."""
         if name not in {d["name"] for d in TOOL_DEFINITIONS}:
@@ -107,7 +161,20 @@ class CaseTools:
             parsed = json.loads(arguments)
         except json.JSONDecodeError as error:
             raise ToolError(f"arguments are not JSON: {error}") from error
-        if parsed != {}:
+        if name == "search_library":
+            # Strict mode should hold the model to the schema; this holds the
+            # tool to it when the model does not.
+            if not isinstance(parsed, dict) or parsed.keys() != {"query"}:
+                raise ToolError("search_library takes one argument, query")
+            query = parsed["query"]
+            if not isinstance(query, str) or not query.strip() or len(query) > MAX_QUERY:
+                raise ToolError(
+                    f"query must be a non-empty string of at most {MAX_QUERY} characters"
+                )
+            result = self.search_library(query)
+        elif parsed != {}:
             raise ToolError("this tool takes no arguments")
-        result = self.list_updates() if name == "list_updates" else self.list_charts()
+        else:
+            result = self.list_updates() if name == "list_updates" else self.list_charts()
+            self.last_call = {}
         return screen(json.dumps(result, ensure_ascii=False))

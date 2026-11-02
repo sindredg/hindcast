@@ -5,8 +5,10 @@ import pytest
 
 from hindcast import tools
 from hindcast.evidence import CaseEvidence, ChartEvidence, Dropped, EvidenceUpdate, evidence_json
+from hindcast.search import LibraryHit, LibraryLeak
 from hindcast.tools import (
     CHARTS_NOTE,
+    LIBRARY_NOTE,
     TOOL_DEFINITIONS,
     UPDATES_NOTE,
     CaseTools,
@@ -115,14 +117,129 @@ def test_call_passes_every_result_through_screen(monkeypatch: pytest.MonkeyPatch
 
 
 def test_tool_definitions_match_the_methods() -> None:
-    assert {d["name"] for d in TOOL_DEFINITIONS} == {"list_updates", "list_charts"}
+    assert {d["name"] for d in TOOL_DEFINITIONS} == {
+        "list_updates",
+        "list_charts",
+        "search_library",
+    }
     for definition in TOOL_DEFINITIONS:
         assert definition["type"] == "function"
         assert definition["strict"] is True
-        assert definition["parameters"] == {
-            "type": "object",
-            "properties": {},
-            "required": [],
-            "additionalProperties": False,
-        }
+        assert definition["parameters"]["additionalProperties"] is False
         assert callable(getattr(CaseTools, definition["name"]))
+    by_name = {d["name"]: d for d in TOOL_DEFINITIONS}
+    assert by_name["list_updates"]["parameters"]["properties"] == {}
+    assert by_name["search_library"]["parameters"]["required"] == ["query"]
+    assert set(by_name["search_library"]["parameters"]["properties"]) == {"query"}
+
+
+def _hit(ref: str) -> LibraryHit:
+    doc_id = ref.split("/")[1]
+    return LibraryHit(ref, doc_id, "Title", "Heading", "2025-01-01", "Text.", 1.5, 2.5)
+
+
+class StubSearch:
+    """Records each query and returns the next fixed list of hits."""
+
+    def __init__(self, *results: list[LibraryHit] | Exception) -> None:
+        self.results = list(results)
+        self.queries: list[str] = []
+
+    def __call__(self, query: str) -> list[LibraryHit]:
+        self.queries.append(query)
+        result = self.results.pop(0)
+        if isinstance(result, Exception):
+            raise result
+        return result
+
+
+def test_search_passes_only_the_query_and_returns_hits_without_scores() -> None:
+    search = StubSearch([_hit("lib/a/s1")])
+    result = json.loads(
+        CaseTools(EVIDENCE, search=search).call("search_library", '{"query": "latency in ENAM"}')
+    )
+    assert search.queries == ["latency in ENAM"]
+    assert result["hits"][0].keys() == {
+        "ref",
+        "doc_id",
+        "title",
+        "heading",
+        "published_at",
+        "content",
+    }
+    assert result["hits"][0]["ref"] == "lib/a/s1"
+    assert result["note"] == LIBRARY_NOTE
+
+
+def test_search_records_retrieved_refs_and_the_last_call() -> None:
+    search = StubSearch([_hit("lib/a/s1")], [_hit("lib/a/s1"), _hit("lib/b/fig2")])
+    case_tools = CaseTools(EVIDENCE, search=search)
+    case_tools.call("search_library", '{"query": "first"}')
+    case_tools.call("search_library", '{"query": "second"}')
+    assert case_tools.retrieved == {"lib/a/s1", "lib/b/fig2"}
+    assert case_tools.last_call == {"query": "second", "refs": ["lib/a/s1", "lib/b/fig2"]}
+
+
+def test_case_tool_call_clears_the_last_call() -> None:
+    case_tools = CaseTools(EVIDENCE, search=StubSearch([_hit("lib/a/s1")]))
+    case_tools.call("search_library", '{"query": "first"}')
+    case_tools.call("list_updates", "{}")
+    assert case_tools.last_call == {}
+    assert case_tools.retrieved == {"lib/a/s1"}
+
+
+def test_search_with_no_hits_is_an_answer() -> None:
+    result = json.loads(
+        CaseTools(EVIDENCE, search=StubSearch([])).call("search_library", '{"query": "x"}')
+    )
+    assert result == {"hits": [], "note": LIBRARY_NOTE}
+
+
+@pytest.mark.parametrize(
+    "arguments",
+    [
+        "{}",
+        '{"query": ""}',
+        '{"query": "   "}',
+        '{"query": 5}',
+        '{"query": "' + "x" * 1001 + '"}',
+        '{"query": "x", "top": 50}',
+        '{"query": "x", "case_id": "other"}',
+        "not json",
+    ],
+    ids=["none", "empty", "blank", "number", "too-long", "top", "case-id", "not-json"],
+)
+def test_search_refuses_bad_arguments(arguments: str) -> None:
+    search = StubSearch([_hit("lib/a/s1")])
+    case_tools = CaseTools(EVIDENCE, search=search)
+    with pytest.raises(ToolError):
+        case_tools.call("search_library", arguments)
+    assert search.queries == []
+    assert case_tools.retrieved == set()
+
+
+def test_search_accepts_a_query_of_1000_characters() -> None:
+    search = StubSearch([])
+    CaseTools(EVIDENCE, search=search).call("search_library", json.dumps({"query": "x" * 1000}))
+    assert search.queries == ["x" * 1000]
+
+
+def test_search_error_propagates_and_records_nothing() -> None:
+    search = StubSearch([_hit("lib/a/s1")], LibraryLeak("hit outside the rule"))
+    case_tools = CaseTools(EVIDENCE, search=search)
+    case_tools.call("search_library", '{"query": "first"}')
+    with pytest.raises(LibraryLeak):
+        case_tools.call("search_library", '{"query": "second"}')
+    assert case_tools.retrieved == {"lib/a/s1"}
+    assert case_tools.last_call == {"query": "first", "refs": ["lib/a/s1"]}
+
+
+def test_search_without_a_bound_search_is_a_tool_error() -> None:
+    with pytest.raises(ToolError, match="no library search is bound"):
+        CaseTools(EVIDENCE).call("search_library", '{"query": "x"}')
+
+
+def test_search_result_passes_through_screen(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(tools, "screen", lambda result: "SCREENED " + result)
+    case_tools = CaseTools(EVIDENCE, search=StubSearch([]))
+    assert case_tools.call("search_library", '{"query": "x"}').startswith("SCREENED ")
