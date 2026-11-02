@@ -165,7 +165,10 @@ def history_problems(repo: Path = Path("."), path: Path = SEALS) -> list[str]:
     # whatever is left. CI checks out with fetch-depth: 0.
     if shallow.stdout.strip() == "true":
         raise RuntimeError(f"the clone is shallow: checking {path} needs the full history")
-    listing = _git(repo, "rev-list", "--parents", "HEAD", "--", path.as_posix())
+    # --full-history keeps a merge that matches one parent: the default
+    # simplification would skip it and the other parent's commits, so a merge
+    # that drops an entry would pass.
+    listing = _git(repo, "rev-list", "--full-history", "--parents", "HEAD", "--", path.as_posix())
     if listing.returncode != 0:
         raise RuntimeError(f"cannot list the history of {path}")
     problems = []

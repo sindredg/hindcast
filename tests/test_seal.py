@@ -1,6 +1,7 @@
 import hashlib
 import json
 import subprocess
+import traceback
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -389,6 +390,25 @@ def test_history_restored_from_an_earlier_commit_is_a_problem(tmp_path: Path) ->
     assert "entry 1 removed" in problem
 
 
+def test_history_with_a_merge_that_drops_an_entry_is_a_problem(tmp_path: Path) -> None:
+    # The merge takes the side branch's record and drops main's new entry.
+    # Default history simplification would skip both the merge and main's commit.
+    git(tmp_path, "init", "-q", "-b", "main")
+    _record(tmp_path, [E1], "one")
+    git(tmp_path, "switch", "-q", "-c", "side")
+    (tmp_path / "notes.md").write_text("side", encoding="utf-8")
+    git(tmp_path, "add", "notes.md")
+    git(tmp_path, "commit", "-q", "-m", "side")
+    git(tmp_path, "switch", "-q", "main")
+    _record(tmp_path, [E1, E2], "two")
+    git(tmp_path, "merge", "-q", "--no-ff", "--no-commit", "side")
+    (tmp_path / "eval" / "sealed" / "seals.json").write_text(json.dumps({"seals": [E1]}))
+    git(tmp_path, "add", "eval/sealed/seals.json")
+    git(tmp_path, "commit", "-q", "-m", "merge")
+    problems = history_problems(tmp_path)
+    assert any("entry 1 removed" in p for p in problems)
+
+
 def test_history_on_a_shallow_clone_is_refused(tmp_path: Path) -> None:
     origin = tmp_path / "origin"
     origin.mkdir()
@@ -447,8 +467,8 @@ def test_run_refuses_when_the_search_does_not_answer(
         main(["run", "seal"])
     # The traceback would print a chained error's message, which can carry
     # the service's response.
-    assert refused.value.__cause__ is None
-    assert "SECRET" not in str(refused.value)
+    printed = "".join(traceback.format_exception(refused.value))
+    assert "SECRET" not in printed
     assert client.calls == []
     assert entries(seals) == []
 
