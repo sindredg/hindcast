@@ -502,3 +502,10 @@ def test_seal_path_runs_with_screens(monkeypatch: pytest.MonkeyPatch, tmp_path: 
     assert written["tool_calls"][0]["withheld"] == ["dev/u1"]
     assert "pii" in written["checks"]
     assert pii.sent, "the sealed answer went through the PII check"
+
+
+@pytest.mark.parametrize(("key", "value"), [("attempt", True), ("attempt", 1.0), ("library", 0)])
+def test_record_value_of_another_type_is_a_change(key: str, value: object) -> None:
+    # Python's 1 == True and False == 0 would hide these (issue #45).
+    entry = E1 | {"attempt": 1, "library": False}
+    assert record_problems([entry], [entry | {key: value}]) == [f"entry 0 changed: {key}"]

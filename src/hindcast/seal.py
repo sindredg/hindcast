@@ -127,6 +127,10 @@ def write_seals(path: Path, seals: list[dict]) -> None:
 MARKS = frozenset({"revealed", "dropped"})
 
 
+def _json(value: object) -> str:
+    return json.dumps(value, sort_keys=True)
+
+
 def record_problems(old: list[dict], new: list[dict]) -> list[str]:
     """One line per way the new record fails to extend the old one."""
     problems = []
@@ -137,7 +141,9 @@ def record_problems(old: list[dict], new: list[dict]) -> list[str]:
         after = new[i]
         for key, value in before.items():
             filled_blob = key == "blob" and value is None and isinstance(after.get(key), str)
-            if (key not in after or after[key] != value) and not filled_blob:
+            # Compared as JSON text: Python's == takes 1 for True and 0 for
+            # False, so a changed type would pass (issue #45).
+            if (key not in after or _json(after[key]) != _json(value)) and not filled_blob:
                 problems.append(f"entry {i} changed: {key}")
         for key in sorted(after.keys() - before.keys()):
             if key not in MARKS or after[key] is not True:
