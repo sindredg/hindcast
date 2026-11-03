@@ -47,6 +47,11 @@ def test_agent_name_carries_the_deployment() -> None:
     assert agent_name("gpt-6-luna") == "hindcast-investigator-gpt-6-luna"
 
 
+def test_agent_name_carries_a_variant() -> None:
+    assert agent_name("gpt-6-luna", "library-off") == "hindcast-investigator-gpt-6-luna-library-off"
+    assert agent_name("gpt-6-luna", None) == agent_name("gpt-6-luna")
+
+
 def test_agent_name_replaces_characters_foundry_refuses() -> None:
     # Agent names take letters, digits, and inner hyphens only; a deployment
     # name can carry a dot.

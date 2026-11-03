@@ -43,9 +43,9 @@ from hindcast.agent import (
     challenger_definition,
     challenger_name,
     ensure_agent_version,
-    load_definition,
     prompt_provenance,
 )
+from hindcast.arms import ARMS, Arm, agent_variant, arm_definition
 from hindcast.cases import Case, load_cases
 from hindcast.config import ModelSettings, SafetySettings, SearchSettings, load_settings
 from hindcast.costs import PriceTable, load_prices, run_cost
@@ -415,7 +415,9 @@ def write_result(
     out_dir: Path,
     now: datetime,
     cost: dict | None = None,
+    filename: str | None = None,
 ) -> Path:
+    """Write the result once; filename defaults to <UTC time>-v<agent version>.json."""
     document = {
         "case_id": case_id,
         "agent": agent,
@@ -434,7 +436,7 @@ def write_result(
         "reasoning": {"requested": EFFORT, "applied": list(result.efforts)},
         "cost": cost,
     }
-    path = out_dir / case_id / f"{now:%Y%m%dT%H%M%SZ}-v{agent['version']}.json"
+    path = out_dir / case_id / (filename or f"{now:%Y%m%dT%H%M%SZ}-v{agent['version']}.json")
     path.parent.mkdir(parents=True, exist_ok=True)
     # "x" refuses to overwrite an earlier run.
     with path.open("x", encoding="utf-8") as file:
@@ -520,11 +522,14 @@ def prepare(
     *,
     deployment: str | None = None,
     challenger: bool = False,
+    arm: Arm = ARMS["hindcast"],
 ) -> Setup:
     """Read the evidence, make the agent version, and record what the run rests on.
 
-    challenger=True makes the challenger agent instead (hindcast.challenge);
-    deployment defaults to the configured chat deployment.
+    challenger=True makes the challenger agent instead (hindcast.challenge).
+    The arm (hindcast.arms) sets the prompt, the tools, and the deployment,
+    which defaults to the configured chat or comparison deployment. A
+    single-search arm makes no agent: its turn calls the deployment itself.
     """
     evidence_path = (evidence_dir or EVIDENCE_DIR) / f"{case.case_id}.json"
     evidence = load_evidence(evidence_path)
@@ -537,30 +542,48 @@ def prepare(
 
     # One embedder and one search client for the run; the case is bound here
     # and the model supplies only the query. The search client makes no
-    # retries: a retry would run past the time left (issue #49).
-    embed = index.embedder(search_settings.embedding_dimensions)
-    search = functools.partial(
-        search_library,
-        case.case_id,
-        embed=embed,
-        client=index.clients(search_settings.search_index, retry_total=0)[1],
-    )
+    # retries: a retry would run past the time left (issue #49). The
+    # library-off arm binds none, so no search can run.
+    embed = search = None
+    if arm.library:
+        embed = index.embedder(search_settings.embedding_dimensions)
+        search = functools.partial(
+            search_library,
+            case.case_id,
+            embed=embed,
+            client=index.clients(search_settings.search_index, retry_total=0)[1],
+        )
     tools = CaseTools(evidence, search, safety.shield_client(safety_settings))
 
-    deployment = deployment or load_settings(ModelSettings).chat_deployment
+    model_settings = load_settings(ModelSettings)
+    deployment = deployment or (
+        model_settings.compare_deployment
+        if arm.deployment == "compare"
+        else model_settings.chat_deployment
+    )
     prices = load_prices()
     if deployment not in prices.models:
         # Before the agent version and the first model call: a run with no
         # price would be written without a cost.
         raise KeyError(f"{deployment} is not in price table version {prices.version}")
-    if challenger:
-        definition, name = challenger_definition(deployment), challenger_name(deployment)
+    if challenger or arm.kind == "agent":
+        if challenger:
+            definition, name = challenger_definition(deployment), challenger_name(deployment)
+        else:
+            definition = arm_definition(arm, deployment)
+            name = agent_name(deployment, agent_variant(arm))
+        version = ensure_agent_version(models.project_client().agents, name, definition)
+        turn = agent_turn(models.openai_client(), name, version)
+        agent: dict = {"name": name, "version": version}
     else:
-        definition, name = load_definition(deployment), agent_name(deployment)
-    version = ensure_agent_version(models.project_client().agents, name, definition)
+        from hindcast.single import direct_turn
+
+        instructions = arm.prompt.read_text(encoding="utf-8")
+        turn = direct_turn(models.openai_client(), deployment, instructions)
+        agent = {"name": None, "version": None}
     model_name, model_version = models.deployment_model(deployment)
     provenance = {
-        "prompt": prompt_provenance(CHALLENGER_PROMPT) if challenger else prompt_provenance(),
+        "prompt": prompt_provenance(CHALLENGER_PROMPT if challenger else arm.prompt),
         "code": code_provenance(),
         "evidence_sha256": hashlib.sha256(evidence_path.read_bytes()).hexdigest(),
         "library": {
@@ -569,13 +592,17 @@ def prepare(
             "search_api_version": index.SEARCH_API_VERSION,
             "embedding": index.embedding_model()
             | {"dimensions": search_settings.embedding_dimensions},
-        },
+        }
+        if arm.library
+        else None,
     }
+    if not challenger:
+        provenance["arm"] = arm.name
     return Setup(
-        turn=agent_turn(models.openai_client(), name, version),
+        turn=turn,
         tools=tools,
         pii=safety.pii_client(safety_settings),
-        agent={"name": name, "version": version},
+        agent=agent,
         model={"deployment": deployment, "name": model_name, "version": model_version},
         provenance=provenance,
         prices=prices,
