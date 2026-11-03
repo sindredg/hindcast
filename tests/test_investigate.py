@@ -471,6 +471,7 @@ def test_result_file_has_the_spec_shape(tmp_path: Path) -> None:
         "checks",
         "tool_calls",
         "usage",
+        "reasoning",
         "cost",
     }
     assert (written["case_id"], written["agent"], written["model"]) == ("dev", AGENT, MODEL)
@@ -483,6 +484,42 @@ def test_result_file_has_the_spec_shape(tmp_path: Path) -> None:
         {"name": "list_updates", "seconds": 0.0, "withheld": [], "screen_calls": 0}
     ]
     assert list(written)[list(written).index("checks") + 1] == "tool_calls"
+
+
+def with_effort(reply: SimpleNamespace, effort: str, reasoning_tokens: int) -> SimpleNamespace:
+    reply.reasoning = SimpleNamespace(effort=effort)
+    reply.usage.output_tokens_details = SimpleNamespace(reasoning_tokens=reasoning_tokens)
+    return reply
+
+
+def test_usage_counts_reasoning_tokens() -> None:
+    result = run(
+        ScriptedTurn(with_effort(response(call()), "medium", 7), with_effort(final(), "medium", 3))
+    )
+    assert result.usage.reasoning_tokens == 10
+
+
+def test_result_records_applied_effort(tmp_path: Path) -> None:
+    # The service reports the effort it applied per response (#26); a run
+    # that saw two values keeps both, in order.
+    turn = ScriptedTurn(
+        with_effort(response(call()), "medium", 1),
+        with_effort(response(call(call_id="c2")), "high", 1),
+        with_effort(final(), "medium", 1),
+    )
+    result = run(turn)
+    assert result.efforts == ("medium", "high")
+    path = write_result(
+        result,
+        case_id="dev",
+        agent=AGENT,
+        model=MODEL,
+        provenance=PROVENANCE,
+        out_dir=tmp_path,
+        now=NOW,
+    )
+    written = json.loads(path.read_text("utf-8"))
+    assert written["reasoning"] == {"requested": "medium", "applied": ["medium", "high"]}
 
 
 def test_result_file_is_never_overwritten(tmp_path: Path) -> None:
@@ -648,7 +685,7 @@ def test_main_writes_the_result_and_prints_counts_never_the_text(
         == hashlib.sha256(evidence_json(EVIDENCE)).hexdigest()
     )
     assert set(written["provenance"]["prompt"]) >= {"dirty"}
-    assert set(written["provenance"]["code"]) == {"commit", "dirty"}
+    assert set(written["provenance"]["code"]) == {"commit", "dirty", "src_tree"}
     assert "searches 0, library citations kept 0" in out
     library = written["provenance"]["library"]
     assert set(library) == {"registry", "index", "search_api_version", "embedding"}
@@ -693,9 +730,24 @@ def test_code_provenance_marks_a_change_under_the_code_paths_only(tmp_path: Path
     head = git(tmp_path, "rev-parse", "HEAD")
     # A change outside src/, pyproject.toml, and uv.lock does not change what runs.
     (tmp_path / "notes.md").write_text("v2", encoding="utf-8")
-    assert code_provenance(tmp_path) == {"commit": head, "dirty": False}
+    tree = git(tmp_path, "rev-parse", "HEAD:src")
+    assert code_provenance(tmp_path) == {"commit": head, "dirty": False, "src_tree": tree}
     (tmp_path / "src" / "m.py").write_text("v2", encoding="utf-8")
-    assert code_provenance(tmp_path) == {"commit": head, "dirty": True}
+    assert code_provenance(tmp_path) == {"commit": head, "dirty": True, "src_tree": tree}
+
+
+def test_code_provenance_names_src_tree(tmp_path: Path) -> None:
+    # A rebase or squash merge rewrites the commit but not the tree (#39).
+    git(tmp_path, "init", "-q")
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src" / "m.py").write_text("v1", encoding="utf-8")
+    git(tmp_path, "add", "src/m.py")
+    git(tmp_path, "commit", "-q", "-m", "v1")
+    first = code_provenance(tmp_path)
+    git(tmp_path, "commit", "-q", "--amend", "-m", "rewritten")
+    second = code_provenance(tmp_path)
+    assert first["commit"] != second["commit"]
+    assert first["src_tree"] == second["src_tree"] == git(tmp_path, "rev-parse", "HEAD:src")
 
 
 def test_main_refuses_a_showcase_case_before_any_model_call(

@@ -38,6 +38,7 @@ from typing import Any, Literal, Protocol
 from hindcast import telemetry
 from hindcast.agent import (
     CHALLENGER_PROMPT,
+    EFFORT,
     agent_name,
     challenger_definition,
     challenger_name,
@@ -99,6 +100,8 @@ class Usage:
     # The price table holds short-context rates; the cost checks this against
     # the table's limit.
     max_call_input_tokens: int = 0
+    # Part of output_tokens, as the service reports it per response (#26).
+    reasoning_tokens: int = 0
 
 
 @dataclass(frozen=True)
@@ -110,6 +113,8 @@ class RunResult:
     checks: Checks
     usage: Usage
     tool_calls: tuple[dict, ...] = ()
+    # The reasoning effort each response says it applied, distinct, in order.
+    efforts: tuple[str, ...] = ()
 
 
 class Span(Protocol):
@@ -202,7 +207,8 @@ def _loop(
 ) -> RunResult:
     began = clock()
     model_calls = tool_calls = input_tokens = cached_tokens = output_tokens = 0
-    max_call_input = 0
+    max_call_input = reasoning_tokens = 0
+    efforts: list[str] = []
     record: list[dict] = []
     shield = tools.shield
     screens_before = (shield.calls, shield.records) if shield else (0, 0)
@@ -223,9 +229,10 @@ def _loop(
             pii_calls=checked[0] - pii_before[0],
             pii_records=checked[1] - pii_before[1],
             max_call_input_tokens=max_call_input,
+            reasoning_tokens=reasoning_tokens,
         )
         status = "complete" if reason is None else "incomplete"
-        return RunResult(status, reason, result, checks, usage, tuple(record))
+        return RunResult(status, reason, result, checks, usage, tuple(record), tuple(efforts))
 
     items: list[dict] = start
     previous: str | None = None
@@ -251,6 +258,11 @@ def _loop(
                 current.set_attribute("seconds", f"{clock() - called:.3f}")
                 return end(f"model-error: {type(error).__name__}")
             current.set_attribute("seconds", f"{clock() - called:.3f}")
+            # The effort the agent definition asks for is a request; the
+            # response says what ran (#26).
+            effort = getattr(getattr(response, "reasoning", None), "effort", None)
+            if effort and effort not in efforts:
+                efforts.append(effort)
 
             if response.usage is not None:
                 # Counted before the status check: a cut answer was billed too.
@@ -259,6 +271,8 @@ def _loop(
                 details = response.usage.input_tokens_details
                 cached_tokens += details.cached_tokens if details else 0
                 output_tokens += response.usage.output_tokens
+                out_details = getattr(response.usage, "output_tokens_details", None)
+                reasoning_tokens += getattr(out_details, "reasoning_tokens", 0) or 0
                 current.set_attribute("input_tokens", str(response.usage.input_tokens))
                 current.set_attribute("output_tokens", str(response.usage.output_tokens))
             if response.status != "completed":
@@ -379,7 +393,16 @@ def code_provenance(repo: Path = Path(".")) -> dict:
     status = _git(repo, "status", "--porcelain", "--", *CODE_PATHS)
     if commit.returncode != 0 or status.returncode != 0:
         raise RuntimeError("cannot read the Git state of the code")
-    return {"commit": commit.stdout.strip(), "dirty": bool(status.stdout.strip())}
+    # The tree's hash survives a rebase or a squash merge, which rewrite the
+    # commit (#39); it names the code only when dirty is false.
+    tree = _git(repo, "rev-parse", "--verify", "--quiet", "HEAD:src")
+    if tree.returncode != 0:
+        raise RuntimeError("cannot read the tree of src/")
+    return {
+        "commit": commit.stdout.strip(),
+        "dirty": bool(status.stdout.strip()),
+        "src_tree": tree.stdout.strip(),
+    }
 
 
 def write_result(
@@ -408,6 +431,7 @@ def write_result(
         },
         "tool_calls": list(result.tool_calls),
         "usage": asdict(result.usage),
+        "reasoning": {"requested": EFFORT, "applied": list(result.efforts)},
         "cost": cost,
     }
     path = out_dir / case_id / f"{now:%Y%m%dT%H%M%SZ}-v{agent['version']}.json"
