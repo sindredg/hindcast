@@ -1,6 +1,6 @@
 # Investigations of the development case `cloudflare-2026-02-20`
 
-Four development runs and five challenges, read against the evidence and not scored. The answer key stays closed until the milestone 5 rubric is frozen. The page lists the runs and opens on the newest `gpt-6-luna` run.
+Four development runs and nine challenges, read against the evidence and not scored. The answer key stays closed until the milestone 5 rubric is frozen. The page lists the runs and opens on the newest `gpt-6-luna` run.
 
 ## The runs
 
@@ -43,6 +43,8 @@ The challenges each check one observation finding of a slice 3 run, with the que
 | `challenges/20261103T174229Z-F3.json` | F3 of the gpt-6-luna run, run to check that traces still arrive with the workspace's shared keys off | same | `complete`, `stands`; 6 case citations kept, 0 rejected; 2 model calls, 2 tool calls | USD 0.007431 |
 | `challenges/20261103T174623Z-F4.json` | F4 of the gpt-6-luna run, run to check the traces after Application Insights was disconnected from the Foundry account | same | `complete`, `stands`; 5 case citations kept, 0 rejected; 2 model calls, 1 tool call | USD 0.006193 |
 
+Four more challenge F5 of the gpt-6-luna run, started from the page's box in a browser with questions written there ([screenshots](../../../docs/screenshots/README.md)): `20261103T192648Z-F5.json`, `20261103T192857Z-F5.json`, `20261103T193005Z-F5.json`, and `20261103T193159Z-F5.json`. All are `complete` and `stands`, with 2 to 4 case citations each (one cites chart1), none rejected, and no PII hit.
+
 The reading of each result against the evidence is in the [worklog](../../../docs/worklogs/04-investigator.md).
 
 ## Files
@@ -52,7 +54,7 @@ The reading of each result against the evidence is in the [worklog](../../../doc
 | `20261030T040215Z-v1.json` | The slice 1 result file the command wrote, unchanged. |
 | `20261102T181721Z-v3.json` | The slice 2 result file the command wrote, unchanged: as above, plus the tool calls with each search's query and returned refs, and the library provenance. |
 | `20261103T171237Z-v3.json`, `20261103T171355Z-v2.json` | The slice 3 result files the command wrote, unchanged: as above, plus each tool call's withheld refs and screen calls, `checks.pii`, the screen and PII counts in the usage, and the cost. |
-| `challenges/*.json` | The challenge files `python -m hindcast.challenge` wrote, unchanged: the result file and finding they challenge, the PII-masked question, the answer, its checks, tool calls, usage, and cost. |
+| `challenges/*.json` | The challenge files `hindcast.challenge` wrote, from the command or the page, unchanged: the result file and finding they challenge, the PII-masked question, the answer, its checks, tool calls, usage, and cost. |
 
 `tests/test_committed_investigation.py` checks the files:
 
@@ -67,7 +69,7 @@ The reading of each result against the evidence is in the [worklog](../../../doc
 
 - Slice 1, tested live on 2026-10-30: the run above. Tested locally on 2026-10-30: both tests pass, and each failed once on a broken copy of the file (an inference with its citations removed, a status changed to `incomplete`).
 - Slice 2, tested live on 2026-11-02: the run above. Tested locally on 2026-11-02: every test passes, and each new or changed test failed once on a broken copy of the file. A library citation changed to a ref the run did not retrieve failed the retrieved test and the case-citation test. A 150-character fragment of a retrieved section added to a finding failed the library-text test.
-- Slice 3, tested live on 2026-11-03: the runs and challenges above. Tested locally on 2026-11-03: all 29 tests pass with the evidence and extracts present. A challenge citation changed to `cloudflare-2026-02-20/u99` failed the challenge citation test; a 150-character fragment of a retrieved section added to a finding of the gpt-6.1-sol run failed the library-text test.
+- Slice 3, tested live on 2026-11-03: the runs and challenges above. Tested locally on 2026-11-03: all 41 tests pass with the evidence and extracts present. A challenge citation changed to `cloudflare-2026-02-20/u99` failed the challenge citation test; a 150-character fragment of a retrieved section added to a finding of the gpt-6.1-sol run failed the library-text test.
 
 ## Licence
 
@@ -76,6 +78,6 @@ The investigations are model output about Cloudflare's status updates for incide
 - Slice 1 (measured 2026-10-30): about a fifth of its text repeats the updates word for word, in fragments of at most 61 characters.
 - Slice 2 (measured 2026-11-02): 17.6% of its text repeats the updates, in fragments of at most 56 characters.
 
-- Slice 3 (measured 2026-11-03): the gpt-6-luna run repeats 17.0% of its text from the updates, in fragments of at most 49 characters; the gpt-6.1-sol run 6.3%, at most 44. The five challenges repeat 11.8%, 20.9%, 35.3%, 20.6%, and 15.6% of their answers, in fragments of at most 81 characters.
+- Slice 3 (measured 2026-11-03): the gpt-6-luna run repeats 17.0% of its text from the updates, in fragments of at most 49 characters; the gpt-6.1-sol run 6.3%, at most 44. The five challenges from the command repeat 11.8%, 20.9%, 35.3%, 20.6%, and 15.6% of their answers, and the four from the page 35.2%, 10.2%, 6.6%, and 15.3%, in fragments of at most 81 characters.
 
 The slice 2 and slice 3 runs also read sections of earlier Cloudflare postmortems from the library, which are not redistributed here either. None of their text, nor any challenge's, repeats them in a match of 25 characters or more. The longest shared fragment is 22 characters in a run and 20 in a challenge.
