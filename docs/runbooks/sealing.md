@@ -11,7 +11,7 @@ The procedure seals a reconstruction of an outage whose provider has not yet pub
 
 Each seal makes at most 13 model calls on the deployment it names and, in the second series, one embedding call and one search query per library search, plus the Prompt Shields and PII calls the [investigator runbook](investigator.md) describes.
 
-![Sealing a reconstruction: the seal command refuses, before any model call, a case that is not sealed, a case and deployment that already have a seal in this series, a changed tree, a seal record that does not extend the committed one, or a library search that does not answer; otherwise it investigates once with the library search, records an attempt with no model output as no-result, which may be retried up to three attempts in all, and otherwise commits the hash and uploads the file to private storage. If the provider publishes its cause by 2026-11-09, the file is revealed after the rubric is frozen, checked against its hash, and scored; if not, the case is dropped with its record kept](../diagrams/sealing.svg)
+![Sealing a reconstruction: the seal command refuses, before any model call, a case that is not sealed, a case and deployment that already have a seal in this series, a changed tree, a seal record that does not extend the committed one, or a library search that does not answer; otherwise it investigates once with the library search, records an attempt with no model output as no-result, which may be retried up to three attempts in all, and otherwise commits the hash and uploads the file to private storage. If the provider publishes its cause by 2026-11-30, the file is revealed after the rubric is frozen, checked against its hash, and scored; if not, the case is dropped with its record kept](../diagrams/sealing.svg)
 
 ## Inputs and access
 
@@ -187,7 +187,7 @@ Written, not run.
 
 ## Drop a seal
 
-Written, not run. A sealed case whose provider has published no cause by 2026-11-09 is dropped.
+Written, not run. A sealed case whose provider has published no cause by 2026-11-30 is dropped ([decision 0022](../decisions/0022-sealed-drop-date-and-offline-reveal.md)).
 
 14. Add `"dropped": true` to each of the case's entries in `eval/sealed/seals.json`, and a comment above the case in `data/cases.yaml` that says it was dropped and when. Keep both: history is not rewritten.
 
