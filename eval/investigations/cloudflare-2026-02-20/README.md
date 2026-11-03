@@ -1,6 +1,6 @@
 # Investigations of the development case `cloudflare-2026-02-20`
 
-Four development runs and three challenges, read against the evidence and not scored. The answer key stays closed until the milestone 5 rubric is frozen. The page lists the runs and opens on the newest `gpt-6-luna` run.
+Four development runs and five challenges, read against the evidence and not scored. The answer key stays closed until the milestone 5 rubric is frozen. The page lists the runs and opens on the newest `gpt-6-luna` run.
 
 ## The runs
 
@@ -40,6 +40,8 @@ The challenges each check one observation finding of a slice 3 run, with the que
 | `challenges/20261103T171441Z-F1.json` | F1 of the gpt-6-luna run | `hindcast-challenger-gpt-6-luna`, version 1 | `complete`, `stands`; 2 case citations kept, 0 rejected; 2 model calls, 1 tool call | USD 0.006129 |
 | `challenges/20261103T171511Z-F1.json` | F1 of the gpt-6.1-sol run | `hindcast-challenger-gpt-6-1-sol`, version 1 | `complete`, `stands`; 10 case citations kept, 0 rejected; 2 model calls, 1 tool call | USD 0.014526 |
 | `challenges/20261103T171932Z-F2.json` | F2 of the gpt-6-luna run, run to check the traces after the sampler fix | `hindcast-challenger-gpt-6-luna`, version 1 | `complete`, `stands`; 8 case citations kept, 0 rejected; 2 model calls, 3 tool calls | USD 0.011807 |
+| `challenges/20261103T174229Z-F3.json` | F3 of the gpt-6-luna run, run to check that traces still arrive with the workspace's shared keys off | same | `complete`, `stands`; 6 case citations kept, 0 rejected; 2 model calls, 2 tool calls | USD 0.007431 |
+| `challenges/20261103T174623Z-F4.json` | F4 of the gpt-6-luna run, run to check the traces after Application Insights was disconnected from the Foundry account | same | `complete`, `stands`; 5 case citations kept, 0 rejected; 2 model calls, 1 tool call | USD 0.006193 |
 
 The reading of each result against the evidence is in the [worklog](../../../docs/worklogs/04-investigator.md).
 
@@ -74,6 +76,6 @@ The investigations are model output about Cloudflare's status updates for incide
 - Slice 1 (measured 2026-10-30): about a fifth of its text repeats the updates word for word, in fragments of at most 61 characters.
 - Slice 2 (measured 2026-11-02): 17.6% of its text repeats the updates, in fragments of at most 56 characters.
 
-- Slice 3 (measured 2026-11-03): the gpt-6-luna run repeats 17.0% of its text from the updates, in fragments of at most 49 characters; the gpt-6.1-sol run 6.3%, at most 44. The challenges repeat 11.8%, 20.9%, and 35.3% of their answers, in fragments of at most 81 characters.
+- Slice 3 (measured 2026-11-03): the gpt-6-luna run repeats 17.0% of its text from the updates, in fragments of at most 49 characters; the gpt-6.1-sol run 6.3%, at most 44. The five challenges repeat 11.8%, 20.9%, 35.3%, 20.6%, and 15.6% of their answers, in fragments of at most 81 characters.
 
 The slice 2 and slice 3 runs also read sections of earlier Cloudflare postmortems from the library, which are not redistributed here either. None of their text, nor any challenge's, repeats them in a match of 25 characters or more. The longest shared fragment is 22 characters.

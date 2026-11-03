@@ -145,6 +145,8 @@ def test_challenges_are_committed() -> None:
         "20261103T171441Z-F1.json",
         "20261103T171511Z-F1.json",
         "20261103T171932Z-F2.json",
+        "20261103T174229Z-F3.json",
+        "20261103T174623Z-F4.json",
     ]
 
 
