@@ -122,6 +122,28 @@ def pieces(text: str, limit: int = MAX_CHARACTERS) -> list[str]:
     return [*out, text]
 
 
+# An instruction shorter than this lies whole inside one screened piece.
+SCREEN_OVERLAP = 1_000
+
+
+def screen_pieces(
+    text: str, limit: int = MAX_CHARACTERS, overlap: int = SCREEN_OVERLAP
+) -> list[str]:
+    """Pieces for Prompt Shields: each starts `overlap` characters before the last one ended.
+
+    Pieces cut end to end let an instruction across a cut reach the service
+    in two halves, and either half may pass (#50). A text is flagged when
+    any piece is, so the overlap costs only records. PII detection keeps
+    pieces(), whose offsets have to add up.
+    """
+    out: list[str] = []
+    start = 0
+    while start + limit < len(text):
+        out.append(text[start : start + limit])
+        start += limit - overlap
+    return [*out, text[start:]]
+
+
 def batches(documents: list[str]) -> list[list[str]]:
     """Group documents in order, each group within Prompt Shields' per-call limits."""
     out: list[list[str]] = []
@@ -209,7 +231,7 @@ class PromptShield:
             # Nothing to screen in an empty text; it counts as shown.
             if not text.strip():
                 continue
-            for part in pieces(text):
+            for part in screen_pieces(text):
                 owners.append(index)
                 parts.append(part)
         flagged = [False] * len(texts)
