@@ -482,3 +482,23 @@ def test_preflight_search_runs_on_the_case(monkeypatch: pytest.MonkeyPatch, tmp_
     assert main(["run", "seal"]) == 0
     assert [args[0] for args in searched] == ["seal"]
     assert len(entries(seals)) == 1
+
+
+def test_seal_path_runs_with_screens(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    from hindcast import safety
+    from test_redact import StubPii
+    from test_tools import StubShield
+
+    shield, pii = StubShield("Looking into"), StubPii()
+    seals = stub_seal(monkeypatch, tmp_path, FakeClient(response(call()), final()), Uploads())
+    monkeypatch.setattr(safety, "shield_client", lambda settings: shield)
+    monkeypatch.setattr(safety, "pii_client", lambda settings: pii)
+
+    main(["run", "seal"])
+
+    [entry] = entries(seals)
+    written = json.loads((tmp_path / "sealed" / "seal" / entry["file"]).read_text("utf-8"))
+    assert shield.sent == [["Looking into it."]]
+    assert written["tool_calls"][0]["withheld"] == ["dev/u1"]
+    assert "pii" in written["checks"]
+    assert pii.sent, "the sealed answer went through the PII check"

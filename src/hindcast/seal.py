@@ -39,6 +39,7 @@ from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
 
+from hindcast import telemetry
 from hindcast.cases import Case, load_cases
 from hindcast.config import ModelSettings, load_settings
 from hindcast.evaluation.prior import _git
@@ -230,6 +231,7 @@ def run(case: Case) -> int:
     attempt = check_may_seal(case, seals, deployment, LIBRARY)
     commit = check_clean()
     check_record_grows()
+    telemetry.configure(service=telemetry.INVESTIGATOR)
     setup = prepare(case)
     preflight_search(setup.tools)
     now = _now()
@@ -251,7 +253,7 @@ def run(case: Case) -> int:
         "status": "no-result",
     }
     try:
-        result = run_investigation(setup.turn, setup.tools, case_id=case.case_id)
+        result = run_investigation(setup.turn, setup.tools, case_id=case.case_id, pii=setup.pii)
     except Exception as error:
         # A 429 or a cut-off response: nothing to seal. The error text can
         # carry the service's response, so only its type is printed.

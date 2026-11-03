@@ -615,3 +615,43 @@ def test_embeddings_go_to_the_resource_endpoint():
     client = resource_openai_client(settings.embedding_endpoint)
 
     assert str(client.base_url) == "https://example.services.ai.azure.com/openai/v1/"
+
+
+def test_embedder_with_a_timeout_makes_one_try_within_it():
+    from hindcast.index import embedder
+
+    embeddings = FakeEmbeddings()
+    options: list[dict] = []
+
+    class Client:
+        def __init__(self):
+            self.embeddings = embeddings
+
+        def with_options(self, **kw):
+            options.append(kw)
+            return self
+
+    embed = embedder(4, deployment="embedding", client=Client())
+    embed(["q"], timeout=3.0)
+    embed(["q"])
+    assert options == [{"max_retries": 0, "timeout": 3.0}]
+
+
+def test_embedder_timeout_raises_timeout_error():
+    import openai
+    from httpx2 import Request
+
+    from hindcast.index import embedder
+
+    class Embeddings:
+        def create(self, **kw):
+            raise openai.APITimeoutError(request=Request("POST", "https://example.org"))
+
+    class Client:
+        embeddings = Embeddings()
+
+        def with_options(self, **kw):
+            return self
+
+    with pytest.raises(TimeoutError):
+        embedder(4, deployment="embedding", client=Client())(["q"], timeout=1.0)

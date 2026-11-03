@@ -7,17 +7,12 @@ found, so the record of a hit carries no personal data either. IDs, times,
 refs, and the verdict are not free text and are not sent.
 """
 
-from dataclasses import dataclass, replace
+from dataclasses import replace
 
-from hindcast.result import Investigation
+from hindcast.result import Investigation, PiiFinding
 from hindcast.safety import Pii, PiiHit
 
-
-@dataclass(frozen=True)
-class PiiFinding:
-    path: str
-    category: str
-    confidence: float
+__all__ = ["PiiFinding", "mask", "redact_fields", "redact_investigation", "text_fields"]
 
 
 def text_fields(investigation: Investigation) -> list[tuple[str, str]]:

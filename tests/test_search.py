@@ -191,3 +191,68 @@ def test_unknown_case_is_refused():
     with pytest.raises(ValueError, match="case ID"):
         run("x' or '1", "errors", client)
     assert client.calls == []
+
+
+def test_search_passes_timeout_and_no_retries() -> None:
+    client = FakeSearch([hit("earlier-pick")])
+    timeouts: list[float | None] = []
+
+    def embed(texts, timeout=None):
+        timeouts.append(timeout)
+        return [[0.1] * 4 for _ in texts]
+
+    search_library(
+        SCORED.case_id,
+        "q",
+        cases=CASES,
+        library=LIBRARY,
+        refs=REFS,
+        client=client,
+        embed=embed,
+        timeout=7.5,
+    )
+    assert timeouts == [7.5]
+    [(_, kwargs)] = client.calls
+    assert (kwargs["connection_timeout"], kwargs["read_timeout"]) == (7.5, 7.5)
+
+
+def test_search_timeout_raises_timeout_error() -> None:
+    from azure.core.exceptions import ServiceResponseTimeoutError
+
+    class Slow(FakeSearch):
+        def search(self, search_text=None, **kwargs):
+            def results():
+                raise ServiceResponseTimeoutError("read timed out")
+                yield {}
+
+            return results()
+
+    with pytest.raises(TimeoutError):
+        search_library(
+            SCORED.case_id,
+            "q",
+            cases=CASES,
+            library=LIBRARY,
+            refs=REFS,
+            client=Slow(),
+            embed=lambda texts, timeout=None: [[0.1] * 4],
+            timeout=1.0,
+        )
+
+
+def test_investigation_search_client_makes_no_retries(monkeypatch: pytest.MonkeyPatch) -> None:
+    from hindcast import index
+
+    monkeypatch.setenv("HINDCAST_SEARCH_ENDPOINT", "https://example.search.windows.net")
+    monkeypatch.setenv("HINDCAST_SEARCH_INDEX", "i")
+    monkeypatch.setenv("HINDCAST_EMBEDDING_ENDPOINT", "https://example.services.ai.azure.com")
+    monkeypatch.setenv("HINDCAST_EMBEDDING_DEPLOYMENT", "e")
+    from azure.core.pipeline.policies import RetryPolicy
+
+    def retries(client) -> list[int]:
+        policies = client._client._pipeline._impl_policies
+        return [p.total_retries for p in policies if isinstance(p, RetryPolicy)]
+
+    assert retries(index.clients("i", retry_total=0)[1]) == [0]
+    # Indexing keeps the SDK's retries.
+    assert retries(index.clients("i")[1]) == [10]

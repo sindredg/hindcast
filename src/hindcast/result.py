@@ -165,9 +165,18 @@ class RejectedCitation:
 
 
 @dataclass(frozen=True)
+class PiiFinding:
+    # A PII hit by field path and category; the text found is never kept.
+    path: str
+    category: str
+    confidence: float
+
+
+@dataclass(frozen=True)
 class Checks:
     rejected_citations: tuple[RejectedCitation, ...] = ()
     unsupported: tuple[str, ...] = ()
+    pii: tuple[PiiFinding, ...] = ()
 
 
 class ResultError(ValueError):

@@ -14,6 +14,14 @@ The result file lists every tool call in order, with each search's query and
 the refs it returned, never the hit text: a library citation is kept only for
 a ref in that list (hindcast.result). The provenance names the library
 registry, the index, and the embedding model the searches ran on.
+
+Prompt Shields screens every tool item before the model reads it, and PII
+detection checks the final answer before it is written (hindcast.tools,
+hindcast.redact). Either service failing ends the run as incomplete
+(screen-error, pii-error): an unscreened result never reaches the model, and
+an unchecked answer is never written. The run, each model call, each tool
+call, and the PII check are spans; their attributes are counts and times,
+never text.
 """
 
 import argparse
@@ -22,15 +30,17 @@ import hashlib
 import json
 import time
 from collections.abc import Callable
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Literal, Protocol
 
+from hindcast import telemetry
 from hindcast.agent import agent_name, ensure_agent_version, load_definition, prompt_provenance
 from hindcast.cases import Case, load_cases
-from hindcast.config import ModelSettings, SearchSettings, load_settings
+from hindcast.config import ModelSettings, SafetySettings, SearchSettings, load_settings
 from hindcast.evaluation.prior import _git
+from hindcast.redact import redact_investigation
 from hindcast.result import (
     Checks,
     Investigation,
@@ -39,6 +49,7 @@ from hindcast.result import (
     investigation_dict,
     parse_investigation,
 )
+from hindcast.safety import Pii, PiiError, ScreenError
 from hindcast.search import search_library
 from hindcast.tools import CaseTools, load_evidence
 
@@ -53,6 +64,9 @@ CODE_PATHS = ("src", "pyproject.toml", "uv.lock")
 
 TOOL_CAP = 12
 TIME_CAP = 120.0
+# The PII check runs after the answer and outside the time cap: the cap
+# bounds the investigation, and an answer at the cap still gets checked.
+PII_TIMEOUT = 30.0
 NO_CHECKS = Checks()
 START = {
     "role": "user",
@@ -68,16 +82,54 @@ class Usage:
     input_tokens: int
     cached_input_tokens: int
     output_tokens: int
+    # Screen and PII calls of the run, and what billing counts for each.
+    screen_calls: int = 0
+    screen_characters: int = 0
+    pii_calls: int = 0
+    pii_records: int = 0
 
 
 @dataclass(frozen=True)
 class RunResult:
     status: Literal["complete", "incomplete"]
     incomplete_reason: str | None
-    investigation: Investigation | None
+    # An Investigation, or a hindcast.challenge Challenge for a challenge turn.
+    investigation: Any
     checks: Checks
     usage: Usage
     tool_calls: tuple[dict, ...] = ()
+
+
+class Span(Protocol):
+    def __call__(self, name: str, /, **attributes: str) -> Any: ...
+
+
+class Finish(Protocol):
+    """Turn the model's final text into a checked result; raise ResultError or PiiError."""
+
+    def __call__(
+        self, text: str, tools: CaseTools, *, case_id: str, pii: Pii | None, span: Span
+    ) -> tuple[Any, Checks]: ...
+
+
+def finish_investigation(
+    text: str, tools: CaseTools, *, case_id: str, pii: Pii | None, span: Span
+) -> tuple[Investigation, Checks]:
+    investigation = parse_investigation(text)
+    checked, checks = check_citations(
+        investigation,
+        tools.refs,
+        case_id,
+        frozenset(tools.retrieved),
+        shown=frozenset(tools.shown),
+        withheld=frozenset(tools.withheld),
+    )
+    if pii is None:
+        return checked, checks
+    with span("pii") as current:
+        redacted, findings = redact_investigation(checked, pii, timeout=PII_TIMEOUT)
+        current.set_attribute("hits", str(len(findings)))
+    return redacted, replace(checks, pii=findings)
 
 
 class Turn(Protocol):
@@ -93,92 +145,150 @@ def run_investigation(
     tools: CaseTools,
     *,
     case_id: str,
+    pii: Pii | None,
+    start: list[dict] | None = None,
+    finish: Finish = finish_investigation,
     tool_cap: int = TOOL_CAP,
     time_cap: float = TIME_CAP,
     clock: Callable[[], float] = time.monotonic,
+    span: Span = telemetry.span,
+    name: str = "investigation",
 ) -> RunResult:
-    start = clock()
+    """Run the loop under the caps; pii=None only in tests that do not test it."""
+    with span(name, case_id=case_id) as current:
+        result = _loop(
+            turn,
+            tools,
+            case_id=case_id,
+            pii=pii,
+            start=start or [START],
+            finish=finish,
+            tool_cap=tool_cap,
+            time_cap=time_cap,
+            clock=clock,
+            span=span,
+        )
+        current.set_attribute("status", result.status)
+        if result.incomplete_reason:
+            # Only the prefix: the rest of a reason can carry a service message.
+            current.set_attribute("incomplete_reason", result.incomplete_reason.split(":")[0])
+        return result
+
+
+def _loop(
+    turn: Turn,
+    tools: CaseTools,
+    *,
+    case_id: str,
+    pii: Pii | None,
+    start: list[dict],
+    finish: Finish,
+    tool_cap: int,
+    time_cap: float,
+    clock: Callable[[], float],
+    span: Span,
+) -> RunResult:
+    began = clock()
     model_calls = tool_calls = input_tokens = cached_tokens = output_tokens = 0
     record: list[dict] = []
+    shield = tools.shield
+    screens_before = (shield.calls, shield.characters) if shield else (0, 0)
+    pii_before = (pii.calls, pii.records) if pii else (0, 0)
 
-    def end(
-        reason: str | None, investigation: Investigation | None = None, checks: Checks = NO_CHECKS
-    ) -> RunResult:
+    def end(reason: str | None, result: Any = None, checks: Checks = NO_CHECKS) -> RunResult:
+        screens = (shield.calls, shield.characters) if shield else (0, 0)
+        checked = (pii.calls, pii.records) if pii else (0, 0)
         usage = Usage(
             model_calls,
             tool_calls,
-            round(clock() - start, 3),
+            round(clock() - began, 3),
             input_tokens,
             cached_tokens,
             output_tokens,
+            screen_calls=screens[0] - screens_before[0],
+            screen_characters=screens[1] - screens_before[1],
+            pii_calls=checked[0] - pii_before[0],
+            pii_records=checked[1] - pii_before[1],
         )
         status = "complete" if reason is None else "incomplete"
-        return RunResult(status, reason, investigation, checks, usage, tuple(record))
+        return RunResult(status, reason, result, checks, usage, tuple(record))
 
-    items: list[dict] = [START]
+    items: list[dict] = start
     previous: str | None = None
     while True:
-        remaining = time_cap - (clock() - start)
+        remaining = time_cap - (clock() - began)
         if remaining <= 0:
             return end("time-cap")
         model_calls += 1
-        try:
-            # The remaining budget is the call's timeout, so no model call runs
-            # past the cap.
-            response = turn(items, previous, timeout=remaining)
-        except TimeoutError:
-            return end("time-cap")
+        with span("model_call", time_left=f"{remaining:.3f}") as current:
+            called = clock()
+            try:
+                # The remaining budget is the call's timeout, so no model call
+                # runs past the cap.
+                response = turn(items, previous, timeout=remaining)
+            except TimeoutError:
+                current.set_attribute("seconds", f"{clock() - called:.3f}")
+                current.set_attribute("timed_out", "true")
+                return end("time-cap")
+            current.set_attribute("seconds", f"{clock() - called:.3f}")
 
-        if response.status != "completed":
-            # A cut answer (output limit, content filter) is a failed call, as
-            # in hindcast.models: it propagates and nothing is written.
-            reason = getattr(response.incomplete_details, "reason", None)
-            raise RuntimeError(f"model response is {response.status}: {reason}")
-        if response.usage is None:
-            raise RuntimeError("model response carries no token usage")
-        input_tokens += response.usage.input_tokens
-        details = response.usage.input_tokens_details
-        cached_tokens += details.cached_tokens if details else 0
-        output_tokens += response.usage.output_tokens
+            if response.status != "completed":
+                # A cut answer (output limit, content filter) is a failed call, as
+                # in hindcast.models: it propagates and nothing is written.
+                reason = getattr(response.incomplete_details, "reason", None)
+                raise RuntimeError(f"model response is {response.status}: {reason}")
+            if response.usage is None:
+                raise RuntimeError("model response carries no token usage")
+            input_tokens += response.usage.input_tokens
+            details = response.usage.input_tokens_details
+            cached_tokens += details.cached_tokens if details else 0
+            output_tokens += response.usage.output_tokens
+            current.set_attribute("input_tokens", str(response.usage.input_tokens))
+            current.set_attribute("output_tokens", str(response.usage.output_tokens))
 
         calls = [item for item in response.output if item.type == "function_call"]
         if not calls:
             # Only a response with no function calls is final; text next to a
             # call is ignored and the loop goes on.
             try:
-                investigation = parse_investigation(response.output_text or "")
+                result, checks = finish(
+                    response.output_text or "", tools, case_id=case_id, pii=pii, span=span
+                )
             except ResultError as error:
                 return end(str(error))
-            checked, checks = check_citations(
-                investigation,
-                tools.refs,
-                case_id,
-                frozenset(tools.retrieved),
-                shown=frozenset(tools.shown),
-                withheld=frozenset(tools.withheld),
-            )
-            return end(None, checked, checks)
+            except PiiError as error:
+                return end(f"pii-error: {error}")
+            except TimeoutError as error:
+                return end(f"pii-error: {error}")
+            return end(None, result, checks)
 
         outputs: list[dict] = []
         for call in calls:
             if tool_calls >= tool_cap:
                 return end("tool-cap")
-            left = time_cap - (clock() - start)
+            left = time_cap - (clock() - began)
             if left <= 0:
                 return end("time-cap")
-            called = clock()
-            try:
-                # The search and the screen get the time left, so a tool call
-                # cannot run past the cap either.
-                output = tools.call(call.name, call.arguments, timeout=left)
-            except Exception as error:
-                # Any failure inside a tool ends the run with its name and
-                # message; the model never sees a half answer.
-                return end(f"tool-error: {call.name}: {error}")
+            with span("tool_call", tool=call.name) as current:
+                called = clock()
+                try:
+                    # The search and the screen get the time left, so a tool
+                    # call cannot run past the cap either.
+                    output = tools.call(call.name, call.arguments, timeout=left)
+                except TimeoutError:
+                    return end("time-cap")
+                except ScreenError as error:
+                    return end(f"screen-error: {error}")
+                except Exception as error:
+                    # Any other failure inside a tool ends the run with its
+                    # name and message; the model never sees a half answer.
+                    return end(f"tool-error: {call.name}: {error}")
+                seconds = round(clock() - called, 3)
+                current.set_attribute("seconds", f"{seconds:.3f}")
+                current.set_attribute("withheld", str(len(tools.last_call.get("withheld", []))))
+                current.set_attribute("screen_calls", str(tools.last_call.get("screen_calls", 0)))
             tool_calls += 1
-            record.append(
-                {"name": call.name, "seconds": round(clock() - called, 3), **tools.last_call}
-            )
+            record.append({"name": call.name, "seconds": seconds, **tools.last_call})
             outputs.append(
                 {"type": "function_call_output", "call_id": call.call_id, "output": output}
             )
@@ -256,6 +366,7 @@ def write_result(
         "checks": {
             "rejected_citations": [asdict(r) for r in result.checks.rejected_citations],
             "unsupported": list(result.checks.unsupported),
+            "pii": [asdict(f) for f in result.checks.pii],
         },
         "tool_calls": list(result.tool_calls),
         "usage": asdict(result.usage),
@@ -286,11 +397,13 @@ def summary(result: RunResult, path: Path) -> str:
         )
     searches = sum(1 for c in result.tool_calls if c["name"] == "search_library")
     library_kept = 0 if i is None else sum(1 for c in _all_citations(i) if c.source == "library")
+    withheld = sum(len(c.get("withheld", [])) for c in result.tool_calls)
     lines.append(
         f"rejected citations {len(result.checks.rejected_citations)}, "
         f"unsupported {len(result.checks.unsupported)}, "
         f"searches {searches}, library citations kept {library_kept}"
     )
+    lines.append(f"withheld items {withheld}, PII hits {len(result.checks.pii)}")
     u = result.usage
     lines.append(
         f"model calls {u.model_calls}, tool calls {u.tool_calls}, seconds {u.seconds}, "
@@ -306,6 +419,7 @@ class Setup:
 
     turn: Turn
     tools: CaseTools
+    pii: Pii
     agent: dict
     model: dict
     provenance: dict
@@ -315,21 +429,23 @@ def prepare(case: Case, evidence_dir: Path | None = None) -> Setup:
     """Read the evidence, make the agent version, and record what the run rests on."""
     evidence_path = (evidence_dir or EVIDENCE_DIR) / f"{case.case_id}.json"
     evidence = load_evidence(evidence_path)
-    # Missing search settings fail here, before the agent version is made.
+    # Missing search or safety settings fail here, before the agent version is made.
     search_settings = load_settings(SearchSettings)
+    safety_settings = load_settings(SafetySettings)
 
     # Imported here so the loop and its tests do not need the SDK.
-    from hindcast import index, models
+    from hindcast import index, models, safety
 
     # One embedder and one search client for the run; the case is bound here
-    # and the model supplies only the query.
+    # and the model supplies only the query. The search client makes no
+    # retries: a retry would run past the time left (issue #49).
     search = functools.partial(
         search_library,
         case.case_id,
         embed=index.embedder(search_settings.embedding_dimensions),
-        client=index.clients(search_settings.search_index)[1],
+        client=index.clients(search_settings.search_index, retry_total=0)[1],
     )
-    tools = CaseTools(evidence, search)
+    tools = CaseTools(evidence, search, safety.shield_client(safety_settings))
 
     deployment = load_settings(ModelSettings).chat_deployment
     definition = load_definition(deployment)
@@ -351,6 +467,7 @@ def prepare(case: Case, evidence_dir: Path | None = None) -> Setup:
     return Setup(
         turn=agent_turn(models.openai_client(), name, version),
         tools=tools,
+        pii=safety.pii_client(safety_settings),
         agent={"name": name, "version": version},
         model={"deployment": deployment, "name": model_name, "version": model_version},
         provenance=provenance,
@@ -369,8 +486,9 @@ def main(argv: list[str] | None = None) -> None:
     case = cases[args.case_id]
     # Both refusals come before any cloud call.
     check_case_allowed(case, RUBRIC_LOCK)
+    telemetry.configure(service=telemetry.INVESTIGATOR)
     setup = prepare(case)
-    result = run_investigation(setup.turn, setup.tools, case_id=case.case_id)
+    result = run_investigation(setup.turn, setup.tools, case_id=case.case_id, pii=setup.pii)
     path = write_result(
         result,
         case_id=case.case_id,

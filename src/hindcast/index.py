@@ -289,8 +289,41 @@ def embedding_model() -> dict:
     return {"deployment": deployment, "name": model_name, "version": version}
 
 
-def embedder(dimensions: int, *, deployment: str | None = None, client: Any = None) -> Embed:
+class Embedder:
     """Embeds through the Foundry resource endpoint, EMBED_BATCH texts per call."""
+
+    def __init__(self, client: Any, deployment: str, dimensions: int) -> None:
+        self.client, self.deployment, self.dimensions = client, deployment, dimensions
+        # Embedding tokens used so far, for a run's cost.
+        self.tokens = 0
+
+    def __call__(self, texts: list[str], timeout: float | None = None) -> list[list[float]]:
+        # With a timeout (an investigation's search), one try within it: the
+        # client's default retries would run past the time left (issue #49).
+        # Indexing passes none and keeps the retries.
+        client = self.client
+        if timeout is not None:
+            client = client.with_options(max_retries=0, timeout=timeout)
+        out: list[list[float]] = []
+        for start in range(0, len(texts), EMBED_BATCH):
+            try:
+                response = client.embeddings.create(
+                    model=self.deployment,
+                    input=texts[start : start + EMBED_BATCH],
+                    dimensions=self.dimensions,
+                )
+            except Exception as error:
+                # Named, not imported: openai stays out of this module's imports.
+                if type(error).__name__ == "APITimeoutError":
+                    raise TimeoutError("embedding call timed out") from error
+                raise
+            out += [item.embedding for item in sorted(response.data, key=lambda d: d.index)]
+            usage = getattr(response, "usage", None)
+            self.tokens += usage.prompt_tokens if usage else 0
+        return out
+
+
+def embedder(dimensions: int, *, deployment: str | None = None, client: Any = None) -> Embedder:
     if deployment is None or client is None:
         from hindcast.config import SearchSettings, load_settings
         from hindcast.models import resource_openai_client
@@ -298,25 +331,18 @@ def embedder(dimensions: int, *, deployment: str | None = None, client: Any = No
         settings = load_settings(SearchSettings)
         deployment = deployment or settings.embedding_deployment
         client = client or resource_openai_client(settings.embedding_endpoint)
-
-    def embed(texts: list[str]) -> list[list[float]]:
-        out: list[list[float]] = []
-        for start in range(0, len(texts), EMBED_BATCH):
-            response = client.embeddings.create(
-                model=deployment, input=texts[start : start + EMBED_BATCH], dimensions=dimensions
-            )
-            out += [item.embedding for item in sorted(response.data, key=lambda d: d.index)]
-        return out
-
-    return embed
+    return Embedder(client, deployment, dimensions)
 
 
 def index_name(dimensions: int) -> str:
     return f"hindcast-library-{dimensions}"
 
 
-def clients(name: str):
-    """Index and document clients for the configured service, with an Entra token."""
+def clients(name: str, *, retry_total: int | None = None):
+    """Index and document clients for the configured service, with an Entra token.
+
+    retry_total=0 makes the document client try each request once.
+    """
     from azure.identity import DefaultAzureCredential
     from azure.search.documents import SearchClient
     from azure.search.documents.indexes import SearchIndexClient
@@ -327,7 +353,13 @@ def clients(name: str):
     credential = DefaultAzureCredential()
     return (
         SearchIndexClient(endpoint, credential, api_version=SEARCH_API_VERSION),
-        SearchClient(endpoint, name, credential, api_version=SEARCH_API_VERSION),
+        SearchClient(
+            endpoint,
+            name,
+            credential,
+            api_version=SEARCH_API_VERSION,
+            **({} if retry_total is None else {"retry_total": retry_total}),
+        ),
     )
 
 
