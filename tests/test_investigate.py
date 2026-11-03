@@ -279,16 +279,42 @@ def test_schema_failure_is_incomplete_with_the_error() -> None:
     assert result.investigation is None
 
 
-def test_model_error_propagates_and_writes_nothing() -> None:
-    with pytest.raises(RuntimeError, match="service down"):
-        run(ScriptedTurn(RuntimeError("service down")))
+class RateLimitError(Exception):
+    """Stands in for openai.RateLimitError, whose message carries the service's body."""
 
 
-def test_response_without_usage_is_an_error() -> None:
+def test_rate_limit_ends_run_as_model_error() -> None:
+    result = run(ScriptedTurn(response(call(), tokens=10), RateLimitError("429 SECRET-BODY")))
+    assert (result.status, result.incomplete_reason) == (
+        "incomplete",
+        "model-error: RateLimitError",
+    )
+    assert result.investigation is None
+    # What the run spent before the failed call still counts.
+    assert result.usage.model_calls == 2
+    assert result.usage.input_tokens == 10
+    assert result.usage.output_tokens == 20
+    assert [c["name"] for c in result.tool_calls] == ["list_updates"]
+
+
+def test_cut_response_ends_run_as_model_error() -> None:
+    reply = final()
+    reply.status = "incomplete"
+    reply.incomplete_details = SimpleNamespace(reason="max_output_tokens")
+    result = run(ScriptedTurn(reply))
+    assert result.incomplete_reason == "model-error: response incomplete: max_output_tokens"
+    assert result.investigation is None
+    # The cut call was billed, so its tokens count.
+    assert result.usage.output_tokens == 20
+
+
+def test_missing_usage_ends_run_as_model_error() -> None:
     reply = final()
     reply.usage = None
-    with pytest.raises(RuntimeError, match="usage"):
-        run(ScriptedTurn(reply))
+    result = run(ScriptedTurn(reply))
+    assert result.incomplete_reason == "model-error: no usage"
+    assert result.investigation is None
+    assert (result.usage.model_calls, result.usage.output_tokens) == (1, 0)
 
 
 def test_usage_sums_tokens_over_turns() -> None:
@@ -300,14 +326,6 @@ def test_usage_sums_tokens_over_turns() -> None:
     assert result.usage.input_tokens == 15
     assert result.usage.cached_input_tokens == 2
     assert result.usage.output_tokens == 30
-
-
-def test_cut_response_is_an_error() -> None:
-    reply = final()
-    reply.status = "incomplete"
-    reply.incomplete_details = SimpleNamespace(reason="max_output_tokens")
-    with pytest.raises(RuntimeError, match="incomplete: max_output_tokens"):
-        run(ScriptedTurn(reply))
 
 
 def test_tool_calls_are_recorded_in_order_with_queries_and_refs() -> None:

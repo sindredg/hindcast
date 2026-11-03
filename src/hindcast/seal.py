@@ -43,7 +43,7 @@ from hindcast import telemetry
 from hindcast.cases import Case, load_cases
 from hindcast.config import ModelSettings, load_settings
 from hindcast.evaluation.prior import _git
-from hindcast.investigate import prepare, run_investigation, summary, write_result
+from hindcast.investigate import RunResult, prepare, run_investigation, summary, write_result
 from hindcast.storage import upload_bytes
 from hindcast.tools import CaseTools
 
@@ -230,6 +230,15 @@ def _now() -> datetime:
     return datetime.now(UTC)
 
 
+def _no_result(result: RunResult) -> bool:
+    # A time cap on the first call writes a result with no model output, and
+    # a failed model call ends the run with no investigation: neither is a
+    # result to seal, so another attempt may follow (decision 0017 rule 6).
+    return result.usage.output_tokens == 0 or (result.incomplete_reason or "").startswith(
+        "model-error"
+    )
+
+
 def run(case: Case) -> int:
     seals = load_seals(SEALS)
     deployment = load_settings(ModelSettings).chat_deployment
@@ -261,8 +270,9 @@ def run(case: Case) -> int:
     try:
         result = run_investigation(setup.turn, setup.tools, case_id=case.case_id, pii=setup.pii)
     except Exception as error:
-        # A 429 or a cut-off response: nothing to seal. The error text can
-        # carry the service's response, so only its type is printed.
+        # A failed model call ends the run with a record (model-error); this
+        # catches anything else the run raises. Nothing to seal. The error text
+        # can carry the service's response, so only its type is printed.
         write_seals(SEALS, [*seals, entry])
         print(f"no-result: {type(error).__name__}; attempt {attempt} of {MAX_ATTEMPTS}")
         return 1
@@ -281,8 +291,7 @@ def run(case: Case) -> int:
     entry |= {
         "file": path.name,
         "sha256": hashlib.sha256(data).hexdigest(),
-        # A time cap on the first call writes a result with no model output.
-        "status": "no-result" if result.usage.output_tokens == 0 else result.status,
+        "status": "no-result" if _no_result(result) else result.status,
     }
     # The hash is recorded before the upload, so a failed upload loses nothing.
     seals.append(entry)

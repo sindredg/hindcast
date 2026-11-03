@@ -244,22 +244,29 @@ def _loop(
                 current.set_attribute("seconds", f"{clock() - called:.3f}")
                 current.set_attribute("timed_out", "true")
                 return end("time-cap")
+            except Exception as error:
+                # A 429, a refused request, a dropped connection: the run ends
+                # with a record and the usage so far (#23). Only the type is
+                # kept, since the message can carry the service's response.
+                current.set_attribute("seconds", f"{clock() - called:.3f}")
+                return end(f"model-error: {type(error).__name__}")
             current.set_attribute("seconds", f"{clock() - called:.3f}")
 
+            if response.usage is not None:
+                # Counted before the status check: a cut answer was billed too.
+                input_tokens += response.usage.input_tokens
+                max_call_input = max(max_call_input, response.usage.input_tokens)
+                details = response.usage.input_tokens_details
+                cached_tokens += details.cached_tokens if details else 0
+                output_tokens += response.usage.output_tokens
+                current.set_attribute("input_tokens", str(response.usage.input_tokens))
+                current.set_attribute("output_tokens", str(response.usage.output_tokens))
             if response.status != "completed":
-                # A cut answer (output limit, content filter) is a failed call, as
-                # in hindcast.models: it propagates and nothing is written.
+                # A cut answer (output limit, content filter) is a failed call.
                 reason = getattr(response.incomplete_details, "reason", None)
-                raise RuntimeError(f"model response is {response.status}: {reason}")
+                return end(f"model-error: response {response.status}: {reason}")
             if response.usage is None:
-                raise RuntimeError("model response carries no token usage")
-            input_tokens += response.usage.input_tokens
-            max_call_input = max(max_call_input, response.usage.input_tokens)
-            details = response.usage.input_tokens_details
-            cached_tokens += details.cached_tokens if details else 0
-            output_tokens += response.usage.output_tokens
-            current.set_attribute("input_tokens", str(response.usage.input_tokens))
-            current.set_attribute("output_tokens", str(response.usage.output_tokens))
+                return end("model-error: no usage")
 
         calls = [item for item in response.output if item.type == "function_call"]
         if not calls:
