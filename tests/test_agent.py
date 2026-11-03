@@ -141,3 +141,22 @@ def test_instructions_ask_for_a_search_and_name_the_library_citation() -> None:
     assert "search the library at least once" in instructions
     assert '{"source": "library", "ref": "<ref>"}' in instructions
     assert "never stands alone" in instructions
+
+
+def test_challenger_definition_uses_challenge_schema() -> None:
+    from hindcast.agent import challenger_definition, challenger_name
+    from hindcast.result import CHALLENGE_SCHEMA
+
+    definition = challenger_definition("gpt-6.1-sol")
+    assert challenger_name("gpt-6.1-sol") == "hindcast-challenger-gpt-6-1-sol"
+    assert definition["text"]["format"] == {
+        "type": "json_schema",
+        "name": "challenge",
+        "schema": CHALLENGE_SCHEMA,
+        "strict": True,
+    }
+    assert definition["tools"] == load_definition("gpt-6.1-sol")["tools"]
+    assert definition["instructions"].startswith("<!-- challenger prompt v1 -->")
+    assert definition_fingerprint(definition) != definition_fingerprint(
+        load_definition("gpt-6.1-sol")
+    )

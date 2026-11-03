@@ -36,7 +36,15 @@ from pathlib import Path
 from typing import Any, Literal, Protocol
 
 from hindcast import telemetry
-from hindcast.agent import agent_name, ensure_agent_version, load_definition, prompt_provenance
+from hindcast.agent import (
+    CHALLENGER_PROMPT,
+    agent_name,
+    challenger_definition,
+    challenger_name,
+    ensure_agent_version,
+    load_definition,
+    prompt_provenance,
+)
 from hindcast.cases import Case, load_cases
 from hindcast.config import ModelSettings, SafetySettings, SearchSettings, load_settings
 from hindcast.costs import PriceTable, load_prices, run_cost
@@ -442,13 +450,13 @@ class Setup:
     # The run's embedder; its token count goes into the cost.
     embedder: Any = None
 
-    def cost(self, result: RunResult) -> dict:
+    def cost(self, usage: Usage) -> dict:
         """The run's cost, or the reason it has none; never a guessed price."""
         try:
             return run_cost(
                 self.prices,
                 self.model["deployment"],
-                result.usage,
+                usage,
                 embedding_tokens=self.embedder.tokens if self.embedder else 0,
             )
         except ValueError as error:
@@ -460,8 +468,18 @@ class Setup:
             }
 
 
-def prepare(case: Case, evidence_dir: Path | None = None) -> Setup:
-    """Read the evidence, make the agent version, and record what the run rests on."""
+def prepare(
+    case: Case,
+    evidence_dir: Path | None = None,
+    *,
+    deployment: str | None = None,
+    challenger: bool = False,
+) -> Setup:
+    """Read the evidence, make the agent version, and record what the run rests on.
+
+    challenger=True makes the challenger agent instead (hindcast.challenge);
+    deployment defaults to the configured chat deployment.
+    """
     evidence_path = (evidence_dir or EVIDENCE_DIR) / f"{case.case_id}.json"
     evidence = load_evidence(evidence_path)
     # Missing search or safety settings fail here, before the agent version is made.
@@ -483,18 +501,20 @@ def prepare(case: Case, evidence_dir: Path | None = None) -> Setup:
     )
     tools = CaseTools(evidence, search, safety.shield_client(safety_settings))
 
-    deployment = load_settings(ModelSettings).chat_deployment
+    deployment = deployment or load_settings(ModelSettings).chat_deployment
     prices = load_prices()
     if deployment not in prices.models:
         # Before the agent version and the first model call: a run with no
         # price would be written without a cost.
         raise KeyError(f"{deployment} is not in price table version {prices.version}")
-    definition = load_definition(deployment)
-    name = agent_name(deployment)
+    if challenger:
+        definition, name = challenger_definition(deployment), challenger_name(deployment)
+    else:
+        definition, name = load_definition(deployment), agent_name(deployment)
     version = ensure_agent_version(models.project_client().agents, name, definition)
     model_name, model_version = models.deployment_model(deployment)
     provenance = {
-        "prompt": prompt_provenance(),
+        "prompt": prompt_provenance(CHALLENGER_PROMPT) if challenger else prompt_provenance(),
         "code": code_provenance(),
         "evidence_sha256": hashlib.sha256(evidence_path.read_bytes()).hexdigest(),
         "library": {
@@ -532,7 +552,7 @@ def main(argv: list[str] | None = None) -> None:
     telemetry.configure(service=telemetry.INVESTIGATOR)
     setup = prepare(case)
     result = run_investigation(setup.turn, setup.tools, case_id=case.case_id, pii=setup.pii)
-    cost = setup.cost(result)
+    cost = setup.cost(result.usage)
     path = write_result(
         result,
         case_id=case.case_id,

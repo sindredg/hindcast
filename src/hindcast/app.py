@@ -5,15 +5,13 @@ development-case result; the interface slice replaces the file with a live
 run from the investigator.
 """
 
-import json
 import os
-from dataclasses import dataclass
 from pathlib import Path
 
 import streamlit as st
 
 from hindcast import telemetry
-from hindcast.result import Citation, Investigation, parse_investigation
+from hindcast.result import Citation, StoredResult, load_result
 
 # The one result the page shows until it runs investigations itself. Anchored
 # to the repository root, because Streamlit runs the script from its own
@@ -22,40 +20,6 @@ ROOT = Path(__file__).resolve().parents[2]
 RESULT_FILE = ROOT / "eval/investigations/cloudflare-2026-02-20/20261102T181721Z-v3.json"
 # Test seam: points the page at another result file.
 RESULT_FILE_VAR = "HINDCAST_RESULT_FILE"
-
-
-@dataclass(frozen=True)
-class StoredResult:
-    """One result file as ``write_result`` wrote it."""
-
-    case_id: str
-    agent: dict
-    model: dict
-    provenance: dict
-    status: str
-    incomplete_reason: str | None
-    investigation: Investigation | None
-    checks: dict
-    usage: dict
-
-
-def load_result(path: Path) -> StoredResult:
-    raw = json.loads(path.read_text(encoding="utf-8"))
-    investigation = raw["investigation"]
-    # The dict went through investigation_dict on the way out, so it satisfies
-    # the same schema parse_investigation checks on the way in.
-    parsed = None if investigation is None else parse_investigation(json.dumps(investigation))
-    return StoredResult(
-        case_id=raw["case_id"],
-        agent=raw["agent"],
-        model=raw["model"],
-        provenance=raw["provenance"],
-        status=raw["status"],
-        incomplete_reason=raw["incomplete_reason"],
-        investigation=parsed,
-        checks=raw["checks"],
-        usage=raw["usage"],
-    )
 
 
 def _cites(citations: tuple[Citation, ...]) -> str:

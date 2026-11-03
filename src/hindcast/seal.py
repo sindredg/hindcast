@@ -260,7 +260,7 @@ def run(case: Case) -> int:
         write_seals(SEALS, [*seals, entry])
         print(f"no-result: {type(error).__name__}; attempt {attempt} of {MAX_ATTEMPTS}")
         return 1
-    cost = setup.cost(result)
+    cost = setup.cost(result.usage)
     path = write_result(
         result,
         case_id=case.case_id,
