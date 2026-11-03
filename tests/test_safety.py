@@ -288,3 +288,11 @@ def test_a_missing_flag_is_not_a_pass():
     post = FakePost(lambda path, body: {"documentsAnalysis": [{}]})
     with pytest.raises(ScreenError):
         PromptShield(post).documents(["one"], timeout=5)
+
+
+def test_a_missing_prompt_flag_is_not_a_pass():
+    # The service leaves out userPromptAnalysis when the prompt is empty
+    # (seen live 2026-11-03); for a question it must be there.
+    post = FakePost(lambda path, body: {"documentsAnalysis": []})
+    with pytest.raises(ScreenError):
+        PromptShield(post).prompt("a question", timeout=5)

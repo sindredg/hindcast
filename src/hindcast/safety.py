@@ -187,7 +187,11 @@ class PromptShield:
         if not isinstance(analysis, list) or len(analysis) != len(documents):
             raise ScreenError("Prompt Shields answered for a different number of documents")
         flags = [a.get("attackDetected") for a in analysis if isinstance(a, dict)]
-        prompt_flag = (data.get("userPromptAnalysis") or {}).get("attackDetected", False)
+        # The service omits userPromptAnalysis for an empty prompt; for a real
+        # prompt a missing flag is not a pass.
+        prompt_flag = (
+            (data.get("userPromptAnalysis") or {}).get("attackDetected") if user_prompt else False
+        )
         # A missing or non-boolean flag is not a pass.
         if len(flags) != len(documents) or not all(isinstance(f, bool) for f in flags):
             raise ScreenError("Prompt Shields answered without a flag for every document")
