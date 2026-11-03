@@ -296,3 +296,56 @@ def test_a_missing_prompt_flag_is_not_a_pass():
     post = FakePost(lambda path, body: {"documentsAnalysis": []})
     with pytest.raises(ScreenError):
         PromptShield(post).prompt("a question", timeout=5)
+
+
+def test_pii_hit_outside_the_text_raises():
+    def answer(path, body):
+        return pii_answer(
+            lambda t: [
+                {
+                    "text": "x",
+                    "category": "Person",
+                    "offset": len(t),
+                    "length": 4,
+                    "confidenceScore": 0.9,
+                }
+            ]
+        )(path, body)
+
+    with pytest.raises(PiiError, match="outside"):
+        PiiDetector(FakePost(answer))(["short"], timeout=5)
+
+
+def test_a_malformed_pii_answer_raises_pii_error():
+    def answer(path, body):
+        return {
+            "results": {
+                "documents": [{"id": "0", "entities": [{"category": "Person"}]}],
+                "errors": [],
+            }
+        }
+
+    with pytest.raises(PiiError):
+        PiiDetector(FakePost(answer))(["one"], timeout=5)
+
+
+class FailingCredential(FakeCredential):
+    def get_token(self, *scopes, **kwargs):
+        from azure.core.exceptions import ClientAuthenticationError
+
+        raise ClientAuthenticationError("token for principal 0000 SECRET")
+
+    def get_token_info(self, *scopes, options=None):
+        return self.get_token(*scopes)
+
+
+def test_rest_post_maps_a_credential_error_without_its_message():
+    post = rest_post(
+        "https://example.services.ai.azure.com",
+        credential=FailingCredential(),
+        transport=transport(FakeAdapter(200, {})),
+    )
+    with pytest.raises(ServiceError) as raised:
+        post("/x", {}, timeout=5)
+    assert "ClientAuthenticationError" in str(raised.value)
+    assert "SECRET" not in str(raised.value)

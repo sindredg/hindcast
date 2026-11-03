@@ -80,3 +80,14 @@ def test_committed_table_prices_every_run_deployment() -> None:
         assert set(table.models[deployment]) == {"input", "cached_input", "output"}
         assert all(price > 0 for price in table.models[deployment].values())
     assert table.embedding > 0 and table.prompt_shields > 0 and table.pii > 0
+
+
+def test_the_parts_add_up_to_the_total() -> None:
+    # Review finding: the total summed unrounded parts. Here each part is
+    # 0.0000014 before rounding: 0.000001 each, but 0.000003 together.
+    small = usage(
+        input_tokens=14, cached_input_tokens=0, output_tokens=0, screen_records=0, pii_records=0
+    )
+    cost = run_cost(TABLE, "gpt-6-luna", small, embedding_tokens=11)
+    assert (cost["model"], cost["embeddings"]) == (0.000001, 0.000001)
+    assert cost["total"] == 0.000002

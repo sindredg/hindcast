@@ -498,7 +498,8 @@ def test_seal_path_runs_with_screens(monkeypatch: pytest.MonkeyPatch, tmp_path: 
 
     [entry] = entries(seals)
     written = json.loads((tmp_path / "sealed" / "seal" / entry["file"]).read_text("utf-8"))
-    assert shield.sent == [["Looking into it."]]
+    # The title, then the one update with text.
+    assert shield.sent == [["Slow pages", "Looking into it."]]
     assert written["tool_calls"][0]["withheld"] == ["dev/u1"]
     assert "pii" in written["checks"]
     assert pii.sent, "the sealed answer went through the PII check"

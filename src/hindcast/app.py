@@ -142,7 +142,7 @@ def _render(result: StoredResult, path: Path, live: bool) -> None:
                 st.markdown(_cites(finding.citations))
                 for stored in challenges(path, finding.id):
                     _challenge(stored)
-                if live and result.status == "complete":
+                if live and result.status == "complete" and "screen_calls" in result.usage:
                     _live_challenge(path, finding.id)
 
         st.header("Contributing factors")

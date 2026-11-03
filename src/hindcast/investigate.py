@@ -49,7 +49,7 @@ from hindcast.cases import Case, load_cases
 from hindcast.config import ModelSettings, SafetySettings, SearchSettings, load_settings
 from hindcast.costs import PriceTable, load_prices, run_cost
 from hindcast.evaluation.prior import _git
-from hindcast.redact import redact_investigation
+from hindcast.redact import redact_fields, redact_investigation
 from hindcast.result import (
     Checks,
     Investigation,
@@ -269,6 +269,8 @@ def _loop(
                 result, checks = finish(
                     response.output_text or "", tools, case_id=case_id, pii=pii, span=span
                 )
+                if pii is not None:
+                    checks = replace(checks, pii=checks.pii + _mask_queries(record, pii, span))
             except ResultError as error:
                 return end(str(error))
             except PiiError as error:
@@ -308,6 +310,19 @@ def _loop(
                 {"type": "function_call_output", "call_id": call.call_id, "output": output}
             )
         items, previous = outputs, response.id
+
+
+def _mask_queries(record: list[dict], pii: Pii, span: Span) -> tuple:
+    """Mask personal data in the model's search queries, which the result file keeps."""
+    queries = [(f"tool_calls[{n}].query", c["query"]) for n, c in enumerate(record) if "query" in c]
+    if not queries:
+        return ()
+    with span("pii", fields="queries") as current:
+        masked, hits = redact_fields(queries, pii, timeout=PII_TIMEOUT)
+        current.set_attribute("hits", str(len(hits)))
+    for path, text in masked.items():
+        record[int(path[len("tool_calls[") : path.index("]")])]["query"] = text
+    return hits
 
 
 class ScoredCaseLocked(PermissionError):

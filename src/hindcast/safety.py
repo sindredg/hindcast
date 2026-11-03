@@ -64,9 +64,8 @@ def rest_post(endpoint: str, *, credential: Any = None, transport: Any = None) -
     """POST JSON to the resource with an Entra token; raise ServiceError on any failure."""
     from azure.core import PipelineClient
     from azure.core.exceptions import (
-        ServiceRequestError,
+        AzureError,
         ServiceRequestTimeoutError,
-        ServiceResponseError,
         ServiceResponseTimeoutError,
     )
     from azure.core.pipeline.policies import BearerTokenCredentialPolicy
@@ -90,7 +89,9 @@ def rest_post(endpoint: str, *, credential: Any = None, transport: Any = None) -
             )
         except (ServiceRequestTimeoutError, ServiceResponseTimeoutError) as error:
             raise TimeoutError(f"{type(error).__name__} after {timeout:.1f}s") from error
-        except (ServiceRequestError, ServiceResponseError) as error:
+        except AzureError as error:
+            # Transport and credential errors alike; only the type, since a
+            # credential's message can name the principal.
             raise ServiceError(type(error).__name__) from error
         try:
             data = response.json()
@@ -273,12 +274,15 @@ class PiiDetector:
             raise PiiError(str(error)) from error
         self.calls += 1
         self.records += sum(math.ceil(len(d) / RECORD_CHARACTERS) for d in documents)
-        results = data.get("results") or {}
-        errors = results.get("errors") or []
-        if errors:
+        try:
+            results = data.get("results") or {}
+            errors = results.get("errors") or []
             codes = sorted({str((e.get("error") or {}).get("code")) for e in errors})
+            answered = {d.get("id"): d.get("entities") for d in results.get("documents") or []}
+        except (AttributeError, TypeError) as error:
+            raise PiiError("PII detection answered in an unknown shape") from error
+        if errors:
             raise PiiError(f"documents not checked: {', '.join(codes)}")
-        answered = {d.get("id"): d.get("entities") for d in results.get("documents") or []}
         if set(answered) != {str(i) for i in range(len(documents))}:
             raise PiiError("PII detection answered for a different set of documents")
         out = []
@@ -304,18 +308,24 @@ class PiiDetector:
         for start in range(0, len(parts), PII_MAX_DOCUMENTS):
             group = parts[start : start + PII_MAX_DOCUMENTS]
             answers = self._call([p for _, _, p in group], left())
-            for (index, offset, _), entities in zip(group, answers, strict=True):
+            for (index, offset, piece), entities in zip(group, answers, strict=True):
                 for e in entities:
-                    if e["category"] in NOT_PERSONAL:
+                    try:
+                        category, start, length = e["category"], e["offset"], e["length"]
+                        confidence = float(e["confidenceScore"])
+                    except (KeyError, TypeError, ValueError) as error:
+                        raise PiiError(
+                            "PII detection answered an entity without its fields"
+                        ) from error
+                    # A hit that does not fit its text cannot be masked: a pass
+                    # would record a hit and leave the text as it was.
+                    if not (isinstance(start, int) and isinstance(length, int)) or not (
+                        start >= 0 and length > 0 and start + length <= len(piece)
+                    ):
+                        raise PiiError("PII detection answered a hit outside its text")
+                    if category in NOT_PERSONAL:
                         continue
-                    hits[index].append(
-                        PiiHit(
-                            e["category"],
-                            offset + e["offset"],
-                            e["length"],
-                            e["confidenceScore"],
-                        )
-                    )
+                    hits[index].append(PiiHit(category, offset + start, length, confidence))
         return [tuple(h) for h in hits]
 
 

@@ -318,3 +318,45 @@ def test_a_challenge_is_one_trace(tmp_path: Path) -> None:
     assert len({s.context.trace_id for s in spans}) == 1
     [root] = [s for s in spans if s.parent is None]
     assert root.name == "challenge" and root.attributes["status"] == "complete"
+
+
+def test_an_unscreened_result_is_refused(tmp_path: Path) -> None:
+    # Review finding: the slice 1 and 2 files ran without Prompt Shields.
+    path = stored(tmp_path)
+    raw = json.loads(path.read_text("utf-8"))
+    del raw["usage"]["screen_calls"]
+    path.write_text(json.dumps(raw), encoding="utf-8")
+    setup = Setup(answer())
+    with pytest.raises(ValueError, match="screen"):
+        challenge_run(setup, path)
+    assert setup.turn.inputs == []
+
+
+def test_a_question_screen_error_ends_the_challenge(tmp_path: Path) -> None:
+    from hindcast.safety import ScreenError
+
+    setup = Setup(answer(), shield=StubShield(error=ScreenError("HTTP 500 x")))
+    setup.tools.shield = PromptError(ScreenError("HTTP 500 x"))
+    result = challenge_run(setup, stored(tmp_path))
+    assert (result.status, result.reason) == ("incomplete", "screen-error: HTTP 500 x")
+    assert setup.turn.inputs == [] and result.question == ""
+
+
+def test_a_question_pii_error_ends_the_challenge(tmp_path: Path) -> None:
+    from hindcast.safety import PiiError
+
+    setup = Setup(answer(), pii=StubPii(PiiError("HTTP 500 y")))
+    result = challenge_run(setup, stored(tmp_path))
+    assert (result.status, result.reason) == ("incomplete", "pii-error: HTTP 500 y")
+    assert setup.turn.inputs == [] and result.question == ""
+
+
+class PromptError(StubShield):
+    """Screens documents cleanly; fails on the question."""
+
+    def __init__(self, error: Exception) -> None:
+        super().__init__()
+        self.prompt_error = error
+
+    def prompt(self, text: str, *, timeout: float) -> bool:
+        raise self.prompt_error

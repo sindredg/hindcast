@@ -213,7 +213,7 @@ def test_search_passes_timeout_and_no_retries() -> None:
     )
     assert timeouts == [7.5]
     [(_, kwargs)] = client.calls
-    assert (kwargs["connection_timeout"], kwargs["read_timeout"]) == (7.5, 7.5)
+    assert kwargs["connection_timeout"] == kwargs["read_timeout"] == pytest.approx(7.5, abs=0.01)
 
 
 def test_search_timeout_raises_timeout_error() -> None:
@@ -256,3 +256,26 @@ def test_investigation_search_client_makes_no_retries(monkeypatch: pytest.Monkey
     assert retries(index.clients("i", retry_total=0)[1]) == [0]
     # Indexing keeps the SDK's retries.
     assert retries(index.clients("i")[1]) == [10]
+
+
+def test_the_search_request_gets_what_the_embedding_left() -> None:
+    now = [0.0]
+    client = FakeSearch([hit("earlier-pick")])
+
+    def embed(texts, timeout=None):
+        now[0] += 3.0
+        return [[0.1] * 4 for _ in texts]
+
+    search_library(
+        SCORED.case_id,
+        "q",
+        cases=CASES,
+        library=LIBRARY,
+        refs=REFS,
+        client=client,
+        embed=embed,
+        timeout=7.5,
+        clock=lambda: now[0],
+    )
+    [(_, kwargs)] = client.calls
+    assert kwargs["read_timeout"] == 4.5

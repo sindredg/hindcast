@@ -107,3 +107,15 @@ def test_pii_error_propagates() -> None:
 def test_module_source_has_no_logging_of_text() -> None:
     source = Path("src/hindcast/redact.py").read_text(encoding="utf-8")
     assert "print(" not in source and "logging" not in source
+
+
+def test_mask_merges_overlapping_hits() -> None:
+    # Review finding: right-to-left replacement left part of an overlapped span.
+    text = "Mail jane.doe@example.com now"
+    start = text.index("jane")
+    hits = (PiiHit("Person", start, 8, 0.9), PiiHit("Email", start + 2, 18, 0.9))
+    # One span, both categories named.
+    assert mask(text, hits) == "Mail [Email/Person] now"
+    # A hit inside another is covered by it.
+    inner = (PiiHit("Email", start, 20, 0.9), PiiHit("Person", start + 5, 3, 0.9))
+    assert mask(text, inner) == "Mail [Email/Person] now"

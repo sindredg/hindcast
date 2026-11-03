@@ -15,6 +15,7 @@ is kept only for a ref the model read (hindcast.result).
 """
 
 import json
+import time
 from collections.abc import Callable
 from pathlib import Path
 
@@ -110,8 +111,10 @@ class CaseTools:
         evidence: CaseEvidence,
         search: Callable[..., list[LibraryHit]] | None = None,
         shield: Shield | None = None,
+        clock: Callable[[], float] = time.monotonic,
     ) -> None:
         self.evidence = evidence
+        self.clock = clock
         self.search = search
         # None only in tests that do not test screening: prepare() always
         # passes one.
@@ -128,6 +131,22 @@ class CaseTools:
         # What the last successful call asked, returned, and withheld, for the
         # result file's tool_calls.
         self.last_call: dict = {}
+
+    def _left(self, timeout: float) -> Callable[[], float]:
+        """The time left of one tool call's budget; raises TimeoutError once it is spent.
+
+        The search and the screen of one call share the budget, so the call
+        as a whole ends within the time left in the run.
+        """
+        end = self.clock() + timeout
+
+        def left() -> float:
+            remaining = end - self.clock()
+            if remaining <= 0:
+                raise TimeoutError("no time left in the tool call")
+            return remaining
+
+        return left
 
     def _screen(self, items: list[tuple[str, str]], timeout: float) -> tuple[set[str], int]:
         """Screen (ref, text) pairs not seen before; return the flagged refs and the calls made."""
@@ -153,13 +172,16 @@ class CaseTools:
         # The dropped entries stay out: a dropped postmortem would tell the
         # model that a report exists.
         e = self.evidence
-        flagged, calls = self._screen([(u.update_id, u.text or "") for u in e.updates], timeout)
+        # The title is the status page's incident name: third-party text too.
+        title_ref = f"{e.case_id}/title"
+        items = [(title_ref, e.title)] + [(u.update_id, u.text or "") for u in e.updates]
+        flagged, calls = self._screen(items, timeout)
         self.withheld |= flagged
         self.shown |= {u.update_id for u in e.updates} - flagged
         self.last_call = {"withheld": sorted(flagged), "screen_calls": calls}
         return {
             "provider": e.provider,
-            "title": e.title,
+            "title": {"withheld": WITHHELD} if title_ref in flagged else e.title,
             "started_at": e.started_at,
             "updates": [
                 {"update_id": u.update_id, "withheld": WITHHELD}
@@ -191,9 +213,10 @@ class CaseTools:
     def search_library(self, query: str, timeout: float) -> dict:
         if self.search is None:
             raise ToolError("no library search is bound")
-        hits = self.search(query, timeout=timeout)
+        left = self._left(timeout)
+        hits = self.search(query, timeout=left())
         flagged, calls = self._screen(
-            [(h.ref, f"{h.title}\n{h.heading}\n{h.content}") for h in hits], timeout
+            [(h.ref, f"{h.title}\n{h.heading}\n{h.content}") for h in hits], left()
         )
         # Scores stay out: they rank hits within one query and mean nothing
         # to the model.

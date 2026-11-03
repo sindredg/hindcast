@@ -127,7 +127,9 @@ def test_challenge_box_with_live_flag(tmp_path, monkeypatch):
     from hindcast.investigate import Usage
     from hindcast.result import Challenge, Checks, Citation
 
-    path = copy_result(tmp_path)
+    # A screened result: the slice 2 file is copied with a screen count.
+    usage = json.loads(RESULT.read_text(encoding="utf-8"))["usage"] | {"screen_calls": 5}
+    path = copy_result(tmp_path, usage=usage)
     monkeypatch.setenv(app.RESULT_FILE_VAR, str(path))
     monkeypatch.setenv(app.CHALLENGE_LIVE_VAR, "1")
     asked: list[tuple] = []
@@ -191,3 +193,13 @@ def test_default_result_is_the_newest_luna_run(tmp_path):
         (tmp_path / name).write_text(json.dumps({"model": {"deployment": deployment}}))
 
     assert app.default_result(tmp_path).name == "20261102T000000Z-v4.json"
+
+
+def test_no_challenge_box_for_an_unscreened_result(monkeypatch):
+    # The slice 2 run ran without Prompt Shields; its refs were never screened.
+    monkeypatch.setenv(app.RESULT_FILE_VAR, str(RESULT))
+    monkeypatch.setenv(app.CHALLENGE_LIVE_VAR, "1")
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+
+    assert not at.exception
+    assert len(at.text_area) == 0

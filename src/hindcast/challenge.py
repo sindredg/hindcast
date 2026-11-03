@@ -79,6 +79,10 @@ def _findings(stored: StoredResult, finding_id: str) -> tuple[Finding, dict[str,
 def validate(stored: StoredResult, finding_id: str, question: str) -> None:
     """Every refusal that needs no cloud call."""
     _findings(stored, finding_id)
+    if "screen_calls" not in stored.usage:
+        # Results from before Prompt Shields: their library refs were never
+        # screened, and a challenge may cite them.
+        raise ValueError("the result ran without screens; only a screened result can be challenged")
     if not question.strip() or len(question) > MAX_QUESTION:
         raise ValueError(f"the question must be 1 to {MAX_QUESTION} characters")
 

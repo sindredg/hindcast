@@ -96,9 +96,10 @@ def run_cost(table: PriceTable, deployment: str, usage: RunUsage, *, embedding_t
         "embeddings": embedding_tokens * table.embedding / PER_MILLION,
     }
     rounded = {name: round(value, 6) for name, value in parts.items()}
+    # The total is the sum of the parts as written, so they add up.
     return {
         "table_version": table.version,
         "currency": table.currency,
         **rounded,
-        "total": round(math.fsum(parts.values()), 6),
+        "total": round(math.fsum(rounded.values()), 6),
     }

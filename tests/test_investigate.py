@@ -838,3 +838,17 @@ def test_a_deployment_without_a_price_is_refused_before_any_model_call(
         main(["dev", "--out", str(tmp_path / "out")])
     assert created == []
     assert not (tmp_path / "out").exists()
+
+
+def test_a_pii_timeout_ends_the_run_as_pii_error() -> None:
+    result = run(ScriptedTurn(response(call()), final()), pii=StubPii(TimeoutError("slow")))
+    assert result.status == "incomplete"
+    assert result.incomplete_reason.startswith("pii-error")
+
+
+def test_search_queries_are_pii_masked_in_the_record() -> None:
+    # Review finding: the model's queries are committed with the result.
+    turn = ScriptedTurn(response(call(), search_call("errors Jane Doe saw", "c2")), final())
+    result = run(turn, Tools(search=lambda q, timeout: []), pii=StubPii())
+    assert result.tool_calls[1]["query"] == "errors [Person] saw"
+    assert [f.path for f in result.checks.pii] == ["tool_calls[1].query"]

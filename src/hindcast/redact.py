@@ -39,9 +39,21 @@ def text_fields(investigation: Investigation) -> list[tuple[str, str]]:
 
 
 def mask(text: str, hits: tuple[PiiHit, ...]) -> str:
-    """Replace each hit by its category, right to left so earlier offsets stay valid."""
-    for hit in sorted(hits, key=lambda h: h.offset, reverse=True):
-        text = f"{text[: hit.offset]}[{hit.category}]{text[hit.offset + hit.length :]}"
+    """Replace each hit by its category, right to left so earlier offsets stay valid.
+
+    Overlapping hits are merged into one span named by every category in it,
+    so no part of either is left in the text.
+    """
+    spans: list[list] = []
+    for hit in sorted(hits, key=lambda h: h.offset):
+        start, end = hit.offset, hit.offset + hit.length
+        if spans and start < spans[-1][1]:
+            spans[-1][1] = max(spans[-1][1], end)
+            spans[-1][2].add(hit.category)
+        else:
+            spans.append([start, end, {hit.category}])
+    for start, end, categories in reversed(spans):
+        text = f"{text[:start]}[{'/'.join(sorted(categories))}]{text[end:]}"
     return text
 
 
