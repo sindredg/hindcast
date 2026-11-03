@@ -44,7 +44,9 @@ models:
 # 1,000), effective 2024-06-01.
 embedding: 0.13
 
-# Per 1,000 text records; a record is up to 1,000 characters of one document.
+# Per 1,000 text records. A record is taken as up to 1,000 characters of one
+# document, the unit Language's data-limits page states; assumed for Prompt
+# Shields until the table is compared with billed cost.
 # Content Safety meter Standard Text Records, effective 2025-09-01.
 prompt_shields: 0.375
 # Language Standard, first tier, from the calculator data (see above).

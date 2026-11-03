@@ -6,7 +6,7 @@ Narrows [decision 0007](0007-safety-and-injection.md) from a withheld tool resul
 
 ## Context
 
-Milestone 4's third slice puts Prompt Shields and PII detection in the investigation loop and adds the challenge. Four questions were open:
+Milestone 4's third slice puts Prompt Shields and PII detection in the investigation loop and adds the challenge. Five questions were open:
 
 1. Decision 0007 withholds "a flagged tool result". A `list_updates` result is every update of the case, and a search returns five sections. Withholding the whole result for one flagged item removes the rest of the evidence with it.
 2. A citation is checked against the evidence file (case refs) or the searches' refs (library refs). A ref that Prompt Shields withheld still exists in the evidence file, so the case-ref check would keep it.
@@ -56,13 +56,28 @@ Foundry's server-side tracing:
 
 ## Decision
 
-**Screens.** Each update, chart, and library hit is its own Prompt Shields document; a long one is split within the per-call limits, and a flag on any piece withholds the item. A withheld item is replaced in place by `{"<id>": ref, "withheld": "prompt-shields"}`, the result's note says why, and the rest reaches the model. Each item is screened once per run. A screen error ends the run as `screen-error`; a pass is never assumed.
+**Screens.** The case title and each update, chart, and library hit are their own Prompt Shields documents, each screened once per run:
+
+- A long one is split within the per-call limits, and a flag on any piece withholds the item.
+- A withheld item is replaced in place by `{"<id>": ref, "withheld": "prompt-shields"}`, the result's note says why, and the rest reaches the model.
+- A screen error ends the run as `screen-error`; a pass is never assumed.
 
 **Citations.** A case citation is kept only for a ref the model was shown; a withheld ref is rejected as `withheld`, an unread one as `not-shown`. A library ref joins the retrieved set only after the screen, and only when it was shown.
 
-**PII.** Every free-text field of an answer goes to Azure Language PII detection before it is written. A hit is replaced by `[<Category>]`, and `checks.pii` lists its field path, category, and confidence, never the text. Roles, organizations, times, URLs, and IP addresses are not personal data in an outage report and pass. A PII error ends the run as `pii-error`; the answer is not written.
+**PII.** Every free-text field of an answer, and every search query the result keeps, goes to Azure Language PII detection before it is written:
 
-**Challenge.** A second agent per deployment answers `{verdict: stands | revised | withdrawn, answer, citations, revised_claim}`. The question is screened as a user prompt first; a flagged question is refused with no model call. The challenger gets the finding, the findings it rests on, and the PII-masked question, and runs the same loop with the same tools and checks under a 6-call, 90-second cap. A library ref the original run's searches showed stays citable; a case ref needs the challenge's own reading. Challenges are stored next to their result. The page starts one only when `HINDCAST_CHALLENGE_LIVE=1` is set on a developer's machine.
+- A hit is replaced by `[<Category>]`, and `checks.pii` lists its field path, category, and confidence, never the text.
+- Roles, organizations, times, URLs, and IP addresses are not personal data in an outage report and pass.
+- A PII error ends the run as `pii-error`; the answer is not written.
+
+**Challenge.** A second agent per deployment answers `{verdict: stands | revised | withdrawn, answer, citations, revised_claim}`, for a result that ran with the screens:
+
+1. The question is screened as a user prompt; a flagged question is refused with no model call.
+2. The challenger gets the finding, the findings it rests on, and the PII-masked question, and runs the same loop with the same tools and checks under a 6-call, 90-second cap.
+3. A library ref the original run's searches showed stays citable; a case ref needs the challenge's own reading.
+4. The challenge is stored next to its result.
+
+The page starts one only when `HINDCAST_CHALLENGE_LIVE=1` is set on a developer's machine.
 
 **Traces.** Application Insights is disconnected from the Foundry account. The commands and the page send their own spans with the connection string, and every span is kept: the exporter's default samples five traces per second, which dropped spans of a single run.
 
@@ -75,3 +90,4 @@ Foundry's server-side tracing:
 - The deployed page cannot run a challenge. A reader of the public page sees stored challenges only; the interface criterion is met on a local run.
 - Seals made before this slice ran without screens. Their result files have no `checks.pii` and no withheld lists; the evaluation report says so.
 - Without Foundry's server-side spans, a model call shows as Hindcast's `model_call` span and its HTTP request, not as the agent's own steps. The token counts and durations are in Hindcast's spans; the prompt and the answer are in no trace.
+- Every IP address passes the PII check, a person's too, not only a service's. An outage report names service addresses; a case that names a person's address needs the category back.

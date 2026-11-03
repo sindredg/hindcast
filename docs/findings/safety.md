@@ -24,4 +24,4 @@ Findings about Prompt Shields and PII detection on the Foundry resource. The des
 
 **Evidence:** tested live, 2026-11-03, API version 2026-05-01, model version 2026-05-01, `stringIndexType` `UnicodeCodePoint`.
 
-**For Hindcast:** `PersonType`, `Organization`, `DateTime`, `URL`, and `IPAddress` are dropped before masking; in an outage report they name roles, providers, times, and service addresses. Both development runs and five challenges had no hit left after that.
+**For Hindcast:** `PersonType`, `Organization`, `DateTime`, `URL`, and `IPAddress` are dropped before masking; in an outage report they name roles, providers, times, and service addresses. Both slice 3 development runs and their five challenges had no hit left after that.

@@ -4,11 +4,15 @@ Findings about traces in Application Insights. The tracing choice is [decision 0
 
 ## Foundry's server-side traces store every prompt and answer, whatever the client sets (2026-11-03)
 
-**Seen:** with Application Insights connected to the Foundry account, each agent call adds server-side spans under the role `responsesapi` (`invoke_agent <agent>:<version>`, `chat <model>`, `execute_tool`). Their attributes hold the full input and output messages, the tool-call arguments, and a `user.id`. The client's content-recording setting was off. So the evidence, the library sections, and the model's answer before the PII check masks it were all stored.
+**Seen:** with Application Insights connected to the Foundry account, each agent call adds server-side spans under the role `responsesapi` (`invoke_agent <agent>:<version>`, `chat <model>`, `execute_tool`). Their attributes hold the full input and output messages, the tool-call arguments, and a `user.id`.
 
-**Evidence:** tested live, 2026-11-03, on the runs of [milestone 4, slice 3](../worklogs/04-investigator.md#slice-3-live-runs): a query over the spans' attribute keys listed `gen_ai.input.messages` (longest value 23,918 characters) and `gen_ai.output.messages` (10,858 characters) on the `invoke_agent` and `chat` spans. `HINDCAST_ENV` was unset, so `OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT` was `false`. Foundry's trace data page (updated 2026-10-19) names one control: disconnect Application Insights. After the `AppInsights` connection was deleted at 17:45:50Z, a challenge's own spans arrived and no `responsesapi` span did (read 17:50Z).
+The client's content-recording setting was off. So the evidence, the library sections, and the model's answer before the PII check masks it were all stored.
 
-**For Hindcast:** the connection is deleted; traces come from Hindcast's own spans, which carry counts and times only. The runs before 2026-11-03 left their prompts and answers in Application Insights until its retention ends or it is deleted at teardown. No PII hit was found in any committed run.
+**Evidence:** tested live, 2026-11-03, on the runs of [milestone 4, slice 3](../worklogs/04-investigator.md#slice-3-live-runs): a query over the spans' attribute keys listed `gen_ai.input.messages` (longest value 23,918 characters) and `gen_ai.output.messages` (10,858 characters) on the `invoke_agent` and `chat` spans. `HINDCAST_ENV` was unset, so `OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT` was `false`.
+
+Foundry's trace data page (updated 2026-10-19) names one control: disconnect Application Insights. After the account's `AppInsights` connection was deleted at 17:45:50Z, a challenge's own spans arrived and no `responsesapi` span did (read 17:50Z).
+
+**For Hindcast:** the connection is deleted; traces come from Hindcast's own spans, which carry counts and times only. Runs before 17:45:50Z on 2026-11-03 left their prompts and answers in Application Insights until its retention ends or it is deleted at teardown. The slice 3 runs and challenges had no PII hit; the earlier committed runs had no PII check.
 
 **Read more:** [Microsoft Foundry tracing and data handling](https://learn.microsoft.com/azure/foundry/observability/concepts/trace-data).
 

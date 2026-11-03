@@ -67,7 +67,7 @@ The reading of each result against the evidence is in the [worklog](../../../doc
 
 - Slice 1, tested live on 2026-10-30: the run above. Tested locally on 2026-10-30: both tests pass, and each failed once on a broken copy of the file (an inference with its citations removed, a status changed to `incomplete`).
 - Slice 2, tested live on 2026-11-02: the run above. Tested locally on 2026-11-02: every test passes, and each new or changed test failed once on a broken copy of the file. A library citation changed to a ref the run did not retrieve failed the retrieved test and the case-citation test. A 150-character fragment of a retrieved section added to a finding failed the library-text test.
-- Slice 3, tested live on 2026-11-03: the runs and challenges above. Tested locally on 2026-11-03: all 23 tests pass with the evidence and extracts present. A challenge citation changed to `cloudflare-2026-02-20/u99` failed the challenge citation test; a 150-character fragment of a retrieved section added to a finding of the gpt-6.1-sol run failed the library-text test.
+- Slice 3, tested live on 2026-11-03: the runs and challenges above. Tested locally on 2026-11-03: all 29 tests pass with the evidence and extracts present. A challenge citation changed to `cloudflare-2026-02-20/u99` failed the challenge citation test; a 150-character fragment of a retrieved section added to a finding of the gpt-6.1-sol run failed the library-text test.
 
 ## Licence
 
@@ -78,4 +78,4 @@ The investigations are model output about Cloudflare's status updates for incide
 
 - Slice 3 (measured 2026-11-03): the gpt-6-luna run repeats 17.0% of its text from the updates, in fragments of at most 49 characters; the gpt-6.1-sol run 6.3%, at most 44. The five challenges repeat 11.8%, 20.9%, 35.3%, 20.6%, and 15.6% of their answers, in fragments of at most 81 characters.
 
-The slice 2 and slice 3 runs also read sections of earlier Cloudflare postmortems from the library, which are not redistributed here either. None of their text, nor any challenge's, repeats them in a match of 25 characters or more. The longest shared fragment is 22 characters.
+The slice 2 and slice 3 runs also read sections of earlier Cloudflare postmortems from the library, which are not redistributed here either. None of their text, nor any challenge's, repeats them in a match of 25 characters or more. The longest shared fragment is 22 characters in a run and 20 in a challenge.

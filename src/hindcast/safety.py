@@ -36,7 +36,8 @@ PII_API_VERSION = "2026-05-01"
 PII_MODEL_VERSION = "2026-05-01"
 PII_MAX_DOCUMENTS = 5
 PII_MAX_CHARACTERS = 5_000
-# Billing counts a text record per started 1,000 characters of a document.
+# Billing counts a text record per started 1,000 characters of a document: the
+# unit Language states, assumed for Prompt Shields until compared with the bill.
 RECORD_CHARACTERS = 1_000
 # The service's default categories, minus what is not personal data in an
 # outage investigation: roles ("the on-call engineer"), companies and
