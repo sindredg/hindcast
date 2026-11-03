@@ -45,7 +45,13 @@ The procedure deploys the Hindcast page to Azure Container Apps from one `azd up
    azd hooks run preprovision && azd provision --preview
    ```
 
-   Expected, as observed on 2026-10-31: `app registration: hindcast-app (created)` and `github subject prefix: repo:<owner>@...`, then `SUCCESS: Generated provisioning preview` with four `Create` lines: the resource group `rg-hindcast-app`, the container app `ca-hindcast`, the environment `cae-hindcast`, and the registry (`<registry>`). azd's preview prints only these resource types; the identities, the federated credential, the role assignments, the diagnostic setting, and the auth config appear in a full what-if (`az deployment sub what-if --location swedencentral --template-file infra/main.bicep --parameters infra/main.parameters.json`, eleven `Create` and no change in the other resource group).
+   Expected, as observed on 2026-10-31: `app registration: hindcast-app (created)` and `github subject prefix: repo:<owner>@...`, then `SUCCESS: Generated provisioning preview` with four `Create` lines: the resource group `rg-hindcast-app`, the container app `ca-hindcast`, the environment `cae-hindcast`, and the registry (`<registry>`).
+
+   azd's preview prints only these resource types. The identities, the federated credential, the role assignments, the diagnostic setting, and the auth config appear in a full what-if, with eleven `Create` and no change in the other resource group:
+
+   ```bash
+   az deployment sub what-if --location swedencentral --template-file infra/main.bicep --parameters infra/main.parameters.json
+   ```
 
 ## Provision
 

@@ -2,7 +2,13 @@
 
 What building Hindcast showed about the platform and the sources: behaviour the documentation does not state, states differently, or that changed a design choice.
 
-One file per topic, one entry per finding, newest first. Each entry says what was seen, the evidence and how it was obtained (live on Azure, locally, or read from the documentation), and what it changes for Hindcast. An entry says what was true on its date and is not rewritten; a later finding that changes it gets its own entry and links back.
+One file per topic, one entry per finding, newest first. Each entry says:
+
+- what was seen,
+- the evidence and how it was obtained (live on Azure, locally, or read from the documentation), and
+- what it changes for Hindcast.
+
+An entry says what was true on its date and is not rewritten; a later finding that changes it gets its own entry and links back.
 
 | Topic | File |
 |---|---|

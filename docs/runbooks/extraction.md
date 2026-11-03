@@ -1,6 +1,10 @@
 # Extraction: operator procedure
 
-Status: Written on 2026-10-27 for [milestone 2](../worklogs/02-extraction.md). Every step ran on 2026-10-27 with the output shown, except where an "Expected:" line is marked as reasoned. Steps 1, 15 to 17, 19, and 20 ran again on 2026-11-01 for the key of GitHub 2026-10-07 ([worklog 05](../worklogs/05-sealed-reconstructions.md#the-october-case)). Steps 2 and 3 changed on 2026-11-01 for the extraction model ([decision 0018](../decisions/0018-extraction-model.md)): the deployment and mapping of gpt-5.4-mini ran then from the [retrieval runbook](retrieval.md#move-extraction-to-gpt-54-mini), and the creation of the analyzers on it in this form is reasoned.
+Status: Written on 2026-10-27 for [milestone 2](../worklogs/02-extraction.md).
+
+- Every step ran on 2026-10-27 with the output shown, except where an "Expected:" line is marked as reasoned.
+- Steps 1, 15 to 17, 19, and 20 ran again on 2026-11-01 for the key of GitHub 2026-10-07 ([worklog 05](../worklogs/05-sealed-reconstructions.md#the-october-case)).
+- Steps 2 and 3 changed on 2026-11-01 for the extraction model ([decision 0018](../decisions/0018-extraction-model.md)): the deployment and mapping of gpt-5.4-mini ran then from the [retrieval runbook](retrieval.md#move-extraction-to-gpt-54-mini), and the creation of the analyzers on it in this form is reasoned.
 
 The procedure turns the captured sources into the case evidence, the library extracts, and the answer keys. Content Understanding needs a role on the Foundry resource only while it runs; the last section removes it.
 
@@ -116,7 +120,11 @@ export RG=<resource-group> RESOURCE=<foundry-resource>
    exit 0
    ```
 
-   On a first run each case reads `blob: uploaded` (reasoned). `<case_id>: chart <doc_id> has no stored description; run ingest charts first` means step 6 has not run. `<case_id>: evidence in Blob Storage differs; pass --replace to overwrite` means the rules, the sources, or the charts changed; pass `--replace` only then. A line `<case_id>: <doc_id>: downloaded bytes do not match the registry` means the blob is not the captured source, and nothing is written for that case.
+   On a first run each case reads `blob: uploaded` (reasoned). Other lines mean:
+
+   - `<case_id>: chart <doc_id> has no stored description; run ingest charts first`: step 6 has not run.
+   - `<case_id>: evidence in Blob Storage differs; pass --replace to overwrite`: the rules, the sources, or the charts changed; pass `--replace` only then.
+   - `<case_id>: <doc_id>: downloaded bytes do not match the registry`: the blob is not the captured source, and nothing is written for that case.
 
 9. Check that the Blob copies equal the local ones and that no resolved text was kept.
 
@@ -185,7 +193,9 @@ export RG=<resource-group> RESOURCE=<foundry-resource>
     PYTHONPATH=src uv run --frozen --env-file .env python -m hindcast.ingest library; echo "exit $?"
     ```
 
-    Expected: one line per document, `<doc_id>: <n> sections, <m> figures, dropped 0`, followed by `  blob: reused` when the extract is already in Blob Storage, then `exit 0`. A first extraction prints `  blob: uploaded` and a `usage:` line; on 2026-10-27 the whole library took 118 minimal pages, 189,000 contextualization tokens, and about 131,000 gpt-5-mini input and 23,000 output tokens. The final library has 176 sections and 65 figures. A page whose title, date, or body its site's rule cannot find is listed with the reason, and the run exits 1.
+    Expected: one line per document, `<doc_id>: <n> sections, <m> figures, dropped 0`, followed by `  blob: reused` when the extract is already in Blob Storage, then `exit 0`. The final library has 176 sections and 65 figures.
+
+    A first extraction prints `  blob: uploaded` and a `usage:` line; on 2026-10-27 the whole library took 118 minimal pages, 189,000 contextualization tokens, and about 131,000 gpt-5-mini input and 23,000 output tokens. A page whose title, date, or body its site's rule cannot find is listed with the reason, and the run exits 1.
 
 14. Check the extracts for text that must not be there: a case's report, a case's date, or a byline.
 
@@ -203,7 +213,9 @@ export RG=<resource-group> RESOURCE=<foundry-resource>
     PYTHONPATH=src uv run --frozen --env-file .env python -m hindcast.keys draft
     ```
 
-    Expected: one line per case with its counts and problems, then `  blob: uploaded` on a first run or `  blob: reused` after, and the stored analysis's `usage:` line either way (together 24 minimal pages). An existing draft is kept: `<case_id>: a draft exists and may hold review edits; kept`. The drafts and review sheets are in `build/keys/`, which Git ignores.
+    Expected: one line per case with its counts and problems, then `  blob: uploaded` on a first run or `  blob: reused` after, and the stored analysis's `usage:` line either way (together 24 minimal pages).
+
+    An existing draft is kept: `<case_id>: a draft exists and may hold review edits; kept`. The drafts and review sheets are in `build/keys/`, which Git ignores.
 
 16. Review each sheet against its postmortem, linked at the top of the sheet. Correct the draft in `build/keys/<case_id>-draft.json`: values, missing items, times in UTC, and `stated_during_incident` for what a status update already said. The fields and rules are in the [keys README](../../eval/keys/README.md). The prior-knowledge answers stay unopened.
 
