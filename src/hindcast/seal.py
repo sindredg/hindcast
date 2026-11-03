@@ -260,6 +260,7 @@ def run(case: Case) -> int:
         write_seals(SEALS, [*seals, entry])
         print(f"no-result: {type(error).__name__}; attempt {attempt} of {MAX_ATTEMPTS}")
         return 1
+    cost = setup.cost(result)
     path = write_result(
         result,
         case_id=case.case_id,
@@ -268,6 +269,7 @@ def run(case: Case) -> int:
         provenance=setup.provenance,
         out_dir=OUT_DIR,
         now=now,
+        cost=cost,
     )
     data = path.read_bytes()
     entry |= {
@@ -280,7 +282,7 @@ def run(case: Case) -> int:
     seals.append(entry)
     write_seals(SEALS, seals)
     lines = summary(
-        replace(result, incomplete_reason=reason_prefix(result.incomplete_reason)), path
+        replace(result, incomplete_reason=reason_prefix(result.incomplete_reason)), path, cost
     )
     if entry["status"] == "no-result":
         # The first line is what the operator acts on: a no-result attempt may be retried.

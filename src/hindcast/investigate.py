@@ -39,6 +39,7 @@ from hindcast import telemetry
 from hindcast.agent import agent_name, ensure_agent_version, load_definition, prompt_provenance
 from hindcast.cases import Case, load_cases
 from hindcast.config import ModelSettings, SafetySettings, SearchSettings, load_settings
+from hindcast.costs import PriceTable, load_prices, run_cost
 from hindcast.evaluation.prior import _git
 from hindcast.redact import redact_investigation
 from hindcast.result import (
@@ -82,11 +83,14 @@ class Usage:
     input_tokens: int
     cached_input_tokens: int
     output_tokens: int
-    # Screen and PII calls of the run, and what billing counts for each.
+    # Screen and PII calls of the run, and the text records billing counts.
     screen_calls: int = 0
-    screen_characters: int = 0
+    screen_records: int = 0
     pii_calls: int = 0
     pii_records: int = 0
+    # The price table holds short-context rates; the cost checks this against
+    # the table's limit.
+    max_call_input_tokens: int = 0
 
 
 @dataclass(frozen=True)
@@ -190,13 +194,14 @@ def _loop(
 ) -> RunResult:
     began = clock()
     model_calls = tool_calls = input_tokens = cached_tokens = output_tokens = 0
+    max_call_input = 0
     record: list[dict] = []
     shield = tools.shield
-    screens_before = (shield.calls, shield.characters) if shield else (0, 0)
+    screens_before = (shield.calls, shield.records) if shield else (0, 0)
     pii_before = (pii.calls, pii.records) if pii else (0, 0)
 
     def end(reason: str | None, result: Any = None, checks: Checks = NO_CHECKS) -> RunResult:
-        screens = (shield.calls, shield.characters) if shield else (0, 0)
+        screens = (shield.calls, shield.records) if shield else (0, 0)
         checked = (pii.calls, pii.records) if pii else (0, 0)
         usage = Usage(
             model_calls,
@@ -206,9 +211,10 @@ def _loop(
             cached_tokens,
             output_tokens,
             screen_calls=screens[0] - screens_before[0],
-            screen_characters=screens[1] - screens_before[1],
+            screen_records=screens[1] - screens_before[1],
             pii_calls=checked[0] - pii_before[0],
             pii_records=checked[1] - pii_before[1],
+            max_call_input_tokens=max_call_input,
         )
         status = "complete" if reason is None else "incomplete"
         return RunResult(status, reason, result, checks, usage, tuple(record))
@@ -240,6 +246,7 @@ def _loop(
             if response.usage is None:
                 raise RuntimeError("model response carries no token usage")
             input_tokens += response.usage.input_tokens
+            max_call_input = max(max_call_input, response.usage.input_tokens)
             details = response.usage.input_tokens_details
             cached_tokens += details.cached_tokens if details else 0
             output_tokens += response.usage.output_tokens
@@ -354,6 +361,7 @@ def write_result(
     provenance: dict,
     out_dir: Path,
     now: datetime,
+    cost: dict | None = None,
 ) -> Path:
     document = {
         "case_id": case_id,
@@ -370,6 +378,7 @@ def write_result(
         },
         "tool_calls": list(result.tool_calls),
         "usage": asdict(result.usage),
+        "cost": cost,
     }
     path = out_dir / case_id / f"{now:%Y%m%dT%H%M%SZ}-v{agent['version']}.json"
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -384,7 +393,7 @@ def _all_citations(i: Investigation) -> list:
     return [c for item in items for c in item.citations]
 
 
-def summary(result: RunResult, path: Path) -> str:
+def summary(result: RunResult, path: Path, cost: dict | None = None) -> str:
     """Status, counts, and usage. The investigation text stays in the file."""
     lines = [
         "complete" if result.status == "complete" else f"incomplete: {result.incomplete_reason}"
@@ -409,6 +418,12 @@ def summary(result: RunResult, path: Path) -> str:
         f"model calls {u.model_calls}, tool calls {u.tool_calls}, seconds {u.seconds}, "
         f"tokens in {u.input_tokens} (cached {u.cached_input_tokens}) out {u.output_tokens}"
     )
+    if cost is not None:
+        lines.append(
+            f"cost {cost['currency']} {cost['total']} (price table v{cost['table_version']})"
+            if "total" in cost
+            else f"cost not priced: {cost['error']}"
+        )
     lines.append(str(path))
     return "\n".join(lines)
 
@@ -423,6 +438,26 @@ class Setup:
     agent: dict
     model: dict
     provenance: dict
+    prices: PriceTable
+    # The run's embedder; its token count goes into the cost.
+    embedder: Any = None
+
+    def cost(self, result: RunResult) -> dict:
+        """The run's cost, or the reason it has none; never a guessed price."""
+        try:
+            return run_cost(
+                self.prices,
+                self.model["deployment"],
+                result.usage,
+                embedding_tokens=self.embedder.tokens if self.embedder else 0,
+            )
+        except ValueError as error:
+            # Written next to the result instead of raising: the run happened.
+            return {
+                "table_version": self.prices.version,
+                "currency": self.prices.currency,
+                "error": str(error),
+            }
 
 
 def prepare(case: Case, evidence_dir: Path | None = None) -> Setup:
@@ -439,15 +474,21 @@ def prepare(case: Case, evidence_dir: Path | None = None) -> Setup:
     # One embedder and one search client for the run; the case is bound here
     # and the model supplies only the query. The search client makes no
     # retries: a retry would run past the time left (issue #49).
+    embed = index.embedder(search_settings.embedding_dimensions)
     search = functools.partial(
         search_library,
         case.case_id,
-        embed=index.embedder(search_settings.embedding_dimensions),
+        embed=embed,
         client=index.clients(search_settings.search_index, retry_total=0)[1],
     )
     tools = CaseTools(evidence, search, safety.shield_client(safety_settings))
 
     deployment = load_settings(ModelSettings).chat_deployment
+    prices = load_prices()
+    if deployment not in prices.models:
+        # Before the agent version and the first model call: a run with no
+        # price would be written without a cost.
+        raise KeyError(f"{deployment} is not in price table version {prices.version}")
     definition = load_definition(deployment)
     name = agent_name(deployment)
     version = ensure_agent_version(models.project_client().agents, name, definition)
@@ -471,6 +512,8 @@ def prepare(case: Case, evidence_dir: Path | None = None) -> Setup:
         agent={"name": name, "version": version},
         model={"deployment": deployment, "name": model_name, "version": model_version},
         provenance=provenance,
+        prices=prices,
+        embedder=embed,
     )
 
 
@@ -489,6 +532,7 @@ def main(argv: list[str] | None = None) -> None:
     telemetry.configure(service=telemetry.INVESTIGATOR)
     setup = prepare(case)
     result = run_investigation(setup.turn, setup.tools, case_id=case.case_id, pii=setup.pii)
+    cost = setup.cost(result)
     path = write_result(
         result,
         case_id=case.case_id,
@@ -497,8 +541,9 @@ def main(argv: list[str] | None = None) -> None:
         provenance=setup.provenance,
         out_dir=args.out,
         now=datetime.now(UTC),
+        cost=cost,
     )
-    print(summary(result, path))
+    print(summary(result, path, cost))
 
 
 if __name__ == "__main__":

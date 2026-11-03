@@ -80,7 +80,8 @@ def test_documents_flag_a_text_when_any_piece_is_flagged():
     sent = [d for body in post.bodies for d in body["documents"]]
     assert "".join(sent[:-1]) == long and sent[-1] == "clean"
     assert shield.calls == len(post.bodies)
-    assert shield.characters == len(long) + len("clean")
+    # One record per started 1,000 characters of each piece sent: 9 + 7 + 1.
+    assert shield.records == 17
 
 
 def test_documents_of_25000_characters_are_split_within_the_limits():

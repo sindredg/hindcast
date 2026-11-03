@@ -264,7 +264,7 @@ class StubShield:
         self.error = error
         self.sent: list[list[str]] = []
         self.calls = 0
-        self.characters = 0
+        self.records = 0
 
     def documents(self, texts: list[str], *, timeout: float) -> list[bool]:
         if self.error is not None:
@@ -272,7 +272,7 @@ class StubShield:
         sent = [t for t in texts if t.strip()]
         if sent:
             self.calls += 1
-            self.characters += sum(len(t) for t in sent)
+            self.records += len(sent)
             self.sent.append(sent)
         return [bool(t.strip()) and any(m in t for m in self.markers) for t in texts]
 

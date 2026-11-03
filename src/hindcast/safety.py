@@ -150,7 +150,7 @@ def _deadline(timeout: float, clock: Callable[[], float]) -> Callable[[], float]
 
 class Shield(Protocol):
     calls: int
-    characters: int
+    records: int
 
     def documents(self, texts: list[str], *, timeout: float) -> list[bool]: ...
 
@@ -164,8 +164,9 @@ class PromptShield:
         self.post = post
         self.clock = clock
         self.calls = 0
-        # Characters sent, for the cost: billing counts text records.
-        self.characters = 0
+        # Text records sent, for the cost: billing counts one per started
+        # 1,000 characters of each document and of the prompt.
+        self.records = 0
 
     def _call(
         self, user_prompt: str, documents: list[str], timeout: float
@@ -179,7 +180,9 @@ class PromptShield:
         except ServiceError as error:
             raise ScreenError(str(error)) from error
         self.calls += 1
-        self.characters += len(user_prompt) + sum(len(d) for d in documents)
+        self.records += sum(
+            math.ceil(len(t) / RECORD_CHARACTERS) for t in [user_prompt, *documents]
+        )
         analysis = data.get("documentsAnalysis")
         if not isinstance(analysis, list) or len(analysis) != len(documents):
             raise ScreenError("Prompt Shields answered for a different number of documents")
