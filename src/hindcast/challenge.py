@@ -285,19 +285,19 @@ def summary(result: ChallengeResult, path: Path, cost: dict | None) -> str:
     return "\n".join(lines)
 
 
-def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="python -m hindcast.challenge")
-    parser.add_argument("result", type=Path)
-    parser.add_argument("finding_id")
-    parser.add_argument("question")
-    args = parser.parse_args(argv)
+def challenge_and_store(
+    result_path: Path, finding_id: str, question: str
+) -> tuple[ChallengeResult, Path, dict]:
+    """Challenge one finding of a stored result and write the challenge next to it.
 
-    # Every refusal below comes before any cloud call.
-    stored = load_result(args.result)
-    validate(stored, args.finding_id, args.question)
+    Used by the command and by the page when it runs locally with
+    HINDCAST_CHALLENGE_LIVE=1. Every refusal comes before any cloud call.
+    """
+    stored = load_result(result_path)
+    validate(stored, finding_id, question)
     cases = investigate.load_cases()
     if stored.case_id not in cases:
-        parser.error(f"unknown case {stored.case_id!r}")
+        raise ValueError(f"unknown case {stored.case_id!r}")
     case = cases[stored.case_id]
     investigate.check_case_allowed(case, investigate.RUBRIC_LOCK)
     # The citations resolve against the evidence file: it has to be the one
@@ -308,20 +308,28 @@ def main(argv: list[str] | None = None) -> int:
 
     telemetry.configure(service=telemetry.INVESTIGATOR)
     setup = investigate.prepare(case, deployment=stored.model["deployment"], challenger=True)
-    result = run_challenge(
-        setup.turn, setup.tools, stored, args.finding_id, args.question, pii=setup.pii
-    )
+    result = run_challenge(setup.turn, setup.tools, stored, finding_id, question, pii=setup.pii)
     cost = setup.cost(result.usage)
     path = write_challenge(
         result,
-        result_path=args.result,
-        finding_id=args.finding_id,
+        result_path=result_path,
+        finding_id=finding_id,
         agent=setup.agent,
         model=setup.model,
         provenance=setup.provenance,
         cost=cost,
         now=datetime.now(UTC),
     )
+    return result, path, cost
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(prog="python -m hindcast.challenge")
+    parser.add_argument("result", type=Path)
+    parser.add_argument("finding_id")
+    parser.add_argument("question")
+    args = parser.parse_args(argv)
+    result, path, cost = challenge_and_store(args.result, args.finding_id, args.question)
     print(summary(result, path, cost))
     return 0 if result.status == "complete" else 1
 
