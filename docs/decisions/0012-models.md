@@ -1,6 +1,6 @@
 # 12. Models: gpt-6-luna investigates, gpt-6.1-sol compares
 
-Status: Accepted (2026-10-26).
+Status: Accepted (2026-10-26). The judge is Claude Opus 5.5 on the Anthropic API, not the comparison deployment, per [decision 0024](0024-judge-model.md).
 
 ## Context
 

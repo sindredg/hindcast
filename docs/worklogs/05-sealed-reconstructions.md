@@ -1,6 +1,6 @@
 # Milestone 5, first part: Sealed reconstructions and the October case
 
-Status: Built on 2026-11-01. Three October outages are sealed on both models, and GitHub 2026-10-07 is a fourth scored case with its evidence, prior-knowledge answers, library picks, and frozen key. The [independent review](#independent-review) ran with its fixes in. On 2026-11-02 the three cases were [sealed again with the library search](#second-seals-with-the-library-2026-11-02), still before any provider published a cause. The milestone state is in the [roadmap](../roadmap.md).
+Status: Built on 2026-11-01. Three October outages are sealed on both models, and GitHub 2026-10-07 is a fourth scored case with its evidence, prior-knowledge answers, library picks, and frozen key. The [independent review](#independent-review) ran with its fixes in. On 2026-11-02 the three cases were [sealed again with the library search](#second-seals-with-the-library-2026-11-02), still before any provider published a cause. On 2026-11-03 the drop date moved from 2026-11-09 to 2026-11-30 ([decision 0022](../decisions/0022-sealed-drop-date-and-offline-reveal.md)). The milestone state is in the [roadmap](../roadmap.md).
 
 ## Scope
 
