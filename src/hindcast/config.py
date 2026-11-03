@@ -50,6 +50,13 @@ class SearchSettings:
     embedding_dimensions: int = 1024
 
 
+@dataclass(frozen=True)
+class SafetySettings:
+    # The Foundry resource endpoint, which serves Prompt Shields and PII
+    # detection; the project endpoint serves neither.
+    safety_endpoint: str
+
+
 def env_name(field_name: str) -> str:
     return PREFIX + field_name.upper()
 

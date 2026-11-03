@@ -8,6 +8,10 @@ requires-python = "==3.14.*"
 dependencies = [
     "azure-ai-contentunderstanding==1.1.0",
     "azure-ai-projects==2.9.0",
+    # Imported directly for the Prompt Shields and PII calls (hindcast.safety):
+    # no SDK covers Prompt Shields. Trade-off: the request shapes are written
+    # by hand and tested with stubs. Already in the tree through azure-identity.
+    "azure-core==1.41.0",
     "azure-identity==1.27.0",
     # Creates the library index and queries it with an Entra token. The
     # alternative is hand-written REST calls on azure-core, which would
