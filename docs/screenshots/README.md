@@ -10,4 +10,4 @@ Captures of the local page, taken on 2026-11-03 while it ran with `HINDCAST_CHAL
 | `page-challenge-contradiction.png` | "Does any later update or chart contradict this claim?": `stands`, citing u7, u8, u9, and chart1; USD 0.007754 |
 | `page-challenge-alternative-cause.png` | "Could a DDoS attack or a traffic surge explain the same updates instead?": `stands`, saying the updates neither name nor rule out either cause; citing u7 and u9; USD 0.007767 |
 
-All four challenges completed with no rejected citation and no PII hit, from commit `2962e10` with a clean tree. Their files are not committed.
+All four challenges completed with no rejected citation and no PII hit, from commit `2962e10` with a clean tree. Their files are committed in [`eval/investigations/cloudflare-2026-02-20/challenges/`](../../eval/investigations/cloudflare-2026-02-20/README.md).

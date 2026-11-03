@@ -147,6 +147,11 @@ def test_challenges_are_committed() -> None:
         "20261103T171932Z-F2.json",
         "20261103T174229Z-F3.json",
         "20261103T174623Z-F4.json",
+        # Started from the page's box in a browser.
+        "20261103T192648Z-F5.json",
+        "20261103T192857Z-F5.json",
+        "20261103T193005Z-F5.json",
+        "20261103T193159Z-F5.json",
     ]
 
 
