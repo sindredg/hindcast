@@ -1,6 +1,6 @@
 # 20. Library citations: retrieved in the run, never sole support, searching required
 
-Status: Accepted (2026-11-02).
+Status: Accepted (2026-11-02). A library ref counts as retrieved only after Prompt Shields showed it, per [decision 0021](0021-screens-pii-and-challenge.md).
 
 Extends [decision 0015](0015-investigation-result-and-citation-policy.md), which covers case citations only.
 

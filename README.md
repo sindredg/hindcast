@@ -2,17 +2,28 @@
 
 Evidence-grounded AI investigations of infrastructure outages.
 
-Given only what an outside engineer could see while an outage was happening, Hindcast reconstructs it: a timeline, the most likely root cause, the contributing factors, the questions the evidence leaves open, and whether it was an attack. Every item cites what it rests on. The provider's own postmortem, published later, is the answer key the reconstruction is scored against; Hindcast never sees it.
+Given only what an outside engineer could see while an outage was happening, Hindcast reconstructs it: a timeline, the most likely root cause, the contributing factors, the questions the evidence leaves open, and whether it was an attack. Every item cites what it rests on.
+
+The provider's own postmortem, published later, is the answer key the reconstruction is scored against; Hindcast never sees it.
 
 ## Status
 
-Milestones 1 to 3 of 6 are verified, and the first slices of milestones 4 and 6 are built ([roadmap](docs/roadmap.md)). Built and run: the case sources are captured and pinned by hash, the status updates are cut into evidence that keeps every update before the resolved one and only the time of that one, a library of earlier postmortems is extracted into sections and described charts, the answer keys are frozen, and the investigator has reconstructed the development outage from its updates and the postmortem library, with every citation resolving and each library citation backed by a search in the same run ([worklog](docs/worklogs/04-investigator.md#slice-2-the-library-search-tool)). A page that shows that stored result runs on Azure Container Apps behind Entra sign-in, from an image CI builds and pushes without a stored credential ([worklog](docs/worklogs/06-deployment.md)). The library is indexed in Azure AI Search, and a case can search it only within its date bound and its picks, which the gate checks on the live index ([worklog](docs/worklogs/03-retrieval.md)). Three October outages are sealed, once without the library and once with it: Hindcast reconstructed them before their providers had published a cause, and only the hash of each result is public until the provider's account is out ([decision 0017](docs/decisions/0017-sealed-reconstructions.md)). Not built yet: an interface that runs investigations, the evaluation, and the full-environment deployment.
+Milestones 1 to 3 of 6 are verified, and slices of milestones 4 and 6 are built ([roadmap](docs/roadmap.md)). Built and run:
+
+- **Sources and evidence:** the case sources are captured and pinned by hash. The status updates are cut into evidence that keeps every update before the resolved one, and only the time of that one.
+- **Library and keys:** earlier postmortems are extracted into sections and described charts, and the answer keys are frozen. The library is indexed in Azure AI Search, and a case can search it only within its date bound and its picks, which the gate checks on the live index ([worklog](docs/worklogs/03-retrieval.md)).
+- **Investigator:** it has reconstructed the development outage from its updates and the library, with every citation resolving and each library citation backed by a search in the same run ([worklog](docs/worklogs/04-investigator.md#slice-2-the-library-search-tool)).
+- **Safety, traces, and cost:** every update, chart, library hit, and the case title pass Prompt Shields before the model reads them, and every answer is checked for personal data before it is written. Each run is traced and priced, and a finding can be challenged with a follow-up turn ([worklog](docs/worklogs/04-investigator.md#slice-3-screens-pii-challenge-traces-and-cost)).
+- **Page:** a page that shows a stored result runs on Azure Container Apps behind Entra sign-in, from an image CI builds and pushes without a stored credential ([worklog](docs/worklogs/06-deployment.md)).
+- **Sealed reconstructions:** three October outages are sealed, once without the library and once with it. Hindcast reconstructed them before their providers had published a cause, and only the hash of each result is public until the provider's account is out ([decision 0017](docs/decisions/0017-sealed-reconstructions.md)).
+
+Not built yet: an interface that runs investigations, the evaluation, and the full-environment deployment.
 
 The current cases are all "not an attack" according to their postmortems, so the attack verdict is reported with its reasoning and citations, never as an accuracy rate ([answer keys](eval/keys/README.md#limits)).
 
 ## What an investigation returns
 
-The shape `hindcast.result` and `hindcast.investigate` write, shortened: one item per list, and the values are illustrative ([decisions 0015](docs/decisions/0015-investigation-result-and-citation-policy.md) and [0020](docs/decisions/0020-library-citations.md)).
+The shape `hindcast.result` and `hindcast.investigate` write, shortened: one item per list, and the values are illustrative ([decisions 0015](docs/decisions/0015-investigation-result-and-citation-policy.md), [0020](docs/decisions/0020-library-citations.md), and [0021](docs/decisions/0021-screens-pii-and-challenge.md)).
 
 ```json
 {
@@ -49,18 +60,34 @@ The shape `hindcast.result` and `hindcast.investigate` write, shortened: one ite
     "contributing_factors": [],
     "open_questions": [{"question": "What triggered the change?", "why_open": "No update says."}]
   },
-  "checks": {"rejected_citations": [], "unsupported": []},
+  "checks": {"rejected_citations": [], "unsupported": [],
+             "pii": [{"path": "findings[0].claim", "category": "Person", "confidence": 0.97}]},
   "tool_calls": [
-    {"name": "list_updates", "seconds": 0.0},
-    {"name": "search_library", "seconds": 9.7, "query": "<query>",
-     "refs": ["lib/example-doc/s4", "lib/other-doc/s7"]}
+    {"name": "list_updates", "seconds": 2.4, "withheld": [], "screen_calls": 2},
+    {"name": "search_library", "seconds": 6.6, "query": "<query>",
+     "refs": ["lib/example-doc/s4"], "withheld": ["lib/other-doc/s7"], "screen_calls": 2}
   ],
-  "usage": {"model_calls": 3, "tool_calls": 3, "seconds": 39.3,
-            "input_tokens": 10151, "cached_input_tokens": 5525, "output_tokens": 3340}
+  "usage": {"model_calls": 3, "tool_calls": 3, "seconds": 42.2,
+            "input_tokens": 10648, "cached_input_tokens": 4251, "output_tokens": 3039,
+            "screen_calls": 5, "screen_records": 25, "pii_calls": 6, "pii_records": 26,
+            "max_call_input_tokens": 6391},
+  "cost": {"table_version": 1, "currency": "USD", "model": 0.002202, "screens": 0.009375,
+           "pii": 0.026, "embeddings": 0.000007, "total": 0.037584}
 }
 ```
 
-A finding is an observation the evidence states, or an inference that names the findings it `rests_on`. A citation that does not resolve to the case's evidence is removed and listed in `checks` with a reason, and an item left with no support stays and is listed as unsupported. A run that reaches 12 tool calls or 120 seconds, or whose tool fails or answer does not fit the schema, ends as `incomplete` with a reason. The time cap is checked before each model call and each tool call, so a search already running when the time runs out is not cut off. A library citation (`"source": "library"`) is kept only for a ref that a search in the same run returned, which `tool_calls` lists, and it never supports an item on its own ([decision 0020](docs/decisions/0020-library-citations.md)).
+A finding is an observation the evidence states, or an inference that names the findings it `rests_on`. The checks on the answer:
+
+| Check | What happens |
+|---|---|
+| A citation does not resolve, names an item Prompt Shields withheld, or names an item the run never read | Removed and listed in `checks` with its reason |
+| An item is left with no support | Kept and listed as unsupported |
+| A library citation (`"source": "library"`) names a ref no search in the run showed | Removed; a kept one never supports an item on its own ([decision 0020](docs/decisions/0020-library-citations.md)) |
+| The answer or a search query holds personal data | Replaced by its category; `checks.pii` lists where, never what |
+
+A run has 120 seconds and 12 tool calls. Each model call gets the time left as its timeout; within a tool call, the search, its embedding, and the screen share the time left. Nothing retries.
+
+A run that reaches a cap, whose tool, screen, or PII check fails, or whose answer does not fit the schema ends as `incomplete` with a reason, and an answer that was not checked is not written. The cost comes from the versioned price table in [`data/prices.yaml`](data/prices.yaml).
 
 ## Documentation
 
@@ -78,7 +105,7 @@ A finding is an observation the evidence states, or an inference that names the 
 
 ## How it is built now
 
-![Hindcast as built: on an operator workstation signed in with Entra ID, Hindcast's capture command reads the providers' status pages and postmortems, and the Radar charts are downloaded in the browser. The Azure CLI and Hindcast's code store the captured files in Blob Storage, and Hindcast's ingestion reads them back and writes the evidence, the extracts, and the answer-key analyzer results there with its own Entra token. Hindcast's code calls the pinned model deployments through the Foundry project with the Responses API; its investigate command keeps the investigator prompt agent's version in the project, runs that agent, executes its case tools and library searches on the workstation, and writes the result file there; its seal command runs the same agent on a sealed case, uploads the result to Blob Storage, and commits only its hash. It calls Content Understanding on the Foundry resource, whose three analyzers use the gpt-5.4-mini and text-embedding-3-large deployments, with a role assigned only while extraction runs. Its index command embeds the library chunks through the Foundry resource endpoint and pushes them to the library index in Azure AI Search, in Switzerland North, which the investigator's library search and the leak check query with an Entra token. During a portal evaluation run, the Foundry evaluation calls the deployments as the signed-in user. git reaches GitHub through pull requests. The project is connected to Application Insights, which the deployed page also writes to (the deployment diagram). The Foundry resource, the storage account, and the search service accept no keys; traces use the Application Insights connection string](docs/diagrams/current-architecture.svg)
+![Hindcast as built: on an operator workstation signed in with Entra ID, Hindcast's capture command reads the providers' status pages and postmortems, and the Radar charts are downloaded in the browser. The Azure CLI and Hindcast's code store the captured files in Blob Storage, and Hindcast's ingestion reads them back and writes the evidence, the extracts, and the answer-key analyzer results there with its own Entra token. Hindcast's code calls the pinned model deployments through the Foundry project with the Responses API; its investigate command keeps the investigator prompt agent's version in the project, runs that agent, executes its case tools and library searches on the workstation, screens every tool item with Prompt Shields and masks personal data in the answer with PII detection, and writes the result file there; its challenge command runs a challenger agent on one finding the same way; its seal command runs the same agent on a sealed case, uploads the result to Blob Storage, and commits only its hash. It calls Content Understanding on the Foundry resource, whose three analyzers use the gpt-5.4-mini and text-embedding-3-large deployments, with a role assigned only while extraction runs. Its index command embeds the library chunks through the Foundry resource endpoint and pushes them to the library index in Azure AI Search, in Switzerland North, which the investigator's library search and the leak check query with an Entra token. During a portal evaluation run, the Foundry evaluation calls the deployments as the signed-in user. git reaches GitHub through pull requests. Hindcast's commands send their spans to Application Insights, which the deployed page also writes to (the deployment diagram); the Foundry project is not connected to it. The Foundry resource, the storage account, and the search service accept no keys; traces use the Application Insights connection string.](docs/diagrams/current-architecture.svg)
 
 ## Development
 
@@ -93,7 +120,9 @@ uv run --frozen pytest
 for f in infra/main.bicep infra/search.bicep; do az bicep build --file "$f" --stdout > /dev/null && az bicep lint --file "$f"; done
 ```
 
-The page runs locally with `uv run --frozen streamlit run src/hindcast/app.py`; without a connection string it sends no telemetry. hadolint and shellcheck run in CI from their pinned releases; the Dockerfile builds there, since the image is pushed from `main` by the workflow, not from a workstation.
+The page runs locally with `uv run --frozen streamlit run src/hindcast/app.py`; without a connection string it sends no telemetry. With `HINDCAST_CHALLENGE_LIVE=1` and the `.env` settings, each finding of a screened result gets a box that challenges it with the developer's sign-in. The command `python -m hindcast.challenge <result file> <finding id> "<question>"` does the same.
+
+hadolint and shellcheck run in CI from their pinned releases; the Dockerfile builds there, since the image is pushed from `main` by the workflow, not from a workstation.
 
 The tests that read the captured status pages and postmortems skip when `data/sources/` is absent, which includes CI. The [runbooks](docs/runbooks/) capture them.
 

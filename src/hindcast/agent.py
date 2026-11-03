@@ -1,10 +1,14 @@
-"""The investigator agent: its committed definition and its Foundry version.
+"""The investigator and challenger agents: their committed definitions and Foundry versions.
 
-The instructions live in prompts/investigator.md; the tools and the output
-schema come from the modules that own them; the model is the deployment the
-command runs on. The definition is fingerprinted and the fingerprint is stored
-in the agent version's metadata, so a changed definition makes a new version
-and an unchanged one reuses the latest.
+The instructions live in prompts/investigator.md and prompts/challenger.md;
+the tools and the output schemas come from the modules that own them; the
+model is the deployment the command runs on. The challenger is a second agent,
+not a second version: an agent's output schema is fixed in its definition,
+and a challenge answers in a different shape (decision 0021).
+
+Each definition is fingerprinted and the fingerprint is stored in the agent
+version's metadata, so a changed definition makes a new version and an
+unchanged one reuses the latest.
 """
 
 import hashlib
@@ -14,23 +18,39 @@ from pathlib import Path
 from typing import Any
 
 from hindcast.evaluation.prior import committed_blob_hash
-from hindcast.result import INVESTIGATION_SCHEMA
+from hindcast.result import CHALLENGE_SCHEMA, INVESTIGATION_SCHEMA
 from hindcast.tools import TOOL_DEFINITIONS
 
 # Sent even though medium is the service default, so a changed default cannot
 # change results silently (as in hindcast.models).
 EFFORT = "medium"
 PROMPT_PATH = Path("prompts/investigator.md")
+CHALLENGER_PROMPT = Path("prompts/challenger.md")
+
+
+def _safe(deployment: str) -> str:
+    # Foundry takes letters, digits, and inner hyphens only, and gpt-6.1-sol
+    # has a dot.
+    return re.sub(r"[^A-Za-z0-9-]", "-", deployment)
 
 
 def agent_name(deployment: str) -> str:
     # One agent per deployment: a run on the comparison model is a second agent
-    # with the same instructions, not a new version of this one. Foundry takes
-    # letters, digits, and inner hyphens only, and gpt-6.1-sol has a dot.
-    return f"hindcast-investigator-{re.sub(r'[^A-Za-z0-9-]', '-', deployment)}"
+    # with the same instructions, not a new version of this one.
+    return f"hindcast-investigator-{_safe(deployment)}"
 
 
-def load_definition(deployment: str, prompt_path: Path = PROMPT_PATH) -> dict:
+def challenger_name(deployment: str) -> str:
+    return f"hindcast-challenger-{_safe(deployment)}"
+
+
+def load_definition(
+    deployment: str,
+    prompt_path: Path = PROMPT_PATH,
+    *,
+    schema_name: str = "investigation",
+    schema: dict = INVESTIGATION_SCHEMA,
+) -> dict:
     """The prompt agent definition as the service takes it. No temperature or top_p."""
     return {
         "kind": "prompt",
@@ -41,12 +61,18 @@ def load_definition(deployment: str, prompt_path: Path = PROMPT_PATH) -> dict:
         "text": {
             "format": {
                 "type": "json_schema",
-                "name": "investigation",
-                "schema": INVESTIGATION_SCHEMA,
+                "name": schema_name,
+                "schema": schema,
                 "strict": True,
             }
         },
     }
+
+
+def challenger_definition(deployment: str) -> dict:
+    return load_definition(
+        deployment, CHALLENGER_PROMPT, schema_name="challenge", schema=CHALLENGE_SCHEMA
+    )
 
 
 def definition_fingerprint(definition: dict) -> str:

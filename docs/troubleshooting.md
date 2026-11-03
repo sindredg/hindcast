@@ -2,6 +2,16 @@
 
 Failures that showed something about Hindcast, the platform, or a procedure: the symptom, the cause, the fix, and how the fix was verified. Newest first. A cause that was not confirmed is labelled as a hypothesis. The behaviour behind an entry is recorded once, in [findings](findings/), and linked from here.
 
+## Traces: a run's root span and some model calls never arrive (2026-11-03)
+
+**Symptom:** after the first screened development runs, Application Insights held 6 of their 10 `model_call` spans, no `investigation` span, and no question `screen` span, while the HTTP spans of the same runs were there.
+
+**Cause:** confirmed in the exporter's code: with no `OTEL_TRACES_SAMPLER` set, `configure_azure_monitor` in `azure-monitor-opentelemetry` 1.8.11 uses a rate-limited sampler at five traces per second, and a run's burst of calls exceeds it ([finding](findings/observability.md#the-azure-monitor-exporter-samples-five-traces-per-second-by-default-2026-11-03)).
+
+**Fix:** `hindcast.telemetry` sets `OTEL_TRACES_SAMPLER=parentbased_always_on` before configuring the exporter; `tests/test_telemetry.py::test_configure_keeps_every_span` failed before the change.
+
+**Verification:** tested live, 2026-11-03 17:19 UTC: the next challenge's trace arrived whole (challenge, both model calls, three tool calls, PII), each span with `itemCount` 1 ([worklog](worklogs/04-investigator.md#slice-3-live-runs)).
+
 ## Investigator: a library search ends the run with an SSL error (2026-11-02)
 
 **Symptom:** the first slice 2 development run on `gpt-6-luna` ended as `incomplete: tool-error: search_library: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol`, after `list_updates` and `list_charts` and before any search returned. `python -m hindcast.search` failed the same way.

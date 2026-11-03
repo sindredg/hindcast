@@ -39,6 +39,7 @@ from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
 
+from hindcast import telemetry
 from hindcast.cases import Case, load_cases
 from hindcast.config import ModelSettings, load_settings
 from hindcast.evaluation.prior import _git
@@ -126,6 +127,10 @@ def write_seals(path: Path, seals: list[dict]) -> None:
 MARKS = frozenset({"revealed", "dropped"})
 
 
+def _json(value: object) -> str:
+    return json.dumps(value, sort_keys=True)
+
+
 def record_problems(old: list[dict], new: list[dict]) -> list[str]:
     """One line per way the new record fails to extend the old one."""
     problems = []
@@ -136,7 +141,9 @@ def record_problems(old: list[dict], new: list[dict]) -> list[str]:
         after = new[i]
         for key, value in before.items():
             filled_blob = key == "blob" and value is None and isinstance(after.get(key), str)
-            if (key not in after or after[key] != value) and not filled_blob:
+            # Compared as JSON text: Python's == takes 1 for True and 0 for
+            # False, so a changed type would pass (issue #45).
+            if (key not in after or _json(after[key]) != _json(value)) and not filled_blob:
                 problems.append(f"entry {i} changed: {key}")
         for key in sorted(after.keys() - before.keys()):
             if key not in MARKS or after[key] is not True:
@@ -230,6 +237,7 @@ def run(case: Case) -> int:
     attempt = check_may_seal(case, seals, deployment, LIBRARY)
     commit = check_clean()
     check_record_grows()
+    telemetry.configure(service=telemetry.INVESTIGATOR)
     setup = prepare(case)
     preflight_search(setup.tools)
     now = _now()
@@ -251,13 +259,14 @@ def run(case: Case) -> int:
         "status": "no-result",
     }
     try:
-        result = run_investigation(setup.turn, setup.tools, case_id=case.case_id)
+        result = run_investigation(setup.turn, setup.tools, case_id=case.case_id, pii=setup.pii)
     except Exception as error:
         # A 429 or a cut-off response: nothing to seal. The error text can
         # carry the service's response, so only its type is printed.
         write_seals(SEALS, [*seals, entry])
         print(f"no-result: {type(error).__name__}; attempt {attempt} of {MAX_ATTEMPTS}")
         return 1
+    cost = setup.cost(result.usage)
     path = write_result(
         result,
         case_id=case.case_id,
@@ -266,6 +275,7 @@ def run(case: Case) -> int:
         provenance=setup.provenance,
         out_dir=OUT_DIR,
         now=now,
+        cost=cost,
     )
     data = path.read_bytes()
     entry |= {
@@ -278,7 +288,7 @@ def run(case: Case) -> int:
     seals.append(entry)
     write_seals(SEALS, seals)
     lines = summary(
-        replace(result, incomplete_reason=reason_prefix(result.incomplete_reason)), path
+        replace(result, incomplete_reason=reason_prefix(result.incomplete_reason)), path, cost
     )
     if entry["status"] == "no-result":
         # The first line is what the operator acts on: a no-result attempt may be retried.

@@ -1,6 +1,12 @@
 # Foundations: operator procedure
 
-Status: Written on 2026-10-25 for [milestone 1](../worklogs/01-foundations.md); "Re-check the model choice" added on 2026-10-26, after its steps ran on 2026-10-25 (steps 1 and 2) and 2026-10-26 (steps 3 to 8; in step 3 the role was assigned once and the check ran in this form afterwards). Every step ran once with the results the worklog records, but not in this order: the Azure foundation was created on 2026-10-24 and 2026-10-25 before the repository existed, and key access on the Foundry resource (step 4 under "Create the Azure foundation") was turned off before the prior-knowledge answers were collected. The Foundry resource, project, and deployments were created in the Foundry portal as it was that day. Not run again from an empty subscription. "Check the repository" gained pyright on 2026-10-28 and ran in this form on 2026-10-30.
+Status: Written on 2026-10-25 for [milestone 1](../worklogs/01-foundations.md).
+
+- Steps 1 and 2 ran on 2026-10-25, and steps 3 to 8 on 2026-10-26; in step 3 the role was assigned once and the check ran in this form afterwards. "Re-check the model choice" was added on 2026-10-26, after they ran.
+- Every step ran once with the results the worklog records, but not in this order. The Azure foundation was created on 2026-10-24 and 2026-10-25, before the repository existed. Key access on the Foundry resource (step 4 under "Create the Azure foundation") was turned off before the prior-knowledge answers were collected.
+- The Foundry resource, project, and deployments were created in the Foundry portal as it was that day. Not run again from an empty subscription.
+- "Check the repository" gained pyright on 2026-10-28 and ran in this form on 2026-10-30.
+- Step 8 of "Create the Azure foundation" changed on 2026-11-03 to remove Foundry's tracing connection ([decision 0021](../decisions/0021-screens-pii-and-challenge.md)), and ran in its new form that day.
 
 Build the milestone 1 foundation from scratch: the repository checks, the GitHub repository and its protection, the Azure resources and roles, the case sources, and the prior-knowledge answers. [Decision 0009](../decisions/0009-hosting-and-identity.md) records why every call uses Entra ID and no keys.
 
@@ -117,7 +123,7 @@ export RG=<resource-group> STORAGE=<storage-account> GH_REPO=<owner>/hindcast
    az resource list -g "$RG" --query "[].{name:name, type:type}" -o table
    ```
 
-   Expected: a `Microsoft.CognitiveServices/accounts` resource and an `accounts/projects` child named `<resource>/<project>`. The portal can also create an Application Insights resource and a Log Analytics workspace; step 8 checks their connection. Set the names:
+   Expected: a `Microsoft.CognitiveServices/accounts` resource and an `accounts/projects` child named `<resource>/<project>`. The portal can also create an Application Insights resource and a Log Analytics workspace; step 8 removes the project's tracing connection to them. Set the names:
 
    ```bash
    export RESOURCE=<resource> PROJECT=<project>
@@ -190,16 +196,22 @@ export RG=<resource-group> STORAGE=<storage-account> GH_REPO=<owner>/hindcast
 
    Expected: `KeyBasedAuthenticationNotPermitted` and `409`.
 
-8. Check the tracing connection.
+8. Keep Application Insights out of Foundry's tracing, and turn off the workspace's shared keys. Foundry's server-side tracing stores every prompt and answer, so Hindcast sends its own spans instead ([decision 0021](../decisions/0021-screens-pii-and-challenge.md)). List the account's connections, and delete an `AppInsights` connection if the portal made one.
 
    ```bash
-   SUB=$(az account show --query id -o tsv)
-   az rest --method get \
-     --url "https://management.azure.com/subscriptions/$SUB/resourceGroups/$RG/providers/Microsoft.CognitiveServices/accounts/$RESOURCE/projects/$PROJECT/connections?api-version=2026-09-01" \
-     --query "value[].{category:properties.category, auth:properties.authType}" -o tsv
+   RID=$(az cognitiveservices account show -g $RG -n $RESOURCE --query id -o tsv)
+   az rest --method get --url "https://management.azure.com$RID/connections?api-version=2025-06-01" --query "value[].{name:name, category:properties.category}" -o tsv
    ```
 
-   Expected: one connection, category `AppInsights` with authentication type `ApiKey`. If there is none, connect it in the portal: the project, **Agents**, **Traces**, **Connect**, and create or select an Application Insights resource.
+   ```bash
+   az rest --method delete --url "https://management.azure.com$RID/connections/<connection-name>?api-version=2025-06-01"
+   ```
+
+   ```bash
+   az monitor log-analytics workspace update -g $RG -n <log-analytics-workspace> --set features.disableLocalAuth=true --query features.disableLocalAuth -o tsv
+   ```
+
+   Expected: the list is empty after the delete (on 2026-11-03 it held one `AppInsights` connection, made by the portal on 2026-10-25), and the update prints `true`. The commands and the page still write with the Application Insights connection string, which step 9 puts in `.env`.
 
 9. Write `.env` from `.env.example` with these values. The extraction, search, and embedding values are set by the [extraction](extraction.md) and [retrieval](retrieval.md) runbooks.
 
@@ -210,6 +222,7 @@ export RG=<resource-group> STORAGE=<storage-account> GH_REPO=<owner>/hindcast
    | `HINDCAST_CHAT_DEPLOYMENT` | `gpt-6-luna` |
    | `HINDCAST_COMPARE_DEPLOYMENT`, `HINDCAST_JUDGE_DEPLOYMENT` | `gpt-6.1-sol` |
    | `HINDCAST_STORAGE_URL` | `https://<storage-account>.blob.core.windows.net` |
+   | `APPLICATIONINSIGHTS_CONNECTION_STRING` | the output of `az resource show -g $RG -n <application-insights> --resource-type Microsoft.Insights/components --query properties.ConnectionString -o tsv` |
 
    Expected: `git check-ignore .env` prints `.env`.
 
@@ -286,7 +299,9 @@ The status pages and postmortems are the providers' copyrighted pages, so the re
 
 ## Re-check the model choice
 
-The evidence for [decision 0012](../decisions/0012-models.md): luna against sol on the development outage, scored by Foundry evaluators with a rule written before the runs. Run it again when a deployment changes version. Needs the development case's status snapshot (see "Add the case sources") and the deployments from "Create the Azure foundation". Run every command from the repository root: the scripts read the snapshot by its path from there.
+The evidence for [decision 0012](../decisions/0012-models.md): luna against sol on the development outage, scored by Foundry evaluators with a rule written before the runs. Run it again when a deployment changes version.
+
+Needs the development case's status snapshot (see "Add the case sources") and the deployments from "Create the Azure foundation". Run every command from the repository root: the scripts read the snapshot by its path from there.
 
 1. Build the upload file from the local snapshot.
 
@@ -376,7 +391,11 @@ The evidence for [decision 0012](../decisions/0012-models.md): luna against sol 
      eval/model-selection/dev-outage-v1/results-sol-dev-outage-v1.jsonl
    ```
 
-   Expected: each run's scores per question, the means, and the answer and judge tokens, then `Score part of the rule: met. Read question 5 by hand.` and exit code 0. A line `errored evaluator calls: ...` names scores the judge did not return; a missing completeness or groundedness score makes the script print `None against ...` and exit 1. Then either show that the missing score cannot change the outcome, as the 2026-10-26 run did in the [evaluation folder](../../eval/model-selection/dev-outage-v1/README.md), or run that model's evaluation again. Last, read question 5 in each results file: the answer says the updates do not contain the cause and names none.
+   Expected: each run's scores per question, the means, and the answer and judge tokens, then `Score part of the rule: met. Read question 5 by hand.` and exit code 0.
+
+   A line `errored evaluator calls: ...` names scores the judge did not return; a missing completeness or groundedness score makes the script print `None against ...` and exit 1. Then either show that the missing score cannot change the outcome, as the 2026-10-26 run did in the [evaluation folder](../../eval/model-selection/dev-outage-v1/README.md), or run that model's evaluation again.
+
+   Last, read question 5 in each results file: the answer says the updates do not contain the cause and names none.
 
 8. Remove the role from step 3, and check that Hindcast's own calls still work with the project-scope role alone. While a role at resource scope is assigned it also covers the project, so the claim that Foundry User on the project is enough cannot fail ([#9](https://github.com/sindredg/hindcast/issues/9)). Run it in the shell of step 3, which set `ME`, `RES_ID`, and `ENDPOINT`.
 

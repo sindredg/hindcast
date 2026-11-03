@@ -155,7 +155,8 @@ jobs:
         run: |
           test "$(docker run --rm hindcast:ci id -u)" = 10001
           docker run --rm hindcast:ci python -c \
-            "from hindcast import app; print(app.load_result(app.RESULT_FILE).case_id)"
+            "from hindcast import app; path = app.default_result(app.RESULT_DIR);"\
+            " print(app.load_result(path).case_id)"
           docker run -d --name page -p 8501:8501 hindcast:ci
           for _ in $(seq 1 30); do
             if [ "$(curl -fsS http://localhost:8501/_stcore/health || true)" = ok ]; then

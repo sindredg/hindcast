@@ -2,7 +2,13 @@
 
 What building Hindcast showed about the platform and the sources: behaviour the documentation does not state, states differently, or that changed a design choice.
 
-One file per topic, one entry per finding, newest first. Each entry says what was seen, the evidence and how it was obtained (live on Azure, locally, or read from the documentation), and what it changes for Hindcast. An entry says what was true on its date and is not rewritten; a later finding that changes it gets its own entry and links back.
+One file per topic, one entry per finding, newest first. Each entry says:
+
+- what was seen,
+- the evidence and how it was obtained (live on Azure, locally, or read from the documentation), and
+- what it changes for Hindcast.
+
+An entry says what was true on its date and is not rewritten; a later finding that changes it gets its own entry and links back.
 
 | Topic | File |
 |---|---|
@@ -13,5 +19,7 @@ One file per topic, one entry per finding, newest first. Each entry says what wa
 | Evaluation runs | [evaluation.md](evaluation.md) |
 | Extraction with Content Understanding | [extraction.md](extraction.md) |
 | Deployment with azd, Bicep, and Container Apps | [deployment.md](deployment.md) |
+| Prompt Shields and PII detection | [safety.md](safety.md) |
+| Traces in Application Insights | [observability.md](observability.md) |
 
 The model comparison and its results are in [decision 0012](../decisions/0012-models.md). A failure with its symptom, cause, and fix is in [troubleshooting](../troubleshooting.md), which links back to the finding behind it. Defects and open questions found along the way are GitHub issues; entries link to them.

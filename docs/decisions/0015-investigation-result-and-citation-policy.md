@@ -1,6 +1,6 @@
 # 15. Investigation result: keep and mark unsupported items, lock scored cases in code
 
-Status: Accepted (2026-10-30).
+Status: Accepted (2026-10-30). Case citations are kept only for refs the model was shown, per [decision 0021](0021-screens-pii-and-challenge.md).
 
 Sealed cases, which run before their postmortem exists and only through `python -m hindcast.seal`, follow [decision 0017](0017-sealed-reconstructions.md).
 

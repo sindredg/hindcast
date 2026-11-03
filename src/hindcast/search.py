@@ -20,6 +20,7 @@ The command prints refs, documents, dates, and scores, never the text.
 import argparse
 import functools
 import json
+import time
 from collections.abc import Callable, Collection, Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
@@ -124,9 +125,15 @@ def search_library(
     library: Mapping[str, LibraryDocument] | None = None,
     refs: Collection[str] | None = None,
     client: SearchClientLike | None = None,
-    embed: Callable[[list[str]], list[list[float]]] | None = None,
+    embed: Callable[..., list[list[float]]] | None = None,
+    timeout: float | None = None,
+    clock: Callable[[], float] = time.monotonic,
 ) -> list[LibraryHit]:
-    """Hybrid keyword and vector search with semantic ranking, within the case's rule."""
+    """Hybrid keyword and vector search with semantic ranking, within the case's rule.
+
+    timeout bounds the embedding call and the search together: the search
+    gets what the embedding left. Running out raises TimeoutError.
+    """
     if not CASE_ID.fullmatch(case_id):
         raise ValueError(f"case ID {case_id!r} is malformed")
     cases = cases if cases is not None else load_cases()
@@ -143,7 +150,16 @@ def search_library(
         settings = load_settings(SearchSettings)
         embed = embed or embedder(settings.embedding_dimensions)
         client = client or clients(settings.search_index)[1]
-    [vector] = embed([query])
+    from azure.core.exceptions import ServiceRequestTimeoutError, ServiceResponseTimeoutError
+
+    end = None if timeout is None else clock() + timeout
+    [vector] = embed([query]) if timeout is None else embed([query], timeout=timeout)
+    limits: dict[str, Any] = {}
+    if end is not None:
+        remaining = end - clock()
+        if remaining <= 0:
+            raise TimeoutError("no time left for the library search")
+        limits = {"connection_timeout": remaining, "read_timeout": remaining}
     results = client.search(
         query,
         filter=query_filter,
@@ -155,17 +171,22 @@ def search_library(
         semantic_configuration_name=SEMANTIC_CONFIG,
         top=top,
         select=FIELDS,
+        **limits,
     )
     hits = []
-    for found in results:
-        _check(case, found, library, refs, picks_only)
-        hits.append(
-            LibraryHit(
-                **{name: found[name] for name in FIELDS},
-                score=found["@search.score"],
-                reranker_score=found.get("@search.reranker_score"),
+    try:
+        # The request runs when the results are read.
+        for found in results:
+            _check(case, found, library, refs, picks_only)
+            hits.append(
+                LibraryHit(
+                    **{name: found[name] for name in FIELDS},
+                    score=found["@search.score"],
+                    reranker_score=found.get("@search.reranker_score"),
+                )
             )
-        )
+    except (ServiceRequestTimeoutError, ServiceResponseTimeoutError) as error:
+        raise TimeoutError("library search timed out") from error
     return hits
 
 

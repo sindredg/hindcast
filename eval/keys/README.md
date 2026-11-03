@@ -4,7 +4,9 @@ One frozen key per case: what the provider's own postmortem says happened. Miles
 
 ## Status
 
-Four keys frozen on 2026-10-27 and `github-2026-10-07` on 2026-11-01, each before any scored run, with the prior-knowledge answers still unread. A sealed case gets its key once its provider has published a cause ([decision 0017](../../docs/decisions/0017-sealed-reconstructions.md)). [`frozen.json`](frozen.json) records each key's SHA-256, and `tests/test_keys.py` fails if a key file changes or a frozen key has no file. A changed key is a new review, not an edit.
+Four keys frozen on 2026-10-27 and `github-2026-10-07` on 2026-11-01, each before any scored run, with the prior-knowledge answers still unread. A sealed case gets its key once its provider has published a cause ([decision 0017](../../docs/decisions/0017-sealed-reconstructions.md)).
+
+[`frozen.json`](frozen.json) records each key's SHA-256, and `tests/test_keys.py` fails if a key file changes or a frozen key has no file. A changed key is a new review, not an edit.
 
 ## Files
 
@@ -35,7 +37,14 @@ Four keys frozen on 2026-10-27 and `github-2026-10-07` on 2026-11-01, each befor
 
 ## How the keys were made
 
-Each postmortem was cut to its article (for GitHub's monthly report, to the case's incident; for GitHub 2026-10-07, to the resolved update of its status incident, where GitHub wrote its summary of both outages) and extracted with the `hindcast_answer_key` analyzer ([`analyzers/answer-key.json`](../../analyzers/answer-key.json)). Each draft was then checked field by field against its postmortem: wrong values corrected, missing factors and events added, steps taken during the outage moved out of the fixes, and every time converted to UTC. Every quote, including those added in review, appears word for word in the captured postmortem: `tests/test_keys.py::test_every_frozen_quote_appears_in_its_postmortem` checks it where the captured pages are present. The four keys frozen on 2026-10-27 had their corrections approved before freezing; the corrections to `github-2026-10-07` are not approved ([worklog 05](../../docs/worklogs/05-sealed-reconstructions.md#gate)). The procedure is in the [extraction runbook](../../docs/runbooks/extraction.md).
+Each key went through these steps; the procedure is in the [extraction runbook](../../docs/runbooks/extraction.md):
+
+1. The postmortem was cut to its article: for GitHub's monthly report, to the case's incident; for GitHub 2026-10-07, to the resolved update of its status incident, where GitHub wrote its summary of both outages.
+2. The cut was extracted with the `hindcast_answer_key` analyzer ([`analyzers/answer-key.json`](../../analyzers/answer-key.json)).
+3. The draft was checked field by field against its postmortem: wrong values corrected, missing factors and events added, steps taken during the outage moved out of the fixes, and every time converted to UTC.
+4. Every quote, including those added in review, appears word for word in the captured postmortem. `tests/test_keys.py::test_every_frozen_quote_appears_in_its_postmortem` checks it where the captured pages are present.
+
+The four keys frozen on 2026-10-27 had their corrections approved before freezing; the corrections to `github-2026-10-07` are not approved ([worklog 05](../../docs/worklogs/05-sealed-reconstructions.md#gate)).
 
 ## Limits
 

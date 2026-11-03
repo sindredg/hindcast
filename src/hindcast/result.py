@@ -5,9 +5,12 @@ every citation against the bound case afterwards: a bad citation is removed and
 listed with its reason, the item stays, and an item left with nothing behind it
 is listed as unsupported (decision 0006 counts it as unsupported, not a hit).
 
-A library citation is kept only for a ref a search in this run returned, by
-exact string: a ref the model knows from training, or a near miss of a real
-one, is rejected as not-retrieved. A kept library citation does not support
+A library citation is kept only for a ref a search in this run showed the
+model, by exact string: a ref the model knows from training, or a near miss
+of a real one, is rejected as not-retrieved. A run also passes the case refs
+the model was shown and the refs Prompt Shields withheld: a withheld ref is
+rejected as withheld, and a case ref the model never read as not-shown, though
+it exists in the evidence file. A kept library citation does not support
 an item on its own: a library document is another outage, so a claim about
 this one that rests only on it is unsupported (decision 0006).
 """
@@ -15,6 +18,7 @@ this one that rests only on it is unsupported (decision 0006).
 import json
 from collections.abc import Collection
 from dataclasses import dataclass, replace
+from pathlib import Path
 from typing import Any, Literal
 
 import jsonschema
@@ -81,7 +85,15 @@ INVESTIGATION_SCHEMA = _schema(_CITATION)
 # check_citations and is rejected on its own instead of failing the whole result.
 _LOCAL_SCHEMA = _schema({})
 
-Reason = Literal["malformed", "unknown", "other-case", "unknown-finding", "not-retrieved"]
+Reason = Literal[
+    "malformed",
+    "unknown",
+    "other-case",
+    "unknown-finding",
+    "not-retrieved",
+    "withheld",
+    "not-shown",
+]
 
 
 @dataclass(frozen=True)
@@ -154,9 +166,18 @@ class RejectedCitation:
 
 
 @dataclass(frozen=True)
+class PiiFinding:
+    # A PII hit by field path and category; the text found is never kept.
+    path: str
+    category: str
+    confidence: float
+
+
+@dataclass(frozen=True)
 class Checks:
     rejected_citations: tuple[RejectedCitation, ...] = ()
     unsupported: tuple[str, ...] = ()
+    pii: tuple[PiiFinding, ...] = ()
 
 
 class ResultError(ValueError):
@@ -212,11 +233,18 @@ def parse_investigation(text: str) -> Investigation:
 
 
 def _reason(
-    citation: Citation, refs: frozenset[str], case_id: str, retrieved: Collection[str]
+    citation: Citation,
+    refs: frozenset[str],
+    case_id: str,
+    retrieved: Collection[str],
+    shown: Collection[str] | None,
+    withheld: Collection[str],
 ) -> Reason | None:
     if citation.source == "library":
         if not citation.ref.startswith(LIBRARY_PREFIX):
             return "malformed"
+        if citation.ref in withheld:
+            return "withheld"
         return None if citation.ref in retrieved else "not-retrieved"
     if citation.source != "case" or not citation.ref or citation.ref.startswith(LIBRARY_PREFIX):
         return "malformed"
@@ -225,6 +253,10 @@ def _reason(
         return "other-case"
     if citation.ref not in refs:
         return "unknown"
+    if citation.ref in withheld:
+        return "withheld"
+    if shown is not None and citation.ref not in shown:
+        return "not-shown"
     return None
 
 
@@ -233,8 +265,14 @@ def check_citations(
     refs: frozenset[str],
     case_id: str,
     retrieved: Collection[str] = frozenset(),
+    shown: Collection[str] | None = None,
+    withheld: Collection[str] = frozenset(),
 ) -> tuple[Investigation, Checks]:
-    """Remove and list bad citations and rests_on ids; list items left with no support."""
+    """Remove and list bad citations and rests_on ids; list items left with no support.
+
+    shown=None skips the not-shown check, for a stored file that does not
+    record what its run showed.
+    """
     finding_ids = {f.id for f in investigation.findings}
     rejected: list[RejectedCitation] = []
     unsupported: list[str] = []
@@ -242,7 +280,7 @@ def check_citations(
     def check[T: (Attack, Finding, TimelineEvent, RootCause, Factor)](where: str, item: T) -> T:
         kept: list[Citation] = []
         for citation in item.citations:
-            reason = _reason(citation, refs, case_id, retrieved)
+            reason = _reason(citation, refs, case_id, retrieved, shown, withheld)
             if reason is None:
                 kept.append(citation)
             else:
@@ -324,3 +362,117 @@ def investigation_dict(investigation: Investigation | None) -> dict | None:
             {"question": q.question, "why_open": q.why_open} for q in i.open_questions
         ],
     }
+
+
+# A challenge answer (hindcast.challenge). Strict mode cannot make a field
+# optional, so revised_claim is always present and parse_challenge holds it
+# empty unless the verdict is "revised".
+CHALLENGE_SCHEMA = _object(
+    verdict={"type": "string", "enum": ["stands", "revised", "withdrawn"]},
+    answer=_STRING,
+    citations={"type": "array", "items": _CITATION},
+    revised_claim=_STRING,
+)
+_LOCAL_CHALLENGE_SCHEMA = _object(
+    verdict={"type": "string", "enum": ["stands", "revised", "withdrawn"]},
+    answer=_STRING,
+    citations={"type": "array", "items": {}},
+    revised_claim=_STRING,
+)
+
+
+@dataclass(frozen=True)
+class Challenge:
+    verdict: Literal["stands", "revised", "withdrawn"]
+    answer: str
+    citations: tuple[Citation, ...]
+    revised_claim: str
+
+
+def parse_challenge(text: str) -> Challenge:
+    if not text.strip():
+        raise ResultError("empty-result")
+    try:
+        raw = json.loads(text)
+    except json.JSONDecodeError as error:
+        raise ResultError(f"schema: not JSON: {error}") from error
+    try:
+        jsonschema.validate(raw, _LOCAL_CHALLENGE_SCHEMA, cls=jsonschema.Draft202012Validator)
+    except jsonschema.ValidationError as error:
+        raise ResultError(f"schema: {error.json_path}: {error.message}") from error
+    revised = raw["verdict"] == "revised"
+    if revised != bool(raw["revised_claim"].strip()):
+        raise ResultError("schema: revised_claim is set only, and always, for a revised verdict")
+    return Challenge(raw["verdict"], raw["answer"], _citations(raw), raw["revised_claim"])
+
+
+def check_challenge_citations(
+    challenge: Challenge,
+    refs: frozenset[str],
+    case_id: str,
+    retrieved: Collection[str],
+    shown: Collection[str],
+    withheld: Collection[str],
+) -> tuple[Challenge, Checks]:
+    """The same citation rules as an investigation, for the one answer a challenge gives."""
+    kept: list[Citation] = []
+    rejected: list[RejectedCitation] = []
+    for citation in challenge.citations:
+        reason = _reason(citation, refs, case_id, retrieved, shown, withheld)
+        if reason is None:
+            kept.append(citation)
+        else:
+            rejected.append(RejectedCitation("challenge", citation.ref, reason))
+    # An answer about this outage needs case evidence, as an investigation item does.
+    unsupported = () if any(c.source == "case" for c in kept) else ("challenge",)
+    return replace(challenge, citations=tuple(kept)), Checks(tuple(rejected), unsupported)
+
+
+def challenge_dict(challenge: Challenge | None) -> dict | None:
+    if challenge is None:
+        return None
+    return {
+        "verdict": challenge.verdict,
+        "answer": challenge.answer,
+        "citations": _citation_dicts(challenge.citations),
+        "revised_claim": challenge.revised_claim,
+    }
+
+
+@dataclass(frozen=True)
+class StoredResult:
+    """One result file as hindcast.investigate.write_result wrote it."""
+
+    case_id: str
+    agent: dict
+    model: dict
+    provenance: dict
+    status: str
+    incomplete_reason: str | None
+    investigation: Investigation | None
+    checks: dict
+    usage: dict
+    tool_calls: tuple[dict, ...] = ()
+    cost: dict | None = None
+
+
+def load_result(path: Path) -> StoredResult:
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    investigation = raw["investigation"]
+    # The dict went through investigation_dict on the way out, so it satisfies
+    # the same schema parse_investigation checks on the way in.
+    parsed = None if investigation is None else parse_investigation(json.dumps(investigation))
+    return StoredResult(
+        case_id=raw["case_id"],
+        agent=raw["agent"],
+        model=raw["model"],
+        provenance=raw["provenance"],
+        status=raw["status"],
+        incomplete_reason=raw["incomplete_reason"],
+        investigation=parsed,
+        checks=raw["checks"],
+        usage=raw["usage"],
+        # Results from before the tool record and the price table have neither.
+        tool_calls=tuple(raw.get("tool_calls", [])),
+        cost=raw.get("cost"),
+    )

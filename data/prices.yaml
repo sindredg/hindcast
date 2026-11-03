@@ -1,0 +1,53 @@
+# Price table for each run's cost (decision 0011). A changed price is a new
+# version: the version is written into every result's cost.
+#
+# Model, embedding, and Prompt Shields prices come from the Azure retail
+# prices API, region swedencentral, read 2026-11-03:
+#   https://prices.azure.com/api/retail/prices?api-version=2023-01-01-preview
+#   &$filter=armRegionName eq 'swedencentral' and meterName eq '<meter>'
+# The API has no row for prebuilt Language text records (PII detection);
+# that price comes from the pricing calculator's data for the same page,
+# read 2026-11-03:
+#   https://azure.microsoft.com/api/v2/pricing/cognitive-services/calculator/
+#   offer language-service-standard, first tier (0 to 500,000 records).
+# The calculator lists no Sweden Central row for it; europe-north and
+# europe-west carry this price.
+#
+# The model rates are short-context rates. The pricing page gives no token
+# limit for short context on these models; the 272,000 below is the limit it
+# states for GPT-5.4, and a run with a call above it raises instead of being
+# priced at the wrong rate.
+version: 1
+retrieved: "2026-11-03"
+currency: USD
+short_context_tokens: 272000
+
+# Per 1,000,000 tokens, Global Standard deployments.
+models:
+  gpt-6-luna:
+    # meters 6-luna ShortCo {Inp, Cd Inp, Opt} Std Gl 1M Tokens, effective 2026-09-01
+    input: 0.10
+    cached_input: 0.01
+    output: 0.50
+  gpt-6.1-sol:
+    # meters 6.1-sol ShortCo {Inp, Cd Inp, Opt} Std Gl 1M Tokens, effective 2026-10-01
+    input: 2.00
+    cached_input: 0.10
+    output: 10.00
+  gpt-5.4-mini:
+    # meters 5.4 mini {Inp, cd Inp, Opt} Gl 1M Tokens, effective 2026-03-01
+    input: 0.75
+    cached_input: 0.075
+    output: 4.50
+
+# Per 1,000,000 tokens: meter text-embedding-3-large-glbl Tokens (0.00013 per
+# 1,000), effective 2024-06-01.
+embedding: 0.13
+
+# Per 1,000 text records. A record is taken as up to 1,000 characters of one
+# document, the unit Language's data-limits page states; assumed for Prompt
+# Shields until the table is compared with billed cost.
+# Content Safety meter Standard Text Records, effective 2025-09-01.
+prompt_shields: 0.375
+# Language Standard, first tier, from the calculator data (see above).
+pii: 1.00

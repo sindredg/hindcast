@@ -295,3 +295,35 @@ def test_rejected_case_citation_leaves_a_library_only_item_unsupported() -> None
     _, checks = check_citations(investigation, REFS, CASE, RETRIEVED)
     assert [r.reason for r in checks.rejected_citations] == ["unknown"]
     assert checks.unsupported == ("findings[0]",)
+
+
+U2 = {"source": "case", "ref": "dev/u2"}
+
+
+def test_withheld_case_ref_is_rejected_as_withheld() -> None:
+    investigation = _with_first_finding_citations([U1, U2])
+    checked, checks = check_citations(
+        investigation, REFS, CASE, shown={"dev/u1", "dev/u3"}, withheld={"dev/u2"}
+    )
+    assert [(r.ref, r.reason) for r in checks.rejected_citations] == [("dev/u2", "withheld")]
+    assert checked.findings[0].citations == (Citation("case", "dev/u1"),)
+
+
+def test_unread_case_ref_is_rejected_as_not_shown() -> None:
+    investigation = _with_first_finding_citations([U1, {"source": "case", "ref": "dev/chart1"}])
+    _, checks = check_citations(investigation, REFS, CASE, shown={"dev/u1", "dev/u2", "dev/u3"})
+    assert [(r.ref, r.reason) for r in checks.rejected_citations] == [("dev/chart1", "not-shown")]
+
+
+def test_withheld_library_ref_is_rejected() -> None:
+    investigation = _with_first_finding_citations([U1, LIB])
+    _, checks = check_citations(
+        investigation, REFS, CASE, frozenset(), shown={"dev/u1"}, withheld={"lib/a/s1"}
+    )
+    assert [(r.ref, r.reason) for r in checks.rejected_citations] == [("lib/a/s1", "withheld")]
+
+
+def test_shown_none_keeps_the_stored_file_check() -> None:
+    investigation = _with_first_finding_citations([U1, {"source": "case", "ref": "dev/chart1"}])
+    _, checks = check_citations(investigation, REFS, CASE)
+    assert checks.rejected_citations == ()

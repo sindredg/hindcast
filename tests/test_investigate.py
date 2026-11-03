@@ -22,8 +22,11 @@ from hindcast.investigate import (
     run_investigation,
     write_result,
 )
+from hindcast.safety import PiiError, ScreenError
 from hindcast.search import LibraryHit, LibraryLeak
 from hindcast.tools import CaseTools, ToolError
+from test_redact import StubPii
+from test_tools import StubShield
 
 EVIDENCE = CaseEvidence(
     case_id="dev",
@@ -110,28 +113,45 @@ class ScriptedTurn:
 class Tools(CaseTools):
     """Real case tools with a hook that runs on every call (a slow tool, a failing one)."""
 
-    def __init__(self, on_call: Any = None, search: Any = None) -> None:
-        super().__init__(EVIDENCE, search)
+    def __init__(self, on_call: Any = None, search: Any = None, shield: Any = None) -> None:
+        super().__init__(EVIDENCE, search, shield)
         self.on_call = on_call
+        self.timeouts: list[float] = []
 
-    def call(self, name: str, arguments: str) -> str:
+    def call(self, name: str, arguments: str, *, timeout: float) -> str:
+        self.timeouts.append(timeout)
         if self.on_call:
             self.on_call(name)
-        return super().call(name, arguments)
+        return super().call(name, arguments, timeout=timeout)
 
 
-def run(turn: ScriptedTurn, tools: CaseTools | None = None, clock: Clock | None = None) -> Any:
-    return run_investigation(turn, tools or Tools(), case_id="dev", clock=clock or Clock())
+def run(
+    turn: ScriptedTurn,
+    tools: CaseTools | None = None,
+    clock: Clock | None = None,
+    pii: Any = None,
+    span: Any = None,
+) -> Any:
+    options: dict[str, Any] = {} if span is None else {"span": span}
+    return run_investigation(
+        turn, tools or Tools(), case_id="dev", pii=pii, clock=clock or Clock(), **options
+    )
 
 
 def test_final_text_without_tool_calls_completes_and_checks_citations() -> None:
     document = json.loads(json.dumps(FINAL))
     document["findings"][0]["citations"].append({"source": "case", "ref": "dev/u99"})
-    result = run(ScriptedTurn(final(document)))
+    result = run(ScriptedTurn(response(call()), final(document)))
     assert result.status == "complete"
     assert result.incomplete_reason is None
     assert result.investigation.findings[0].citations[0].ref == "dev/u1"
     assert [r.reason for r in result.checks.rejected_citations] == ["unknown"]
+
+
+def test_a_case_ref_the_model_never_read_is_rejected_as_not_shown() -> None:
+    result = run(ScriptedTurn(final()))
+    assert result.status == "complete"
+    assert {r.reason for r in result.checks.rejected_citations} == {"not-shown"}
 
 
 def test_tool_calls_are_executed_and_their_outputs_sent_back() -> None:
@@ -297,15 +317,17 @@ def test_tool_calls_are_recorded_in_order_with_queries_and_refs() -> None:
         clock.now += 1.5 if name == "search_library" else 0.25
 
     turn = ScriptedTurn(response(call(), search_call("errors in ENAM", "c2")), final())
-    tools = Tools(slow, search=lambda q: [hit("lib/a/s1"), hit("lib/b/fig2")])
+    tools = Tools(slow, search=lambda q, timeout: [hit("lib/a/s1"), hit("lib/b/fig2")])
     result = run(turn, tools, clock)
     assert result.tool_calls == (
-        {"name": "list_updates", "seconds": 0.25},
+        {"name": "list_updates", "seconds": 0.25, "withheld": [], "screen_calls": 0},
         {
             "name": "search_library",
             "seconds": 1.5,
             "query": "errors in ENAM",
             "refs": ["lib/a/s1", "lib/b/fig2"],
+            "withheld": [],
+            "screen_calls": 0,
         },
     )
 
@@ -316,8 +338,8 @@ def test_library_citation_from_a_search_is_kept_and_an_unretrieved_one_rejected(
         {"source": "library", "ref": "lib/a/s1"},
         {"source": "library", "ref": "lib/a/s2"},
     ]
-    turn = ScriptedTurn(response(search_call("x")), final(document))
-    result = run(turn, Tools(search=lambda q: [hit("lib/a/s1")]))
+    turn = ScriptedTurn(response(call(), search_call("x", "c2")), final(document))
+    result = run(turn, Tools(search=lambda q, timeout: [hit("lib/a/s1")]))
     assert result.status == "complete"
     assert [c.ref for c in result.investigation.findings[0].citations] == ["dev/u1", "lib/a/s1"]
     assert [(r.ref, r.reason) for r in result.checks.rejected_citations] == [
@@ -326,21 +348,23 @@ def test_library_citation_from_a_search_is_kept_and_an_unretrieved_one_rejected(
 
 
 def test_search_error_ends_the_run_and_keeps_earlier_calls() -> None:
-    def leak(query: str) -> list[LibraryHit]:
+    def leak(query: str, timeout: float) -> list[LibraryHit]:
         raise LibraryLeak("dev: hit from x, which the case may not read")
 
     turn = ScriptedTurn(response(call(), search_call("x", "c2")), final())
     result = run(turn, Tools(search=leak))
     assert result.status == "incomplete"
     assert result.incomplete_reason.startswith("tool-error: search_library: dev: hit from x")
-    assert result.tool_calls == ({"name": "list_updates", "seconds": 0.0},)
+    assert result.tool_calls == (
+        {"name": "list_updates", "seconds": 0.0, "withheld": [], "screen_calls": 0},
+    )
     assert result.investigation is None
 
 
 def test_thirteenth_call_being_a_search_is_tool_cap() -> None:
     calls = [call(call_id=f"c{i}") for i in range(12)] + [search_call("x", "c12")]
     searched: list[str] = []
-    tools = Tools(search=lambda q: searched.append(q) or [])
+    tools = Tools(search=lambda q, timeout: searched.append(q) or [])
     result = run(ScriptedTurn(response(*calls), final()), tools)
     assert result.incomplete_reason == "tool-cap"
     assert searched == []
@@ -429,14 +453,17 @@ def test_result_file_has_the_spec_shape(tmp_path: Path) -> None:
         "checks",
         "tool_calls",
         "usage",
+        "cost",
     }
     assert (written["case_id"], written["agent"], written["model"]) == ("dev", AGENT, MODEL)
     assert written["provenance"] == PROVENANCE
     assert written["status"] == "complete"
     assert written["investigation"] == FINAL
-    assert written["checks"] == {"rejected_citations": [], "unsupported": []}
+    assert written["checks"] == {"rejected_citations": [], "unsupported": [], "pii": []}
     assert written["usage"]["tool_calls"] == 1
-    assert written["tool_calls"] == [{"name": "list_updates", "seconds": 0.0}]
+    assert written["tool_calls"] == [
+        {"name": "list_updates", "seconds": 0.0, "withheld": [], "screen_calls": 0}
+    ]
     assert list(written)[list(written).index("checks") + 1] == "tool_calls"
 
 
@@ -512,6 +539,17 @@ def test_agent_turn_maps_the_client_timeout_to_timeout_error() -> None:
         agent_turn(client, "a", "1")([], None, timeout=1.0)
 
 
+class StubEmbedder:
+    """Counts tokens like hindcast.index.Embedder: one per text."""
+
+    def __init__(self) -> None:
+        self.tokens = 0
+
+    def __call__(self, texts: list[str], timeout: float | None = None) -> list[list[float]]:
+        self.tokens += len(texts)
+        return [[0.0] for _ in texts]
+
+
 def stub_search(monkeypatch: pytest.MonkeyPatch) -> None:
     """Search settings in the environment and no search, embedding, or model-info call."""
     from hindcast import index
@@ -520,13 +558,22 @@ def stub_search(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("HINDCAST_SEARCH_INDEX", "library-test")
     monkeypatch.setenv("HINDCAST_EMBEDDING_ENDPOINT", "https://ai.example.org")
     monkeypatch.setenv("HINDCAST_EMBEDDING_DEPLOYMENT", "embed")
-    monkeypatch.setattr(index, "embedder", lambda dimensions: lambda texts: [[0.0]])
-    monkeypatch.setattr(index, "clients", lambda name: (None, None))
+    monkeypatch.setattr(index, "embedder", lambda dimensions: StubEmbedder())
+    monkeypatch.setattr(index, "clients", lambda name, **kwargs: (None, None))
     monkeypatch.setattr(
         index,
         "embedding_model",
         lambda: {"deployment": "embed", "name": "text-embedding-3-large", "version": "1"},
     )
+
+
+def stub_safety(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A safety endpoint in the environment and stub screens: nothing flagged, no PII."""
+    from hindcast import safety
+
+    monkeypatch.setenv("HINDCAST_SAFETY_ENDPOINT", "https://ai.example.org")
+    monkeypatch.setattr(safety, "shield_client", lambda settings: StubShield())
+    monkeypatch.setattr(safety, "pii_client", lambda settings: StubPii())
 
 
 def stub_command(
@@ -543,6 +590,7 @@ def stub_command(
     for field in ("project_endpoint", "chat_deployment", "compare_deployment", "judge_deployment"):
         monkeypatch.setenv(f"HINDCAST_{field.upper()}", "gpt-6-luna")
     stub_search(monkeypatch)
+    stub_safety(monkeypatch)
     created: list[tuple[str, dict]] = []
     agents = SimpleNamespace(
         list_versions=lambda name, **_: [],
@@ -594,7 +642,19 @@ def test_main_writes_the_result_and_prints_counts_never_the_text(
         "version": "1",
         "dimensions": 1024,
     }
-    assert written["tool_calls"] == [{"name": "list_updates", "seconds": 0.0}]
+    # The command screens with the stub shield: one call, for the one update with text.
+    assert written["tool_calls"] == [
+        {"name": "list_updates", "seconds": 0.0, "withheld": [], "screen_calls": 1}
+    ]
+    assert written["usage"]["screen_calls"] == 1
+    assert written["usage"]["pii_calls"] == 0  # the stub PII counts no calls
+    assert written["checks"]["pii"] == []
+    assert "withheld items 0, PII hits 0" in out
+    # The cost comes from the committed table and names its version.
+    cost = written["cost"]
+    assert cost["table_version"] == 1 and cost["currency"] == "USD"
+    assert cost["model"] > 0 and cost["total"] >= cost["model"]
+    assert f"cost USD {cost['total']} (price table v1)" in out
 
 
 def git(repo: Path, *args: str) -> str:
@@ -652,3 +712,143 @@ def test_main_fails_on_missing_search_settings_before_any_model_call(
         main(["dev", "--out", str(tmp_path / "out")])
     assert created == []
     assert client.calls == []
+
+
+def test_flagged_update_is_withheld_in_the_run_and_its_citation_rejected() -> None:
+    turn = ScriptedTurn(response(call()), final())
+    result = run(turn, Tools(shield=StubShield("Looking into")))
+    [(items, _, _)] = turn.inputs[1:]
+    assert "Looking into it." not in items[0]["output"]
+    assert result.status == "complete"
+    assert {(r.ref, r.reason) for r in result.checks.rejected_citations} == {("dev/u1", "withheld")}
+    assert result.tool_calls[0]["withheld"] == ["dev/u1"]
+
+
+def test_screen_error_ends_run_as_screen_error() -> None:
+    turn = ScriptedTurn(response(call()), final())
+    result = run(turn, Tools(shield=StubShield(error=ScreenError("HTTP 500 InternalServerError"))))
+    assert result.status == "incomplete"
+    assert result.incomplete_reason == "screen-error: HTTP 500 InternalServerError"
+    # The model never saw the unscreened result.
+    assert len(turn.inputs) == 1
+
+
+def test_tool_timeout_is_time_cap() -> None:
+    def slow(name: str) -> None:
+        raise TimeoutError("no time left for the call")
+
+    result = run(ScriptedTurn(response(call()), final()), Tools(slow))
+    assert result.incomplete_reason == "time-cap"
+
+
+def test_pii_error_ends_run_as_pii_error() -> None:
+    result = run(ScriptedTurn(response(call()), final()), pii=StubPii(PiiError("HTTP 500 x")))
+    assert result.status == "incomplete"
+    assert result.incomplete_reason == "pii-error: HTTP 500 x"
+    assert result.investigation is None
+
+
+def test_pii_hits_are_masked_in_the_written_file(tmp_path: Path) -> None:
+    document = json.loads(json.dumps(FINAL))
+    document["findings"][0]["claim"] = "Jane Doe restarted it."
+    result = run(ScriptedTurn(response(call()), final(document)), pii=StubPii())
+    assert result.status == "complete"
+    path = write_result(
+        result,
+        case_id="dev",
+        agent=AGENT,
+        model=MODEL,
+        provenance=PROVENANCE,
+        out_dir=tmp_path,
+        now=NOW,
+    )
+    text = path.read_text("utf-8")
+    assert "Jane" not in text
+    written = json.loads(text)
+    assert written["investigation"]["findings"][0]["claim"] == "[Person] restarted it."
+    assert written["checks"]["pii"] == [
+        {"path": "findings[0].claim", "category": "Person", "confidence": 0.97}
+    ]
+
+
+def test_tool_call_gets_the_remaining_time() -> None:
+    clock = Clock()
+
+    def slow(name: str) -> None:
+        clock.now += 10
+
+    tools = Tools(slow)
+    turn = ScriptedTurn(response(call(), call(call_id="c2")), final())
+    run(turn, tools, clock)
+    assert tools.timeouts == [120.0, 110.0]
+
+
+def recording_span() -> tuple[Any, Any]:
+    from contextlib import contextmanager
+
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+    from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
+
+    exporter = InMemorySpanExporter()
+    provider = TracerProvider()
+    provider.add_span_processor(SimpleSpanProcessor(exporter))
+    tracer = provider.get_tracer("test")
+
+    @contextmanager
+    def span(name: str, **attributes: str):
+        with tracer.start_as_current_span(name, attributes=attributes) as current:
+            yield current
+
+    return span, exporter
+
+
+def test_spans_carry_no_text() -> None:
+    document = json.loads(json.dumps(FINAL))
+    document["findings"][0]["claim"] = "A SECRET CLAIM by Jane Doe"
+    span, exporter = recording_span()
+    turn = ScriptedTurn(response(call(), search_call("SECRET QUERY", "c2")), final(document))
+    result = run(
+        turn,
+        Tools(search=lambda q, timeout: [hit("lib/a/s1")], shield=StubShield()),
+        pii=StubPii(),
+        span=span,
+    )
+    assert result.status == "complete"
+    spans = exporter.get_finished_spans()
+    assert [s.name for s in spans].count("model_call") == 2
+    assert {"investigation", "model_call", "tool_call", "pii"} <= {s.name for s in spans}
+    texts = ["Looking into it.", "SECRET", "Jane", "Text.", "Traffic"]
+    for s in spans:
+        for value in (s.attributes or {}).values():
+            assert not any(t in str(value) for t in texts), (s.name, value)
+    [run_span] = [s for s in spans if s.name == "investigation"]
+    assert run_span.attributes["status"] == "complete"
+    [first, _] = [s for s in spans if s.name == "model_call"]
+    assert first.attributes["time_left"] == "120.000"
+
+
+def test_a_deployment_without_a_price_is_refused_before_any_model_call(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    client = FakeClient(response(call()), final())
+    created = stub_command(monkeypatch, tmp_path, client)
+    monkeypatch.setenv("HINDCAST_CHAT_DEPLOYMENT", "gpt-unpriced")
+    with pytest.raises(KeyError, match="gpt-unpriced"):
+        main(["dev", "--out", str(tmp_path / "out")])
+    assert created == []
+    assert not (tmp_path / "out").exists()
+
+
+def test_a_pii_timeout_ends_the_run_as_pii_error() -> None:
+    result = run(ScriptedTurn(response(call()), final()), pii=StubPii(TimeoutError("slow")))
+    assert result.status == "incomplete"
+    assert result.incomplete_reason.startswith("pii-error")
+
+
+def test_search_queries_are_pii_masked_in_the_record() -> None:
+    # Review finding: the model's queries are committed with the result.
+    turn = ScriptedTurn(response(call(), search_call("errors Jane Doe saw", "c2")), final())
+    result = run(turn, Tools(search=lambda q, timeout: []), pii=StubPii())
+    assert result.tool_calls[1]["query"] == "errors [Person] saw"
+    assert [f.path for f in result.checks.pii] == ["tool_calls[1].query"]

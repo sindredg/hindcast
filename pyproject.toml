@@ -8,7 +8,15 @@ requires-python = "==3.14.*"
 dependencies = [
     "azure-ai-contentunderstanding==1.1.0",
     "azure-ai-projects==2.9.0",
+    # Imported directly for the Prompt Shields and PII calls (hindcast.safety):
+    # no SDK covers Prompt Shields. Trade-off: the request shapes are written
+    # by hand and tested with stubs. Already in the tree through azure-identity.
+    "azure-core==1.41.0",
     "azure-identity==1.27.0",
+    # Traces to Application Insights from the investigate, seal, and challenge
+    # commands as well as the page. Trade-off: a heavier install for the
+    # commands that never trace (capture, ingest, keys).
+    "azure-monitor-opentelemetry==1.8.11",
     # Creates the library index and queries it with an Entra token. The
     # alternative is hand-written REST calls on azure-core, which would
     # rebuild the request models this client already checks.
@@ -24,7 +32,7 @@ dependencies = [
 [project.optional-dependencies]
 # The web page's runtime. An extra, not a core dependency: the capture,
 # ingest, keys, and investigate commands never import it.
-app = ["streamlit==1.66.1", "azure-monitor-opentelemetry==1.8.11"]
+app = ["streamlit==1.66.1"]
 
 # Exact pins. uv.lock records the full tree with hashes. Dependabot proposes
 # the updates (.github/dependabot.yml).
