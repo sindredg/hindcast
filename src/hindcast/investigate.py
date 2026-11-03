@@ -117,6 +117,18 @@ class RunResult:
     efforts: tuple[str, ...] = ()
 
 
+def no_result(result: RunResult) -> bool:
+    """True when an attempt produced nothing to keep, so another may follow.
+
+    A time cap on the first call writes a result with no model output, and a
+    failed model call ends the run with no investigation (decision 0017
+    rule 6; the evaluation batch uses the same rule).
+    """
+    return result.usage.output_tokens == 0 or (result.incomplete_reason or "").startswith(
+        "model-error"
+    )
+
+
 class Span(Protocol):
     def __call__(self, name: str, /, **attributes: str) -> Any: ...
 
@@ -416,9 +428,11 @@ def write_result(
     now: datetime,
     cost: dict | None = None,
     filename: str | None = None,
+    run_id: str | None = None,
 ) -> Path:
     """Write the result once; filename defaults to <UTC time>-v<agent version>.json."""
-    document = {
+    document: dict[str, Any] = {} if run_id is None else {"run_id": run_id}
+    document |= {
         "case_id": case_id,
         "agent": agent,
         "model": model,

@@ -43,7 +43,7 @@ from hindcast import telemetry
 from hindcast.cases import Case, load_cases
 from hindcast.config import ModelSettings, load_settings
 from hindcast.evaluation.prior import _git
-from hindcast.investigate import RunResult, prepare, run_investigation, summary, write_result
+from hindcast.investigate import no_result, prepare, run_investigation, summary, write_result
 from hindcast.storage import upload_bytes
 from hindcast.tools import CaseTools
 
@@ -230,15 +230,6 @@ def _now() -> datetime:
     return datetime.now(UTC)
 
 
-def _no_result(result: RunResult) -> bool:
-    # A time cap on the first call writes a result with no model output, and
-    # a failed model call ends the run with no investigation: neither is a
-    # result to seal, so another attempt may follow (decision 0017 rule 6).
-    return result.usage.output_tokens == 0 or (result.incomplete_reason or "").startswith(
-        "model-error"
-    )
-
-
 def run(case: Case) -> int:
     seals = load_seals(SEALS)
     deployment = load_settings(ModelSettings).chat_deployment
@@ -291,7 +282,7 @@ def run(case: Case) -> int:
     entry |= {
         "file": path.name,
         "sha256": hashlib.sha256(data).hexdigest(),
-        "status": "no-result" if _no_result(result) else result.status,
+        "status": "no-result" if no_result(result) else result.status,
     }
     # The hash is recorded before the upload, so a failed upload loses nothing.
     seals.append(entry)
