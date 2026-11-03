@@ -1,0 +1,135 @@
+{
+  "result_file": "20261103T171237Z-v3.json",
+  "finding_id": "F2",
+  "question": "Which status update shows this, and does any later update contradict it?",
+  "agent": {
+    "name": "hindcast-challenger-gpt-6-luna",
+    "version": "1"
+  },
+  "model": {
+    "deployment": "gpt-6-luna",
+    "name": "gpt-6-luna",
+    "version": "2026-09-22"
+  },
+  "provenance": {
+    "prompt": {
+      "blob": "de320bdbfd2f137f9271c2e14db8d66d5a1322f0",
+      "dirty": false
+    },
+    "code": {
+      "commit": "fa18b308161ac56fe34afc2a57351f7ae395d57f",
+      "dirty": false
+    },
+    "evidence_sha256": "ee6be350c1f4d19b393e12b13f87dfa97a0ba6341aed57e58fd9c2285381e074",
+    "library": {
+      "registry": {
+        "blob": "ca5fb507e65dab71001a76adb9ae2258aae261b4",
+        "dirty": false
+      },
+      "index": "hindcast-library-1024",
+      "search_api_version": "2026-04-01",
+      "embedding": {
+        "deployment": "text-embedding-3-large",
+        "name": "text-embedding-3-large",
+        "version": "1",
+        "dimensions": 1024
+      }
+    }
+  },
+  "status": "complete",
+  "reason": null,
+  "challenge": {
+    "verdict": "stands",
+    "answer": "Update cloudflare-2026-02-20/u2 shows this: Cloudflare identified impact to a subset of BYOIP prefixes and said it was working to restore availability to impacted advertisements. No later update contradicts that statement. Updates u3–u8 describe continuing restoration or mitigation, and u9 says Cloudflare had enabled the remaining prefixes to their previous state while monitoring for further impact.",
+    "citations": [
+      {
+        "source": "case",
+        "ref": "cloudflare-2026-02-20/u2"
+      },
+      {
+        "source": "case",
+        "ref": "cloudflare-2026-02-20/u3"
+      },
+      {
+        "source": "case",
+        "ref": "cloudflare-2026-02-20/u4"
+      },
+      {
+        "source": "case",
+        "ref": "cloudflare-2026-02-20/u5"
+      },
+      {
+        "source": "case",
+        "ref": "cloudflare-2026-02-20/u6"
+      },
+      {
+        "source": "case",
+        "ref": "cloudflare-2026-02-20/u7"
+      },
+      {
+        "source": "case",
+        "ref": "cloudflare-2026-02-20/u8"
+      },
+      {
+        "source": "case",
+        "ref": "cloudflare-2026-02-20/u9"
+      }
+    ],
+    "revised_claim": ""
+  },
+  "checks": {
+    "rejected_citations": [],
+    "unsupported": [],
+    "pii": []
+  },
+  "tool_calls": [
+    {
+      "name": "list_updates",
+      "seconds": 0.383,
+      "withheld": [],
+      "screen_calls": 2
+    },
+    {
+      "name": "list_charts",
+      "seconds": 0.197,
+      "withheld": [],
+      "screen_calls": 1
+    },
+    {
+      "name": "search_library",
+      "seconds": 4.475,
+      "query": "Cloudflare BYOIP affected advertisements prefixes restore availability outage status update",
+      "refs": [
+        "lib/cloudflare-2022-06-21/s4",
+        "lib/cloudflare-2025-07-14/s7",
+        "lib/cloudflare-2020-07-17/s5",
+        "lib/cloudflare-2022-06-21/s6",
+        "lib/cloudflare-2025-07-14/s2"
+      ],
+      "withheld": [],
+      "screen_calls": 1
+    }
+  ],
+  "usage": {
+    "model_calls": 2,
+    "tool_calls": 3,
+    "seconds": 15.628,
+    "input_tokens": 5443,
+    "cached_input_tokens": 0,
+    "output_tokens": 523,
+    "screen_calls": 5,
+    "screen_records": 24,
+    "pii_calls": 2,
+    "pii_records": 2,
+    "max_call_input_tokens": 4646
+  },
+  "cost": {
+    "table_version": 1,
+    "currency": "USD",
+    "model": 0.000806,
+    "screens": 0.009,
+    "pii": 0.002,
+    "embeddings": 2e-06,
+    "total": 0.011807
+  }
+}

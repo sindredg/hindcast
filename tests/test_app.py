@@ -35,7 +35,8 @@ def test_load_result_reads_the_committed_run():
     assert loaded.usage == raw["usage"]
 
 
-def test_page_renders_the_sections():
+def test_page_renders_the_sections(monkeypatch):
+    monkeypatch.setenv(app.RESULT_FILE_VAR, str(RESULT))
     at = AppTest.from_file(PAGE, default_timeout=60).run()
 
     assert not at.exception
@@ -59,7 +60,9 @@ def test_render_incomplete_result(tmp_path, monkeypatch):
     assert any("time-cap" in warning.value for warning in at.warning)
 
 
-def test_page_marks_a_library_citation():
+def test_page_marks_a_library_citation(monkeypatch):
+    # The slice 2 run kept a library citation; newer runs need not.
+    monkeypatch.setenv(app.RESULT_FILE_VAR, str(RESULT))
     at = AppTest.from_file(PAGE, default_timeout=60).run()
 
     assert not at.exception
