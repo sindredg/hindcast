@@ -83,3 +83,14 @@ def test_foundry_tracing_records_content_only_in_development(
     telemetry.configure(env)
 
     assert calls == [expected]
+
+
+def test_configure_keeps_every_span(recorded, monkeypatch):
+    # The exporter's default samples at 5 traces per second, which dropped a
+    # run's root span and some model calls on 2026-11-03. A run makes a few
+    # dozen spans, so all of them are kept.
+    monkeypatch.delenv(telemetry.SAMPLER_VAR, raising=False)
+
+    telemetry.configure({"APPLICATIONINSIGHTS_CONNECTION_STRING": CONNECTION})
+
+    assert telemetry.os.environ[telemetry.SAMPLER_VAR] == "parentbased_always_on"

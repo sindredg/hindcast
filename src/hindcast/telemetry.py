@@ -18,6 +18,11 @@ CONNECTION_VAR = "APPLICATIONINSIGHTS_CONNECTION_STRING"
 # Read by the OpenTelemetry GenAI instrumentations: "true" records prompt and
 # completion text in spans. Decision 0011 keeps it off outside development.
 CONTENT_RECORDING_VAR = "OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"
+# Read by configure_azure_monitor. Unset, it samples at 5 traces per second,
+# which drops spans of a single run's burst; the volume here is small enough
+# to keep every span.
+SAMPLER_VAR = "OTEL_TRACES_SAMPLER"
+SAMPLER = "parentbased_always_on"
 # Application Insights shows service.name as the role name. Without it, the
 # page's spans arrive as "unknown_service:python".
 SERVICE = "hindcast-web"
@@ -38,6 +43,7 @@ def configure(env: Mapping[str, str] = os.environ, service: str = SERVICE) -> bo
         return False
     development = env.get("HINDCAST_ENV") == "development"
     os.environ[CONTENT_RECORDING_VAR] = "true" if development else "false"
+    os.environ[SAMPLER_VAR] = SAMPLER
     configure_azure_monitor(
         connection_string=connection,
         enable_live_metrics=False,
