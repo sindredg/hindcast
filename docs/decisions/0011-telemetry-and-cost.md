@@ -1,6 +1,6 @@
 # 11. Telemetry and cost: Foundry tracing to Application Insights, cost from a versioned price table
 
-Status: Accepted (2026-10-24).
+Status: Accepted (2026-10-24). Foundry's server-side tracing was disconnected for the content it stores, and traces come from Hindcast's own spans, per [decision 0021](0021-screens-pii-and-challenge.md).
 
 ## Context
 

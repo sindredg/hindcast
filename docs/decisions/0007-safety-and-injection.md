@@ -1,6 +1,6 @@
 # 7. Safety and injection: Prompt Shields called by the app on every tool result
 
-Status: Accepted (2026-10-25).
+Status: Accepted (2026-10-25). A flag withholds the flagged item, not the whole tool result, per [decision 0021](0021-screens-pii-and-challenge.md).
 
 ## Context
 

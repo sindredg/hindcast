@@ -1,6 +1,6 @@
 # Milestone 4: The investigator
 
-Status: Slice 1 built on 2026-10-30: the live run on the development case met its pass bar, and the [independent review](#independent-review) ran with its fixes in. [Slice 2](#slice-2-the-library-search-tool) built on 2026-11-02: the live runs on both models met their pass bar, and its [independent review](#slice-2-independent-review) ran with its fixes in. The milestone state is in the [roadmap](../roadmap.md).
+Status: Slice 1 built on 2026-10-30: the live run on the development case met its pass bar, and the [independent review](#independent-review) ran with its fixes in. [Slice 2](#slice-2-the-library-search-tool) built on 2026-11-02: the live runs on both models met their pass bar, and its [independent review](#slice-2-independent-review) ran with its fixes in. [Slice 3](#slice-3-screens-pii-challenge-traces-and-cost) built on 2026-11-03: the live runs and challenges on both models met their pass bar ([gate](#slice-3-gate)); its independent review is open. The milestone state is in the [roadmap](../roadmap.md).
 
 The sections up to [Independent review](#independent-review) are slice 1, the investigator on case tools.
 
@@ -252,3 +252,118 @@ Fixed in this pull request:
 Opened as issues, each with its trigger: a merge of two branches that both add seals fails the history test ([#44](https://github.com/sindredg/hindcast/issues/44)); the record check misses a type change that compares equal ([#45](https://github.com/sindredg/hindcast/issues/45)); refs count as retrieved before `screen()` ([#46](https://github.com/sindredg/hindcast/issues/46)); `provenance.library` names the index but not its contents ([#47](https://github.com/sindredg/hindcast/issues/47)); a sealed file keeps a tool error's raw SDK message ([#48](https://github.com/sindredg/hindcast/issues/48)); a search can run past the time cap ([#49](https://github.com/sindredg/hindcast/issues/49)).
 
 Set aside by the review: the mid-run search failure in a seal (an accepted gap above), the live agent versions (read through the Foundry SDK, which the review did not call), the sol run's counts and the overlap against the updates (local files), and the diagrams' geometry.
+
+## Slice 3: screens, PII, challenge, traces, and cost
+
+### Pass bar for the slice 3 live runs
+
+Written before the runs. One run of `python -m hindcast.investigate cloudflare-2026-02-20` per model, from a commit pushed to the branch ([#39](https://github.com/sindredg/hindcast/issues/39)), then one challenge per model on its own run. A run passes when:
+
+- its status is `complete`, with no rejected citation and no unsupported item under the stricter shown-ref rule,
+- every tool call made at least one screen call and withheld nothing,
+- `checks.pii` is present, and its hit count is recorded as the false-positive figure on clean evidence, and
+- the result has a cost from price table version 1.
+
+A withheld item on the development case stops the work until the false positive is looked at. A challenge passes when it completes with a verdict, nothing rejected, and the question screened before any model call. The question, fixed before the runs: "Which status update shows this, and does any later update contradict it?", on the first observation finding of each run.
+
+### Slice 3 work completed
+
+The design is [decision 0021](../decisions/0021-screens-pii-and-challenge.md); the procedure is the [investigator runbook](../runbooks/investigator.md).
+
+| Part | Where | What it does |
+|---|---|---|
+| Safety clients | `hindcast.safety` | Prompt Shields (API 2024-09-01) and PII detection (API and model 2026-05-01) over plain REST on azure-core, with an Entra token and no retry. A long text is split; a call holds at most 5 documents and 10,000 characters for Prompt Shields, 5 documents of 5,000 code points for PII. An error names the HTTP status and the service's error code, never its message. A missing flag is an error, not a pass |
+| Screens per item | `hindcast.tools` | Each update, chart, and library hit is screened once per run. A flagged one is replaced by its ref and `"withheld": "prompt-shields"`; the note says why. The tools track the case refs shown, the refs withheld, and the library refs shown (`retrieved`, after the screen: [#46](https://github.com/sindredg/hindcast/issues/46)) |
+| Citations | `hindcast.result` | A withheld ref is rejected as `withheld`; a case ref the run never read as `not-shown` |
+| PII | `hindcast.redact` | Every free-text field of the answer goes to PII detection; a hit becomes `[<Category>]`, and `checks.pii` lists path, category, and confidence. `PersonType`, `Organization`, `DateTime`, `URL`, and `IPAddress` pass |
+| Loop | `hindcast.investigate` | Ends as `screen-error`, `pii-error`, or `time-cap` when a screen, the PII check, or a tool runs out of time. Every tool call gets the time left; the search and the query embedding make one try within it ([#49](https://github.com/sindredg/hindcast/issues/49)). The PII check runs after the answer with its own 30 seconds |
+| Spans | `hindcast.telemetry`, `hindcast.investigate`, `hindcast.challenge` | `investigation` or `challenge`, `model_call` (seconds, time left, tokens), `tool_call` (seconds, withheld, screen calls), `screen`, `pii` (hits). Service name `hindcast-investigator` for the commands; every span kept |
+| Cost | `data/prices.yaml`, `hindcast.costs` | Version 1 of the price table, with the meter and date of each price. Each result records its cost by part. A deployment missing from the table is refused before the agent version; a call past the short-context limit is recorded as not priced |
+| Challenge | `hindcast.challenge`, `prompts/challenger.md`, `hindcast.agent` | A second agent per deployment with a challenge schema; the question screened, then PII-masked; 6 tool calls and 90 seconds; stored under `challenges/` next to the result |
+| Page | `hindcast.app` | Lists the development results, opens on the newest `gpt-6-luna` run, shows stored challenges under each finding, the withheld items, the PII hits, and the cost. `HINDCAST_CHALLENGE_LIVE=1` adds a question box per finding |
+| Seals | `hindcast.seal` | Runs with the screens, the PII check, the spans, and the cost. The record check compares values as JSON, so a changed type is a change ([#45](https://github.com/sindredg/hindcast/issues/45)) |
+
+### Slice 3 live runs
+
+Before the runs, both services answered 401 to the developer's sign-in; the custom role "Hindcast Safety Caller" was created and assigned on the Foundry resource at 17:05:54Z, and both answered from 17:08Z ([finding](../findings/safety.md)). Both runs used `--env-file .env`, at commit `81e01a7`, pushed before the first run, clean tree.
+
+| | gpt-6-luna, 17:11:46Z | gpt-6.1-sol, 17:12:55Z |
+|---|---|---|
+| Agent | `hindcast-investigator-gpt-6-luna` version 3 | `hindcast-investigator-gpt-6-1-sol` version 2 |
+| Outcome | `complete`; 6 findings, 8 timeline events, 2 factors, 4 open questions | `complete`; 9 findings, 9 timeline events, 2 factors, 3 open questions |
+| Citations | 0 rejected, 0 unsupported; 1 search, no library citation kept | 0 rejected, 0 unsupported; 1 search, 1 library citation kept |
+| Screens | 5 calls, 25 records, 0 withheld | 5 calls, 27 records, 0 withheld |
+| PII | 6 calls, 26 records, 0 hits | 6 calls, 28 records, 0 hits |
+| Usage | 3 model calls, 42.195 s, 10,648 input tokens (4,251 cached), 3,039 output | 3 model calls, 56.597 s, 10,552 input (4,251 cached), 2,940 output |
+| Cost | USD 0.037583: model 0.002202, screens 0.009375, PII 0.026, embeddings 0.000007 | USD 0.080555: model 0.042427, screens 0.010125, PII 0.028, embeddings 0.000003 |
+
+Both passed. Prompt Shields flagged nothing in the development evidence and the library sections each run retrieved, and PII detection found nothing to mask: both false-positive figures on clean evidence are 0. The luna run kept no library citation this time; slice 2's did. That is not a slice 3 criterion and is recorded as seen.
+
+The PII check is the larger cost: at USD 1.00 per 1,000 records against 0.375 for Prompt Shields, it costs more than the luna model calls.
+
+Challenges, from the command, with the question fixed above:
+
+| Challenge | Outcome | Usage and cost |
+|---|---|---|
+| luna F1, 17:14:24Z, agent `hindcast-challenger-gpt-6-luna` version 1 | `complete`, `stands`; 2 case citations kept, 0 rejected | 2 model calls, 1 tool call, 6.353 s, 3 screen calls; USD 0.006129 |
+| sol F1, 17:14:51Z, `hindcast-challenger-gpt-6-1-sol` version 1 | `complete`, `stands`; 10 kept, 0 rejected | 2 model calls, 1 tool call, 9.238 s, 3 screen calls; USD 0.014526 |
+| luna F2, 17:19:08Z, after the sampler fix | `complete`, `stands`; 8 kept, 0 rejected | 2 model calls, 3 tool calls, 15.628 s; USD 0.011807 |
+| luna F3, 17:42:10Z, after the workspace's shared keys were turned off | `complete`, `stands`; 6 kept, 0 rejected | 2 model calls, 2 tool calls, 7.607 s; USD 0.007431 |
+| luna F4, 17:46:02Z, after Application Insights was disconnected from Foundry | `complete`, `stands`; 5 kept, 0 rejected | 2 model calls, 1 tool call, 10.218 s; USD 0.006193 |
+
+Traces, read with `az monitor app-insights query`:
+
+1. The first four runs' spans arrived in part: 6 of 10 `model_call` spans, no `investigation` span, no question `screen` span. Cause: the exporter's default sampler, five traces per second ([finding](../findings/observability.md#the-azure-monitor-exporter-samples-five-traces-per-second-by-default-2026-11-03)). Fixed with `OTEL_TRACES_SAMPLER=parentbased_always_on`; the F2 challenge's trace then arrived whole, each span with `itemCount` 1.
+2. Foundry's server-side spans stored every prompt and the unmasked answer, though content recording was off on the client ([finding](../findings/observability.md#foundrys-server-side-traces-store-every-prompt-and-answer-whatever-the-client-sets-2026-11-03)). Application Insights was disconnected from the Foundry account at 17:45:50Z; the F4 challenge's own spans arrived, and no server-side span did (read 17:50Z).
+3. `AIProjectInstrumentor` added no client-side span; every GenAI span seen came from the server side.
+4. The F2 trace showed the question's `screen` span in a trace of its own. `run_challenge` now opens the `challenge` span around it; tested with an in-memory exporter, not live.
+
+Every `model_call` span that arrived ran within its time left ([#24](https://github.com/sindredg/hindcast/issues/24)): 2.191 of 113.557 s, 24.225 of 104.724, then the challenges' 2.584 of 90, 3.265 of 87.065, 3.248 of 90, 5.363 of 86.325, 3.72 of 90, 6.712 of 81.224. For the calls the sampler dropped, each run's total time (42.2 s and 56.6 s) is under the 120-second cap, so none outlasted its time left (reasoned from the result files).
+
+The runs and the five challenges are committed unchanged in [`eval/investigations/cloudflare-2026-02-20/`](../../eval/investigations/cloudflare-2026-02-20/README.md), with their overlap against the updates and the library. None repeats library text in 25 characters or more.
+
+### Slice 3 gate
+
+| Criterion | Status | Evidence |
+|---|---|---|
+| A flagged item is withheld, the rest is shown, and the withheld ref cannot be cited | Tested locally | `tests/test_tools.py::test_flagged_update_is_withheld_and_the_rest_shown`, `test_flagged_hit_is_not_retrieved`, `test_chart_screens_alt_text_and_description`; `tests/test_result.py::test_withheld_case_ref_is_rejected_as_withheld`, `test_withheld_library_ref_is_rejected`, `test_unread_case_ref_is_rejected_as_not_shown`; through the loop, `tests/test_investigate.py::test_flagged_update_is_withheld_in_the_run_and_its_citation_rejected`. Not provoked live: nothing in the development case was flagged |
+| A screen error ends the run; a missing flag is not a pass | Tested locally | `test_screen_error_ends_run_as_screen_error`, `tests/test_safety.py::test_a_service_error_becomes_a_screen_error`, `test_a_missing_flag_is_not_a_pass`, `test_a_missing_prompt_flag_is_not_a_pass` (the empty-prompt shape seen live) |
+| A long result is split within the limits | Tested locally | `test_documents_of_25000_characters_are_split_within_the_limits`, `test_batches_hold_the_limits`, `test_documents_flag_a_text_when_any_piece_is_flagged` |
+| PII is masked and recorded by path and category, not kept | Tested locally; tested live with no hit | `test_pii_hits_are_masked_in_the_written_file`, `tests/test_redact.py`; `test_pii_maps_entities_with_codepoint_offsets` with curly quotes and an emoji. Live: 0 hits in both runs and five challenges; the probe on a made-up name returned `Person` |
+| A flagged challenge question makes no model call | Tested locally | `tests/test_challenge.py::test_flagged_question_makes_no_model_call` |
+| A challenge citation that does not resolve is rejected | Tested locally; tested live with none | `test_challenge_unknown_ref_is_rejected`, `test_challenge_case_citation_needs_its_own_reading`; live: 0 rejected in five challenges, and `tests/test_committed_investigation.py` resolves each committed challenge's case citations (local, evidence present) |
+| A finding can be challenged from the interface, and the answer cites its evidence | Tested locally; configured, not tested in a browser | `tests/test_app.py::test_challenge_box_with_live_flag` (stubbed challenge), `test_no_challenge_box_without_live_flag`. Live from the command: five challenges above. The page's box with `HINDCAST_CHALLENGE_LIVE=1` has not been clicked in a browser |
+| Every investigation and challenge has a trace and a cost | Tested live | Spans of both runs (in part, before the sampler fix) and of every challenge, read by query; F2 and later whole. Cost in every result and challenge file. `tests/test_investigate.py::test_spans_carry_no_text`; `tests/test_challenge.py::test_a_challenge_is_one_trace` |
+| An unknown deployment has no price | Tested locally | `tests/test_costs.py::test_unknown_deployment_raises`; `tests/test_investigate.py::test_a_deployment_without_a_price_is_refused_before_any_model_call` |
+| The cost matches what is billed | Configured, not tested | The table totals are above; Cost Management lags by about a day, and the comparison is a later read |
+| The time cap holds for whole calls ([#24](https://github.com/sindredg/hindcast/issues/24)) | Tested live, in part; the rest reasoned | The `model_call` spans above; the dropped ones bounded by each run's total time |
+| A search gets the time left and makes no retry ([#49](https://github.com/sindredg/hindcast/issues/49)) | Tested locally | `tests/test_search.py::test_search_passes_timeout_and_no_retries`, `test_search_timeout_raises_timeout_error`, `test_investigation_search_client_makes_no_retries`; `tests/test_index.py::test_embedder_with_a_timeout_makes_one_try_within_it`, `test_embedder_timeout_raises_timeout_error`; `tests/test_investigate.py::test_tool_timeout_is_time_cap` |
+| The seal path runs with the screens | Tested locally | `tests/test_seal.py::test_seal_path_runs_with_screens` |
+| The seal record reports a changed type ([#45](https://github.com/sindredg/hindcast/issues/45)) | Tested locally | `tests/test_seal.py::test_record_value_of_another_type_is_a_change` |
+| The workspace refuses shared keys and traces still arrive ([#2](https://github.com/sindredg/hindcast/issues/2)) | Tested live | `features.disableLocalAuth` read back `true` at 17:42:01Z; the F3 challenge's spans, Foundry's included, arrived at 17:42:46Z |
+
+Every new check was run once against a broken input on 2026-11-03, locally, and failed:
+
+| Broken input | Failed tests |
+|---|---|
+| `batches` allows six documents | `test_batches_hold_the_limits` |
+| A missing document flag read as a pass | `test_a_missing_flag_is_not_a_pass` |
+| A missing prompt flag read as a pass (the shape seen live) | `test_a_missing_prompt_flag_is_not_a_pass` |
+| A search's refs join `retrieved` before the screen | `test_flagged_hit_is_not_retrieved` |
+| The withheld check removed for case refs | `test_withheld_case_ref_is_rejected_as_withheld` |
+| `open_questions` left out of the PII fields | `test_every_text_field_is_sent`, `test_redact_records_path_and_category_not_text` |
+| `prepare` builds the tools without the shield | `test_seal_path_runs_with_screens`, `test_main_writes_the_result_and_prints_counts_never_the_text` |
+| A `ScreenError` caught as a pass | `test_screen_error_ends_run_as_screen_error` |
+| The unmasked answer returned after the PII check | `test_pii_hits_are_masked_in_the_written_file` |
+| An unknown deployment priced at zero | `test_unknown_deployment_raises` |
+| The question screen skipped | `test_flagged_question_makes_no_model_call` |
+| The original run's library refs left out of a challenge's `retrieved` | `test_challenge_cites_original_run_refs_without_searching` |
+| Stored challenges not filtered by result file | `test_page_shows_stored_challenges` |
+| The challenge box shown without the flag | `test_no_challenge_box_without_live_flag` |
+| The seal record compared with `==` | `test_record_value_of_another_type_is_a_change`, three cases |
+| No sampler set | `test_configure_keeps_every_span` |
+| The challenge without its own root span | `test_a_challenge_is_one_trace` |
+| A committed challenge's citation changed to `u99` (a copy) | `test_challenge_case_citations_resolve` |
+| A 150-character library fragment added to the sol run (a copy) | `test_library_text_is_not_repeated_at_length` |
+
+The committed files were restored byte for byte (`cmp`). With every file restored, the suite passed: `uv run --frozen pytest -q`, 585 passed (470 on `main` before the slice).

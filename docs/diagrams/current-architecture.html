@@ -60,7 +60,7 @@
     <div class="diagram-container">
       <svg viewBox="0 0 1000 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="current-architecture-title current-architecture-desc">
         <title id="current-architecture-title">Hindcast as built</title>
-        <desc id="current-architecture-desc">On an operator workstation signed in with Entra ID, Hindcast's capture command reads the providers' status pages and postmortems, and the Radar charts are downloaded in the browser. The Azure CLI and Hindcast's code store the captured files in Blob Storage, and Hindcast's ingestion reads them back and writes the evidence, the extracts, and the answer-key analyzer results there with its own Entra token. Hindcast's code calls the pinned model deployments through the Foundry project with the Responses API; its investigate command keeps the investigator prompt agent's version in the project, runs that agent, executes its case tools and library searches on the workstation, and writes the result file there; its seal command runs the same agent on a sealed case, uploads the result to Blob Storage, and commits only its hash. It calls Content Understanding on the Foundry resource, whose three analyzers use the gpt-5.4-mini and text-embedding-3-large deployments, with a role assigned only while extraction runs. Its index command embeds the library chunks through the Foundry resource endpoint and pushes them to the library index in Azure AI Search, in Switzerland North, which the investigator's library search and the leak check query with an Entra token. During a portal evaluation run, the Foundry evaluation calls the deployments as the signed-in user. git reaches GitHub through pull requests. The project is connected to Application Insights, which the deployed page also writes to (the deployment diagram). The Foundry resource, the storage account, and the search service accept no keys; traces use the Application Insights connection string.</desc>
+        <desc id="current-architecture-desc">On an operator workstation signed in with Entra ID, Hindcast's capture command reads the providers' status pages and postmortems, and the Radar charts are downloaded in the browser. The Azure CLI and Hindcast's code store the captured files in Blob Storage, and Hindcast's ingestion reads them back and writes the evidence, the extracts, and the answer-key analyzer results there with its own Entra token. Hindcast's code calls the pinned model deployments through the Foundry project with the Responses API; its investigate command keeps the investigator prompt agent's version in the project, runs that agent, executes its case tools and library searches on the workstation, screens every tool item with Prompt Shields and masks personal data in the answer with PII detection, and writes the result file there; its challenge command runs a challenger agent on one finding the same way; its seal command runs the same agent on a sealed case, uploads the result to Blob Storage, and commits only its hash. It calls Content Understanding on the Foundry resource, whose three analyzers use the gpt-5.4-mini and text-embedding-3-large deployments, with a role assigned only while extraction runs. Its index command embeds the library chunks through the Foundry resource endpoint and pushes them to the library index in Azure AI Search, in Switzerland North, which the investigator's library search and the leak check query with an Entra token. During a portal evaluation run, the Foundry evaluation calls the deployments as the signed-in user. git reaches GitHub through pull requests. Hindcast's commands send their spans to Application Insights, which the deployed page also writes to (the deployment diagram); the Foundry project is not connected to it. The Foundry resource, the storage account, and the search service accept no keys; traces use the Application Insights connection string.</desc>
         <defs>
           <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#bfc0c0"/></marker>
           <marker id="arrow-start" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto-start-reverse"><polygon points="0 0, 8 3, 0 6" fill="#bfc0c0"/></marker>
@@ -71,7 +71,7 @@
         <rect width="100%" height="100%" fill="#2d3142"/>
 
         <!-- Foundry resource boundary -->
-        <rect x="584" y="72" width="376" height="288" rx="8" fill="rgba(245,245,245,0.02)" stroke="rgba(245,245,245,0.10)" stroke-width="0.8"/>
+        <rect x="584" y="72" width="376" height="296" rx="8" fill="rgba(245,245,245,0.02)" stroke="rgba(245,245,245,0.10)" stroke-width="0.8"/>
         <rect x="692" y="76" width="160" height="12" rx="2" fill="#2d3142"/>
         <text x="772" y="85" fill="#949eb2" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">FOUNDRY RESOURCE · KEYS OFF</text>
 
@@ -84,13 +84,14 @@
         <line x1="776" y1="312" x2="808" y2="312" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
         <line x1="404" y1="208" x2="404" y2="400" stroke="#bfc0c0" stroke-width="1.2" marker-start="url(#arrow-start)" marker-end="url(#arrow)"/>
         <path d="M 304,192 H 128 Q 120,192 120,200 V 400" fill="none" stroke="#739fdf" stroke-width="1.2" marker-end="url(#arrow-link)"/>
-        <path d="M 608,240 H 604 Q 596,240 596,248 V 400" fill="none" stroke="#bfc0c0" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+        <!-- Workstation to Application Insights; hops the AI Search link at x=496 -->
+        <path d="M 440,208 V 372 Q 440,380 448,380 H 490 A 6,6 0 0 1 502,380 H 584 Q 592,380 592,388 V 400" fill="none" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
         <!-- Workstation to the embedding deployment, over the Foundry boundary -->
         <path d="M 440,96 V 68 Q 440,60 448,60 H 868 Q 876,60 876,68 V 120" fill="none" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
         <!-- Workstation to AI Search; hops the Content Understanding link at y=312 -->
         <path d="M 496,208 V 306 A 6,6 0 0 1 496,318 V 472 Q 496,480 504,480 H 868 Q 876,480 876,472 V 464" fill="none" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
-        <!-- Workstation to Content Understanding; hops the tracing link at x=596 -->
-        <path d="M 470,208 V 304 Q 470,312 478,312 H 590 A 6,6 0 0 1 602,312 H 608" fill="none" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <!-- Workstation to the Foundry Tools -->
+        <path d="M 470,208 V 304 Q 470,312 478,312 H 608" fill="none" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
 
         <!-- Connector labels -->
         <rect x="224" y="124" width="56" height="12" rx="2" fill="#2d3142"/>
@@ -101,16 +102,16 @@
         <text x="556" y="189" fill="#f08a59" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">RESPONSES API</text>
         <rect x="324" y="290" width="72" height="12" rx="2" fill="#2d3142"/>
         <text x="360" y="299" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">READ · WRITE</text>
-        <rect x="506" y="294" width="56" height="12" rx="2" fill="#2d3142"/>
-        <text x="534" y="303" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">ANALYZE</text>
+        <rect x="506" y="294" width="84" height="12" rx="2" fill="#2d3142"/>
+        <text x="548" y="303" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">ANALYZE · SCAN</text>
         <rect x="128" y="244" width="76" height="12" rx="2" fill="#2d3142"/>
         <text x="166" y="253" fill="#739fdf" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">PULL REQUEST</text>
         <rect x="626" y="42" width="68" height="12" rx="2" fill="#2d3142"/>
         <text x="660" y="51" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">EMBEDDINGS</text>
         <rect x="644" y="486" width="80" height="12" rx="2" fill="#2d3142"/>
         <text x="684" y="495" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">PUSH · QUERY</text>
-        <rect x="526" y="370" width="60" height="12" rx="2" fill="#2d3142"/>
-        <text x="556" y="379" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">CONNECTED</text>
+        <rect x="523" y="362" width="40" height="12" rx="2" fill="#2d3142"/>
+        <text x="543" y="371" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">SPANS</text>
 
         <!-- Provider sites -->
         <rect x="40" y="112" width="160" height="64" rx="6" fill="#2d3142"/>
@@ -143,12 +144,13 @@
         <text x="632" y="209" fill="#f5f5f5" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">PROJ</text>
         <text x="692" y="230" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Foundry project</text>
         <text x="692" y="246" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">endpoint · prompt agent</text>
-        <rect x="608" y="280" width="168" height="64" rx="6" fill="#2d3142"/>
-        <rect x="608" y="280" width="168" height="64" rx="6" fill="#393e53" stroke="#f5f5f5" stroke-width="1"/>
-        <rect x="616" y="288" width="32" height="12" rx="2" fill="transparent" stroke="rgba(245,245,245,0.40)" stroke-width="0.8"/>
-        <text x="632" y="297" fill="#f5f5f5" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">EXTR</text>
-        <text x="692" y="318" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Content Understanding</text>
-        <text x="692" y="334" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">3 analyzers · role per run</text>
+        <rect x="608" y="280" width="168" height="76" rx="6" fill="#2d3142"/>
+        <rect x="608" y="280" width="168" height="76" rx="6" fill="#393e53" stroke="#f5f5f5" stroke-width="1"/>
+        <rect x="616" y="288" width="36" height="12" rx="2" fill="transparent" stroke="rgba(245,245,245,0.40)" stroke-width="0.8"/>
+        <text x="634" y="297" fill="#f5f5f5" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TOOLS</text>
+        <text x="692" y="318" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Foundry Tools</text>
+        <text x="692" y="334" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Content Understanding</text>
+        <text x="692" y="348" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Prompt Shields · PII</text>
         <rect x="808" y="120" width="136" height="224" rx="6" fill="#2d3142"/>
         <rect x="808" y="120" width="136" height="224" rx="6" fill="#393e53" stroke="#f5f5f5" stroke-width="1"/>
         <rect x="816" y="128" width="36" height="12" rx="2" fill="transparent" stroke="rgba(245,245,245,0.40)" stroke-width="0.8"/>
@@ -211,7 +213,7 @@
         <text x="468" y="540" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">HTTPS outside Azure</text>
 
         <line x1="576" y1="537" x2="604" y2="537" stroke="#bfc0c0" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
-        <text x="612" y="540" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">Outside the code path: connection, portal runs</text>
+        <text x="612" y="540" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">Outside the code path: portal runs</text>
 
         <text x="960" y="520" fill="#949eb2" font-size="8.5" font-family="'Geist', sans-serif" text-anchor="end">Azure in Sweden Central, AI Search in Switzerland North · Entra tokens, no keys · traces use the Application Insights connection string</text>
       </svg>

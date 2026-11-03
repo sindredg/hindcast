@@ -1,6 +1,6 @@
 # 8. User interface: Streamlit with a structured investigation view
 
-Status: Accepted (2026-10-25).
+Status: Accepted (2026-10-25). The challenge runs live only on a developer's machine; the deployed page shows stored challenges, per [decision 0021](0021-screens-pii-and-challenge.md).
 
 ## Context
 
