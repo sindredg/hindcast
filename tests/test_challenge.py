@@ -295,3 +295,26 @@ def test_challenge_runs_only_against_the_evidence_it_was_made_from(
     with pytest.raises(ValueError, match="evidence"):
         main([str(path), "f1", QUESTION])
     assert created == []
+
+
+def test_a_challenge_is_one_trace(tmp_path: Path) -> None:
+    # The question's screen ran in a trace of its own on 2026-11-03.
+    from test_investigate import recording_span
+
+    span, exporter = recording_span()
+    setup = Setup(response(call()), answer())
+    run_challenge(
+        setup.turn,
+        setup.tools,
+        load_result(stored(tmp_path)),
+        "f1",
+        QUESTION,
+        pii=setup.pii,
+        clock=Clock(),
+        span=span,
+    )
+    spans = exporter.get_finished_spans()
+    assert {"challenge", "screen", "model_call", "tool_call", "pii"} <= {s.name for s in spans}
+    assert len({s.context.trace_id for s in spans}) == 1
+    [root] = [s for s in spans if s.parent is None]
+    assert root.name == "challenge" and root.attributes["status"] == "complete"

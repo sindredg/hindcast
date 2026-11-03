@@ -156,6 +156,26 @@ def run_challenge(
     span: Span = telemetry.span,
 ) -> ChallengeResult:
     validate(stored, finding_id, question)
+    # One trace per challenge: the question's screen and PII check run before
+    # the loop, under the same root span.
+    with span("challenge", case_id=stored.case_id, finding_id=finding_id) as current:
+        result = _challenge(turn, tools, stored, finding_id, question, pii, clock, span)
+        current.set_attribute("status", result.status)
+        if result.reason:
+            current.set_attribute("reason", result.reason.split(":")[0])
+        return result
+
+
+def _challenge(
+    turn: Turn,
+    tools: CaseTools,
+    stored: StoredResult,
+    finding_id: str,
+    question: str,
+    pii: Pii | None,
+    clock: Callable[[], float],
+    span: Span,
+) -> ChallengeResult:
     shield = tools.shield
     counters = (
         (shield.calls, shield.records) if shield else (0, 0),
@@ -209,7 +229,7 @@ def run_challenge(
         time_cap=CHALLENGE_TIME_CAP,
         clock=clock,
         span=span,
-        name="challenge",
+        name="challenge_loop",
     )
     checks = replace(run.checks, pii=question_hits + run.checks.pii)
     return ChallengeResult(
