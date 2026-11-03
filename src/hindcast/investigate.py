@@ -150,7 +150,12 @@ def run_investigation(
             except ResultError as error:
                 return end(str(error))
             checked, checks = check_citations(
-                investigation, tools.refs, case_id, frozenset(tools.retrieved)
+                investigation,
+                tools.refs,
+                case_id,
+                frozenset(tools.retrieved),
+                shown=frozenset(tools.shown),
+                withheld=frozenset(tools.withheld),
             )
             return end(None, checked, checks)
 
@@ -158,11 +163,14 @@ def run_investigation(
         for call in calls:
             if tool_calls >= tool_cap:
                 return end("tool-cap")
-            if clock() - start > time_cap:
+            left = time_cap - (clock() - start)
+            if left <= 0:
                 return end("time-cap")
             called = clock()
             try:
-                output = tools.call(call.name, call.arguments)
+                # The search and the screen get the time left, so a tool call
+                # cannot run past the cap either.
+                output = tools.call(call.name, call.arguments, timeout=left)
             except Exception as error:
                 # Any failure inside a tool ends the run with its name and
                 # message; the model never sees a half answer.

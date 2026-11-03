@@ -113,11 +113,13 @@ class Tools(CaseTools):
     def __init__(self, on_call: Any = None, search: Any = None) -> None:
         super().__init__(EVIDENCE, search)
         self.on_call = on_call
+        self.timeouts: list[float] = []
 
-    def call(self, name: str, arguments: str) -> str:
+    def call(self, name: str, arguments: str, *, timeout: float) -> str:
+        self.timeouts.append(timeout)
         if self.on_call:
             self.on_call(name)
-        return super().call(name, arguments)
+        return super().call(name, arguments, timeout=timeout)
 
 
 def run(turn: ScriptedTurn, tools: CaseTools | None = None, clock: Clock | None = None) -> Any:
@@ -127,11 +129,17 @@ def run(turn: ScriptedTurn, tools: CaseTools | None = None, clock: Clock | None 
 def test_final_text_without_tool_calls_completes_and_checks_citations() -> None:
     document = json.loads(json.dumps(FINAL))
     document["findings"][0]["citations"].append({"source": "case", "ref": "dev/u99"})
-    result = run(ScriptedTurn(final(document)))
+    result = run(ScriptedTurn(response(call()), final(document)))
     assert result.status == "complete"
     assert result.incomplete_reason is None
     assert result.investigation.findings[0].citations[0].ref == "dev/u1"
     assert [r.reason for r in result.checks.rejected_citations] == ["unknown"]
+
+
+def test_a_case_ref_the_model_never_read_is_rejected_as_not_shown() -> None:
+    result = run(ScriptedTurn(final()))
+    assert result.status == "complete"
+    assert {r.reason for r in result.checks.rejected_citations} == {"not-shown"}
 
 
 def test_tool_calls_are_executed_and_their_outputs_sent_back() -> None:
@@ -297,15 +305,17 @@ def test_tool_calls_are_recorded_in_order_with_queries_and_refs() -> None:
         clock.now += 1.5 if name == "search_library" else 0.25
 
     turn = ScriptedTurn(response(call(), search_call("errors in ENAM", "c2")), final())
-    tools = Tools(slow, search=lambda q: [hit("lib/a/s1"), hit("lib/b/fig2")])
+    tools = Tools(slow, search=lambda q, timeout: [hit("lib/a/s1"), hit("lib/b/fig2")])
     result = run(turn, tools, clock)
     assert result.tool_calls == (
-        {"name": "list_updates", "seconds": 0.25},
+        {"name": "list_updates", "seconds": 0.25, "withheld": [], "screen_calls": 0},
         {
             "name": "search_library",
             "seconds": 1.5,
             "query": "errors in ENAM",
             "refs": ["lib/a/s1", "lib/b/fig2"],
+            "withheld": [],
+            "screen_calls": 0,
         },
     )
 
@@ -316,8 +326,8 @@ def test_library_citation_from_a_search_is_kept_and_an_unretrieved_one_rejected(
         {"source": "library", "ref": "lib/a/s1"},
         {"source": "library", "ref": "lib/a/s2"},
     ]
-    turn = ScriptedTurn(response(search_call("x")), final(document))
-    result = run(turn, Tools(search=lambda q: [hit("lib/a/s1")]))
+    turn = ScriptedTurn(response(call(), search_call("x", "c2")), final(document))
+    result = run(turn, Tools(search=lambda q, timeout: [hit("lib/a/s1")]))
     assert result.status == "complete"
     assert [c.ref for c in result.investigation.findings[0].citations] == ["dev/u1", "lib/a/s1"]
     assert [(r.ref, r.reason) for r in result.checks.rejected_citations] == [
@@ -326,21 +336,23 @@ def test_library_citation_from_a_search_is_kept_and_an_unretrieved_one_rejected(
 
 
 def test_search_error_ends_the_run_and_keeps_earlier_calls() -> None:
-    def leak(query: str) -> list[LibraryHit]:
+    def leak(query: str, timeout: float) -> list[LibraryHit]:
         raise LibraryLeak("dev: hit from x, which the case may not read")
 
     turn = ScriptedTurn(response(call(), search_call("x", "c2")), final())
     result = run(turn, Tools(search=leak))
     assert result.status == "incomplete"
     assert result.incomplete_reason.startswith("tool-error: search_library: dev: hit from x")
-    assert result.tool_calls == ({"name": "list_updates", "seconds": 0.0},)
+    assert result.tool_calls == (
+        {"name": "list_updates", "seconds": 0.0, "withheld": [], "screen_calls": 0},
+    )
     assert result.investigation is None
 
 
 def test_thirteenth_call_being_a_search_is_tool_cap() -> None:
     calls = [call(call_id=f"c{i}") for i in range(12)] + [search_call("x", "c12")]
     searched: list[str] = []
-    tools = Tools(search=lambda q: searched.append(q) or [])
+    tools = Tools(search=lambda q, timeout: searched.append(q) or [])
     result = run(ScriptedTurn(response(*calls), final()), tools)
     assert result.incomplete_reason == "tool-cap"
     assert searched == []
@@ -436,7 +448,9 @@ def test_result_file_has_the_spec_shape(tmp_path: Path) -> None:
     assert written["investigation"] == FINAL
     assert written["checks"] == {"rejected_citations": [], "unsupported": []}
     assert written["usage"]["tool_calls"] == 1
-    assert written["tool_calls"] == [{"name": "list_updates", "seconds": 0.0}]
+    assert written["tool_calls"] == [
+        {"name": "list_updates", "seconds": 0.0, "withheld": [], "screen_calls": 0}
+    ]
     assert list(written)[list(written).index("checks") + 1] == "tool_calls"
 
 
@@ -594,7 +608,9 @@ def test_main_writes_the_result_and_prints_counts_never_the_text(
         "version": "1",
         "dimensions": 1024,
     }
-    assert written["tool_calls"] == [{"name": "list_updates", "seconds": 0.0}]
+    assert written["tool_calls"] == [
+        {"name": "list_updates", "seconds": 0.0, "withheld": [], "screen_calls": 0}
+    ]
 
 
 def git(repo: Path, *args: str) -> str:

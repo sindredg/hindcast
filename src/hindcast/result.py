@@ -5,9 +5,12 @@ every citation against the bound case afterwards: a bad citation is removed and
 listed with its reason, the item stays, and an item left with nothing behind it
 is listed as unsupported (decision 0006 counts it as unsupported, not a hit).
 
-A library citation is kept only for a ref a search in this run returned, by
-exact string: a ref the model knows from training, or a near miss of a real
-one, is rejected as not-retrieved. A kept library citation does not support
+A library citation is kept only for a ref a search in this run showed the
+model, by exact string: a ref the model knows from training, or a near miss
+of a real one, is rejected as not-retrieved. A run also passes the case refs
+the model was shown and the refs Prompt Shields withheld: a withheld ref is
+rejected as withheld, and a case ref the model never read as not-shown, though
+it exists in the evidence file. A kept library citation does not support
 an item on its own: a library document is another outage, so a claim about
 this one that rests only on it is unsupported (decision 0006).
 """
@@ -81,7 +84,15 @@ INVESTIGATION_SCHEMA = _schema(_CITATION)
 # check_citations and is rejected on its own instead of failing the whole result.
 _LOCAL_SCHEMA = _schema({})
 
-Reason = Literal["malformed", "unknown", "other-case", "unknown-finding", "not-retrieved"]
+Reason = Literal[
+    "malformed",
+    "unknown",
+    "other-case",
+    "unknown-finding",
+    "not-retrieved",
+    "withheld",
+    "not-shown",
+]
 
 
 @dataclass(frozen=True)
@@ -212,11 +223,18 @@ def parse_investigation(text: str) -> Investigation:
 
 
 def _reason(
-    citation: Citation, refs: frozenset[str], case_id: str, retrieved: Collection[str]
+    citation: Citation,
+    refs: frozenset[str],
+    case_id: str,
+    retrieved: Collection[str],
+    shown: Collection[str] | None,
+    withheld: Collection[str],
 ) -> Reason | None:
     if citation.source == "library":
         if not citation.ref.startswith(LIBRARY_PREFIX):
             return "malformed"
+        if citation.ref in withheld:
+            return "withheld"
         return None if citation.ref in retrieved else "not-retrieved"
     if citation.source != "case" or not citation.ref or citation.ref.startswith(LIBRARY_PREFIX):
         return "malformed"
@@ -225,6 +243,10 @@ def _reason(
         return "other-case"
     if citation.ref not in refs:
         return "unknown"
+    if citation.ref in withheld:
+        return "withheld"
+    if shown is not None and citation.ref not in shown:
+        return "not-shown"
     return None
 
 
@@ -233,8 +255,14 @@ def check_citations(
     refs: frozenset[str],
     case_id: str,
     retrieved: Collection[str] = frozenset(),
+    shown: Collection[str] | None = None,
+    withheld: Collection[str] = frozenset(),
 ) -> tuple[Investigation, Checks]:
-    """Remove and list bad citations and rests_on ids; list items left with no support."""
+    """Remove and list bad citations and rests_on ids; list items left with no support.
+
+    shown=None skips the not-shown check, for a stored file that does not
+    record what its run showed.
+    """
     finding_ids = {f.id for f in investigation.findings}
     rejected: list[RejectedCitation] = []
     unsupported: list[str] = []
@@ -242,7 +270,7 @@ def check_citations(
     def check[T: (Attack, Finding, TimelineEvent, RootCause, Factor)](where: str, item: T) -> T:
         kept: list[Citation] = []
         for citation in item.citations:
-            reason = _reason(citation, refs, case_id, retrieved)
+            reason = _reason(citation, refs, case_id, retrieved, shown, withheld)
             if reason is None:
                 kept.append(citation)
             else:
