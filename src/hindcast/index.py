@@ -670,7 +670,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "check-filter":
         from hindcast.search import extract_refs
 
-        cases = load_cases()
+        # An injection case has no picks in this index: it searches the
+        # injection index (decision 0025), so the production filter skips it.
+        cases = {c: case for c, case in load_cases().items() if case.role != "injection"}
         problems = check_filter(
             cases,
             _library(),

@@ -242,7 +242,10 @@ def main(argv: list[str] | None = None) -> int:
     if unknown:
         parser.error(f"unknown case IDs: {', '.join(unknown)}")
     failed = False
-    for case_id in args.case or sorted(cases):
+    # An injection case's evidence is a copy that python -m hindcast.injection
+    # build writes; it has no snapshot of its own in Blob Storage.
+    default = sorted(c for c, case in cases.items() if case.role != "injection")
+    for case_id in args.case or default:
         # One case failing (a changed source, a cut that refuses, a missing
         # blob) is reported and the others still run; the exit code says so.
         try:

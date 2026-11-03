@@ -537,6 +537,7 @@ def prepare(
     deployment: str | None = None,
     challenger: bool = False,
     arm: Arm = ARMS["hindcast"],
+    screens: bool = True,
 ) -> Setup:
     """Read the evidence, make the agent version, and record what the run rests on.
 
@@ -544,7 +545,15 @@ def prepare(
     The arm (hindcast.arms) sets the prompt, the tools, and the deployment,
     which defaults to the configured chat or comparison deployment. A
     single-search arm makes no agent: its turn calls the deployment itself.
+    screens=False runs without Prompt Shields, for an injection case only.
     """
+    if not screens and case.role != "injection":
+        # The second injection layer measures the model without the screens
+        # (decision 0025); every other run is screened, so this is refused
+        # before any cloud call.
+        raise PermissionError(
+            f"{case.case_id} is a {case.role} case: screens off is for injection cases only"
+        )
     evidence_path = (evidence_dir or EVIDENCE_DIR) / f"{case.case_id}.json"
     evidence = load_evidence(evidence_path)
     # Missing search or safety settings fail here, before the agent version is made.
@@ -559,15 +568,36 @@ def prepare(
     # retries: a retry would run past the time left (issue #49). The
     # library-off arm binds none, so no search can run.
     embed = search = None
+    index_name = search_settings.search_index
     if arm.library:
         embed = index.embedder(search_settings.embedding_dimensions)
+        bound: dict[str, Any] = {}
+        if case.role == "injection":
+            # An injection case searches its own index, which holds the
+            # planted pages; the production index never does (decision 0025).
+            from hindcast import cases as registry
+            from hindcast import injection
+            from hindcast.library import load_library
+            from hindcast.search import extract_refs
+
+            known = registry.load_cases()
+            index_name = injection.INDEX
+            bound = {
+                "cases": known,
+                "library": injection.injection_library(
+                    load_library(LIBRARY_REGISTRY, known), known
+                ),
+                "refs": extract_refs() | extract_refs(injection.EXTRACTS_DIR),
+            }
         search = functools.partial(
             search_library,
             case.case_id,
             embed=embed,
-            client=index.clients(search_settings.search_index, retry_total=0)[1],
+            client=index.clients(index_name, retry_total=0)[1],
+            **bound,
         )
-    tools = CaseTools(evidence, search, safety.shield_client(safety_settings))
+    shield = safety.shield_client(safety_settings) if screens else None
+    tools = CaseTools(evidence, search, shield)
 
     model_settings = load_settings(ModelSettings)
     deployment = deployment or (
@@ -602,7 +632,7 @@ def prepare(
         "evidence_sha256": hashlib.sha256(evidence_path.read_bytes()).hexdigest(),
         "library": {
             "registry": prompt_provenance(LIBRARY_REGISTRY),
-            "index": search_settings.search_index,
+            "index": index_name,
             "search_api_version": index.SEARCH_API_VERSION,
             "embedding": index.embedding_model()
             | {"dimensions": search_settings.embedding_dimensions},
@@ -612,6 +642,7 @@ def prepare(
     }
     if not challenger:
         provenance["arm"] = arm.name
+    provenance["screens"] = screens
     return Setup(
         turn=turn,
         tools=tools,
@@ -627,6 +658,11 @@ def prepare(
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="python -m hindcast.investigate")
     parser.add_argument("case_id")
+    parser.add_argument("--arm", choices=sorted(ARMS), default="hindcast")
+    parser.add_argument("--deployment", help="overrides the arm's configured deployment")
+    parser.add_argument(
+        "--screens", choices=("on", "off"), default="on", help="off: injection cases only"
+    )
     parser.add_argument("--out", type=Path, default=OUT_DIR)
     args = parser.parse_args(argv)
 
@@ -636,10 +672,17 @@ def main(argv: list[str] | None = None) -> None:
     case = cases[args.case_id]
     # Both refusals come before any cloud call.
     check_case_allowed(case, RUBRIC_LOCK)
+    arm = ARMS[args.arm]
     telemetry.configure(service=telemetry.INVESTIGATOR)
-    setup = prepare(case)
-    result = run_investigation(setup.turn, setup.tools, case_id=case.case_id, pii=setup.pii)
+    setup = prepare(case, deployment=args.deployment, arm=arm, screens=args.screens == "on")
+    if arm.kind == "single":
+        from hindcast.single import run_single
+
+        result = run_single(setup, case)
+    else:
+        result = run_investigation(setup.turn, setup.tools, case_id=case.case_id, pii=setup.pii)
     cost = setup.cost(result.usage)
+    now = datetime.now(UTC)
     path = write_result(
         result,
         case_id=case.case_id,
@@ -647,8 +690,10 @@ def main(argv: list[str] | None = None) -> None:
         model=setup.model,
         provenance=setup.provenance,
         out_dir=args.out,
-        now=datetime.now(UTC),
+        now=now,
         cost=cost,
+        # A single-search run has no agent version to name the file by.
+        filename=None if arm.kind == "agent" else f"{now:%Y%m%dT%H%M%SZ}-{arm.name}.json",
     )
     print(summary(result, path, cost))
 

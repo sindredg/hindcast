@@ -18,8 +18,11 @@ def symptoms() -> dict[str, list[dict]]:
 
 def test_every_case_has_tagged_symptoms():
     # A sealed case has no picks, so no tags: it searches the whole library
-    # within its date bound (decision 0017).
-    cases = {c: case for c, case in load_cases().items() if case.role != "sealed"}
+    # within its date bound (decision 0017). An injection case searches its
+    # own index with the development case's picks (decision 0025).
+    cases = {
+        c: case for c, case in load_cases().items() if case.role not in ("sealed", "injection")
+    }
     tagged = symptoms()
 
     assert sorted(tagged) == sorted(cases)
