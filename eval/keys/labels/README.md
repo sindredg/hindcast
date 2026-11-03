@@ -4,9 +4,18 @@ One label file per scored case: for each scored key item, whether the case's evi
 
 ## Status
 
-Written: `hindcast.labels` and its checks. No label is frozen yet. Each label is approved by a person and frozen before the first scored run.
+Four label files frozen on 2026-11-03, before any scored run: each label was approved by a person, and the keys were read with the evidence, never with a run's output. A sealed case is labelled at its reveal, before its sealed file is opened ([decision 0022](../../../docs/decisions/0022-sealed-drop-date-and-offline-reveal.md)).
 
-`frozen.json`, once written, records each file's SHA-256, and `tests/test_labels.py` fails if a label file changes or is not frozen. A changed label is a new approval, not an edit.
+[`frozen.json`](frozen.json) records each file's SHA-256, and `tests/test_labels.py` fails if a label file changes or is not frozen. A changed label is a new approval, not an edit.
+
+| Case | Stated | Inferable | Not inferable |
+|---|---|---|---|
+| `cloudflare-2025-11-18` | 6 | 0 | 14 |
+| `github-2026-08-17` | 3 | 0 | 4 |
+| `google-cloud-2026-07-14` | 3 | 2 | 3 |
+| `github-2026-10-07` | 4 | 0 | 5 |
+
+The attack verdict is `inferable` where an update names a cause that settles it, and `not inferable` where no update names a cause.
 
 ## Fields
 
@@ -35,4 +44,8 @@ The attack verdict has no `stated_during_incident` flag in the key, so its label
 
 | File | What it is |
 |---|---|
-| `README.md` | This page |
+| [`cloudflare-2025-11-18.json`](cloudflare-2025-11-18.json) | Scored case |
+| [`github-2026-08-17.json`](github-2026-08-17.json) | Scored case |
+| [`google-cloud-2026-07-14.json`](google-cloud-2026-07-14.json) | Scored case |
+| [`github-2026-10-07.json`](github-2026-10-07.json) | Scored case |
+| [`frozen.json`](frozen.json) | SHA-256 of each label file |

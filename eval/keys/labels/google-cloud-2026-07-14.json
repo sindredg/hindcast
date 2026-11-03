@@ -1,0 +1,69 @@
+{
+  "case_id": "google-cloud-2026-07-14",
+  "items": [
+    {
+      "item": "attack",
+      "label": "inferable",
+      "reason": "u4 names a recent configuration update as the likely cause; a cause of that kind settles the verdict as not an attack.",
+      "evidence": [
+        "google-cloud-2026-07-14/u4"
+      ]
+    },
+    {
+      "item": "root_cause",
+      "label": "stated",
+      "reason": "u4 names a recent configuration update as the likely cause of the inter-zone disruption; u3 describes the BGP session flapping and the lost witness connectivity.",
+      "evidence": [
+        "google-cloud-2026-07-14/u3",
+        "google-cloud-2026-07-14/u4"
+      ]
+    },
+    {
+      "item": "contributing_factors/0",
+      "label": "not inferable",
+      "reason": "No update mentions validation of the configuration or automated safeguards.",
+      "evidence": []
+    },
+    {
+      "item": "contributing_factors/1",
+      "label": "not inferable",
+      "reason": "No update mentions health checks or why failover did not detect the dropped range.",
+      "evidence": []
+    },
+    {
+      "item": "contributing_factors/2",
+      "label": "inferable",
+      "reason": "Close call. u3 says VMs on the affected sites become isolated and may be left without writable data, and u2 and u3 recommend migrating VMs to the healthy side; a stretched-cluster VM without cross-site replication cannot survive losing its site.",
+      "evidence": [
+        "google-cloud-2026-07-14/u2",
+        "google-cloud-2026-07-14/u3"
+      ]
+    },
+    {
+      "item": "timeline/0",
+      "label": "stated",
+      "reason": "u1 gives the start as 2026-07-14 10:00 PDT, 17:00 UTC.",
+      "evidence": [
+        "google-cloud-2026-07-14/u1"
+      ]
+    },
+    {
+      "item": "timeline/1",
+      "label": "stated",
+      "reason": "u4, at 23:05 UTC, names the recent configuration update.",
+      "evidence": [
+        "google-cloud-2026-07-14/u4"
+      ]
+    },
+    {
+      "item": "timeline/2",
+      "label": "not inferable",
+      "reason": "The updates say a remediation rollout was in progress until 03:27 UTC (u8), and the resolved mark is at 05:34 (u9); neither the rollback nor the 03:40 restoration is stated.",
+      "evidence": [
+        "google-cloud-2026-07-14/u5",
+        "google-cloud-2026-07-14/u8",
+        "google-cloud-2026-07-14/u9"
+      ]
+    }
+  ]
+}

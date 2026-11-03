@@ -1,0 +1,8 @@
+{
+  "rubric": "eval/rubric/rubric.md",
+  "rubric_sha256": "2a2600446a4f3c8591962be3e71ba5a867a9384ca3d09c6ae5d86c5e50e92a3b",
+  "labels_frozen_sha256": "ab55c54b4b5b5f8d94f89a0010cff2c5c3f65140cab7e9f4a392a7f8a3ae052f",
+  "keys_frozen_sha256": "0683eeb4e59822850ad856e5393eaaa79e998736e622fe3f2861d4cb31c188dc",
+  "tolerance_minutes": 30,
+  "frozen_at": "2026-11-03T21:17:31Z"
+}

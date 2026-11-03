@@ -1,0 +1,160 @@
+{
+  "case_id": "cloudflare-2025-11-18",
+  "items": [
+    {
+      "item": "attack",
+      "label": "not inferable",
+      "reason": "No update says whether it was an attack or names a cause; u1 calls it an internal service degradation, which does not exclude an attack.",
+      "evidence": [
+        "cloudflare-2025-11-18/u1",
+        "cloudflare-2025-11-18/u21"
+      ]
+    },
+    {
+      "item": "root_cause",
+      "label": "not inferable",
+      "reason": "No update describes the cause; u7 says only that the issue was identified.",
+      "evidence": [
+        "cloudflare-2025-11-18/u7"
+      ]
+    },
+    {
+      "item": "contributing_factors/0",
+      "label": "not inferable",
+      "reason": "No update mentions the database query or the permissions change.",
+      "evidence": []
+    },
+    {
+      "item": "contributing_factors/1",
+      "label": "not inferable",
+      "reason": "No update mentions the feature limit or a proxy crash.",
+      "evidence": []
+    },
+    {
+      "item": "contributing_factors/2",
+      "label": "not inferable",
+      "reason": "u3 reports recovery with errors continuing, and the chart shows a drop and a recovery, but nothing points to files regenerated every five minutes on a mixed fleet.",
+      "evidence": [
+        "cloudflare-2025-11-18/u3",
+        "cloudflare-2025-11-18/chart1"
+      ]
+    },
+    {
+      "item": "contributing_factors/3",
+      "label": "not inferable",
+      "reason": "The global reach is visible (the title, chart1), but not that a file published to the whole network carried it.",
+      "evidence": [
+        "cloudflare-2025-11-18/chart1"
+      ]
+    },
+    {
+      "item": "contributing_factors/4",
+      "label": "not inferable",
+      "reason": "No update mentions a suspected attack or the status page going down.",
+      "evidence": []
+    },
+    {
+      "item": "contributing_factors/5",
+      "label": "not inferable",
+      "reason": "u18 and u19 mention latency, but not the debugging and observability systems behind it.",
+      "evidence": [
+        "cloudflare-2025-11-18/u18",
+        "cloudflare-2025-11-18/u19"
+      ]
+    },
+    {
+      "item": "contributing_factors/6",
+      "label": "not inferable",
+      "reason": "u14 reports dashboard login problems after the fix (u13), but neither a backlog of login attempts nor the concurrency scaling that ended it.",
+      "evidence": [
+        "cloudflare-2025-11-18/u13",
+        "cloudflare-2025-11-18/u14"
+      ]
+    },
+    {
+      "item": "timeline/0",
+      "label": "not inferable",
+      "reason": "No update mentions the database change or its time.",
+      "evidence": []
+    },
+    {
+      "item": "timeline/1",
+      "label": "stated",
+      "reason": "The key marks it stated: u1 reports the degradation. The updates give no start time; chart1 shows the traffic drop before 12:00 UTC.",
+      "evidence": [
+        "cloudflare-2025-11-18/u1",
+        "cloudflare-2025-11-18/chart1"
+      ]
+    },
+    {
+      "item": "timeline/2",
+      "label": "stated",
+      "reason": "The key marks it stated: u1 reports the degradation; chart1 shows the drop. No update gives 11:28.",
+      "evidence": [
+        "cloudflare-2025-11-18/u1",
+        "cloudflare-2025-11-18/chart1"
+      ]
+    },
+    {
+      "item": "timeline/3",
+      "label": "not inferable",
+      "reason": "No update mentions the automated test or the incident call.",
+      "evidence": []
+    },
+    {
+      "item": "timeline/4",
+      "label": "stated",
+      "reason": "u8, at 13:13 UTC, says changes let Access and WARP recover.",
+      "evidence": [
+        "cloudflare-2025-11-18/u8"
+      ]
+    },
+    {
+      "item": "timeline/5",
+      "label": "not inferable",
+      "reason": "No update mentions the configuration file or a rollback.",
+      "evidence": []
+    },
+    {
+      "item": "timeline/6",
+      "label": "not inferable",
+      "reason": "No update mentions stopping the file's propagation.",
+      "evidence": []
+    },
+    {
+      "item": "timeline/7",
+      "label": "stated",
+      "reason": "u12 (14:34) says a deployed change restored the dashboard, and u13 (14:42) that a fix was implemented and the incident is believed resolved.",
+      "evidence": [
+        "cloudflare-2025-11-18/u12",
+        "cloudflare-2025-11-18/u13"
+      ]
+    },
+    {
+      "item": "timeline/8",
+      "label": "stated",
+      "reason": "u14, at 14:57 UTC, says some customers still cannot log in to or use the dashboard.",
+      "evidence": [
+        "cloudflare-2025-11-18/u14"
+      ]
+    },
+    {
+      "item": "timeline/9",
+      "label": "not inferable",
+      "reason": "No update says when or how the dashboard recovered; u15 and u16 only continue monitoring.",
+      "evidence": [
+        "cloudflare-2025-11-18/u15",
+        "cloudflare-2025-11-18/u16"
+      ]
+    },
+    {
+      "item": "timeline/10",
+      "label": "stated",
+      "reason": "u20 (17:14) reports errors and latency back to normal, and u21 (17:44) that services operate normally.",
+      "evidence": [
+        "cloudflare-2025-11-18/u20",
+        "cloudflare-2025-11-18/u21"
+      ]
+    }
+  ]
+}

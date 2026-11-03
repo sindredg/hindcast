@@ -1,0 +1,76 @@
+{
+  "case_id": "github-2026-10-07",
+  "items": [
+    {
+      "item": "attack",
+      "label": "not inferable",
+      "reason": "No update names a cause or any hostile action; they say only that the root cause was identified (u19) and that the second outage recurred (u22).",
+      "evidence": [
+        "github-2026-10-07/u19",
+        "github-2026-10-07/u22"
+      ]
+    },
+    {
+      "item": "root_cause",
+      "label": "not inferable",
+      "reason": "No update describes the cause; u19 says only that it was identified.",
+      "evidence": [
+        "github-2026-10-07/u19"
+      ]
+    },
+    {
+      "item": "contributing_factors/0",
+      "label": "not inferable",
+      "reason": "u22 calls the second outage a reoccurrence but says nothing about a maintenance task or a pause.",
+      "evidence": [
+        "github-2026-10-07/u22"
+      ]
+    },
+    {
+      "item": "contributing_factors/1",
+      "label": "not inferable",
+      "reason": "No update mentions the automation or a configuration-management regression.",
+      "evidence": []
+    },
+    {
+      "item": "timeline/0",
+      "label": "stated",
+      "reason": "u6 gives the first outage as 15:06 to 15:16 UTC.",
+      "evidence": [
+        "github-2026-10-07/u6"
+      ]
+    },
+    {
+      "item": "timeline/1",
+      "label": "stated",
+      "reason": "u6 gives the first outage as 15:06 to 15:16 UTC.",
+      "evidence": [
+        "github-2026-10-07/u6"
+      ]
+    },
+    {
+      "item": "timeline/2",
+      "label": "stated",
+      "reason": "u22 gives the second outage as 16:52 to 17:01 UTC; the cause in the key's event is not stated.",
+      "evidence": [
+        "github-2026-10-07/u22"
+      ]
+    },
+    {
+      "item": "timeline/3",
+      "label": "stated",
+      "reason": "u22 gives the second outage as 16:52 to 17:01 UTC.",
+      "evidence": [
+        "github-2026-10-07/u22"
+      ]
+    },
+    {
+      "item": "timeline/4",
+      "label": "not inferable",
+      "reason": "No update mentions shutting a machine down; u22 says only that durable mitigation was in progress at 17:25.",
+      "evidence": [
+        "github-2026-10-07/u22"
+      ]
+    }
+  ]
+}

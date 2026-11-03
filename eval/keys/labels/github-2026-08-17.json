@@ -1,0 +1,65 @@
+{
+  "case_id": "github-2026-08-17",
+  "items": [
+    {
+      "item": "attack",
+      "label": "not inferable",
+      "reason": "No update names a cause or any hostile action; u23 says only that a problematic component was identified.",
+      "evidence": [
+        "github-2026-08-17/u23"
+      ]
+    },
+    {
+      "item": "root_cause",
+      "label": "not inferable",
+      "reason": "The updates show broad errors and authentication failures (u9) and a problematic component (u23), but nothing about load balancers, a traffic peak, or a sidecar.",
+      "evidence": [
+        "github-2026-08-17/u9",
+        "github-2026-08-17/u23"
+      ]
+    },
+    {
+      "item": "contributing_factors/0",
+      "label": "not inferable",
+      "reason": "The authentication failures are stated (u9, u28); the load-balancer flow limits behind them are not.",
+      "evidence": [
+        "github-2026-08-17/u9",
+        "github-2026-08-17/u28"
+      ]
+    },
+    {
+      "item": "contributing_factors/1",
+      "label": "stated",
+      "reason": "u32 says authentication token retries were partly disabled and things improved; u33 and u35 name the Copilot authentication failures.",
+      "evidence": [
+        "github-2026-08-17/u32",
+        "github-2026-08-17/u33",
+        "github-2026-08-17/u35"
+      ]
+    },
+    {
+      "item": "contributing_factors/2",
+      "label": "not inferable",
+      "reason": "u32 shows retries mattered, but no update mentions the sidecar not scaling or unbounded clients.",
+      "evidence": [
+        "github-2026-08-17/u32"
+      ]
+    },
+    {
+      "item": "timeline/0",
+      "label": "stated",
+      "reason": "u1 opens the incident at 13:40 UTC.",
+      "evidence": [
+        "github-2026-08-17/u1"
+      ]
+    },
+    {
+      "item": "timeline/1",
+      "label": "stated",
+      "reason": "The resolved update (u36) is at 21:15 UTC.",
+      "evidence": [
+        "github-2026-08-17/u36"
+      ]
+    }
+  ]
+}
