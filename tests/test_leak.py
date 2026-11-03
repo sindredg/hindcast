@@ -142,3 +142,46 @@ def test_plant_run_fails_on_a_real_hit_next_to_the_planted_one(monkeypatch):
 
 def test_plant_run_passes_when_only_the_planted_item_is_reported(monkeypatch):
     assert run_leak_main(monkeypatch, lambda case_id: "Nothing related.", ["--plant"]) == 0
+
+
+def snapshot_files(tmp_path, chunks):
+    import hashlib
+    import json
+
+    path = tmp_path / "github-2026-10-21.json"
+    path.write_text(json.dumps({"case_id": "github-2026-10-21", "chunks": chunks}), "utf-8")
+    record = tmp_path / "library-snapshots.json"
+    entry = {
+        "case_id": "github-2026-10-21",
+        "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+    }
+    record.write_text(json.dumps({"snapshots": [entry]}), "utf-8")
+    return path, record
+
+
+def test_leak_snapshot_reads_chunks(tmp_path):
+    from hindcast.leak import snapshot_sources
+
+    chunks = [{"id": "lib_a_s1_p0", "ref": "lib/a/s1", "doc_id": "a", "content": "First."}]
+    path, record = snapshot_files(tmp_path, chunks)
+    assert snapshot_sources(path, "github-2026-10-21", record) == {"lib_a_s1_p0": "First."}
+
+
+def test_leak_snapshot_hash_mismatch_refused(tmp_path):
+    from hindcast.leak import snapshot_sources
+
+    chunks = [{"id": "lib_a_s1_p0", "ref": "lib/a/s1", "doc_id": "a", "content": "First."}]
+    path, record = snapshot_files(tmp_path, chunks)
+    path.write_text(path.read_text("utf-8").replace("First.", "Changed."), "utf-8")
+    with pytest.raises(ValueError, match="does not match"):
+        snapshot_sources(path, "github-2026-10-21", record)
+
+
+def test_leak_snapshot_without_a_record_or_chunks_is_refused(tmp_path):
+    from hindcast.leak import snapshot_sources
+
+    path, record = snapshot_files(tmp_path, [])
+    with pytest.raises(ValueError, match="no library chunks"):
+        snapshot_sources(path, "github-2026-10-21", record)
+    with pytest.raises(ValueError, match="no snapshot record"):
+        snapshot_sources(path, "github-2026-10-22", record)

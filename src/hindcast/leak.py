@@ -109,10 +109,39 @@ def library_sources(
     return found
 
 
+def snapshot_sources(path: Path, case_id: str, record_path: Path) -> dict[str, str]:
+    """A sealed case's chunks from its snapshot, once the file matches its recorded hash.
+
+    After teardown there is no index to query; the snapshot taken before it
+    stands in for the filtered library (decision 0022).
+    """
+    import hashlib
+
+    record = json.loads(record_path.read_text("utf-8"))["snapshots"]
+    entries = [s for s in record if s["case_id"] == case_id]
+    if not entries:
+        raise ValueError(f"{case_id}: no snapshot record in {record_path}")
+    data = path.read_bytes()
+    if hashlib.sha256(data).hexdigest() != entries[-1]["sha256"]:
+        raise ValueError(f"{path} does not match the hash recorded for {case_id}")
+    found = {c["id"]: c["content"] for c in json.loads(data)["chunks"]}
+    if not found:
+        raise ValueError(
+            f"{case_id}: the snapshot holds no library chunks; the check could not fail"
+        )
+    return found
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m hindcast.leak")
+    parser.add_argument("case_id", nargs="?", help="one case; every keyed case when left out")
     parser.add_argument("--plant", action="store_true", help="add one planted chunk per case")
+    parser.add_argument(
+        "--snapshot", type=Path, help="read the library from a sealed case's snapshot file"
+    )
     args = parser.parse_args(argv)
+    if args.snapshot is not None and args.case_id is None:
+        parser.error("--snapshot needs the case ID")
 
     from hindcast.cases import load_cases
     from hindcast.config import SearchSettings, load_settings
@@ -121,12 +150,21 @@ def main(argv: list[str] | None = None) -> int:
 
     cases = load_cases()
     library = load_library(Path("data/library.yaml"), cases)
-    client = clients(load_settings(SearchSettings).search_index)[1]
+    # With a snapshot the check runs offline: no search client is made.
+    client = None if args.snapshot else clients(load_settings(SearchSettings).search_index)[1]
     total = 0
-    for case_id in sorted(json.loads(FROZEN.read_text())):
+    keyed = sorted(json.loads(FROZEN.read_text()))
+    if args.case_id is not None and args.case_id not in keyed:
+        parser.error(f"{args.case_id} has no frozen key")
+    for case_id in [args.case_id] if args.case_id else keyed:
         key = load_key(KEYS_DIR / f"{case_id}.json")
         evidence = evidence_sources(Path("build/evidence") / f"{case_id}.json")
-        chunks = library_sources(case_id, client, library, cases)
+        if args.snapshot is not None:
+            from hindcast.seal import SNAPSHOTS
+
+            chunks = snapshot_sources(args.snapshot, case_id, SNAPSHOTS)
+        else:
+            chunks = library_sources(case_id, client, library, cases)
         sources = evidence | chunks
         planted = None
         if args.plant:
