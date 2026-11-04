@@ -32,7 +32,7 @@ from pathlib import Path
 from typing import Any, cast
 
 from hindcast.arms import ARMS, arm_definition
-from hindcast.evaluation.batch import ATTEMPTS, FILLED, RUNS_DIR, load_attempts
+from hindcast.evaluation.batch import ATTEMPTS, FILLED, RUNS_DIR, load_attempts, verified_run
 from hindcast.evidence import evidence_json
 from hindcast.investigate import START
 from hindcast.search import LibraryHit
@@ -239,14 +239,7 @@ def rows(
 
 
 def _verified_run(entry: Mapping[str, Any]) -> dict:
-    """The run's result file, refused when it differs from the hash in the attempts ledger."""
-    data = (RUNS_DIR / entry["file"]).read_bytes()
-    if hashlib.sha256(data).hexdigest() != entry["sha256"]:
-        raise ValueError(f"{entry['run_id']}: the result file differs from its recorded hash")
-    document = json.loads(data)
-    if document.get("run_id") != entry["run_id"]:
-        raise ValueError(f"{entry['run_id']}: the result file names another run")
-    return document
+    return verified_run(entry, RUNS_DIR)
 
 
 def _check_prompts(entries: Iterable[Mapping[str, Any]]) -> None:
