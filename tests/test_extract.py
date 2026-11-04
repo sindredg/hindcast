@@ -12,6 +12,7 @@ from hindcast.extract import (
     AnalyzerDiffers,
     analyze,
     check_analyzer,
+    check_defaults,
     definition,
     ensure_analyzers,
     replace_analyzer,
@@ -24,8 +25,10 @@ MODEL = {"deployment": "extraction", "name": "gpt-5.4-mini", "version": "2026-03
 def fresh_checks():
     # Each analyzer is checked once per process; a test starts with none checked.
     check_analyzer.cache_clear()
+    check_defaults.cache_clear()
     yield
     check_analyzer.cache_clear()
+    check_defaults.cache_clear()
 
 
 def test_every_analyzer_file_is_valid_json_with_its_id():
@@ -165,6 +168,12 @@ class AnalyzeClient(FakeClient):
         )
         self.gets: list[str] = []
         self.calls: list[tuple] = []
+        self.deployments = {"gpt-5.4-mini": "extraction", "text-embedding-3-large": "embed"}
+        self.defaults_read = 0
+
+    def get_defaults(self) -> models.ContentUnderstandingDefaults:
+        self.defaults_read += 1
+        return models.ContentUnderstandingDefaults(model_deployments=self.deployments)
 
     def get_analyzer(self, analyzer_id: str) -> FakeAnalyzer:
         self.gets.append(analyzer_id)
@@ -204,6 +213,21 @@ def test_analyze_refuses_a_model_mismatch():
     assert client.calls == []
 
 
+def test_analyze_refuses_defaults_that_run_the_model_on_another_deployment():
+    # The analyzer names a model; the resource's defaults pick the deployment
+    # that runs it (#41). The recorded model must be the one that ran.
+    client = AnalyzeClient()
+    client.deployments = client.deployments | {"gpt-5.4-mini": "gpt-5.4-mini-other"}
+
+    with pytest.raises(AnalyzerDiffers, match="gpt-5.4-mini-other"):
+        analyze("hindcast_chart", b"x", "image/png", client=cast(CU, client), model=lambda: MODEL)
+    assert client.calls == []
+    client.deployments = {}
+    check_defaults.cache_clear()
+    with pytest.raises(AnalyzerDiffers, match="None"):
+        analyze("hindcast_chart", b"x", "image/png", client=cast(CU, client), model=lambda: MODEL)
+
+
 def test_analyze_checks_each_analyzer_once():
     client = AnalyzeClient()
 
@@ -211,6 +235,7 @@ def test_analyze_checks_each_analyzer_once():
         analyze("hindcast_chart", b"x", "image/png", client=cast(CU, client), model=lambda: MODEL)
 
     assert client.gets == ["hindcast_chart"]
+    assert client.defaults_read == 1
     assert len(client.calls) == 2
 
 

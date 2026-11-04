@@ -36,7 +36,8 @@ class StorageSettings:
 class ExtractionSettings:
     cu_endpoint: str
     # The deployment the analyzers' completion model maps to in the
-    # Content Understanding defaults; its version is recorded with each extract.
+    # Content Understanding defaults (hindcast.extract.check_defaults refuses
+    # any other mapping); its version is recorded with each extract.
     extraction_deployment: str
 
 
