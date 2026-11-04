@@ -124,7 +124,7 @@ Each seal makes at most 13 model calls on the deployment it names and, in the se
    The command never prints the investigation, and for an incomplete run it prints only the kind of reason (`schema`, `time-cap`, `tool-cap`, `tool-error`, `screen-error`, `pii-error`, `empty-result`). Two outcomes need a step:
 
    - `no-result`: the model produced nothing; run it again, up to three attempts in all.
-   - `upload failed`: the hash is already recorded; upload the same file with `python -m hindcast.seal upload <case_id> <file>`, which checks the file against its hash first.
+   - `upload failed`: the hash is already recorded; upload the same file with `python -m hindcast.seal upload <case_id> <file>`, which checks the file against its hash first. If the failed upload had reached the service, the command finds the blob, reads it back, and records it only when its bytes match the hash; otherwise it prints `upload refused` and leaves the entry open.
 
 8. Seal each case with the comparison model in the agent's place.
 
