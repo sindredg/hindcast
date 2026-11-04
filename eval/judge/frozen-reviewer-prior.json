@@ -1,0 +1,11 @@
+{
+  "prompt": "prompts/reviewer-prior.md",
+  "prompt_sha256": "694ca77957a830d445ddd1387d5eb48750b83f8592bba06cfacb7fa1e85ea522",
+  "rubric": "eval/rubric/rubric.md",
+  "rubric_sha256": "a8b78af78b312d89d0886fe48f755433d96d5857d7dd541af94b678598acd417",
+  "system_sha256": "d5082aafc8bc452fc95f3b8f4349e8576a55879ce05af05c62b976ba2eb777e5",
+  "model": "claude-fable-5-1",
+  "effort": "high",
+  "max_tokens": 64000,
+  "frozen_at": "2026-11-04T18:57:31Z"
+}
