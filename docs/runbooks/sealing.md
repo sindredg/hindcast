@@ -5,7 +5,8 @@ Status: Written on 2026-11-01.
 - Steps 1 to 10 ran on 2026-11-01 with the output shown, for the first series (`library: false`).
 - Updated on 2026-11-02 for the second series, with the library search (`library: true`): steps 7 to 10 ran on 2026-11-02 for it ([worklog 05](../worklogs/05-sealed-reconstructions.md#second-seals-with-the-library-2026-11-02)).
 - [Reveal a seal](#reveal-a-seal) and [Drop a seal](#drop-a-seal) are written, not run: no provider had published a cause for a sealed case by then.
-- Since 2026-11-03 a seal runs with Prompt Shields on every tool item, the PII check on the answer, spans, and a cost ([milestone 4, slice 3](../worklogs/04-investigator.md#slice-3-screens-pii-challenge-traces-and-cost)); no seal has run that way yet.
+- Since 2026-11-03 a seal runs with Prompt Shields on every tool item, the PII check on the answer, spans, and a cost ([milestone 4, slice 3](../worklogs/04-investigator.md#slice-3-screens-pii-challenge-traces-and-cost)).
+- Steps 1 to 10 ran again on 2026-11-04 for two GitHub outages of that day, second series, with the screens on: four seals, all `complete` on the first attempt ([worklog 05](../worklogs/05-sealed-reconstructions.md#third-seals-two-github-outages-of-2026-11-04)).
 
 The procedure seals a reconstruction of an outage whose provider has not yet published a cause: it runs the investigator once per deployment, commits the result's SHA-256, and keeps the file in private storage until the postmortem is out ([decision 0017](../decisions/0017-sealed-reconstructions.md)).
 

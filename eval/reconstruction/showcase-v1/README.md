@@ -7,8 +7,8 @@ The scored reconstructions of the four showcase cases: each arm of [decision 002
 - **Frozen before any scored run:** the inferable-from-evidence labels on 2026-11-03, and the rubric (version 2) with the timeline tolerance of 30 minutes on 2026-11-04, with the keys frozen earlier. Version 2 replaced version 1, frozen on 2026-11-03, before any run used it. [`eval/rubric/frozen.json`](../../rubric/frozen.json) records their hashes, and `tests/test_rubric.py` fails if any of them changes.
 - **Runs, verified on 2026-11-04:** 60 scored runs, 03:10:48Z to 04:00:47Z, live, with `python -m hindcast.evaluation.batch run` ([runbook](../../../docs/runbooks/evaluation.md#scored-runs), steps 9 and 10). Every slot filled on its first attempt: 60 entries in `attempts.json`, all `complete`, none `no-result`.
 - **Foundry cloud evaluation, verified on 2026-11-04:** repeat 1 of each arm and case, completed at 04:28:33Z ([below](#foundry-cloud-evaluation)).
-- **Judge:** prompt version 1 frozen on 2026-11-04 ([`eval/judge/frozen.json`](../../judge/frozen.json)), before any judge call and before any run output was read. Not run yet.
-- **Review and scores:** open.
+- **Judge, verified on 2026-11-04:** prompt version 1 frozen ([`eval/judge/frozen.json`](../../judge/frozen.json)) before any judge call and before any run output was read. `claude-opus-5-5`, effort `high`, judged all 60 runs from 17:16:57Z to 17:23:51Z with no judge error (`python -m hindcast.evaluation.judge run`, [runbook](../../../docs/runbooks/evaluation.md#judge), step 17). The judgments were committed before any review decision.
+- **Review and scores:** open. The review queue holds 880 items over the 60 runs (`python -m hindcast.evaluation.score --draft`).
 
 ## Dataset
 
@@ -56,3 +56,4 @@ What these numbers can and cannot say:
 | `runs/<arm>/<case_id>/r<repeat>-a<attempt>-<UTC time>.json` | One result per run, as `python -m hindcast.evaluation.batch` writes it |
 | `foundry/runs.json` | The Foundry evaluation's judge deployment, datasets with their SHA-256, evaluation and run IDs, and criteria |
 | `foundry/results.json` | Per arm and evaluator: rows passed, failed, and errored, and the mean score, with the service's own counts |
+| `judgments/<arm>/<case_id>/r<repeat>/a<attempt>.json` | The judge's proposal for one run: an outcome per key item and a support verdict per run item, each with a reason; the run's ID, arm, and SHA-256; the code commit; the judge's model, effort, output limit, system prompt and input hashes, time, and request ID; the stop reason, usage, and any judge error |

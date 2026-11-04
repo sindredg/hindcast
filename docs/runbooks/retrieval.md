@@ -4,7 +4,7 @@ Status: Written on 2026-11-01 for [milestone 3](../worklogs/03-retrieval.md). Ev
 
 - Steps 8 to 15 ran as written.
 - Step 17's refusal was not observed: calls kept succeeding.
-- Step 18 ran on 2026-11-04 as written, after milestone 5's scored and injection runs.
+- Step 18 ran on 2026-11-04 as written, after milestone 5's scored and injection runs. The service was recreated the same day for two new seals and the case-chart injection runs: step 7 from 16:38:56Z to 16:39:38Z, step 8 at 16:40:10Z (no token 401, key 401, token 200), and only the kept index rebuilt (`--dimensions 1024`, 267 chunks). Step 18 ran again at 17:41:08Z.
 - Steps 1 to 7, 16, and 17 are written from the calls that ran, combined into one block or with a shorter output: their values were observed, and the layout of their output is reasoned.
 
 The procedure moves extraction to the pinned gpt-5.4-mini deployment, creates the search service, builds the library index at two vector sizes, keeps the one the frozen quality check picks, and runs the gate on it ([decision 0018](../decisions/0018-extraction-model.md), [decision 0019](../decisions/0019-library-index.md)). The search service is billed per hour from creation, so step 7 runs only when the code is ready to build.
