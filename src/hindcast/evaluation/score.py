@@ -1,9 +1,10 @@
-"""Scores from the judgments, the review, and the frozen labels (rubric version 2).
+"""Scores from the judgments, the review, and the frozen labels (rubric version 3).
 
     PYTHONPATH=src uv run --frozen python -m hindcast.evaluation.score [--draft]
 
 A reviewed decision replaces the judge's proposal: a match decision sets the
-key item's outcome, a support decision sets the run item's support. The
+key item's outcome, a support decision sets the run item's support. A match
+the reviewer model decided rests on the run items its own judgment listed. The
 labels then give each outcome its credit, and the primary score per run is
 credited divided by scorable. Next to it, never folded in: unsupported run
 items, wrong items, guesses, supported items outside the key, and the
@@ -90,12 +91,19 @@ def _decisions(review: Mapping[str, Any], kind: str) -> dict[str, Any]:
 
 
 def score_run(
-    record: Mapping[str, Any], review: Mapping[str, Any], labels: Mapping[str, Any]
+    record: Mapping[str, Any],
+    review: Mapping[str, Any],
+    labels: Mapping[str, Any],
+    second: Mapping[str, Any] | None = None,
 ) -> RunScore:
+    """One run's score; second is the reviewer's judgment behind its decisions."""
     judgment = record["judgment"]
     if judgment is None:
         raise ValueError(f"{record['run_id']}: no judgment ({record.get('error')})")
     matched = _decisions(review, "match")
+    deciders = {
+        d["item"]: d.get("decided_by") for d in review.get("decisions", []) if d["kind"] == "match"
+    }
     supported = _decisions(review, "support")
     code_unsupported = set(record.get("code_unsupported", []))
     support = {
@@ -112,8 +120,16 @@ def score_run(
         label = _label(labels[item])
         outcomes[item] = outcome
         credits[item] = credit(outcome, label, _kind(item))
+        # A person confirms or replaces the judge's outcome on the judge's run
+        # items. The reviewer model judged the run again, so its decision rests
+        # on the run items its own judgment listed for the key item.
+        items = verdict["run_items"]
+        if deciders.get(item):
+            if second is None:
+                raise ValueError(f"{record['run_id']}: {item} needs its reviewer judgment")
+            items = second["judgment"]["key_items"][item]["run_items"]
         if outcome != "missed":
-            listed |= set(verdict["run_items"])
+            listed |= set(items)
         if credits[item] is None:
             neutral.append(item)
         if outcome in ("unsupported-hit", "unsupported-partial") and label == "not inferable":
@@ -122,7 +138,7 @@ def score_run(
             abstentions.append(item)
         if outcome == "wrong":
             wrong.append(item)
-        backed = any(support[w] for w in verdict["run_items"])
+        backed = any(support[w] for w in items)
         if item in matched and (
             (outcome in ("supported-hit", "partial") and not backed)
             or (outcome in ("unsupported-hit", "unsupported-partial") and backed)
@@ -338,6 +354,26 @@ def _load(
     return attempts, records, reviews
 
 
+def load_second_judgments(root: Path, reviews: Mapping[str, Mapping[str, Any]]) -> dict[str, dict]:
+    """The reviewer's judgment behind each review it decided, checked by hash."""
+    from hindcast.evaluation.judge import _sha256, judgment_path
+
+    seconds = {}
+    for run_id, review in reviews.items():
+        hashes = {
+            d["decided_by"]["judgment_sha256"]
+            for d in review.get("decisions", [])
+            if d.get("decided_by")
+        }
+        if not hashes:
+            continue
+        data = judgment_path(root / "reviewer" / "judgments", run_id).read_bytes()
+        if hashes != {_sha256(data)}:
+            raise ValueError(f"{run_id}: the review was decided from another reviewer judgment")
+        seconds[run_id] = json.loads(data)
+    return seconds
+
+
 def main(argv: list[str] | None = None) -> int:
     from hindcast.evaluation.judge import load_case
     from hindcast.labels import FROZEN as LABELS_FROZEN
@@ -349,6 +385,7 @@ def main(argv: list[str] | None = None) -> int:
     prior, prior_open = prior_scores()
     print(f"prior answers {len(prior['answers'])}, open review items {prior_open}")
     attempts, records, reviews = _load(ROOT)
+    seconds = load_second_judgments(ROOT, reviews)
     frozen_labels = json.loads(LABELS_FROZEN.read_text("utf-8"))
     labels: dict[str, dict] = {}
     scores = []
@@ -362,7 +399,7 @@ def main(argv: list[str] | None = None) -> int:
             if _sha256(path.read_bytes()) != frozen_labels.get(case_id):
                 raise ValueError(f"{path} differs from its frozen hash")
             labels[case_id] = load_labels(path, key, evidence)
-        scores.append(score_run(record, reviews[run_id], labels[case_id]))
+        scores.append(score_run(record, reviews[run_id], labels[case_id], seconds.get(run_id)))
     open_items = sum(s.open_items for s in scores)
     print(f"runs {len(scores)}, open review items {open_items}")
     if args.draft:
