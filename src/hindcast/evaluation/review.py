@@ -24,6 +24,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Literal
 
+from hindcast.evaluation import judge_prior
 from hindcast.evaluation.judge import OUTCOMES
 
 SEED = 20261104
@@ -35,8 +36,9 @@ REVIEWED_OUTCOMES = frozenset(
 
 @dataclass(frozen=True)
 class ReviewItem:
-    kind: Literal["match", "support"]
-    # A key item ID for a match, a run item's where for a support verdict.
+    kind: Literal["match", "support", "prior"]
+    # A key item ID for a match or a prior answer, a run item's where for a
+    # support verdict.
     item: str
     proposal: str | bool
     sampled: bool
@@ -69,10 +71,28 @@ def review_queue(record: Mapping[str, Any], seed: int = SEED) -> list[ReviewItem
     return required + sampled
 
 
+def prior_queue(record: Mapping[str, Any], record_id: str, seed: int = SEED) -> list[ReviewItem]:
+    """A prior answer's items: every proposed hit and partial, and a quarter of the rest."""
+    judgment = record.get("judgment")
+    if judgment is None:
+        return []
+    required, rest = [], []
+    for item, verdict in judgment.items():
+        entry = ReviewItem("prior", item, verdict["outcome"], False)
+        (required if verdict["outcome"] in ("hit", "partial") else rest).append(entry)
+    draw = random.Random(f"{seed}/{record_id}")  # noqa: S311 (reproducible, not secret)
+    picked = set(draw.sample(range(len(rest)), math.ceil(len(rest) * SAMPLE)))
+    return required + [
+        ReviewItem(i.kind, i.item, i.proposal, True) for n, i in enumerate(rest) if n in picked
+    ]
+
+
 def choices(item: ReviewItem) -> tuple:
     """The decisions a reviewer can give: the outcomes the rubric allows, or support."""
     if item.kind == "support":
         return (True, False)
+    if item.kind == "prior":
+        return judge_prior.OUTCOMES[item.item]
     return OUTCOMES[item.item.split("/")[0]]
 
 

@@ -223,3 +223,57 @@ def test_review_saves_and_resumes(tmp_path: Path, monkeypatch: pytest.MonkeyPatc
     assert not again.exception
     shown = {b.key.split("|")[2] for b in again.button if b.key and "|" in b.key}
     assert shown == {queue[1].item}
+
+
+def test_prior_queue_has_every_proposed_hit_and_samples_the_rest() -> None:
+    from hindcast.evaluation.review import prior_queue
+
+    rec = {
+        "judgment": {
+            "attack": {"reason": "r", "outcome": "missed"},
+            "root_cause": {"reason": "r", "outcome": "hit"},
+        }
+    }
+    queue = prior_queue(rec, "prior-x/dev")
+    assert queue[0] == ReviewItem("prior", "root_cause", "hit", False)
+    # One item left; a quarter of one rounds up to one.
+    assert queue[1:] == [ReviewItem("prior", "attack", "missed", True)]
+    assert "partial" not in choices(queue[1])
+    assert prior_queue({"judgment": None}, "x") == []
+
+
+def test_prior_review_saves_a_decision(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from streamlit.testing.v1 import AppTest
+
+    from hindcast import review as page
+    from test_investigate import EVIDENCE
+    from test_judge import KEY
+
+    answers = tmp_path / "prior-2026-10-25-gpt-6-luna.json"
+    entry = {"case_id": "dev", "question": "What do you know?", "answer": "No idea."}
+    answers.write_text(json.dumps({"entries": [entry]}), encoding="utf-8")
+    root = tmp_path / "prior"
+    record = {
+        "case_id": "dev",
+        "answers": str(answers),
+        "judgment": {
+            "attack": {"reason": "r", "outcome": "abstained"},
+            "root_cause": {"reason": "r", "outcome": "hit"},
+        },
+        "error": None,
+    }
+    path = root / "judgments" / answers.stem / "dev.json"
+    path.parent.mkdir(parents=True)
+    path.write_text(json.dumps(record), encoding="utf-8")
+    monkeypatch.setenv(page.PRIOR_ROOT_VAR, str(root))
+    monkeypatch.setattr(judge, "load_case", lambda case_id: (KEY, EVIDENCE))
+
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+    at.sidebar.radio[0].set_value("Prior knowledge").run()
+    assert not at.exception
+    assert "gpt-6-luna" not in at.title[0].value
+    [proposed] = [b for b in at.button if b.label.endswith("(judge)")]
+    assert proposed.key == f"{answers.stem}/dev|prior|root_cause|hit"
+    proposed.click().run()
+    saved = json.loads((root / "reviews" / answers.stem / "dev.json").read_text("utf-8"))
+    assert [(d["item"], d["decision"]) for d in saved["decisions"]] == [("root_cause", "hit")]

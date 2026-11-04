@@ -204,3 +204,25 @@ def test_aggregate_gives_mean_min_max_and_failures() -> None:
     assert cell["outcomes"]["wrong"] == 1
     assert cell["failures"] == 1
     assert table["by_arm"]["hindcast"]["runs"] == 2
+
+
+def test_known_before_evidence_comes_from_a_reviewed_prior_hit() -> None:
+    from hindcast.evaluation.score import known_before_evidence
+
+    def answer(deployment: str, outcome: str) -> dict:
+        return {
+            "deployment": deployment,
+            "case_id": "dev",
+            "judgment": {
+                "attack": {"reason": "r", "outcome": "missed"},
+                "root_cause": {"reason": "r", "outcome": outcome},
+            },
+        }
+
+    overruled = {"decisions": [{"kind": "prior", "item": "root_cause", "decision": "partial"}]}
+    answers = [
+        (answer("gpt-6-luna", "hit"), overruled),
+        (answer("gpt-6.1-sol", "partial"), {}),
+        (answer("gpt-6.1-sol", "hit"), {}),
+    ]
+    assert known_before_evidence(answers) == {("gpt-6.1-sol", "dev")}

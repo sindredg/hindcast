@@ -123,8 +123,11 @@ def system_prompt(prompt: Path = PROMPT, rubric: Path = RUBRIC) -> str:
     return f"{prompt.read_text(encoding='utf-8').rstrip()}\n\n{title}\n{text[start:end].rstrip()}\n"
 
 
-def _frozen_record(prompt: Path, rubric: Path) -> dict:
-    system = system_prompt(prompt, rubric)
+Compose = Callable[[Path, Path], str]
+
+
+def _frozen_record(prompt: Path, rubric: Path, compose: Compose) -> dict:
+    system = compose(prompt, rubric)
     return {
         "prompt": prompt.as_posix(),
         "prompt_sha256": _sha256(prompt.read_bytes()),
@@ -137,26 +140,36 @@ def _frozen_record(prompt: Path, rubric: Path) -> dict:
     }
 
 
-def freeze(prompt: Path = PROMPT, rubric: Path = RUBRIC, frozen: Path = FROZEN) -> dict:
+def freeze(
+    prompt: Path = PROMPT,
+    rubric: Path = RUBRIC,
+    frozen: Path = FROZEN,
+    compose: Compose = system_prompt,
+) -> dict:
     """Write the lock. A new version replaces the file in its own commit."""
     if frozen.exists():
         raise FileExistsError(f"{frozen} exists; a new judge version replaces it deliberately")
-    record = _frozen_record(prompt, rubric)
+    record = _frozen_record(prompt, rubric, compose)
     record["frozen_at"] = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     frozen.parent.mkdir(parents=True, exist_ok=True)
     frozen.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     return record
 
 
-def check_frozen(prompt: Path = PROMPT, rubric: Path = RUBRIC, frozen: Path = FROZEN) -> str:
+def check_frozen(
+    prompt: Path = PROMPT,
+    rubric: Path = RUBRIC,
+    frozen: Path = FROZEN,
+    compose: Compose = system_prompt,
+) -> str:
     """The system prompt, or NotFrozen when it or the settings differ from the lock."""
     if not frozen.is_file():
         raise NotFrozen(f"{frozen} is missing: freeze the judge prompt first")
     record = json.loads(frozen.read_text(encoding="utf-8"))
     record.pop("frozen_at", None)
-    if record != _frozen_record(prompt, rubric):
+    if record != _frozen_record(prompt, rubric, compose):
         raise NotFrozen(f"the judge prompt, the rubric, or the settings differ from {frozen}")
-    return system_prompt(prompt, rubric)
+    return compose(prompt, rubric)
 
 
 def run_items(investigation: Mapping[str, Any]) -> list[dict]:
@@ -351,8 +364,8 @@ def _check_consistent(data: Mapping[str, Any]) -> None:
             raise JudgeError("inconsistent")
 
 
-def read_reply(message: Any, schema: dict, items: list[dict]) -> dict:
-    """The judgment in a reply, or JudgeError; the stop reason is read before the text."""
+def read_json(message: Any, schema: dict) -> dict:
+    """The JSON in a reply, or JudgeError; the stop reason is read before the text."""
     stop = message.stop_reason
     if stop == "refusal":
         raise JudgeError("refusal")
@@ -368,27 +381,18 @@ def read_reply(message: Any, schema: dict, items: list[dict]) -> dict:
         jsonschema.validate(data, schema, cls=jsonschema.Draft202012Validator)
     except (json.JSONDecodeError, jsonschema.ValidationError) as error:
         raise JudgeError("schema") from error
+    return data
+
+
+def read_reply(message: Any, schema: dict, items: list[dict]) -> dict:
+    """A reconstruction's judgment: valid JSON whose outcomes fit its support verdicts."""
+    data = read_json(message, schema)
     _check_consistent(data)
     return data
 
 
-def judge_run(
-    document: Mapping[str, Any],
-    key: AnswerKey,
-    evidence: CaseEvidence,
-    library: Mapping[str, dict],
-    *,
-    client: Any,
-    system: str,
-) -> dict:
-    """One judge call for one run; the record holds a judgment or an error, never both."""
-    items = run_items(document["investigation"])
-    code_unsupported = set(document["checks"]["unsupported"])
-    content = judge_input(document, key, evidence, library)
-    schema = judgment_schema(item_ids(key), items, code_unsupported)
-    record: dict[str, Any] = {
-        "run_id": document["run_id"],
-        "case_id": document["case_id"],
+def new_record(system: str, content: str) -> dict[str, Any]:
+    return {
         "judge": {
             "model": JUDGE_MODEL,
             "effort": EFFORT,
@@ -399,13 +403,22 @@ def judge_run(
             "request_id": None,
             "response_model": None,
         },
-        "kinds": {i["where"]: i["kind"] for i in items},
-        "code_unsupported": sorted(code_unsupported),
         "stop_reason": None,
         "usage": None,
         "judgment": None,
         "error": None,
     }
+
+
+def call(
+    client: Any,
+    system: str,
+    content: str,
+    schema: dict,
+    record: dict[str, Any],
+    read: Callable[[Any], dict],
+) -> dict[str, Any]:
+    """One streamed judge call; the record gets the reply's judgment or its error kind."""
     with client.messages.stream(
         model=JUDGE_MODEL,
         max_tokens=MAX_TOKENS,
@@ -431,10 +444,34 @@ def judge_run(
         "cache_read_input_tokens": usage.cache_read_input_tokens or 0,
     }
     try:
-        record["judgment"] = read_reply(message, schema, items)
+        record["judgment"] = read(message)
     except JudgeError as error:
         record["error"] = error.kind
     return record
+
+
+def judge_run(
+    document: Mapping[str, Any],
+    key: AnswerKey,
+    evidence: CaseEvidence,
+    library: Mapping[str, dict],
+    *,
+    client: Any,
+    system: str,
+) -> dict:
+    """One judge call for one run; the record holds a judgment or an error, never both."""
+    items = run_items(document["investigation"])
+    code_unsupported = set(document["checks"]["unsupported"])
+    content = judge_input(document, key, evidence, library)
+    schema = judgment_schema(item_ids(key), items, code_unsupported)
+    record: dict[str, Any] = {
+        "run_id": document["run_id"],
+        "case_id": document["case_id"],
+        "kinds": {i["where"]: i["kind"] for i in items},
+        "code_unsupported": sorted(code_unsupported),
+        **new_record(system, content),
+    }
+    return call(client, system, content, schema, record, lambda m: read_reply(m, schema, items))
 
 
 def judgment_path(out_dir: Path, run_id: str) -> Path:

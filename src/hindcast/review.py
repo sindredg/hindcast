@@ -1,4 +1,4 @@
-"""The review page: a person decides what the judge proposed, one item at a time.
+"""The review page: a person decides what the judges proposed, one item at a time.
 
     PYTHONPATH=src uv run --frozen streamlit run src/hindcast/review.py
 
@@ -12,6 +12,10 @@ model. Each screen shows one item: a key item with the run items the judge
 matched to it, or one run item with its support verdict, next to the text
 every cited ref points to. The judge's proposal is marked on its button.
 The page resumes at the first item without a decision.
+
+The second mode reviews the prior-knowledge answers the same way
+(hindcast.evaluation.judge_prior): the answer, the key item, and the
+judge's proposal, under a blind ID that hides the model.
 """
 
 import json
@@ -31,6 +35,7 @@ from hindcast.evaluation.review import (
     choices,
     load_review,
     pending,
+    prior_queue,
     record_decision,
     review_queue,
     run_order,
@@ -43,6 +48,9 @@ from hindcast.result import LIBRARY_PREFIX, Citation
 # Test seam and a way to review another evaluation folder.
 ROOT_VAR = "HINDCAST_REVIEW_ROOT"
 DEFAULT_ROOT = Path("eval/reconstruction/showcase-v1")
+PRIOR_ROOT_VAR = "HINDCAST_REVIEW_PRIOR_ROOT"
+DEFAULT_PRIOR_ROOT = Path("eval/prior-knowledge/v1")
+MODES = ("Reconstructions", "Prior knowledge")
 _MARKDOWN = str.maketrans({c: f"\\{c}" for c in "\\`*_{}[]<>()#+-.!|~$"})
 
 
@@ -56,6 +64,18 @@ class Run:
     key: AnswerKey
     evidence: CaseEvidence
     items: dict[str, dict]
+
+
+@dataclass(frozen=True)
+class Answer:
+    # <answer file stem>/<case_id>
+    record_id: str
+    blind: str
+    record: dict
+    judgment_sha256: str
+    question: str
+    answer: str
+    key: AnswerKey
 
 
 def _plain(text: str) -> str:
@@ -95,8 +115,34 @@ def load_runs(root: Path) -> tuple[list[Run], int]:
     return [runs[r] for r in run_order(runs)], not_judged
 
 
-def _review_path(root: Path, run: Run) -> Path:
-    return root / "reviews" / f"{run.run_id}.json"
+def load_answers(root: Path) -> tuple[list[Answer], int]:
+    """The judged prior-knowledge answers in blind order, and how many have no judgment."""
+    answers: dict[str, Answer] = {}
+    not_judged = 0
+    for path in sorted((root / "judgments").glob("*/*.json")):
+        data = path.read_bytes()
+        record = json.loads(data)
+        if record["error"] is not None:
+            not_judged += 1
+            continue
+        collection = json.loads(Path(record["answers"]).read_text(encoding="utf-8"))
+        [entry] = [e for e in collection["entries"] if e["case_id"] == record["case_id"]]
+        record_id = f"{path.parent.name}/{path.stem}"
+        answers[record_id] = Answer(
+            record_id=record_id,
+            blind=blind_id(f"prior/{record_id}"),
+            record=record,
+            judgment_sha256=judge._sha256(data),
+            question=entry["question"],
+            answer=entry["answer"],
+            key=judge.load_case(record["case_id"])[0],
+        )
+    order = sorted(answers, key=lambda r: answers[r].blind)
+    return [answers[r] for r in order], not_judged
+
+
+def _review_path(root: Path, record_id: str) -> Path:
+    return root / "reviews" / f"{record_id}.json"
 
 
 def _cited(run: Run, refs: list[str], library: dict[str, dict]) -> None:
@@ -152,16 +198,18 @@ def _match(run: Run, item: ReviewItem, library: dict[str, dict]) -> None:
         _run_item(run, where, library)
 
 
-def _buttons(run: Run, item: ReviewItem, path: Path) -> None:
+def _buttons(record_id: str, judgment_sha256: str, item: ReviewItem, path: Path) -> None:
     options = choices(item)
     columns = st.columns(len(options))
     for column, option in zip(columns, options, strict=True):
-        label = ("Supported" if option else "Unsupported") if item.kind == "support" else option
+        label = (
+            ("Supported" if option else "Unsupported") if item.kind == "support" else str(option)
+        )
         if option == item.proposal:
             label = f"{label} (judge)"
-        widget_key = f"{run.run_id}|{item.kind}|{item.item}|{option}"
+        widget_key = f"{record_id}|{item.kind}|{item.item}|{option}"
         if column.button(label, key=widget_key, width="stretch"):
-            record_decision(path, run.run_id, run.judgment_sha256, item, option)
+            record_decision(path, record_id, judgment_sha256, item, option)
             st.rerun()
 
 
@@ -176,10 +224,9 @@ def _whole_run(run: Run) -> None:
                 st.markdown(f"- {_plain(q['question'])} ({_plain(q['why_open'])})")
 
 
-def _undo_latest(root: Path, runs: list[Run]) -> None:
+def _undo_latest(paths: list[Path]) -> None:
     latest: tuple[str, Path] | None = None
-    for run in runs:
-        path = _review_path(root, run)
+    for path in paths:
         if not path.is_file():
             continue
         decisions = json.loads(path.read_text(encoding="utf-8"))["decisions"]
@@ -189,26 +236,29 @@ def _undo_latest(root: Path, runs: list[Run]) -> None:
         undo_last(latest[1])
 
 
-def main() -> None:
-    st.set_page_config(page_title="Hindcast review", layout="wide")
-    root = Path(os.environ.get(ROOT_VAR) or DEFAULT_ROOT)
-    runs, not_judged = load_runs(root)
-    library: dict[str, Any] = excerpts.load_library_items() if runs else {}
-    queues: list[tuple[Run, Path, list[ReviewItem], list[ReviewItem]]] = []
-    for run in runs:
-        path = _review_path(root, run)
-        queue = review_queue(run.record)
-        queues.append(
-            (run, path, queue, pending(queue, load_review(path, run.run_id, run.judgment_sha256)))
-        )
+def _progress(
+    queues: list[tuple[Any, Path, list[ReviewItem], list[ReviewItem]]], note: str
+) -> None:
     total = sum(len(q) for _, _, q, _ in queues)
     left = sum(len(p) for _, _, _, p in queues)
     with st.sidebar:
         st.metric("Decided", f"{total - left} of {total}")
-        st.caption(f"{len(runs)} judged runs; {not_judged} without a judgment")
+        st.caption(note)
         if st.button("Undo the last decision"):
-            _undo_latest(root, runs)
+            _undo_latest([path for _, path, _, _ in queues])
             st.rerun()
+
+
+def _reconstructions(root: Path) -> None:
+    runs, not_judged = load_runs(root)
+    library: dict[str, Any] = excerpts.load_library_items() if runs else {}
+    queues: list[tuple[Any, Path, list[ReviewItem], list[ReviewItem]]] = []
+    for run in runs:
+        path = _review_path(root, run.run_id)
+        queue = review_queue(run.record)
+        review = load_review(path, run.run_id, run.judgment_sha256)
+        queues.append((run, path, queue, pending(queue, review)))
+    _progress(queues, f"{len(runs)} judged runs; {not_judged} without a judgment")
     current = next(((r, p, q, todo) for r, p, q, todo in queues if todo), None)
     if current is None:
         st.success("Every item is decided.")
@@ -226,8 +276,54 @@ def main() -> None:
         st.subheader(f"Support of {item.item}")
         _run_item(run, item.item, library)
     st.divider()
-    _buttons(run, item, path)
+    _buttons(run.run_id, run.judgment_sha256, item, path)
     _whole_run(run)
+
+
+def _prior(root: Path) -> None:
+    answers, not_judged = load_answers(root)
+    queues: list[tuple[Any, Path, list[ReviewItem], list[ReviewItem]]] = []
+    for answer in answers:
+        path = _review_path(root, answer.record_id)
+        queue = prior_queue(answer.record, answer.record_id)
+        review = load_review(path, answer.record_id, answer.judgment_sha256)
+        queues.append((answer, path, queue, pending(queue, review)))
+    _progress(queues, f"{len(answers)} judged answers; {not_judged} without a judgment")
+    current = next(((a, p, q, todo) for a, p, q, todo in queues if todo), None)
+    if current is None:
+        st.success("Every item is decided.")
+        return
+    answer, path, _, todo = current
+    item = todo[0]
+    st.title(f"Answer {answer.blind}")
+    st.caption(f"Before any evidence · {'sampled' if item.sampled else 'required'}")
+    st.markdown(f"**Question:** {_plain(answer.question)}")
+    with st.container(border=True):
+        st.markdown(_plain(answer.answer))
+    key = answer.key
+    text, quote = (
+        (key.attack, key.attack_quote)
+        if item.item == "attack"
+        else (key.root_cause.text, key.root_cause.source_quote)
+    )
+    st.subheader(f"Key item {item.item}")
+    st.markdown(_plain(text))
+    if quote:
+        st.caption("Postmortem: " + _plain(quote))
+    verdict = answer.record["judgment"][item.item]
+    st.markdown(f"**Judge proposes: {verdict['outcome']}.** {_plain(verdict['reason'])}")
+    st.divider()
+    _buttons(answer.record_id, answer.judgment_sha256, item, path)
+
+
+def main() -> None:
+    st.set_page_config(page_title="Hindcast review", layout="wide")
+    with st.sidebar:
+        mode = st.radio("Review", MODES)
+    if mode == MODES[0]:
+        _reconstructions(Path(os.environ.get(ROOT_VAR) or DEFAULT_ROOT))
+    else:
+        _prior(Path(os.environ.get(PRIOR_ROOT_VAR) or DEFAULT_PRIOR_ROOT))
 
 
 if __name__ == "__main__":

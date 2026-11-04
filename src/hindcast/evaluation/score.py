@@ -245,6 +245,64 @@ def review_agreement(pairs: Iterable[tuple[str, Any, Any]]) -> dict:
     }
 
 
+PRIOR_ROOT = Path("eval/prior-knowledge/v1")
+
+
+def prior_outcomes(record: Mapping[str, Any], review: Mapping[str, Any]) -> dict[str, str]:
+    """A prior answer's outcomes, reviewed decisions first."""
+    decided = _decisions(review, "prior")
+    return {item: decided.get(item, v["outcome"]) for item, v in record["judgment"].items()}
+
+
+def known_before_evidence(
+    answers: Iterable[tuple[Mapping[str, Any], Mapping[str, Any]]],
+) -> set[tuple[str, str]]:
+    """(deployment, case) pairs whose prior answer, in any collection, hit the root cause."""
+    return {
+        (record["deployment"], record["case_id"])
+        for record, review in answers
+        if prior_outcomes(record, review)["root_cause"] == "hit"
+    }
+
+
+def prior_scores(root: Path = PRIOR_ROOT) -> tuple[dict, int]:
+    """Every judged prior answer's outcomes, the known pairs, and the open review items."""
+    from hindcast.evaluation.judge import _sha256
+    from hindcast.evaluation.review import prior_queue
+
+    paths = sorted((root / "judgments").glob("*/*.json"))
+    if not paths:
+        raise ValueError(f"{root}: no prior-knowledge judgments")
+    rows, pairs, answers, open_items = [], [], [], 0
+    for path in paths:
+        data = path.read_bytes()
+        record = json.loads(data)
+        if record["error"] is not None:
+            raise ValueError(f"{path}: judge error {record['error']}")
+        record_id = f"{path.parent.name}/{path.stem}"
+        review_path = root / "reviews" / f"{record_id}.json"
+        review = json.loads(review_path.read_text("utf-8")) if review_path.is_file() else {}
+        if review and review["judgment_sha256"] != _sha256(data):
+            raise ValueError(f"{record_id}: the review is for another judgment")
+        done = {(d["kind"], d["item"]) for d in review.get("decisions", [])}
+        open_items += sum(1 for i in prior_queue(record, record_id) if (i.kind, i.item) not in done)
+        pairs += [("prior", d["proposal"], d["decision"]) for d in review.get("decisions", [])]
+        answers.append((record, review))
+        rows.append(
+            {
+                "answers": record["answers"],
+                "deployment": record["deployment"],
+                "model_version": record["model_version"],
+                "collected_at": record["collected_at"],
+                "case_id": record["case_id"],
+                "outcomes": prior_outcomes(record, review),
+            }
+        )
+    known = sorted(known_before_evidence(answers))
+    agree = agreement([(a, b) for _, a, b in pairs])
+    return {"answers": rows, "known_before_evidence": known, "agreement": agree}, open_items
+
+
 def _load(root: Path) -> tuple[list[dict], dict[str, dict], dict[str, dict]]:
     from hindcast.evaluation.batch import FILLED, load_attempts
     from hindcast.evaluation.judge import _sha256, check_frozen, judgment_path
@@ -280,6 +338,8 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m hindcast.evaluation.score")
     parser.add_argument("--draft", action="store_true", help="print counts, write nothing")
     args = parser.parse_args(argv)
+    prior, prior_open = prior_scores()
+    print(f"prior answers {len(prior['answers'])}, open review items {prior_open}")
     attempts, records, reviews = _load(ROOT)
     frozen_labels = json.loads(LABELS_FROZEN.read_text("utf-8"))
     labels: dict[str, dict] = {}
@@ -299,8 +359,9 @@ def main(argv: list[str] | None = None) -> int:
     print(f"runs {len(scores)}, open review items {open_items}")
     if args.draft:
         return 0
-    if open_items:
+    if open_items or prior_open:
         raise SystemExit("review items are open: finish the review, or use --draft")
+    known = {(deployment, case_id) for deployment, case_id in prior["known_before_evidence"]}
     entries = {e["run_id"]: e for e in attempts}
     usage = {
         run_id: {"seconds": e["usage"]["seconds"], "cost": e["cost"]["total"]}
@@ -316,10 +377,11 @@ def main(argv: list[str] | None = None) -> int:
     out = {
         "rubric": "eval/rubric/rubric.md",
         "runs": [asdict(s) for s in scores],
-        "tables": aggregate(scores, models=models, known=set(), attempts=attempts, usage=usage),
+        "tables": aggregate(scores, models=models, known=known, attempts=attempts, usage=usage),
         "agreement": review_agreement(pairs),
     }
     (ROOT / "scores.json").write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8")
+    (PRIOR_ROOT / "scores.json").write_text(json.dumps(prior, indent=2) + "\n", encoding="utf-8")
     print(f"{ROOT / 'scores.json'}: {len(scores)} runs")
     return 0
 
