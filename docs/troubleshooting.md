@@ -2,6 +2,16 @@
 
 Failures that showed something about Hindcast, the platform, or a procedure: the symptom, the cause, the fix, and how the fix was verified. Newest first. A cause that was not confirmed is labelled as a hypothesis. The behaviour behind an entry is recorded once, in [findings](findings/), and linked from here.
 
+## Judge: the API refuses the reply schema as too large (2026-11-04)
+
+**Symptom:** the first judge test call on the development run returned HTTP 400, "The compiled grammar is too large, which would cause performance issues", and wrote no judgment. Dropping the enum of run-item names from the reply schema did not change the answer.
+
+**Cause:** confirmed with probes that change one part of the schema at a time: the per-run reply schema held one array of run-item names per key item, and the compiled grammar grows with each one past a limit the documentation does not give. With the key items alone, 10 compiled and 15 did not; the keys hold 7 to 21 key items ([finding](findings/models.md#structured-output-refuses-a-schema-with-one-array-per-key-item-2026-11-04)).
+
+**Fix:** one fixed reply schema, a list of run items and a list of key items. The code checks what the per-run schema enforced: every item named once, each outcome allowed for its key item's kind, and the code's unsupported items left unsupported; a reply that fails is a schema error. `tests/test_judge.py::test_reply_schema_is_the_same_for_every_run` failed before the change, and each new check's test failed with that check removed.
+
+**Verification:** tested live, 2026-11-04, 17:13:26 to 17:14:12 UTC: the test call on the development run returned `end_turn` with no judge error, and its judgment names all 21 key items and 18 run items ([worklog](worklogs/05-evaluation.md#the-judge)).
+
 ## Traces: a run's root span and some model calls never arrive (2026-11-03)
 
 **Symptom:** after the first screened development runs, Application Insights held 6 of their 10 `model_call` spans, no `investigation` span, and no question `screen` span, while the HTTP spans of the same runs were there.
