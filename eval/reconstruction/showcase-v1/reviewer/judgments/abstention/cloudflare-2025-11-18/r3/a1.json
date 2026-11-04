@@ -1,0 +1,245 @@
+{
+  "run_id": "abstention/cloudflare-2025-11-18/r3/a1",
+  "case_id": "cloudflare-2025-11-18",
+  "kinds": {
+    "attack": "inference",
+    "findings[0]": "observation",
+    "findings[1]": "observation",
+    "findings[2]": "observation",
+    "findings[3]": "observation",
+    "findings[4]": "observation",
+    "findings[5]": "inference",
+    "timeline[0]": "observation",
+    "timeline[1]": "observation",
+    "timeline[2]": "observation",
+    "timeline[3]": "observation",
+    "timeline[4]": "observation",
+    "timeline[5]": "observation",
+    "timeline[6]": "observation",
+    "timeline[7]": "observation",
+    "timeline[8]": "observation",
+    "timeline[9]": "observation",
+    "root_cause": "inference",
+    "contributing_factors[0]": "inference"
+  },
+  "code_unsupported": [],
+  "judge": {
+    "model": "claude-fable-5-1",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "8d36cd062759056fd31693928c6bedd244f10de95598133849914874b7de718f",
+    "input_sha256": "e98cf5fa881ac4e9f99a9e88052ac02c0867914868f32a92a1b6076f1b41c172",
+    "judged_at": "2026-11-04T19:13:37Z",
+    "request_id": "req_011CgiRMat4DSqjCTnmJkFoa",
+    "response_model": "claude-fable-5-1"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 7220,
+    "output_tokens": 5822,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 2418
+  },
+  "judgment": {
+    "run_items": {
+      "attack": {
+        "reason": "u1, u7 and u20 describe an internal degradation, a fix and recovery without mentioning or excluding an attack; the conclusion that the evidence decides neither way follows.",
+        "supported": true
+      },
+      "findings[0]": {
+        "reason": "u1 states an internal service degradation with some services intermittently impacted.",
+        "supported": true
+      },
+      "findings[1]": {
+        "reason": "u6 states WARP access in London was disabled during remediation; u8 states Access and WARP error levels returned to pre-incident rates and London WARP was re-enabled.",
+        "supported": true
+      },
+      "findings[2]": {
+        "reason": "u7 states the issue was identified and a fix being implemented; u12 states a change restored dashboard services while broad application services impact remained.",
+        "supported": true
+      },
+      "findings[3]": {
+        "reason": "u16 reports several issues remaining post-deployment, u17 intermittent bot score impact during global recovery, u18 intermittent errors and latency.",
+        "supported": true
+      },
+      "findings[4]": {
+        "reason": "u20 states errors and latency returning to normal; u21 states services operating normally with investigation continuing.",
+        "supported": true
+      },
+      "findings[5]": {
+        "reason": "Rests on supported f1-f5; the updates cited give no trigger or mechanism, so the inference that they do not determine one follows and adds no new fact.",
+        "supported": true
+      },
+      "timeline[0]": {
+        "reason": "u1 at 11:48:27Z states the internal service degradation with intermittent impact.",
+        "supported": true
+      },
+      "timeline[1]": {
+        "reason": "u3 at 12:21:58Z states services recovering with higher-than-normal error rates.",
+        "supported": true
+      },
+      "timeline[2]": {
+        "reason": "u6 at 13:04:09Z states WARP access in London was disabled during remediation.",
+        "supported": true
+      },
+      "timeline[3]": {
+        "reason": "u7 at 13:09:53Z states the issue was identified and a fix being implemented.",
+        "supported": true
+      },
+      "timeline[4]": {
+        "reason": "u8 at 13:13:39Z states Access and WARP recovered to pre-incident rates, London WARP re-enabled, other services still being restored.",
+        "supported": true
+      },
+      "timeline[5]": {
+        "reason": "u12 at 14:34:03Z states a change restored dashboard services while application services impact remained.",
+        "supported": true
+      },
+      "timeline[6]": {
+        "reason": "u13 at 14:42:37Z states a fix was implemented and the incident believed resolved with monitoring continuing.",
+        "supported": true
+      },
+      "timeline[7]": {
+        "reason": "u18 at 16:27:16Z states errors and latency improving with intermittent errors remaining.",
+        "supported": true
+      },
+      "timeline[8]": {
+        "reason": "u21 at 17:44:58Z states services operating normally, no elevated errors or latency, and a deeper investigation continuing.",
+        "supported": true
+      },
+      "timeline[9]": {
+        "reason": "u22 is titled as a resolved update at 19:28:36Z with text withheld; the item claims only that status and the unavailability of the text, which the ref shows.",
+        "supported": true
+      },
+      "root_cause": {
+        "reason": "Rests on supported f1, f3, f6; the cited updates u1, u7, u20 give no trigger, component or mechanism, so stating the cause is undetermined and naming what is missing follows.",
+        "supported": true
+      },
+      "contributing_factors[0]": {
+        "reason": "Rests on supported f2; u6 itself states London WARP was disabled during remediation and that users there would fail to connect, and the item correctly limits itself to that.",
+        "supported": true
+      }
+    },
+    "key_items": {
+      "attack": {
+        "run_items": [
+          "attack"
+        ],
+        "reason": "The run's verdict is 'cannot tell', which the rubric treats as abstaining on the attack verdict.",
+        "outcome": "abstained"
+      },
+      "root_cause": {
+        "run_items": [
+          "root_cause"
+        ],
+        "reason": "The run's root cause says the published updates do not determine it, names the missing trigger, component and mechanism, and the first open question asks for exactly that.",
+        "outcome": "abstained"
+      },
+      "contributing_factors/0": {
+        "run_items": [],
+        "reason": "No run item mentions the feature-file query, database name filtering, or r0 tables.",
+        "outcome": "missed"
+      },
+      "contributing_factors/1": {
+        "run_items": [],
+        "reason": "No run item mentions the 200-feature limit, preallocated memory, or a panic in the Bot Management module.",
+        "outcome": "missed"
+      },
+      "contributing_factors/2": {
+        "run_items": [],
+        "reason": "No run item mentions five-minute file generation or mixed ClickHouse deployment causing intermittent recovery; f1 notes intermittent impact but gives no mechanism.",
+        "outcome": "missed"
+      },
+      "contributing_factors/3": {
+        "run_items": [],
+        "reason": "No run item mentions the feature file being refreshed and published network-wide.",
+        "outcome": "missed"
+      },
+      "contributing_factors/4": {
+        "run_items": [],
+        "reason": "No run item mentions a suspected DDoS or the status page coincidence.",
+        "outcome": "missed"
+      },
+      "contributing_factors/5": {
+        "run_items": [],
+        "reason": "No run item mentions debugging or observability systems consuming CPU; f4 notes latency but gives no cause.",
+        "outcome": "missed"
+      },
+      "contributing_factors/6": {
+        "run_items": [],
+        "reason": "No run item mentions a login backlog, retries, or scaling control plane concurrency; timeline[5] only notes dashboard services were restored.",
+        "outcome": "missed"
+      },
+      "timeline/0": {
+        "run_items": [],
+        "reason": "No run item mentions the 11:05 database access control change.",
+        "outcome": "missed"
+      },
+      "timeline/1": {
+        "run_items": [
+          "timeline[0]"
+        ],
+        "reason": "timeline[0] states the onset of the internal service degradation at 11:48, within 30 minutes of the key's 11:20 start of failures, and is supported by u1.",
+        "outcome": "supported-hit"
+      },
+      "timeline/2": {
+        "run_items": [],
+        "reason": "No run item states the deployment reaching customer environments or first errors on customer HTTP traffic at 11:28.",
+        "outcome": "missed"
+      },
+      "timeline/3": {
+        "run_items": [],
+        "reason": "No run item mentions automated detection at 11:31, manual investigation, or the incident call.",
+        "outcome": "missed"
+      },
+      "timeline/4": {
+        "run_items": [
+          "timeline[4]",
+          "findings[1]"
+        ],
+        "reason": "timeline[4] (u8) states changes allowed Access and WARP to recover with error rates back to pre-incident levels at 13:13, the same Access-recovery event within 30 minutes of the key's 13:05, though it does not name Workers KV or the bypass mechanism.",
+        "outcome": "supported-hit"
+      },
+      "timeline/5": {
+        "run_items": [],
+        "reason": "No run item mentions rollback of the Bot Management configuration file at 13:37.",
+        "outcome": "missed"
+      },
+      "timeline/6": {
+        "run_items": [],
+        "reason": "No run item mentions stopping creation and propagation of configuration files at 14:24.",
+        "outcome": "missed"
+      },
+      "timeline/7": {
+        "run_items": [
+          "timeline[6]",
+          "timeline[5]"
+        ],
+        "reason": "timeline[6] (u13) states a fix was implemented and the incident believed resolved at 14:42, within 30 minutes of the key's 14:30 main-impact resolution; timeline[5] (u12) at 14:34 reports dashboard restoration with application impact remaining.",
+        "outcome": "supported-hit"
+      },
+      "timeline/8": {
+        "run_items": [],
+        "reason": "No run item states a second period of reduced dashboard availability or a login backlog around 14:40.",
+        "outcome": "missed"
+      },
+      "timeline/9": {
+        "run_items": [],
+        "reason": "No run item mentions scaling control plane concurrency or dashboard restoration around 15:30.",
+        "outcome": "missed"
+      },
+      "timeline/10": {
+        "run_items": [
+          "timeline[8]",
+          "timeline[9]"
+        ],
+        "reason": "The run places the return to normal operation at 17:44 (timeline[8], u21) and the resolved status at 19:28 (timeline[9]), both more than 30 minutes after the key's 17:06 end of impact for the same recovery event.",
+        "outcome": "wrong"
+      }
+    }
+  },
+  "error": null,
+  "arm": "abstention",
+  "run_sha256": "7b200145ef03ce31f2941960115c823347279196693bab33b9fdd46c66754719",
+  "code_commit": "fac02e9b59590b6d8090c3e203a589c85ad67c75",
+  "earlier_errors": []
+}

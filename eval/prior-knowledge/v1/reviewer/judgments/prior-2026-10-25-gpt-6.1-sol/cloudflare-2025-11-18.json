@@ -1,0 +1,38 @@
+{
+  "case_id": "cloudflare-2025-11-18",
+  "deployment": "gpt-6.1-sol",
+  "model_name": "gpt-6.1-sol",
+  "model_version": "2026-09-29",
+  "collected_at": "2026-10-25T21:15:35Z",
+  "judge": {
+    "model": "claude-fable-5-1",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "d5082aafc8bc452fc95f3b8f4349e8576a55879ce05af05c62b976ba2eb777e5",
+    "input_sha256": "64717527acee94338e3683e5690f35aada1a9015fdf4103d28b24024d1d9f955",
+    "judged_at": "2026-11-04T19:16:43Z",
+    "request_id": "req_011CgiRbKDMqbvT6rCFa6xdh",
+    "response_model": "claude-fable-5-1"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 1821,
+    "output_tokens": 212,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1226
+  },
+  "judgment": {
+    "attack": {
+      "reason": "The answer states \"No\" and that Cloudflare \"explicitly said the incident was not caused, directly or indirectly, by a cyberattack or malicious activity,\" matching the key's not-an-attack verdict.",
+      "outcome": "hit"
+    },
+    "root_cause": {
+      "reason": "The answer gives the full chain \"ClickHouse permissions change → unexpectedly duplicated metadata → oversized Bot Management feature file → proxy failure after global distribution,\" including the 200-feature limit and 5xx errors, matching the key's root cause mechanism and trigger.",
+      "outcome": "hit"
+    }
+  },
+  "error": null,
+  "answers": "eval/results/prior-2026-10-25-gpt-6.1-sol.json",
+  "code_commit": "fac02e9b59590b6d8090c3e203a589c85ad67c75",
+  "earlier_errors": []
+}

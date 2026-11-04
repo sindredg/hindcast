@@ -1,0 +1,38 @@
+{
+  "case_id": "cloudflare-2025-11-18",
+  "deployment": "gpt-6-luna",
+  "model_name": "gpt-6-luna",
+  "model_version": "2026-09-22",
+  "collected_at": "2026-11-01T08:27:36Z",
+  "judge": {
+    "model": "claude-fable-5-1",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "d5082aafc8bc452fc95f3b8f4349e8576a55879ce05af05c62b976ba2eb777e5",
+    "input_sha256": "f25909bd8873732bff5ac5a2d53f320c03973364f933476300b4cf13cb377d6d",
+    "judged_at": "2026-11-04T19:16:53Z",
+    "request_id": "req_011CgiRc1ciyhbsXuyYafytJ",
+    "response_model": "claude-fable-5-1"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 912,
+    "output_tokens": 789,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1226
+  },
+  "judgment": {
+    "attack": {
+      "reason": "The answer says Cloudflare \"attributed the incident to an internal failure—not an external attack,\" which matches the key's \"not an attack\" verdict.",
+      "outcome": "hit"
+    },
+    "root_cause": {
+      "reason": "The answer states that \"a change involving Cloudflare's database\" caused the generation query to return \"more rows than expected,\" producing an \"unexpectedly large Bot Management feature file\" that the proxy software \"did not handle safely,\" causing widespread errors; this names the key's mechanism (oversized feature file from extra rows crashing the proxy) and its trigger (a database change), lacking only the detail that it was a permissions change.",
+      "outcome": "hit"
+    }
+  },
+  "error": null,
+  "answers": "eval/results/prior-2026-11-01-gpt-6-luna.json",
+  "code_commit": "fac02e9b59590b6d8090c3e203a589c85ad67c75",
+  "earlier_errors": []
+}

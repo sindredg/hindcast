@@ -1,0 +1,197 @@
+{
+  "run_id": "hindcast/github-2026-10-07/r2/a1",
+  "case_id": "github-2026-10-07",
+  "kinds": {
+    "attack": "inference",
+    "findings[0]": "observation",
+    "findings[1]": "observation",
+    "findings[2]": "observation",
+    "findings[3]": "observation",
+    "findings[4]": "observation",
+    "findings[5]": "inference",
+    "timeline[0]": "observation",
+    "timeline[1]": "observation",
+    "timeline[2]": "observation",
+    "timeline[3]": "observation",
+    "timeline[4]": "observation",
+    "timeline[5]": "observation",
+    "timeline[6]": "observation",
+    "timeline[7]": "observation",
+    "timeline[8]": "observation",
+    "timeline[9]": "observation",
+    "timeline[10]": "observation",
+    "root_cause": "inference",
+    "contributing_factors[0]": "inference"
+  },
+  "code_unsupported": [],
+  "judge": {
+    "model": "claude-fable-5-1",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "8d36cd062759056fd31693928c6bedd244f10de95598133849914874b7de718f",
+    "input_sha256": "753b71f1f086bfc70a95aeb60fabe5a42ab890340b70a18d79364aa5ae19e7a6",
+    "judged_at": "2026-11-04T19:04:35Z",
+    "request_id": "req_011CgiQfcG3UivwEwqWmuUsC",
+    "response_model": "claude-fable-5-1"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 5631,
+    "output_tokens": 3842,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 2418
+  },
+  "judgment": {
+    "run_items": {
+      "attack": {
+        "reason": "Cites u6 and u22, which say GitHub was investigating the root cause and say nothing about hostile activity; concluding the evidence does not settle the attack question follows from those updates alone.",
+        "supported": true
+      },
+      "findings[0]": {
+        "reason": "u6 states widespread impact across GitHub services between 15:06 and 15:16 UTC.",
+        "supported": true
+      },
+      "findings[1]": {
+        "reason": "u1, u2, u3 state degraded availability/performance for Actions, Git Operations, Pull Requests, Webhooks, Issues; u10, u14, u15, u18 give the per-service mitigation and recovery updates.",
+        "supported": true
+      },
+      "findings[2]": {
+        "reason": "u19 (16:23:44Z) says the root cause has been identified and mitigations are being applied to prevent a reoccurrence, without naming the cause.",
+        "supported": true
+      },
+      "findings[3]": {
+        "reason": "u22 states impact from 16:52 to 17:01 UTC, calls it a reoccurrence of the earlier incident, and says durable mitigation is in progress; u21 is the opening update.",
+        "supported": true
+      },
+      "findings[4]": {
+        "reason": "u24 says all systems recovered and no further recurrence anticipated; u25's title shows the resolved status afterwards.",
+        "supported": true
+      },
+      "findings[5]": {
+        "reason": "Rests on supported f3 and f4; u22 explicitly calls the second incident a reoccurrence, so a shared cause follows, and the updates indeed do not name it.",
+        "supported": true
+      },
+      "timeline[0]": {
+        "reason": "u6 states impact began at 15:06 UTC.",
+        "supported": true
+      },
+      "timeline[1]": {
+        "reason": "u1 at 15:14:45Z reports degraded availability for Actions, Git Operations and Pull Requests.",
+        "supported": true
+      },
+      "timeline[2]": {
+        "reason": "u6 states impact ended at 15:16 UTC.",
+        "supported": true
+      },
+      "timeline[3]": {
+        "reason": "u18 at 15:58:35Z reports full recovery while investigating the root cause.",
+        "supported": true
+      },
+      "timeline[4]": {
+        "reason": "u19 at 16:23:44Z says root cause identified and mitigations being applied, cause not given.",
+        "supported": true
+      },
+      "timeline[5]": {
+        "reason": "u20's title shows a resolved status at 16:25:14Z; the code kept the citation.",
+        "supported": true
+      },
+      "timeline[6]": {
+        "reason": "u22 states the second impact window began at 16:52 UTC and calls it a reoccurrence.",
+        "supported": true
+      },
+      "timeline[7]": {
+        "reason": "u22 states the second impact window ended at 17:01 UTC.",
+        "supported": true
+      },
+      "timeline[8]": {
+        "reason": "u21 at 17:17:05Z reports degraded performance for Actions, Git Operations, Issues and Pull Requests.",
+        "supported": true
+      },
+      "timeline[9]": {
+        "reason": "u24 at 18:00:49Z says systems recovered, mitigations applied, no recurrence anticipated.",
+        "supported": true
+      },
+      "timeline[10]": {
+        "reason": "u25's title shows resolved status at 18:04:49Z.",
+        "supported": true
+      },
+      "root_cause": {
+        "reason": "Rests on supported f3, f4, f6 and u19/u22; it adds no cause of its own and correctly concludes the updates do not disclose the technical cause.",
+        "supported": true
+      },
+      "contributing_factors[0]": {
+        "reason": "Rests on supported f3 and f4: u19 reports mitigation at 16:23 and u22 reports a recurrence at 16:52 with durable mitigation in progress, so the conclusion that the first mitigation did not prevent recurrence follows without adding facts.",
+        "supported": true
+      }
+    },
+    "key_items": {
+      "attack": {
+        "run_items": [
+          "attack"
+        ],
+        "reason": "The run's verdict is 'cannot tell', which the rubric scores as abstained for the attack item.",
+        "outcome": "abstained"
+      },
+      "root_cause": {
+        "run_items": [
+          "root_cause",
+          "findings[5]"
+        ],
+        "reason": "The run's root cause says the cause cannot be reconstructed from the updates, names the undisclosed technical cause as what is missing, and an open question asks for it; nothing about the outdated-records node or routing change is stated.",
+        "outcome": "abstained"
+      },
+      "contributing_factors/0": {
+        "run_items": [],
+        "reason": "The run only notes that the first mitigation did not prevent recurrence; it states neither the automated maintenance task nor the ignored pause nor the machine being put back in charge, so no mechanism or trigger of the key item is given.",
+        "outcome": "missed"
+      },
+      "contributing_factors/1": {
+        "run_items": [],
+        "reason": "No run item mentions a puppet infrastructure update or any regression in automation.",
+        "outcome": "missed"
+      },
+      "timeline/0": {
+        "run_items": [
+          "timeline[0]",
+          "findings[0]"
+        ],
+        "reason": "timeline[0] states the first outage began at 15:06 UTC, matching the key's time exactly, supported by u6.",
+        "outcome": "supported-hit"
+      },
+      "timeline/1": {
+        "run_items": [
+          "timeline[2]",
+          "findings[0]"
+        ],
+        "reason": "timeline[2] states the first impact ended at 15:16 UTC, matching the key, supported by u6.",
+        "outcome": "supported-hit"
+      },
+      "timeline/2": {
+        "run_items": [
+          "timeline[6]",
+          "findings[3]"
+        ],
+        "reason": "timeline[6] states the second outage began at 16:52 UTC, the same event and time as the key, supported by u22; the trigger is not named but the timeline event matches.",
+        "outcome": "supported-hit"
+      },
+      "timeline/3": {
+        "run_items": [
+          "timeline[7]",
+          "findings[3]"
+        ],
+        "reason": "timeline[7] states the second impact ended at 17:01 UTC, matching the key, supported by u22.",
+        "outcome": "supported-hit"
+      },
+      "timeline/4": {
+        "run_items": [],
+        "reason": "No run item states that a machine was shut down at 17:02 UTC or any equivalent event.",
+        "outcome": "missed"
+      }
+    }
+  },
+  "error": null,
+  "arm": "hindcast",
+  "run_sha256": "1f9ff226ea0ef46ebbe4b676dacc030d5023b4a3736f11f932a811c2a1322068",
+  "code_commit": "fac02e9b59590b6d8090c3e203a589c85ad67c75",
+  "earlier_errors": []
+}
