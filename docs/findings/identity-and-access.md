@@ -9,9 +9,11 @@ Findings about Entra ID roles, scopes, and keyless access. Hindcast uses no keys
 **Evidence:** tested live, 2026-11-01, from the developer's sign-in. `az role assignment delete` at 13:18:02 UTC; by 13:18:13 the assignment list on the resource held only Cognitive Services OpenAI User, and Foundry User stayed on the project. `get_analyzer("hindcast_chart")`, polled every 30 seconds and then every 2 minutes, succeeded every time up to 14:45:33. At 14:13:10, `update_defaults` with the current mapping succeeded. `GET .../providers/Microsoft.Authorization/permissions` on the resource at about 13:58 listed only the OpenAI User data actions (`Microsoft.CognitiveServices/accounts/OpenAI/*` and its listed actions). Hypotheses:
 
 - A token cached from before the removal: refuted. The token in use until 14:43:48 was issued at 13:16:30, before the removal, but a token issued at 14:34:26 kept working.
-- The service authorizes Content Understanding calls on Cognitive Services OpenAI User at resource scope, which the earlier removals did not have: not tested. Removing that role for a while and polling again would test it.
+- The service authorizes Content Understanding calls on Cognitive Services OpenAI User at resource scope, which the earlier removals did not have: refuted. On 2026-11-04 the calls were refused while OpenAI User was still assigned on the resource.
 
-**For Hindcast:** the assignment list does not show what an identity can do on Content Understanding, and neither does the permissions API. A removal is checked by retrying a refused call ([retrieval runbook](../runbooks/retrieval.md), step 17); until that call is refused, the developer is treated as able to run and change analyzers.
+**Refused, 2026-11-04:** the next Content Understanding calls were refused: a defaults read at 03:05:34 UTC (`PermissionDenied`, data action `Microsoft.CognitiveServices/accounts/MultiModalIntelligence/defaults/read`) and `get_analyzer("hindcast_chart")` at 03:06:01. The last call recorded as accepted ran at 14:45:33 on 2026-11-01, and no Content Understanding call is recorded in between, so when access ended is not known. The role list then held no Content Understanding role, and OpenAI User on the resource.
+
+**For Hindcast:** the assignment list does not show what an identity can do on Content Understanding, and neither does the permissions API. A removal is checked by retrying a refused call ([retrieval runbook](../runbooks/retrieval.md), step 17); until that call is refused, the developer is treated as able to run and change analyzers. The 2026-11-01 removal was seen refused on 2026-11-04.
 
 ## An admin key gets 401, not 403, when local authentication is off (2026-11-01)
 

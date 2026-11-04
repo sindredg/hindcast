@@ -218,4 +218,4 @@ On a rebuild from scratch, the extraction runbook creates this deployment and ma
     until ! PYTHONPATH=src uv run --frozen python -c "from hindcast.extract import cu_client; cu_client().get_analyzer('hindcast_chart')" 2>/dev/null; do date -u +%TZ; sleep 120; done; echo "refused $(date -u +%TZ)"
     ```
 
-    Expected: `refused <time>`. Not observed on 2026-11-01: reads and a defaults write kept succeeding for more than 85 minutes after the removal ([finding](../findings/identity-and-access.md#content-understanding-kept-answering-for-more-than-85-minutes-after-its-role-was-removed-2026-11-01)). Until the call is refused, treat the role as still held.
+    Expected: `refused <time>`. Not observed on 2026-11-01: reads and a defaults write kept succeeding for more than 85 minutes after the removal ([finding](../findings/identity-and-access.md#content-understanding-kept-answering-for-more-than-85-minutes-after-its-role-was-removed-2026-11-01)). The next calls, on 2026-11-04 at 03:05 and 03:06 UTC, were refused; when access ended in between is not known. Until the call is refused, treat the role as still held.
