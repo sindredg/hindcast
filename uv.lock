@@ -98,7 +98,7 @@ wheels = [
 
 [[package]]
 name = "azure-ai-projects"
-version = "2.9.0"
+version = "2.10.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "azure-core" },
@@ -108,9 +108,9 @@ dependencies = [
     { name = "openai" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/63/c4/2d12f3ba1bc1cc3f844e9d34e602f825dea8d5cae069a203f80591e63091/azure_ai_projects-2.9.0.tar.gz", hash = "sha256:f85902b1c220f5ef999f7892d5fa8b6f1efecf867c73b107df7de614f5821fd3", size = 40061819, upload-time = "2026-10-17T03:57:23.38Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c7/d7/974be6e67c0245f20718f00e4814a76ea0c30d41975d309728780d7219eb/azure_ai_projects-2.10.0.tar.gz", hash = "sha256:c1edbb1241c973538a85de45a467edf9d6c244916c01cf68751eedbe65e7f37f", size = 40071589, upload-time = "2026-10-30T21:51:18.18Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/99/25/cda9f33df69ba45378b7dcbb591b15ca0df0ddf633cbf2359d2f8030f06b/azure_ai_projects-2.9.0-py3-none-any.whl", hash = "sha256:e0e0ea059dee51ea92b65f1e40fa6b50f62636485f8228325f1918f9fb5d7d92", size = 552868, upload-time = "2026-10-17T03:57:26.606Z" },
+    { url = "https://files.pythonhosted.org/packages/be/65/8f5b76467bb778206ef2aa71a7e4d5b44bde0526dcf076fe6349b2f2f9f1/azure_ai_projects-2.10.0-py3-none-any.whl", hash = "sha256:bc549ec352740af8e313bc215b2e8e37d5df59d5f6b3c6a74ee8517104baa952", size = 557162, upload-time = "2026-10-30T21:51:22.549Z" },
 ]
 
 [[package]]
@@ -213,7 +213,7 @@ wheels = [
 
 [[package]]
 name = "azure-storage-blob"
-version = "12.31.0"
+version = "12.31.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "azure-core" },
@@ -221,9 +221,9 @@ dependencies = [
     { name = "isodate" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/26/ca/5299cedef5957dd838d4dc46f97bea37335bb39f6610d72b27e1a3317650/azure_storage_blob-12.31.0.tar.gz", hash = "sha256:997b393cfcbdc4b186d5911790d91f80387f7edc12c4d73eab963a2d26e5b2a9", size = 670868, upload-time = "2026-09-30T21:23:22.837Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/6f/18/eb2ade6eede419d33493016ec3243ca9860f67d0bc71aa0461cda2cad0c4/azure_storage_blob-12.31.1.tar.gz", hash = "sha256:0d6e5b860a1357efc602db04cfa7c9950ac86126edcf7db89320cde281555fe5", size = 672417, upload-time = "2026-10-29T23:34:05.69Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9b/57/d1f45fbccc0dfbe6b6db7e5fa06199e35219c712f3743677bec1b4e7d78b/azure_storage_blob-12.31.0-py3-none-any.whl", hash = "sha256:0c0cb601d3462491d09ea96023cd791bb9dd4b173bf950daf3cff34ff47ba5b5", size = 455738, upload-time = "2026-09-30T21:23:24.944Z" },
+    { url = "https://files.pythonhosted.org/packages/1a/93/b9f0dc477827887aef64012946bdba65e9aad67084ad38044661a72fe47d/azure_storage_blob-12.31.1-py3-none-any.whl", hash = "sha256:9e012d5f4ab658b7cb8a4581329d7a7aa2bf5f39b4d63baeefaae7f9e90fe6f0", size = 455904, upload-time = "2026-10-29T23:34:07.459Z" },
 ]
 
 [[package]]
@@ -531,14 +531,14 @@ dev = [
 requires-dist = [
     { name = "anthropic", marker = "extra == 'judge'", specifier = "==2.4.0" },
     { name = "azure-ai-contentunderstanding", specifier = "==1.1.0" },
-    { name = "azure-ai-projects", specifier = "==2.9.0" },
+    { name = "azure-ai-projects", specifier = "==2.10.0" },
     { name = "azure-core", specifier = "==1.41.0" },
     { name = "azure-identity", specifier = "==1.27.0" },
     { name = "azure-monitor-opentelemetry", specifier = "==1.8.11" },
     { name = "azure-search-documents", specifier = "==12.0.0" },
-    { name = "azure-storage-blob", specifier = "==12.31.0" },
+    { name = "azure-storage-blob", specifier = "==12.31.1" },
     { name = "jsonschema", specifier = "==4.26.0" },
-    { name = "openai", specifier = "==3.40.0" },
+    { name = "openai", specifier = "==3.42.0" },
     { name = "ruamel-yaml", specifier = "==0.19.1" },
     { name = "streamlit", marker = "extra == 'app'", specifier = "==1.66.1" },
 ]
@@ -549,7 +549,7 @@ dev = [
     { name = "httpx2", specifier = "==2.16.0" },
     { name = "pip-audit", specifier = "==2.10.1" },
     { name = "pyright", extras = ["nodejs"], specifier = "==1.1.414" },
-    { name = "pytest", specifier = "==9.1.1" },
+    { name = "pytest", specifier = "==9.2.0" },
     { name = "ruff", specifier = "==0.17.3" },
     { name = "yamllint", specifier = "==1.38.0" },
     { name = "zizmor", specifier = "==1.31.1" },
@@ -927,7 +927,7 @@ wheels = [
 
 [[package]]
 name = "openai"
-version = "3.40.0"
+version = "3.42.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
@@ -937,9 +937,9 @@ dependencies = [
     { name = "sniffio" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/31/ce/5b2e20d41c4e82dbb4be0192c62ce53516111896f642466fa71b82dccf0f/openai-3.40.0.tar.gz", hash = "sha256:df309d434130e89a23e9c687fc4bcd3df0df705a33d3872503c87448df69f56f", size = 2391443, upload-time = "2026-10-27T15:38:54.916Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f9/ef/c17c9ca921c1991b0a7185e8282da1996d09292b0caaf2e7cffd7e051eb6/openai-3.42.0.tar.gz", hash = "sha256:deffe27f9e20e4f1d9d471978d12f23aa119382494c0a9860795e66943d0fe42", size = 2353482, upload-time = "2026-10-31T00:27:26.502Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/1c/d2/b59435562e893730bb620c720ddaaa84b016e870c9b7b6b85fb505540bdc/openai-3.40.0-py3-none-any.whl", hash = "sha256:dfcfd4f65ee5a8bb824da90c9ad7fa0dda7f3bd472a7c564dffc6183f0a0b55c", size = 2353063, upload-time = "2026-10-27T15:38:52.679Z" },
+    { url = "https://files.pythonhosted.org/packages/c5/79/904afac12186d9ab9e3f731eb798e36dc0f5b991a557c4304b0a43e393c1/openai-3.42.0-py3-none-any.whl", hash = "sha256:efb9d089ecf66c668289f647717389df98b40b954cd86d4fe54eddce39aabb3f", size = 2397860, upload-time = "2026-10-31T00:27:24.493Z" },
 ]
 
 [[package]]
@@ -1563,7 +1563,7 @@ nodejs = [
 
 [[package]]
 name = "pytest"
-version = "9.1.1"
+version = "9.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "colorama", marker = "sys_platform == 'win32'" },
@@ -1572,9 +1572,9 @@ dependencies = [
     { name = "pluggy" },
     { name = "pygments" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e4/47/b9efed96c114afcfa3c9d3fe98a76a1d14c74a9e266d397cf6eb64be5e01/pytest-9.1.1.tar.gz", hash = "sha256:1088fbde8f2b49d95a549a195707afa7a76a3ce9bcadc26b6d71f0ffda5fe313", size = 1636369, upload-time = "2026-06-19T10:58:32.857Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/79/42/bb4641652e58dedeac2ec51abc1f8cae4fee4ec63899a0999016229a0f2a/pytest-9.2.0.tar.gz", hash = "sha256:97c4f3b1f3c7414aa36465e09b8220f1d03627993bd51b1282e193753c80557b", size = 1797555, upload-time = "2026-10-27T21:30:20.728Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/24/25/1de2678b631f5a49215c6c96fff41ba892b0a34df68d6d80292b1b48aa7f/pytest-9.1.1-py3-none-any.whl", hash = "sha256:37a86b45efb9a47a61a36449063e8e18d0cab3161329fc099eb21783169c4f0c", size = 386536, upload-time = "2026-06-19T10:58:31.347Z" },
+    { url = "https://files.pythonhosted.org/packages/51/39/1f5d8c8877a0fa327db959c19341d4be61660de1ab6b7391f9eb805bcd67/pytest-9.2.0-py3-none-any.whl", hash = "sha256:07acdcf88ec174f907dc01af70bf52d49b014bbab03faeeade31c96b18c2e588", size = 411776, upload-time = "2026-10-27T21:30:19.131Z" },
 ]
 
 [[package]]
