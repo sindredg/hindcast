@@ -129,7 +129,9 @@ def record_decision(
     item: ReviewItem,
     decision: str | bool,
     now: datetime | None = None,
+    decided_by: Mapping[str, Any] | None = None,
 ) -> dict:
+    """Append one decision; `decided_by` names a reviewer model and the judgment it gave."""
     if decision not in choices(item):
         allowed = ", ".join(str(c) for c in choices(item))
         raise ValueError(f"{item.item}: {decision!r} is not one of {allowed}")
@@ -143,6 +145,7 @@ def record_decision(
             "decision": decision,
             "decided_at": (now or datetime.now(UTC)).strftime("%Y-%m-%dT%H:%M:%SZ"),
         }
+        | ({"decided_by": dict(decided_by)} if decided_by else {})
     )
     _write(path, review)
     return review
