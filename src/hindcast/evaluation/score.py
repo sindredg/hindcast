@@ -21,7 +21,7 @@ import argparse
 import json
 import statistics
 from collections import Counter, defaultdict
-from collections.abc import Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
@@ -292,6 +292,27 @@ def alone(
     return judge_scores, reviewer_scores
 
 
+def second_opinion(
+    records: Mapping[str, Mapping[str, Any]],
+    seconds: Mapping[str, Mapping[str, Any]],
+    labels: Mapping[str, Mapping[str, Any]],
+    tables: Callable[[list[RunScore]], Mapping[str, Any]],
+) -> dict | None:
+    """The whole-judgment agreement and each judge alone, or None.
+
+    None unless every run's review was decided from a reviewer judgment: a
+    run a person reviewed alone leaves no second judgment to compare.
+    """
+    if not records or seconds.keys() != records.keys():
+        return None
+    judge_scores, reviewer_scores = alone(records, seconds, labels)
+    return {
+        "whole_agreement": whole_agreement((records[r], seconds[r]) for r in records),
+        "judge_alone": _primaries(tables(judge_scores)),
+        "reviewer_alone": _primaries(tables(reviewer_scores)),
+    }
+
+
 def _primaries(tables: Mapping[str, Any]) -> dict:
     return {
         "by_arm": {arm: s["primary"] for arm, s in tables["by_arm"].items()},
@@ -470,15 +491,11 @@ def main(argv: list[str] | None = None) -> int:
         "tables": tables(scores),
         "agreement": review_agreement(pairs),
     }
-    # Only when the reviewer model judged every run: a person's review leaves
-    # no second judgment to compare.
-    if records and seconds.keys() == records.keys():
-        judge_scores, reviewer_scores = alone(records, seconds, labels)
-        out["second_opinion"] = {
-            "whole_agreement": whole_agreement((records[r], seconds[r]) for r in records),
-            "judge_alone": _primaries(tables(judge_scores)),
-            "reviewer_alone": _primaries(tables(reviewer_scores)),
-        }
+    opinion = second_opinion(records, seconds, labels, tables)
+    if opinion is None:
+        print("second opinion left out: not every run has a reviewer decision")
+    else:
+        out["second_opinion"] = opinion
     (ROOT / "scores.json").write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8")
     (PRIOR_ROOT / "scores.json").write_text(json.dumps(prior, indent=2) + "\n", encoding="utf-8")
     print(f"{ROOT / 'scores.json'}: {len(scores)} runs")

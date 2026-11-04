@@ -372,13 +372,63 @@ def test_each_judge_alone_is_scored_without_the_review() -> None:
 
     rec = record()
     second = record(root_cause=verdict("wrong", "root_cause"))
-    review = accept_all(rec)
-    for d in review["decisions"]:
-        if (d["kind"], d["item"]) == ("match", "root_cause"):
-            d["decision"] = "missed"
     judge_scores, reviewer_scores = alone(
         {rec["run_id"]: rec}, {rec["run_id"]: second}, {"dev": LABELS}
     )
     # The judge alone keeps its supported hit; the reviewer alone its wrong.
     assert judge_scores[0].outcomes["root_cause"] == "supported-hit"
     assert reviewer_scores[0].outcomes["root_cause"] == "wrong"
+
+
+def test_a_person_decision_keeps_the_judges_run_items() -> None:
+    # One item decided by the reviewer model, another by a person: the
+    # person's decision is checked against the judge's run items, which list
+    # nothing for the factor, so the partial is a contradiction.
+    rec = record()
+    second = record(contributing_factors__1=verdict("partial", "findings[0]"))
+    review = reviewer_decided(rec, "timeline/1", "missed")
+    review["decisions"].append(
+        {
+            "kind": "match",
+            "item": "contributing_factors/1",
+            "proposal": "missed",
+            "decision": "partial",
+        }
+    )
+    score = score_run(rec, review, LABELS, second=second)
+    assert score.contradictions == ["contributing_factors/1"]
+
+
+def test_the_latest_decision_on_an_item_names_who_decided() -> None:
+    # A person's later decision replaces the reviewer's on the same item, so
+    # the judge's run items back it, not the reviewer's.
+    rec = record()
+    second = record(contributing_factors__1=verdict("partial", "findings[0]"))
+    review = reviewer_decided(rec, "contributing_factors/1", "partial")
+    review["decisions"].append(
+        {
+            "kind": "match",
+            "item": "contributing_factors/1",
+            "proposal": "missed",
+            "decision": "partial",
+        }
+    )
+    score = score_run(rec, review, LABELS, second=second)
+    assert score.contradictions == ["contributing_factors/1"]
+
+
+def test_second_opinion_needs_a_reviewer_judgment_for_every_run() -> None:
+    from hindcast.evaluation.score import second_opinion
+
+    first, other = record(), record("comparison/dev/r1/a1")
+    records = {first["run_id"]: first, other["run_id"]: other}
+
+    def tables(scores: list) -> dict:
+        return {"by_arm": {}, "known_before_evidence": {}}
+
+    labels = {"dev": LABELS}
+    assert second_opinion(records, {first["run_id"]: record()}, labels, tables) is None
+    assert second_opinion({}, {}, labels, tables) is None
+    both = {first["run_id"]: record(), other["run_id"]: record()}
+    out = second_opinion(records, both, labels, tables)
+    assert out is not None and out["whole_agreement"]["match"]["items"] == 12
