@@ -3,16 +3,16 @@
 Status: Written on 2026-11-04.
 
 - Steps 1 to 17 ran on 2026-11-03 and 2026-11-04 with the output shown, steps 5 to 8 again for the case-chart variant ([decision 0026](../decisions/0026-case-chart-injection.md)).
-- Steps 18 and 19 (review, scores) are written; the outputs shown are from tests with stubs until they run.
+- Steps 18 and 19 (the reviewer's freeze and test call) ran on 2026-11-04. Steps 20 to 22 (the reviewer's run, the decisions, the scores) are written; the outputs shown are expected, not observed, until they run.
 - The search service was deleted on 2026-11-04 after step 14, recreated for the case-chart runs, and deleted again at 17:41Z. Steps 4 to 11 need it: recreate it with the [retrieval runbook](retrieval.md) first.
 
-The procedure scores Hindcast's reconstructions of the showcase cases against their frozen keys ([decision 0006](../decisions/0006-evaluation-design.md), [rubric version 2](../../eval/rubric/rubric.md)): five arms, four cases, three runs each; the injection tests on two layers ([decisions 0025](../decisions/0025-injection-test-layers.md) and [0026](../decisions/0026-case-chart-injection.md)); the Foundry cloud evaluators; then, offline, the judge, a person's review, and the scores. The results are in the [evaluation report](../../eval/reconstruction/showcase-v1/README.md) and the [injection report](../../eval/injection/dev-v1/README.md).
+The procedure scores Hindcast's reconstructions of the showcase cases against their frozen keys ([decision 0006](../decisions/0006-evaluation-design.md), [rubric version 3](../../eval/rubric/rubric.md)): five arms, four cases, three runs each; the injection tests on two layers ([decisions 0025](../decisions/0025-injection-test-layers.md) and [0026](../decisions/0026-case-chart-injection.md)); the Foundry cloud evaluators; then, offline, the judge, the reviewer model that decides the review queue, and the scores. The results are in the [evaluation report](../../eval/reconstruction/showcase-v1/README.md) and the [injection report](../../eval/injection/dev-v1/README.md).
 
 ## Inputs and access
 
 - The [investigator runbook](investigator.md) completed: `.env` with the model, safety, search, and embedding values; the agents `hindcast-investigator-gpt-6-luna` version 3 and `hindcast-investigator-gpt-6-1-sol` version 2 in the project; the case evidence under `build/evidence/` and the library extracts under `build/extracted/library/`.
 - Signed in with `az login` as a user with Foundry User on the project, Search Index Data Contributor and Search Service Contributor on the search service, and Cognitive Services OpenAI User on the Foundry resource. Step 4 also needs Cognitive Services Contributor on the Foundry resource while it runs (Content Understanding).
-- For steps 15 to 17: an Anthropic API key, as `ANTHROPIC_API_KEY=<anthropic-api-key>` in `.env`, and `uv sync --frozen --extra judge`.
+- For steps 15 to 20: an Anthropic API key, as `ANTHROPIC_API_KEY=<anthropic-api-key>` in `.env`, and `uv sync --frozen --extra judge`.
 - The rubric, the labels, and the keys frozen and committed: `eval/rubric/frozen.json`, `eval/keys/labels/frozen.json`, `eval/keys/frozen.json`. A clean tree: the batch and the judge refuse uncommitted changes under `src`, `prompts`, `eval/rubric`, and `eval/keys`.
 - Commands run from the repository root.
 
@@ -24,7 +24,7 @@ The procedure scores Hindcast's reconstructions of the showcase cases against th
    uv run --frozen pytest -q tests/test_rubric.py tests/test_labels.py tests/test_keys.py
    ```
 
-   Expected: all pass. A changed rubric, label, or key fails `test_rubric_frozen_matches`, `test_frozen_labels_unchanged`, or `test_frozen_keys_match_their_hashes`. Observed on 2026-11-04 before step 7: all pass, rubric SHA-256 `46bed8b5…`, frozen 2026-11-04T02:53:28Z.
+   Expected: all pass. A changed rubric, label, or key fails `test_rubric_frozen_matches`, `test_frozen_labels_unchanged`, or `test_frozen_keys_match_their_hashes`. Observed on 2026-11-04 before step 7: all pass, rubric SHA-256 `46bed8b5…`, frozen 2026-11-04T02:53:28Z. Rubric version 3, which changes only the Review section, was frozen at 2026-11-04T18:56:41Z (SHA-256 `a8b78af7…`) before step 18; `eval/rubric/frozen.json` keeps version 2's hash and time under `replaces`.
 
 ## Sealed cases' library snapshots
 
@@ -158,15 +158,41 @@ The procedure scores Hindcast's reconstructions of the showcase cases against th
 
 ## Review and scores
 
-18. Review in the local page. Decisions save as they are made, and the page resumes where it stopped.
+The reviewer model decides the review queue; no person decides an item ([decision 0027](../decisions/0027-reviewer-model.md), [rubric version 3](../../eval/rubric/rubric.md#review)).
+
+18. Freeze the reviewer prompts before any reviewer call.
 
     ```bash
-    PYTHONPATH=src uv run --frozen streamlit run src/hindcast/review.py
+    PYTHONPATH=src uv run --frozen python -m hindcast.evaluation.reviewer freeze
     ```
 
-    Expected: runs under a blind ID, one item per screen, the judge's proposal marked; the sidebar counts the decided items. The second mode, Prior knowledge, reviews the prior answers.
+    Expected: one `system sha256 <hash>` line each for `eval/judge/frozen-reviewer.json` and `eval/judge/frozen-reviewer-prior.json`; commit both files. A second freeze is refused. Observed on 2026-11-04 at 18:57:31Z: `8d36cd06…` and `d5082aaf…`.
 
-19. Score.
+19. Make one test call: the reviewer judges the first filled run.
+
+    ```bash
+    PYTHONPATH=src uv run --frozen --extra judge --env-file .env python -m hindcast.evaluation.reviewer run --limit 1
+    ```
+
+    Expected: `runs: judged 1, errors 0, kept 0`, `error kinds: none`, and a usage line; one file under `eval/reconstruction/showcase-v1/reviewer/judgments/`. Observed on 2026-11-04 from 18:58:01Z to 18:59:23Z: as expected, on `hindcast/cloudflare-2025-11-18/r1/a1`, `end_turn` from `claude-fable-5-1`, from the same input hash as the judge's.
+
+20. Judge every filled run and every prior answer again with the reviewer.
+
+    ```bash
+    PYTHONPATH=src uv run --frozen --extra judge --env-file .env python -m hindcast.evaluation.reviewer run
+    ```
+
+    Expected: counts for the runs and the prior answers, the error kinds, and the summed usage. Run it again until both report `errors 0`: it keeps every second judgment and judges only the errored ones.
+
+21. Write the reviewer's verdicts as the review decisions.
+
+    ```bash
+    PYTHONPATH=src uv run --frozen python -m hindcast.evaluation.reviewer apply
+    ```
+
+    Expected: `runs 60, decisions 880, missing 0` and `prior answers 14, decisions 18, missing 0`; one file per run under `reviews/` in each root. A second judgment made on other input or under another lock stops the command. Commit the second judgments and the reviews together. The local page, `streamlit run src/hindcast/review.py`, then shows `Every item is decided.`
+
+22. Score.
 
     ```bash
     PYTHONPATH=src uv run --frozen python -m hindcast.evaluation.score
@@ -176,7 +202,7 @@ The procedure scores Hindcast's reconstructions of the showcase cases against th
 
 ## Clean up
 
-20. Remove the role that step 4 needed, and delete the services the steps no longer need. Each is a change on Azure.
+23. Remove the role that step 4 needed, and delete the services the steps no longer need. Each is a change on Azure.
 
     ```bash
     az role assignment delete --assignee <user-object-id> --role "Cognitive Services Contributor" --scope <foundry-resource-id>
