@@ -159,7 +159,7 @@ def record_problems(old: list[dict], new: list[dict]) -> list[str]:
     return problems
 
 
-def _version(repo: Path, rev: str, path: Path) -> list[dict]:
+def _version(repo: Path, rev: str, path: Path, key: str = "seals") -> list[dict]:
     """The record at a commit; empty only when the commit has no such file."""
     if _git(repo, "rev-parse", "--verify", "--quiet", f"{rev}^{{commit}}").returncode != 0:
         raise RuntimeError(f"cannot read commit {rev}")
@@ -168,11 +168,17 @@ def _version(repo: Path, rev: str, path: Path) -> list[dict]:
     shown = _git(repo, "show", f"{rev}:{path.as_posix()}")
     if shown.returncode != 0:
         raise RuntimeError(f"cannot read {path} at {rev}")
-    return json.loads(shown.stdout)["seals"]
+    return json.loads(shown.stdout)[key]
 
 
-def history_problems(repo: Path = Path("."), path: Path = SEALS) -> list[str]:
-    """Every committed version of the record checked against the one before it."""
+def history_problems(
+    repo: Path = Path("."), path: Path = SEALS, *, key: str = "seals"
+) -> list[str]:
+    """Every committed version of the record checked against the one before it.
+
+    key names the record's list: `seals` in seals.json, `snapshots` in the
+    library snapshots' record.
+    """
     shallow = _git(repo, "rev-parse", "--is-shallow-repository")
     if shallow.returncode != 0:
         raise RuntimeError("cannot read the Git history")
@@ -191,9 +197,9 @@ def history_problems(repo: Path = Path("."), path: Path = SEALS) -> list[str]:
         # With a path, the parents are the nearest earlier commits that
         # changed the file, so each version is compared with the one before.
         commit, *parents = line.split()
-        new = _version(repo, commit, path)
+        new = _version(repo, commit, path, key)
         for parent in parents:
-            old = _version(repo, parent, path)
+            old = _version(repo, parent, path, key)
             problems += [f"{commit[:12]}: {p}" for p in record_problems(old, new)]
     return problems
 

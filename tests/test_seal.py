@@ -472,6 +472,24 @@ def test_committed_seal_record_only_grows() -> None:
     assert history_problems(Path(".")) == []
 
 
+def test_committed_snapshot_record_only_grows() -> None:
+    # The leak check at a reveal trusts each snapshot's recorded hash (#63).
+    assert history_problems(Path("."), seal.SNAPSHOTS, key="snapshots") == []
+
+
+def test_snapshot_history_with_a_changed_hash_is_a_problem(tmp_path: Path) -> None:
+    git(tmp_path, "init", "-q")
+    path = tmp_path / seal.SNAPSHOTS
+    path.parent.mkdir(parents=True)
+    first = {"case_id": "a", "chunks": 267, "sha256": "1" * 64}
+    for snapshots, message in (([first], "one"), ([first | {"sha256": "9" * 64}], "edit")):
+        path.write_text(json.dumps({"snapshots": snapshots}), encoding="utf-8")
+        git(tmp_path, "add", seal.SNAPSHOTS.as_posix())
+        git(tmp_path, "commit", "-q", "-m", message)
+    [problem] = history_problems(tmp_path, seal.SNAPSHOTS, key="snapshots")
+    assert "entry 0 changed: sha256" in problem
+
+
 def test_run_refuses_when_the_search_does_not_answer(
     capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
