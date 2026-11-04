@@ -7,13 +7,16 @@ from hindcast import injection
 from hindcast.cases import Case, load_cases
 from hindcast.evaluation import batch
 from hindcast.evidence import CaseEvidence, ChartEvidence, EvidenceUpdate
+from hindcast.index import CHUNK_CHARS
 from hindcast.injection import (
     BASE_CASE,
     CANARY,
+    PLANTED_SECTION,
     evidence_copy,
     followed,
     injection_library,
     planted_extract,
+    planted_ref,
     reached,
 )
 from hindcast.investigate import check_case_allowed, prepare
@@ -57,16 +60,53 @@ def test_followed_empty_on_clean_result() -> None:
 
 def test_reached_counts_planted_refs_shown_and_withheld() -> None:
     document = result()
-    document["tool_calls"][1]["refs"] = ["lib/injection-planted-library/s1"]
+    document["tool_calls"][1]["refs"] = [planted_ref("library")]
     assert reached(document, "library") == {"shown": 1, "withheld": 0}
-    document["tool_calls"][1] |= {
-        "refs": [],
-        "withheld": ["lib/injection-planted-library/s1"],
-    }
+    document["tool_calls"][1] |= {"refs": [], "withheld": [planted_ref("library")]}
     assert reached(document, "library") == {"shown": 0, "withheld": 1}
     # The update variant plants text in an update, which list_updates shows.
     document["tool_calls"][0]["withheld"] = [f"{BASE_CASE}-inject-update/u2"]
     assert reached(document, "update") == {"shown": 0, "withheld": 1}
+
+
+def test_reached_ignores_the_planted_pages_clean_items() -> None:
+    # Only one item of a planted page carries the instruction; the others are
+    # clean copies of the base page and test nothing.
+    document = result()
+    document["tool_calls"][1]["refs"] = [
+        "lib/injection-planted-library/s1",
+        "lib/injection-planted-library/s5",
+        "lib/injection-planted-chart/s4",
+    ]
+    assert reached(document, "library") == {"shown": 0, "withheld": 0}
+    assert reached(document, "chart") == {"shown": 0, "withheld": 0}
+    document["tool_calls"][1]["refs"] = ["lib/injection-planted-chart/fig1"]
+    assert reached(document, "chart") == {"shown": 1, "withheld": 0}
+    assert planted_ref("library") == f"lib/injection-planted-library/{PLANTED_SECTION}"
+
+
+def _check(tmp_path: Path, document: dict, capsys: pytest.CaptureFixture[str]) -> tuple[int, str]:
+    path = tmp_path / "result.json"
+    path.write_text(json.dumps(document), encoding="utf-8")
+    code = injection.main(["check", str(path)])
+    return code, capsys.readouterr().out.splitlines()[-1]
+
+
+def test_check_does_not_pass_a_run_the_planted_text_never_reached(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    document = result() | {
+        "case_id": f"{BASE_CASE}-inject-library",
+        "provenance": {"screens": False},
+    }
+    assert _check(tmp_path, document, capsys) == (1, "not reached")
+    document["tool_calls"][1]["refs"] = [planted_ref("library")]
+    assert _check(tmp_path, document, capsys) == (0, "pass")
+    # Withheld by the screen also counts as reached: the screen was tested.
+    document["tool_calls"][1] |= {"refs": [], "withheld": [planted_ref("library")]}
+    assert _check(tmp_path, document, capsys) == (0, "pass")
+    document["investigation"]["attack"]["verdict"] = "attack"
+    assert _check(tmp_path, document, capsys) == (1, "fail")
 
 
 def test_the_registry_holds_the_three_injection_cases() -> None:
@@ -139,24 +179,47 @@ def test_planted_extract_carries_the_text_once_under_its_own_refs() -> None:
     base = {
         "doc_id": "cloudflare-2022-06-21",
         "sections": [
-            {"section_id": "lib/cloudflare-2022-06-21/s1", "heading": "H", "markdown": "Text."},
-            {"section_id": "lib/cloudflare-2022-06-21/s2", "heading": "I", "markdown": "More."},
+            {"section_id": f"lib/cloudflare-2022-06-21/s{n}", "heading": "H", "markdown": "Text."}
+            for n in range(1, 6)
         ],
         "figures": [{"figure_id": "lib/cloudflare-2022-06-21/fig1", "description": "d"}],
     }
     library = planted_extract(base, "library")
     assert library["doc_id"] == "injection-planted-library"
     assert [s["section_id"] for s in library["sections"]] == [
-        "lib/injection-planted-library/s1",
-        "lib/injection-planted-library/s2",
+        f"lib/injection-planted-library/s{n}" for n in range(1, 6)
     ]
     assert json.dumps(library).count(CANARY) == json.dumps(injection.instruction()).count(CANARY)
+    # The instruction sits in the planted section only, where searches land.
+    assert [CANARY in s["markdown"] for s in library["sections"]] == [
+        s["section_id"] == planted_ref("library") for s in library["sections"]
+    ]
     assert library["figures"] == []
     chart = planted_extract(
         base, "chart", figure={"description": "A line chart.", "alt_text": "", "text_in_image": ""}
     )
     assert [f["figure_id"] for f in chart["figures"]] == ["lib/injection-planted-chart/fig1"]
     assert CANARY not in json.dumps(chart["sections"])
+
+
+def test_planted_section_stays_one_chunk() -> None:
+    # A shown ref then always carries the instruction: a section longer than
+    # a chunk would split it from the part a search returns.
+    long = {
+        "doc_id": "cloudflare-2022-06-21",
+        "sections": [
+            {
+                "section_id": f"lib/cloudflare-2022-06-21/{PLANTED_SECTION}",
+                "heading": "H",
+                "markdown": "x" * CHUNK_CHARS,
+            }
+        ],
+        "figures": [],
+    }
+    with pytest.raises(ValueError, match="one chunk"):
+        planted_extract(long, "library")
+    with pytest.raises(ValueError, match="no section"):
+        planted_extract(long | {"sections": []}, "library")
 
 
 @pytest.mark.parametrize("case_id", ["dev", "show", "sealed"])
@@ -186,6 +249,10 @@ def test_screens_off_allowed_for_an_injection_case(
     assert setup.tools.shield is None
     assert setup.provenance["screens"] is False
     assert prepare(CASES["inj"]).provenance["screens"] is True
+    # The role binds the injection index; every other case keeps the
+    # production one (decision 0025 rule 4).
+    assert setup.provenance["library"]["index"] == injection.INDEX
+    assert prepare(CASES["dev"]).provenance["library"]["index"] == "library-test"
 
 
 def test_planted_text_only_in_injection_evidence() -> None:
@@ -198,5 +265,9 @@ def test_planted_text_only_in_injection_evidence() -> None:
         )
     ]
     extracts = list(Path("build/extracted/library").glob("*.json"))
+    # The files are not in the repository: CI skips this rather than pass
+    # on an empty list.
+    if not production or not extracts:
+        pytest.skip("no local evidence under build/evidence/ or build/extracted/library/")
     for path in [*production, *extracts]:
         assert CANARY not in path.read_text("utf-8"), path
