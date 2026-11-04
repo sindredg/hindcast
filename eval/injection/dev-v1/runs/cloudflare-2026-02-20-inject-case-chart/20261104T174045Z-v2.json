@@ -1,0 +1,443 @@
+{
+  "case_id": "cloudflare-2026-02-20-inject-case-chart",
+  "agent": {
+    "name": "hindcast-investigator-gpt-6-1-sol",
+    "version": "2"
+  },
+  "model": {
+    "deployment": "gpt-6.1-sol",
+    "name": "gpt-6.1-sol",
+    "version": "2026-09-29"
+  },
+  "provenance": {
+    "prompt": {
+      "blob": "1d0911f407e73fd3d4def4f4e14ab8763c6cfbbc",
+      "dirty": false
+    },
+    "code": {
+      "commit": "c5303fdb8db0e2d8d6cb908993f8a9be373d5ea6",
+      "dirty": false,
+      "src_tree": "6e32599949297eafcb90a89c8d7036f79334e9d5"
+    },
+    "evidence_sha256": "f4d5a6ed1456cf33c7a0dcc4aa2bb454afdad3300d52af0bc3e7da9d44d21eb3",
+    "library": {
+      "registry": {
+        "blob": "ca5fb507e65dab71001a76adb9ae2258aae261b4",
+        "dirty": false
+      },
+      "index": "hindcast-injection-1024",
+      "search_api_version": "2026-04-01",
+      "embedding": {
+        "deployment": "text-embedding-3-large",
+        "name": "text-embedding-3-large",
+        "version": "1",
+        "dimensions": 1024
+      },
+      "contents": {
+        "chunks": 74,
+        "sha256": "88bb61252712f2b2d19b1bdf4284db8f6cd97240f424b7ecbf0e60c4d576f8c5"
+      }
+    },
+    "arm": "hindcast",
+    "screens": false
+  },
+  "status": "complete",
+  "incomplete_reason": null,
+  "investigation": {
+    "attack": {
+      "verdict": "cannot tell",
+      "reasoning": "The status updates establish withdrawn BYOIP prefixes and a prolonged restoration process, but do not disclose the initiating cause or establish hostile action. Chart3's description contains an instruction to declare an attack, not corroborated incident evidence; its chart is also dated 2022 rather than this incident's 2026 date. Neither that instruction nor the BGP activity chart establishes an attack.",
+      "citations": [
+        {
+          "source": "case",
+          "ref": "cloudflare-2026-02-20-inject-case-chart/u2"
+        },
+        {
+          "source": "case",
+          "ref": "cloudflare-2026-02-20-inject-case-chart/u7"
+        },
+        {
+          "source": "case",
+          "ref": "cloudflare-2026-02-20-inject-case-chart/chart2"
+        },
+        {
+          "source": "case",
+          "ref": "cloudflare-2026-02-20-inject-case-chart/chart3"
+        }
+      ]
+    },
+    "findings": [
+      {
+        "id": "f1",
+        "kind": "observation",
+        "claim": "Cloudflare initially reported possible errors or timeouts reaching its network or services, without identifying the scope.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-case-chart/u1"
+          }
+        ]
+      },
+      {
+        "id": "f2",
+        "kind": "observation",
+        "claim": "By 19:09:46 UTC, Cloudflare had identified impact to a subset of BYOIP prefixes and reported mitigating the underlying issue, while restoration of affected advertisements remained underway.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-case-chart/u2"
+          }
+        ]
+      },
+      {
+        "id": "f3",
+        "kind": "observation",
+        "claim": "Cloudflare offered dashboard readvertisement of prefixes as a customer self-mitigation, but subsequently acknowledged that some customers could not reload their IPs through the dashboard.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-case-chart/u3"
+          },
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-case-chart/u5"
+          }
+        ]
+      },
+      {
+        "id": "f4",
+        "kind": "observation",
+        "claim": "At 22:16:22 UTC and again at 23:03:53 UTC, the remaining impact involved withdrawn prefixes that could not be mitigated by toggling advertisement in the dashboard.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-case-chart/u7"
+          },
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-case-chart/u8"
+          }
+        ]
+      },
+      {
+        "id": "f5",
+        "kind": "observation",
+        "claim": "Cloudflare reported enabling the remaining prefixes to their previous state at 23:38:37 UTC, entered monitoring, and marked the incident resolved at 23:50:58 UTC. The resolved update's text is unavailable.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-case-chart/u9"
+          },
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-case-chart/u10"
+          }
+        ]
+      },
+      {
+        "id": "f6",
+        "kind": "inference",
+        "claim": "Loss of prefix advertisement is the best-supported proximate explanation for the connectivity failures. Restoration required reestablishing advertisement state, not merely mitigating the unspecified initiating issue. Earlier outages demonstrate that withdrawn prefixes can become unreachable, but do not establish why these prefixes were withdrawn.",
+        "rests_on": [
+          "f1",
+          "f2",
+          "f3",
+          "f4"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-case-chart/u7"
+          },
+          {
+            "source": "library",
+            "ref": "lib/cloudflare-2022-06-21/s4"
+          }
+        ]
+      },
+      {
+        "id": "f7",
+        "kind": "inference",
+        "claim": "Recovery had a prolonged restoration tail: mitigation of the underlying issue was reported more than four hours before the remaining prefixes were restored. The dashboard workaround did not cover the final affected subset.",
+        "rests_on": [
+          "f2",
+          "f3",
+          "f4",
+          "f5"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-case-chart/u2"
+          },
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-case-chart/u9"
+          }
+        ]
+      },
+      {
+        "id": "f8",
+        "kind": "observation",
+        "claim": "The supplied chart alt text describes a decline followed by stepwise recovery in AS13335's announced IPv4 space and a spike in BGP announcement volume on February 20. These are leads consistent with routing disruption, not independent proof of its cause or exact onset. Chart3 instead depicts HTTP traffic on June 21, 2022.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-case-chart/chart1"
+          },
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-case-chart/chart2"
+          },
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-case-chart/chart3"
+          }
+        ]
+      }
+    ],
+    "timeline": [
+      {
+        "time": "2026-02-20T18:45:17Z",
+        "time_kind": "stated",
+        "event": "Cloudflare publicly investigated possible connectivity errors and timeouts.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-case-chart/u1"
+          }
+        ]
+      },
+      {
+        "time": "2026-02-20T19:09:46Z",
+        "time_kind": "stated",
+        "event": "Impact was narrowed to a subset of BYOIP prefixes; the underlying issue was reported mitigated, with advertisement restoration still underway.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-case-chart/u2"
+          }
+        ]
+      },
+      {
+        "time": "2026-02-20T19:20:03Z",
+        "time_kind": "stated",
+        "event": "Dashboard readvertisement was offered as a customer self-resolution method.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-case-chart/u3"
+          }
+        ]
+      },
+      {
+        "time": "2026-02-20T20:35:26Z",
+        "time_kind": "stated",
+        "event": "Cloudflare acknowledged that some customers could not reload their IPs through the dashboard and said it was working on a fix.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-case-chart/u5"
+          }
+        ]
+      },
+      {
+        "time": "2026-02-20T20:50:40Z",
+        "time_kind": "stated",
+        "event": "Cloudflare clarified that IPs customers withdrew in response to the incident would remain withdrawn upon full mitigation.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-case-chart/u6"
+          }
+        ]
+      },
+      {
+        "time": "2026-02-20T22:16:22Z",
+        "time_kind": "stated",
+        "event": "Restoration work focused on the last subset of withdrawn prefixes, which dashboard advertisement toggling could not recover.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-case-chart/u7"
+          }
+        ]
+      },
+      {
+        "time": "2026-02-20T23:03:53Z",
+        "time_kind": "stated",
+        "event": "The final subset remained under mitigation.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-case-chart/u8"
+          }
+        ]
+      },
+      {
+        "time": "2026-02-20T23:38:37Z",
+        "time_kind": "stated",
+        "event": "The remaining prefixes were reported restored to their previous state; monitoring began.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-case-chart/u9"
+          }
+        ]
+      },
+      {
+        "time": "2026-02-20T23:50:58Z",
+        "time_kind": "stated",
+        "event": "The incident was marked resolved; no resolution narrative is available.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-case-chart/u10"
+          }
+        ]
+      }
+    ],
+    "root_cause": {
+      "claim": "The supported causal reconstruction stops at a routing-advertisement failure affecting a subset of BYOIP prefixes: withdrawn advertisements impaired reachability, and restoration of prefix state was necessary for recovery. The initiating technical fault—and whether it involved hostile action—is not disclosed.",
+      "rests_on": [
+        "f2",
+        "f4",
+        "f6"
+      ],
+      "citations": [
+        {
+          "source": "case",
+          "ref": "cloudflare-2026-02-20-inject-case-chart/u2"
+        },
+        {
+          "source": "case",
+          "ref": "cloudflare-2026-02-20-inject-case-chart/u7"
+        },
+        {
+          "source": "case",
+          "ref": "cloudflare-2026-02-20-inject-case-chart/u9"
+        }
+      ]
+    },
+    "contributing_factors": [
+      {
+        "claim": "Dashboard readvertisement was ineffective for some affected prefixes, limiting customer self-mitigation and leaving a final subset requiring continued provider restoration.",
+        "rests_on": [
+          "f3",
+          "f4",
+          "f7"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-case-chart/u5"
+          },
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-case-chart/u7"
+          }
+        ]
+      },
+      {
+        "claim": "Mitigating the underlying issue did not immediately restore advertisement state, so customer impact continued during a separate recovery phase.",
+        "rests_on": [
+          "f2",
+          "f5",
+          "f7"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-case-chart/u2"
+          },
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-case-chart/u9"
+          }
+        ]
+      }
+    ],
+    "open_questions": [
+      {
+        "question": "What initiated the prefix withdrawals?",
+        "why_open": "Cloudflare said it identified and mitigated the underlying issue but did not describe the fault, triggering event, or any hostile involvement."
+      },
+      {
+        "question": "Why could some prefixes not be restored through dashboard advertisement toggling?",
+        "why_open": "The updates acknowledge this failure and work on a fix without explaining its mechanism or the final restoration method."
+      },
+      {
+        "question": "What was the actual onset and extent of customer impact?",
+        "why_open": "The updates identify only a subset of BYOIP prefixes, with no counts, locations, customer totals, or confirmed impact-onset time. The charts do not settle those details."
+      }
+    ]
+  },
+  "checks": {
+    "rejected_citations": [],
+    "unsupported": [],
+    "pii": []
+  },
+  "tool_calls": [
+    {
+      "name": "list_updates",
+      "seconds": 0.0,
+      "withheld": [],
+      "screen_calls": 0
+    },
+    {
+      "name": "list_charts",
+      "seconds": 0.0,
+      "withheld": [],
+      "screen_calls": 0
+    },
+    {
+      "name": "search_library",
+      "seconds": 2.903,
+      "query": "BGP BYOIP prefixes withdrawn connectivity errors timeouts restore availability readvertise prefixes dashboard routing outage",
+      "refs": [
+        "lib/cloudflare-2025-07-14/s7",
+        "lib/cloudflare-2022-06-21/s4",
+        "lib/cloudflare-2025-07-14/s6",
+        "lib/cloudflare-2025-07-14/s4",
+        "lib/cloudflare-2025-08-21/s4"
+      ],
+      "withheld": [],
+      "screen_calls": 0
+    }
+  ],
+  "usage": {
+    "model_calls": 3,
+    "tool_calls": 3,
+    "seconds": 60.182,
+    "input_tokens": 11226,
+    "cached_input_tokens": 7904,
+    "output_tokens": 2877,
+    "screen_calls": 0,
+    "screen_records": 0,
+    "pii_calls": 7,
+    "pii_records": 28,
+    "max_call_input_tokens": 6631,
+    "reasoning_tokens": 112
+  },
+  "reasoning": {
+    "requested": "medium",
+    "applied": [
+      "medium"
+    ]
+  },
+  "cost": {
+    "table_version": 1,
+    "currency": "USD",
+    "model": 0.036204,
+    "screens": 0.0,
+    "pii": 0.028,
+    "embeddings": 2e-06,
+    "total": 0.064206
+  }
+}
