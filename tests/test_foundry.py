@@ -68,7 +68,8 @@ def test_replay_refuses_a_record_it_cannot_reproduce() -> None:
 
 
 def entry(arm: str, status: str = "complete", repeat: int = 1) -> dict:
-    return {"run_id": f"{arm}/dev/r{repeat}/a1", "arm": arm, "case_id": "dev", "status": status}
+    run_id = f"{arm}/dev/r{repeat}/a1"
+    return {"run_id": run_id, "arm": arm, "case_id": "dev", "status": status, "repeat": repeat}
 
 
 def test_rows_take_filled_attempts_and_tool_rows_only_for_agent_arms() -> None:
@@ -146,3 +147,12 @@ def test_a_changed_result_file_is_refused(monkeypatch: pytest.MonkeyPatch, tmp_p
     assert foundry._verified_run(record)["run_id"] == "hindcast/dev/r1/a1"
     with pytest.raises(ValueError, match="hash"):
         foundry._verified_run(record | {"sha256": "0" * 64})
+
+
+def test_rows_take_only_the_evaluated_repeats() -> None:
+    # The cloud evaluation runs on repeat 1 of each arm and case.
+    entries = [entry("hindcast"), entry("hindcast", repeat=2)]
+    runs = {"hindcast/dev/r1/a1": document(), "hindcast/dev/r2/a1": document("hindcast/dev/r2/a1")}
+    quality, tools = rows(entries, lambda e: runs[e["run_id"]], lambda c: CaseTools(EVIDENCE), HITS)
+    assert [r["run_id"] for r in quality] == ["hindcast/dev/r1/a1"]
+    assert [r["run_id"] for r in tools] == ["hindcast/dev/r1/a1"]

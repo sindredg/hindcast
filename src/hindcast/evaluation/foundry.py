@@ -45,6 +45,9 @@ EVIDENCE_DIR = Path("build/evidence")
 # comparison arm, which the report states next to the scores.
 JUDGE_DEPLOYMENT = "gpt-6.1-sol"
 DATASET_VERSION = "1"
+# Repeat 1 of each arm and case, a third of the scored runs: the judge's
+# tokens for all of them did not fit what was left to spend (2026-11-04).
+REPEATS = (1,)
 # The task every agent arm was given; the single-search arm got the tool
 # outputs as its input instead, and they are its context here too.
 QUERY = START["content"]
@@ -180,10 +183,10 @@ def rows(
     load_tools: Callable[[str], CaseTools],
     hits: Mapping[str, LibraryHit],
 ) -> tuple[list[dict], list[dict]]:
-    """The quality rows (every filled attempt) and the tool rows (agent arms only)."""
+    """Quality rows (filled attempts of the evaluated repeats) and tool rows (agent arms)."""
     quality, tool_rows = [], []
     for entry in entries:
-        if entry["status"] not in FILLED:
+        if entry["status"] not in FILLED or entry["repeat"] not in REPEATS:
             continue
         document = load_run(entry)
         calls = replay(document, load_tools(entry["case_id"]), hits)
