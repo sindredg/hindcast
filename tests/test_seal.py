@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from azure.core.exceptions import ResourceExistsError
 
 from hindcast import investigate, seal
 from hindcast.cases import Case
@@ -195,6 +196,34 @@ def test_upload_retries_the_same_bytes(monkeypatch: pytest.MonkeyPatch, tmp_path
     with pytest.raises(SealRefused, match="does not match"):
         main(["upload", "seal", entry["file"]])
     assert len(uploads.calls) == 1
+
+
+def test_upload_completes_when_an_earlier_upload_reached_the_service(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    # The first upload stored the blob but reported an error (#37); a retry
+    # finds it there and must not overwrite it.
+    seals = stub_seal(monkeypatch, tmp_path, FakeClient(response(call()), final()), Uploads(1))
+    assert main(["run", "seal"]) == 1
+    [entry] = entries(seals)
+    name = f"sealed/seal/{entry['file']}"
+    stored = {name: (tmp_path / "sealed" / "seal" / entry["file"]).read_bytes()}
+
+    def exists(container: str, name: str, data: bytes, *, overwrite: bool = False) -> None:
+        assert overwrite is False
+        raise ResourceExistsError("The specified blob already exists.")
+
+    monkeypatch.setattr(seal, "upload_bytes", exists)
+    monkeypatch.setattr(seal, "_read_blob", lambda name: stored[name])
+    assert main(["upload", "seal", entry["file"]]) == 0
+    assert entries(seals)[0]["blob"] == name
+
+    # Other bytes under that name are not this seal's: the entry stays open.
+    entry["blob"] = None
+    seals.write_text(json.dumps({"seals": [entry]}), encoding="utf-8")
+    stored[name] = b"other bytes"
+    assert main(["upload", "seal", entry["file"]]) == 1
+    assert entries(seals)[0]["blob"] is None
 
 
 def test_output_has_no_investigation_text(

@@ -41,13 +41,15 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from azure.core.exceptions import ResourceExistsError
+
 from hindcast import telemetry
 from hindcast.cases import Case, load_cases
 from hindcast.config import ModelSettings, load_settings
 from hindcast.evaluation.prior import _git
 from hindcast.investigate import no_result, prepare, run_investigation, summary, write_result
 from hindcast.library import LibraryDocument, load_library
-from hindcast.storage import upload_bytes
+from hindcast.storage import container, upload_bytes
 from hindcast.tools import CaseTools
 
 SEALS = Path("eval/sealed/seals.json")
@@ -314,10 +316,29 @@ def run(case: Case) -> int:
     return 1 if entry["status"] == "no-result" else uploaded
 
 
+def _read_blob(name: str) -> bytes:
+    return container(CONTAINER).download_blob(name).readall()
+
+
 def _upload(case_id: str, entry: dict, data: bytes, seals: list[dict]) -> int:
     name = f"{BLOB_PREFIX}/{case_id}/{entry['file']}"
     try:
         upload_bytes(CONTAINER, name, data, overwrite=False)
+    except ResourceExistsError:
+        # An upload can reach the service and still report an error (#37).
+        # Uploads never overwrite, so the blob there counts as this seal's
+        # only when its bytes hash to the recorded SHA-256.
+        try:
+            existing = hashlib.sha256(_read_blob(name)).hexdigest()
+        except Exception as error:
+            print(
+                f"upload failed ({type(error).__name__}); "
+                f"retry: seal upload {case_id} {entry['file']}"
+            )
+            return 1
+        if existing != entry["sha256"]:
+            print(f"upload refused: {CONTAINER}/{name} exists and does not match the SHA-256")
+            return 1
     except Exception as error:
         print(
             f"upload failed ({type(error).__name__}); retry: seal upload {case_id} {entry['file']}"
