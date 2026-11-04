@@ -4,6 +4,7 @@ Status: Written on 2026-11-01 for [milestone 3](../worklogs/03-retrieval.md). Ev
 
 - Steps 8 to 15 ran as written.
 - Step 17's refusal was not observed: calls kept succeeding.
+- Step 18 ran on 2026-11-04 as written, after milestone 5's scored and injection runs.
 - Steps 1 to 7, 16, and 17 are written from the calls that ran, combined into one block or with a shorter output: their values were observed, and the layout of their output is reasoned.
 
 The procedure moves extraction to the pinned gpt-5.4-mini deployment, creates the search service, builds the library index at two vector sizes, keeps the one the frozen quality check picks, and runs the gate on it ([decision 0018](../decisions/0018-extraction-model.md), [decision 0019](../decisions/0019-library-index.md)). The search service is billed per hour from creation, so step 7 runs only when the code is ready to build.
@@ -219,3 +220,15 @@ On a rebuild from scratch, the extraction runbook creates this deployment and ma
     ```
 
     Expected: `refused <time>`. Not observed on 2026-11-01: reads and a defaults write kept succeeding for more than 85 minutes after the removal ([finding](../findings/identity-and-access.md#content-understanding-kept-answering-for-more-than-85-minutes-after-its-role-was-removed-2026-11-01)). The next calls, on 2026-11-04 at 03:05 and 03:06 UTC, were refused; when access ended in between is not known. Until the call is refused, treat the role as still held.
+
+## Delete the search service
+
+18. Delete the search service when nothing needs a search any more. It bills per hour from creation; `infra/search.bicep` and steps 8 to 11 recreate it, and the index build rebuilds the indexes from the extracts.
+
+    ```bash
+    az search service delete -g "$RG" -n "$SEARCH" --yes
+    az search service list -g "$RG" --query "[].name" -o tsv
+    ```
+
+    Expected: no output from either command. The search roles assigned on the service go with it. On 2026-11-04 the service held `hindcast-library-1024` and `hindcast-injection-1024`.
+
