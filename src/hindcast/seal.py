@@ -212,19 +212,20 @@ def check_record_grows(repo: Path = Path(".")) -> None:
 PREFLIGHT_QUERY = "service outage"
 
 
-def preflight_search(tools: CaseTools) -> None:
-    """Refuse a seal, before the first model call, while the library search fails."""
+def preflight_search(tools: CaseTools, refused: type[Exception] = SealRefused) -> None:
+    """Refuse a seal or a scored run, before the first model call, while the search fails."""
     # A search that fails mid-run ends it as a tool error, and a seal with
-    # model output is final (decision 0017). One search first keeps a search
-    # outage from using up the case's seal; a mid-run failure stays possible.
+    # model output is final (decision 0017), as is a scored slot. One search
+    # first keeps a search outage from using up the case's seal or a slot; a
+    # mid-run failure stays possible.
     if tools.search is None:
-        raise SealRefused("no library search is bound")
+        raise refused("no library search is bound")
     try:
         tools.search(PREFLIGHT_QUERY)
     except Exception as error:
         # Only the type: the message can carry the service's response.
-        raise SealRefused(
-            f"the library search did not answer ({type(error).__name__}); seal again later"
+        raise refused(
+            f"the library search did not answer ({type(error).__name__}); run again later"
         ) from None
 
 

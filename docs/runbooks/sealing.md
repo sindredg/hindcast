@@ -116,7 +116,7 @@ Each seal makes at most 13 model calls on the deployment it names and, in the se
    uploaded extracted/sealed/cloudflare-2026-10-20/20261102T184430Z-v3.json
    ```
 
-   Before the first model call, the command runs one library search and refuses with `SealRefused: the library search did not answer (<error type>); seal again later` while it fails, recording nothing. Wait and run it again.
+   Before the first model call, the command runs one library search and refuses with `SealRefused: the library search did not answer (<error type>); run again later` while it fails, recording nothing. Wait and run it again.
 
    In the second series the checks line ends with `searches <n>, library citations kept <m>`, and the entries carry `library: true`. One seal per case, deployment, and series: the first series does not block the second.
 

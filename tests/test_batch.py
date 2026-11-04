@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from hindcast import investigate, safety
 from hindcast.cases import Case
 from hindcast.evaluation import batch
 from hindcast.evaluation.batch import (
@@ -15,6 +16,7 @@ from hindcast.evaluation.batch import (
     reconcile,
 )
 from hindcast.investigate import ScoredCaseLocked
+from hindcast.safety import ScreenError
 from test_investigate import (
     FINAL,
     SOURCE,
@@ -25,6 +27,7 @@ from test_investigate import (
     response,
     stub_command,
 )
+from test_tools import StubShield
 
 # A scored case on the stub evidence file (dev.json).
 SHOW = Case("dev", "Slow pages", "Cloudflare", "showcase", "2026-02-20T18:45:16Z", (SOURCE,))
@@ -122,6 +125,8 @@ def stub_batch(
         "utf-8",
     )
     monkeypatch.setattr(batch, "SEALS", seals)
+    # The preflight search answers with no hits.
+    monkeypatch.setattr(investigate, "search_library", lambda *args, **kwargs: [])
     if not locked:
         lock = tmp_path / "rubric" / "frozen.json"
         lock.parent.mkdir()
@@ -253,3 +258,83 @@ def test_refuses_an_agent_version_the_seals_did_not_run(
     with pytest.raises(BatchRefused, match="version 3"):
         main(["run", "--arm", "hindcast", "--case", "dev", "--repeats", "1"])
     assert client.calls == []
+
+
+@pytest.mark.parametrize(
+    "reason", ["model-error: RateLimitError", "screen-error: HTTP 500", "pii-error: HTTP 500"]
+)
+def test_a_failed_service_leaves_no_result(reason: str) -> None:
+    # The model, the screen, or the PII check failed: no investigation to keep.
+    assert batch.slot_no_result(120, reason)
+
+
+@pytest.mark.parametrize("reason", [None, "tool-error: search_library", "time-cap", "schema-error"])
+def test_a_run_with_model_output_fills_its_slot(reason: str | None) -> None:
+    assert not batch.slot_no_result(120, reason)
+    # No model output at all is always no result.
+    assert batch.slot_no_result(0, reason)
+
+
+def test_reconcile_uses_the_same_rule(tmp_path: Path) -> None:
+    attempts = [attempt("a", 1, 1, "running")]
+    folder = tmp_path / "hindcast" / "a"
+    folder.mkdir(parents=True)
+    document = {
+        "status": "incomplete",
+        "incomplete_reason": "screen-error: HTTP 500",
+        "usage": {"output_tokens": 20},
+        "cost": {"total": "0.01"},
+    }
+    (folder / "r1-a1-20261104T100000Z.json").write_text(json.dumps(document), "utf-8")
+    reconcile(attempts, tmp_path)
+    assert (attempts[0]["status"], attempts[0]["reason"]) == ("no-result", "screen-error")
+
+
+def test_screen_error_is_a_no_result_attempt_and_retried(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    client = FakeClient(response(call()), response(call()), final())
+    attempts = stub_batch(monkeypatch, tmp_path, client)
+    shields = [StubShield(error=ScreenError("HTTP 500 x")), StubShield()]
+    monkeypatch.setattr(safety, "shield_client", lambda settings: shields.pop(0))
+    assert main(["run", "--arm", "hindcast", "--case", "dev", "--repeats", "1"]) == 1
+    assert main(["run", "--arm", "hindcast", "--case", "dev", "--repeats", "1"]) == 0
+    entries = json.loads(attempts.read_text("utf-8"))["attempts"]
+    assert [(e["run_id"], e["status"], e["reason"]) for e in entries] == [
+        ("hindcast/dev/r1/a1", "no-result", "screen-error"),
+        ("hindcast/dev/r1/a2", "complete", None),
+    ]
+
+
+def test_refuses_a_run_while_the_search_does_not_answer(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    # A search that fails mid-run ends it as a scored tool error; one search
+    # first keeps an outage of the search service from filling slots.
+    client = FakeClient(final())
+    attempts = stub_batch(monkeypatch, tmp_path, client)
+
+    def down(*args: object, **kwargs: object) -> list:
+        raise OSError("connection reset")
+
+    monkeypatch.setattr(investigate, "search_library", down)
+    with pytest.raises(BatchRefused, match="library search did not answer.*OSError"):
+        main(["run", "--arm", "hindcast", "--case", "dev", "--repeats", "1"])
+    assert client.calls == []
+    assert json.loads(attempts.read_text("utf-8"))["attempts"] == []
+
+
+def test_preflight_runs_before_each_run_and_not_for_library_off(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    client = FakeClient(final(), final(), final())
+    stub_batch(monkeypatch, tmp_path, client)
+    searched: list[tuple] = []
+    monkeypatch.setattr(
+        investigate, "search_library", lambda *args, **kwargs: searched.append(args) or []
+    )
+    assert main(["run", "--arm", "hindcast", "--case", "dev", "--repeats", "2"]) == 0
+    assert [args[0] for args in searched] == ["dev", "dev"]
+    # The library-off arm binds no search, so there is nothing to check.
+    assert main(["run", "--arm", "library-off", "--case", "dev", "--repeats", "1"]) == 0
+    assert len(searched) == 2

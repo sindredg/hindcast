@@ -9,13 +9,16 @@ the status, the reason's kind, the counts, the seconds, and the cost, never
 the investigation text: nothing reads a scored output before the judge
 prompt is frozen.
 
-The retry rule is the seal's (decision 0017 rule 6, by decision 0023): an
-attempt with no investigation to keep (no output, or a failed model call) is
-no-result and may be followed by another, up to three per slot; a run with
-model output, complete or incomplete, fills its slot and is never run
-again. The entry is written before the run starts and updated after it, so a
-killed batch leaves a running entry that counts as an attempt; a running
-entry whose result file exists is filled from the file on the next start.
+The retry rule is the rubric's (eval/rubric/rubric.md, Failures): an attempt
+with no investigation to keep (no model output, or a run ended by a failed
+model call, screen, or PII check) is no-result and may be followed by
+another, up to three per slot; any other run with model output, complete or
+incomplete, fills its slot and is never run again. One library search
+before each run refuses the batch while the search service is down, as the
+seal does. The entry is written before the run starts and updated after it,
+so a killed batch leaves a running entry that counts as an attempt; a
+running entry whose result file exists is filled from the file on the next
+start.
 
 Runs go one at a time: the caps of hindcast.investigate assume it.
 """
@@ -32,7 +35,8 @@ from hindcast import investigate, telemetry
 from hindcast.arms import ARMS
 from hindcast.cases import load_cases
 from hindcast.evaluation.prior import _git
-from hindcast.investigate import no_result, prepare, run_investigation, summary, write_result
+from hindcast.investigate import prepare, run_investigation, summary, write_result
+from hindcast.seal import preflight_search
 
 ROOT = Path("eval/reconstruction/showcase-v1")
 RUNS_DIR = ROOT / "runs"
@@ -55,6 +59,10 @@ MAX_ATTEMPTS = 3
 # batch stops instead of using up every slot's attempts.
 MAX_NO_RESULTS_IN_A_ROW = 2
 FILLED = frozenset({"complete", "incomplete"})
+# A run ended by one of these failed in a service, not in the model, and
+# keeps no investigation. The seal retries only the first (decision 0017
+# rule 6); a seal is one run, a scored slot is one of three.
+SERVICE_ERRORS = ("model-error", "screen-error", "pii-error")
 
 
 class BatchRefused(PermissionError):
@@ -92,9 +100,13 @@ def closed_slots(
     ]
 
 
+def slot_no_result(output_tokens: int, reason: str | None) -> bool:
+    """True when an attempt leaves its slot open: no model output, or a failed service."""
+    return output_tokens == 0 or (reason or "").startswith(SERVICE_ERRORS)
+
+
 def _entry_status(document: dict) -> str:
-    reason = document.get("incomplete_reason") or ""
-    if document["usage"]["output_tokens"] == 0 or reason.startswith("model-error"):
+    if slot_no_result(document["usage"]["output_tokens"], document.get("incomplete_reason")):
         return "no-result"
     return document["status"]
 
@@ -200,6 +212,9 @@ def run(arm_name: str, case_ids: list[str], repeats: int) -> int:
             raise BatchRefused(
                 f"{name} is at version {version}; the sealed series ran version {sealed[name]}"
             )
+        # The library-off arm binds no search.
+        if setup.tools.search is not None:
+            preflight_search(setup.tools, refused=BatchRefused)
         run_id = f"{arm.name}/{case_id}/r{repeat}/a{attempt}"
         now = _now()
         entry = {
@@ -243,7 +258,11 @@ def run(arm_name: str, case_ids: list[str], repeats: int) -> int:
         )
         data = path.read_bytes()
         entry |= {
-            "status": "no-result" if no_result(result) else result.status,
+            "status": (
+                "no-result"
+                if slot_no_result(result.usage.output_tokens, result.incomplete_reason)
+                else result.status
+            ),
             "reason": _prefix(result.incomplete_reason),
             "file": path.relative_to(RUNS_DIR).as_posix(),
             "sha256": hashlib.sha256(data).hexdigest(),
