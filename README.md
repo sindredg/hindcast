@@ -39,7 +39,8 @@ The shape `hindcast.result` and `hindcast.investigate` write, shortened: one ite
       "index": "hindcast-library-1024",
       "search_api_version": "2026-04-01",
       "embedding": {"deployment": "text-embedding-3-large", "name": "text-embedding-3-large",
-                    "version": "1", "dimensions": 1024}
+                    "version": "1", "dimensions": 1024},
+      "contents": {"chunks": 41, "sha256": "<sha256 of every chunk the case's filter returns>"}
     },
     "arm": "hindcast",
     "screens": true

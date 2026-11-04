@@ -16,7 +16,8 @@ too.
 The result file lists every tool call in order, with each search's query and
 the refs it returned, never the hit text: a library citation is kept only for
 a ref in that list (hindcast.result). The provenance names the library
-registry, the index, and the embedding model the searches ran on.
+registry, the index, the embedding model the searches ran on, and the count
+and hash of every chunk the case's filter returns.
 
 Prompt Shields screens every tool item before the model reads it, and PII
 detection checks the final answer before it is written (hindcast.tools,
@@ -63,7 +64,7 @@ from hindcast.result import (
     parse_investigation,
 )
 from hindcast.safety import Pii, PiiError, ScreenError
-from hindcast.search import search_library
+from hindcast.search import case_chunks, contents_digest, search_library
 from hindcast.tools import CaseTools, load_evidence
 
 EVIDENCE_DIR = Path("build/evidence")
@@ -570,7 +571,7 @@ def prepare(
     # and the model supplies only the query. The search client makes no
     # retries: a retry would run past the time left (issue #49). The
     # library-off arm binds none, so no search can run.
-    embed = search = None
+    embed = search = contents = None
     index_name = search_settings.search_index
     if arm.library:
         embed = index.embedder(search_settings.embedding_dimensions)
@@ -592,13 +593,21 @@ def prepare(
                 ),
                 "refs": extract_refs() | extract_refs(injection.EXTRACTS_DIR),
             }
+        search_client = index.clients(index_name, retry_total=0)[1]
         search = functools.partial(
-            search_library,
-            case.case_id,
-            embed=embed,
-            client=index.clients(index_name, retry_total=0)[1],
-            **bound,
+            search_library, case.case_id, embed=embed, client=search_client, **bound
         )
+        # What the case's searches can reach in this index, recorded with the
+        # run: a rebuild under the same name changes the hash (#47).
+        listing = case_chunks(
+            case.case_id,
+            cases=bound.get("cases"),
+            library=bound.get("library"),
+            client=search_client,
+        )
+        if not listing:
+            raise ValueError(f"{case.case_id}: {index_name} returned no library chunks")
+        contents = contents_digest(listing)
     shield = safety.shield_client(safety_settings) if screens else None
     tools = CaseTools(evidence, search, shield)
 
@@ -639,6 +648,7 @@ def prepare(
             "search_api_version": index.SEARCH_API_VERSION,
             "embedding": index.embedding_model()
             | {"dimensions": search_settings.embedding_dimensions},
+            "contents": contents,
         }
         if arm.library
         else None,

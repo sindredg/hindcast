@@ -23,7 +23,7 @@ from hindcast.investigate import (
     write_result,
 )
 from hindcast.safety import PiiError, ScreenError
-from hindcast.search import LibraryHit, LibraryLeak
+from hindcast.search import LibraryHit, LibraryLeak, contents_digest
 from hindcast.tools import CaseTools, ToolError
 from test_redact import StubPii
 from test_tools import StubShield
@@ -605,9 +605,15 @@ class StubEmbedder:
         return [[0.0] for _ in texts]
 
 
+CHUNK = {"id": "lib_a_s1_p0", "ref": "lib/a/s1", "doc_id": "a", "content": "Body."}
+
+
 def stub_search(monkeypatch: pytest.MonkeyPatch) -> None:
     """Search settings in the environment and no search, embedding, or model-info call."""
     from hindcast import index
+
+    # The listing of what the case's filter returns, recorded in provenance.
+    monkeypatch.setattr(investigate, "case_chunks", lambda *args, **kwargs: [CHUNK])
 
     monkeypatch.setenv("HINDCAST_SEARCH_ENDPOINT", "https://search.example.org")
     monkeypatch.setenv("HINDCAST_SEARCH_INDEX", "library-test")
@@ -688,7 +694,8 @@ def test_main_writes_the_result_and_prints_counts_never_the_text(
     assert set(written["provenance"]["code"]) == {"commit", "dirty", "src_tree"}
     assert "searches 0, library citations kept 0" in out
     library = written["provenance"]["library"]
-    assert set(library) == {"registry", "index", "search_api_version", "embedding"}
+    assert set(library) == {"registry", "index", "search_api_version", "embedding", "contents"}
+    assert library["contents"] == contents_digest([CHUNK])
     assert set(library["registry"]) >= {"dirty"}
     assert library["index"] == "library-test"
     assert library["embedding"] == {
@@ -922,3 +929,16 @@ def test_search_queries_are_pii_masked_in_the_record() -> None:
     result = run(turn, Tools(search=lambda q, timeout: []), pii=StubPii())
     assert result.tool_calls[1]["query"] == "errors [Person] saw"
     assert [f.path for f in result.checks.pii] == ["tool_calls[1].query"]
+
+
+def test_a_case_whose_filter_returns_nothing_is_refused_before_the_agent(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    # An empty or wrong index would make every search come back empty.
+    client = FakeClient(final())
+    created = stub_command(monkeypatch, tmp_path, client)
+    monkeypatch.setattr(investigate, "case_chunks", lambda *args, **kwargs: [])
+    with pytest.raises(ValueError, match="no library chunks"):
+        main(["dev", "--out", str(tmp_path / "out")])
+    assert created == []
+    assert client.calls == []

@@ -351,7 +351,7 @@ def snapshot(
     now: datetime,
 ) -> dict:
     """Write every chunk the sealed case's filter returns, and record the file's hash once."""
-    from hindcast.search import library_filter
+    from hindcast.search import case_chunks, library_filter
 
     case = cases[case_id]
     if case.role != "sealed":
@@ -362,14 +362,7 @@ def snapshot(
     if any(s["case_id"] == case_id for s in record):
         raise SealRefused(f"{case_id} has a library snapshot already")
     query_filter = library_filter(case, library)
-    fields = ["id", "ref", "doc_id", "content"]
-    chunks = sorted(
-        (
-            {name: found[name] for name in fields}
-            for found in client.search("*", filter=query_filter, select=fields)
-        ),
-        key=lambda c: c["id"],
-    )
+    chunks = case_chunks(case_id, cases=cases, library=library, client=client)
     if not chunks:
         # An empty snapshot would let the leak check pass with nothing to compare.
         raise SealRefused(f"{case_id}: the filter returned no library chunks")
