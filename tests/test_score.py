@@ -353,3 +353,32 @@ def test_second_judgments_load_only_when_their_hash_matches(tmp_path: Path) -> N
     review["decisions"][-1]["decided_by"]["judgment_sha256"] = hashlib.sha256(data).hexdigest()
     loaded = load_second_judgments(tmp_path, {rec["run_id"]: review, "other/dev/r1/a1": {}})
     assert list(loaded) == [rec["run_id"]]
+
+
+def test_whole_judgment_agreement_counts_every_item() -> None:
+    from hindcast.evaluation.score import whole_agreement
+
+    first = record()
+    second = record(timeline__1=verdict("supported-hit", "timeline[0]"))
+    second["judgment"]["run_items"]["findings[0]"]["supported"] = False
+    out = whole_agreement([(first, second)])
+    # Six key items, one differs; seven run items, one differs.
+    assert out["match"]["items"] == 6 and out["match"]["percent"] == 83.3
+    assert out["support"]["items"] == 7 and out["support"]["percent"] == 85.7
+
+
+def test_each_judge_alone_is_scored_without_the_review() -> None:
+    from hindcast.evaluation.score import alone
+
+    rec = record()
+    second = record(root_cause=verdict("wrong", "root_cause"))
+    review = accept_all(rec)
+    for d in review["decisions"]:
+        if (d["kind"], d["item"]) == ("match", "root_cause"):
+            d["decision"] = "missed"
+    judge_scores, reviewer_scores = alone(
+        {rec["run_id"]: rec}, {rec["run_id"]: second}, {"dev": LABELS}
+    )
+    # The judge alone keeps its supported hit; the reviewer alone its wrong.
+    assert judge_scores[0].outcomes["root_cause"] == "supported-hit"
+    assert reviewer_scores[0].outcomes["root_cause"] == "wrong"

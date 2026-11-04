@@ -261,6 +261,47 @@ def review_agreement(pairs: Iterable[tuple[str, Any, Any]]) -> dict:
     }
 
 
+def whole_agreement(pairs: Iterable[tuple[Mapping[str, Any], Mapping[str, Any]]]) -> dict:
+    """Judge-reviewer agreement over every key item and run item, not only the queue."""
+    match, support = [], []
+    for first, second in pairs:
+        a, b = first["judgment"], second["judgment"]
+        match += [(v["outcome"], b["key_items"][k]["outcome"]) for k, v in a["key_items"].items()]
+        support += [
+            (v["supported"], b["run_items"][w]["supported"]) for w, v in a["run_items"].items()
+        ]
+    return {"match": agreement(match), "support": agreement(support)}
+
+
+def alone(
+    records: Mapping[str, Mapping[str, Any]],
+    seconds: Mapping[str, Mapping[str, Any]],
+    labels: Mapping[str, Mapping[str, Any]],
+) -> tuple[list[RunScore], list[RunScore]]:
+    """Each run scored on the judge's judgment alone and on the reviewer's alone.
+
+    Neither is the score: the rubric's score takes the reviewer's decisions on
+    the queue and the judge's proposals elsewhere. The two show how far the
+    score could move with the judge that decides.
+    """
+    judge_scores, reviewer_scores = [], []
+    for run_id, record in records.items():
+        case_labels = labels[record["case_id"]]
+        judge_scores.append(score_run(record, {}, case_labels))
+        reviewer_scores.append(score_run(seconds[run_id], {}, case_labels))
+    return judge_scores, reviewer_scores
+
+
+def _primaries(tables: Mapping[str, Any]) -> dict:
+    return {
+        "by_arm": {arm: s["primary"] for arm, s in tables["by_arm"].items()},
+        "known_before_evidence": {
+            arm: {case: s["primary"] for case, s in cases.items()}
+            for arm, cases in tables["known_before_evidence"].items()
+        },
+    }
+
+
 PRIOR_ROOT = Path("eval/prior-knowledge/v1")
 
 
@@ -419,12 +460,25 @@ def main(argv: list[str] | None = None) -> int:
         for review in reviews.values()
         for d in review.get("decisions", [])
     ]
+
+    def tables(group: list[RunScore]) -> dict:
+        return aggregate(group, models=models, known=known, attempts=attempts, usage=usage)
+
     out = {
         "rubric": "eval/rubric/rubric.md",
         "runs": [asdict(s) for s in scores],
-        "tables": aggregate(scores, models=models, known=known, attempts=attempts, usage=usage),
+        "tables": tables(scores),
         "agreement": review_agreement(pairs),
     }
+    # Only when the reviewer model judged every run: a person's review leaves
+    # no second judgment to compare.
+    if records and seconds.keys() == records.keys():
+        judge_scores, reviewer_scores = alone(records, seconds, labels)
+        out["second_opinion"] = {
+            "whole_agreement": whole_agreement((records[r], seconds[r]) for r in records),
+            "judge_alone": _primaries(tables(judge_scores)),
+            "reviewer_alone": _primaries(tables(reviewer_scores)),
+        }
     (ROOT / "scores.json").write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8")
     (PRIOR_ROOT / "scores.json").write_text(json.dumps(prior, indent=2) + "\n", encoding="utf-8")
     print(f"{ROOT / 'scores.json'}: {len(scores)} runs")
