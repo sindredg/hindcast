@@ -1,8 +1,10 @@
-# Reconstruction rubric, version 2
+# Reconstruction rubric, version 3
 
 How a reconstruction of a scored case is scored against its frozen key ([decisions 0006](../../docs/decisions/0006-evaluation-design.md) and [0023](../../docs/decisions/0023-abstention-and-inferable-labels.md)). Frozen with the labels and the timeline tolerance before the first scored run; [`frozen.json`](frozen.json) records the hashes. A change after a scored output is read is a new version and a new set of runs, never an edit.
 
 Version 2 replaced version 1 before any scored run: an inference may rest on other supported inferences, a partial without support has an outcome of its own, and a run ended by a failed screen or PII check gets another attempt, as a failed model call does.
+
+Version 3 replaced version 2 after the judge ran and before any review decision, while no person had read a scored output: a reviewer model decides the review queue in place of a person ([decision 0027](../../docs/decisions/0027-reviewer-model.md)). Only the Review section changed.
 
 ## What is scored
 
@@ -59,11 +61,13 @@ An item is supported only by the case's evidence: its status updates and charts.
 
 ## Review
 
-The judge proposes; a person decides:
+The judge proposes; the reviewer decides:
 
 - every proposed supported hit, partial, unsupported hit, and unsupported partial;
 - every support verdict on an inference;
 - a sample of a quarter of the remaining verdicts (missed, abstained, wrong, and support verdicts on observations), drawn per run with the seed 20261104.
+
+The reviewer is `claude-fable-5-1`. It judges each run again from the same input, with the judge's instructions and without the judge's proposals, and its outcome or support verdict on a listed item is the decision. No person decides.
 
 A reviewed decision replaces the judge's proposal. The agreement between the judge and the reviewer is reported as percent agreement and Cohen's kappa over the reviewed items.
 
