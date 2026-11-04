@@ -1,0 +1,192 @@
+{
+  "judge": {
+    "deployment": "gpt-6.1-sol",
+    "name": "gpt-6.1-sol",
+    "version": "2026-09-29"
+  },
+  "evaluations": [
+    {
+      "dataset": {
+        "name": "hindcast-showcase-v1-quality",
+        "version": "1",
+        "rows": 20,
+        "sha256": "6aa8709530bd6ee7ed23e5c4688fb487cb133d20c02392f57ef57fe18df09994"
+      },
+      "eval_id": "eval_aec1d0f8bb7d4ae8aab749d603622dff",
+      "run_id": "evalrun_b2062f4eff8d479ab0078f2f210cd01b",
+      "status": "completed",
+      "result_counts": {
+        "errored": 0,
+        "failed": 2,
+        "passed": 18,
+        "total": 20,
+        "skipped": 0
+      },
+      "per_testing_criteria_results": [
+        {
+          "failed": 2,
+          "passed": 18,
+          "testing_criteria": "groundedness",
+          "errored": 0,
+          "skipped": 0
+        },
+        {
+          "failed": 0,
+          "passed": 20,
+          "testing_criteria": "relevance",
+          "errored": 0,
+          "skipped": 0
+        }
+      ],
+      "output_items": 20,
+      "by_arm": {
+        "abstention": {
+          "groundedness": {
+            "rows": 4,
+            "passed": 4,
+            "failed": 0,
+            "errored": 0,
+            "mean_score": 4.5
+          },
+          "relevance": {
+            "rows": 4,
+            "passed": 4,
+            "failed": 0,
+            "errored": 0,
+            "mean_score": 5.0
+          }
+        },
+        "comparison": {
+          "groundedness": {
+            "rows": 4,
+            "passed": 4,
+            "failed": 0,
+            "errored": 0,
+            "mean_score": 5.0
+          },
+          "relevance": {
+            "rows": 4,
+            "passed": 4,
+            "failed": 0,
+            "errored": 0,
+            "mean_score": 5.0
+          }
+        },
+        "hindcast": {
+          "groundedness": {
+            "rows": 4,
+            "passed": 4,
+            "failed": 0,
+            "errored": 0,
+            "mean_score": 5.0
+          },
+          "relevance": {
+            "rows": 4,
+            "passed": 4,
+            "failed": 0,
+            "errored": 0,
+            "mean_score": 5.0
+          }
+        },
+        "library-off": {
+          "groundedness": {
+            "rows": 4,
+            "passed": 3,
+            "failed": 1,
+            "errored": 0,
+            "mean_score": 4.25
+          },
+          "relevance": {
+            "rows": 4,
+            "passed": 4,
+            "failed": 0,
+            "errored": 0,
+            "mean_score": 5.0
+          }
+        },
+        "single-search": {
+          "groundedness": {
+            "rows": 4,
+            "passed": 3,
+            "failed": 1,
+            "errored": 0,
+            "mean_score": 4.0
+          },
+          "relevance": {
+            "rows": 4,
+            "passed": 4,
+            "failed": 0,
+            "errored": 0,
+            "mean_score": 5.0
+          }
+        }
+      }
+    },
+    {
+      "dataset": {
+        "name": "hindcast-showcase-v1-tools",
+        "version": "1",
+        "rows": 16,
+        "sha256": "6b9a2a92fe17f8ec3c86af76d2c2452d7b52619dc14db4113cefd39b974c262e"
+      },
+      "eval_id": "eval_1174097b41ca4f06bc3b33b3049f604c",
+      "run_id": "evalrun_114619cbc16942faac568f78c428e37a",
+      "status": "completed",
+      "result_counts": {
+        "errored": 0,
+        "failed": 0,
+        "passed": 16,
+        "total": 16,
+        "skipped": 0
+      },
+      "per_testing_criteria_results": [
+        {
+          "failed": 0,
+          "passed": 16,
+          "testing_criteria": "tool_call_accuracy",
+          "errored": 0,
+          "skipped": 0
+        }
+      ],
+      "output_items": 16,
+      "by_arm": {
+        "abstention": {
+          "tool_call_accuracy": {
+            "rows": 4,
+            "passed": 4,
+            "failed": 0,
+            "errored": 0,
+            "mean_score": 5.0
+          }
+        },
+        "comparison": {
+          "tool_call_accuracy": {
+            "rows": 4,
+            "passed": 4,
+            "failed": 0,
+            "errored": 0,
+            "mean_score": 5.0
+          }
+        },
+        "hindcast": {
+          "tool_call_accuracy": {
+            "rows": 4,
+            "passed": 4,
+            "failed": 0,
+            "errored": 0,
+            "mean_score": 5.0
+          }
+        },
+        "library-off": {
+          "tool_call_accuracy": {
+            "rows": 4,
+            "passed": 4,
+            "failed": 0,
+            "errored": 0,
+            "mean_score": 5.0
+          }
+        }
+      }
+    }
+  ]
+}

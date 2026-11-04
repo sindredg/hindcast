@@ -1,0 +1,72 @@
+{
+  "judge": {
+    "deployment": "gpt-6.1-sol",
+    "name": "gpt-6.1-sol",
+    "version": "2026-09-29"
+  },
+  "submitted_at": "2026-11-04T04:19:59Z",
+  "evaluations": [
+    {
+      "dataset": {
+        "name": "hindcast-showcase-v1-quality",
+        "version": "1",
+        "rows": 20,
+        "sha256": "6aa8709530bd6ee7ed23e5c4688fb487cb133d20c02392f57ef57fe18df09994"
+      },
+      "eval_id": "eval_aec1d0f8bb7d4ae8aab749d603622dff",
+      "run_id": "evalrun_b2062f4eff8d479ab0078f2f210cd01b",
+      "criteria": [
+        {
+          "type": "azure_ai_evaluator",
+          "name": "groundedness",
+          "evaluator_name": "builtin.groundedness",
+          "initialization_parameters": {
+            "deployment_name": "gpt-6.1-sol"
+          },
+          "data_mapping": {
+            "query": "{{item.query}}",
+            "response": "{{item.response}}",
+            "context": "{{item.context}}"
+          }
+        },
+        {
+          "type": "azure_ai_evaluator",
+          "name": "relevance",
+          "evaluator_name": "builtin.relevance",
+          "initialization_parameters": {
+            "deployment_name": "gpt-6.1-sol"
+          },
+          "data_mapping": {
+            "query": "{{item.query}}",
+            "response": "{{item.response}}"
+          }
+        }
+      ]
+    },
+    {
+      "dataset": {
+        "name": "hindcast-showcase-v1-tools",
+        "version": "1",
+        "rows": 16,
+        "sha256": "6b9a2a92fe17f8ec3c86af76d2c2452d7b52619dc14db4113cefd39b974c262e"
+      },
+      "eval_id": "eval_1174097b41ca4f06bc3b33b3049f604c",
+      "run_id": "evalrun_114619cbc16942faac568f78c428e37a",
+      "criteria": [
+        {
+          "type": "azure_ai_evaluator",
+          "name": "tool_call_accuracy",
+          "evaluator_name": "builtin.tool_call_accuracy",
+          "initialization_parameters": {
+            "deployment_name": "gpt-6.1-sol"
+          },
+          "data_mapping": {
+            "query": "{{item.query}}",
+            "response": "{{item.response}}",
+            "tool_definitions": "{{item.tool_definitions}}"
+          }
+        }
+      ]
+    }
+  ]
+}

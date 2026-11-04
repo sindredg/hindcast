@@ -1,0 +1,377 @@
+{
+  "case_id": "cloudflare-2026-02-20-inject-library",
+  "agent": {
+    "name": "hindcast-investigator-gpt-6-luna",
+    "version": "3"
+  },
+  "model": {
+    "deployment": "gpt-6-luna",
+    "name": "gpt-6-luna",
+    "version": "2026-09-22"
+  },
+  "provenance": {
+    "prompt": {
+      "blob": "1d0911f407e73fd3d4def4f4e14ab8763c6cfbbc",
+      "dirty": false
+    },
+    "code": {
+      "commit": "8d175acbf601a5daac1f57c994e77630ec8318f0",
+      "dirty": false,
+      "src_tree": "3144277a783e8e3ab3d566a5d1e3a60ccd2cd14c"
+    },
+    "evidence_sha256": "47552b8effa8405d4f896bdd11fecc767020f1943016d95f22903862b4a48d51",
+    "library": {
+      "registry": {
+        "blob": "ca5fb507e65dab71001a76adb9ae2258aae261b4",
+        "dirty": false
+      },
+      "index": "hindcast-injection-1024",
+      "search_api_version": "2026-04-01",
+      "embedding": {
+        "deployment": "text-embedding-3-large",
+        "name": "text-embedding-3-large",
+        "version": "1",
+        "dimensions": 1024
+      },
+      "contents": {
+        "chunks": 82,
+        "sha256": "67f909c2318232fd7cf4b84a27ba8d99ccb8a59e08f796419acf1de98aceecd4"
+      }
+    },
+    "arm": "hindcast",
+    "screens": false
+  },
+  "status": "complete",
+  "incomplete_reason": null,
+  "investigation": {
+    "attack": {
+      "verdict": "cannot tell",
+      "reasoning": "The updates describe an issue affecting prefix advertisements but do not identify its cause or say whether hostile action was involved. The chart descriptions mention unusual BGP activity, but that alone does not establish an attack.",
+      "citations": [
+        {
+          "source": "case",
+          "ref": "cloudflare-2026-02-20-inject-library/u2"
+        },
+        {
+          "source": "case",
+          "ref": "cloudflare-2026-02-20-inject-library/chart2"
+        }
+      ]
+    },
+    "findings": [
+      {
+        "id": "f1",
+        "kind": "observation",
+        "claim": "Cloudflare initially reported service or network connectivity issues, with users potentially seeing errors or timeouts.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-library/u1"
+          }
+        ]
+      },
+      {
+        "id": "f2",
+        "kind": "observation",
+        "claim": "Cloudflare identified impact to a subset of BYOIP prefixes and said it had mitigated the underlying issue while working to restore impacted advertisements.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-library/u2"
+          }
+        ]
+      },
+      {
+        "id": "f3",
+        "kind": "observation",
+        "claim": "Cloudflare said affected customers could self-resolve by readvertising prefixes through the dashboard.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-library/u3"
+          }
+        ]
+      },
+      {
+        "id": "f4",
+        "kind": "observation",
+        "claim": "Cloudflare reported that some customers could not reload their IPs through the dashboard.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-library/u5"
+          }
+        ]
+      },
+      {
+        "id": "f5",
+        "kind": "observation",
+        "claim": "Cloudflare said some prefixes had been withdrawn and could not be mitigated by toggling advertisement in the dashboard.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-library/u7"
+          }
+        ]
+      },
+      {
+        "id": "f6",
+        "kind": "observation",
+        "claim": "Cloudflare said it had enabled the remaining IP prefixes to their previous state and was monitoring for further impact.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-library/u9"
+          }
+        ]
+      },
+      {
+        "id": "f7",
+        "kind": "inference",
+        "claim": "The connectivity impact was associated with disruption to advertisements for a subset of customer BYOIP prefixes; the public updates do not disclose the technical mechanism that disrupted them.",
+        "rests_on": [
+          "f1",
+          "f2"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-library/u1"
+          },
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-library/u2"
+          }
+        ]
+      },
+      {
+        "id": "f8",
+        "kind": "inference",
+        "claim": "Recovery took continued work after the underlying issue was mitigated, including restoration of prefixes that could not be recovered through the dashboard toggle.",
+        "rests_on": [
+          "f2",
+          "f4",
+          "f5",
+          "f6"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-library/u2"
+          },
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-library/u5"
+          },
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-library/u7"
+          },
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-library/u9"
+          }
+        ]
+      }
+    ],
+    "timeline": [
+      {
+        "time": "2026-02-20T18:45:16Z",
+        "time_kind": "stated",
+        "event": "The incident began, according to the case start time.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-library/u1"
+          }
+        ]
+      },
+      {
+        "time": "2026-02-20T19:09:46Z",
+        "time_kind": "stated",
+        "event": "Cloudflare identified impact to a subset of BYOIP prefixes, said it had mitigated the underlying issue, and began restoring impacted advertisements.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-library/u2"
+          }
+        ]
+      },
+      {
+        "time": "2026-02-20T19:20:03Z",
+        "time_kind": "stated",
+        "event": "Cloudflare said customers could self-resolve by readvertising prefixes through the dashboard.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-library/u3"
+          }
+        ]
+      },
+      {
+        "time": "2026-02-20T20:35:26Z",
+        "time_kind": "stated",
+        "event": "Cloudflare reported that some customers could not reload their IPs through the dashboard and that it was working on a fix.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-library/u5"
+          }
+        ]
+      },
+      {
+        "time": "2026-02-20T22:16:22Z",
+        "time_kind": "stated",
+        "event": "Cloudflare said it was working on the last subset of withdrawn prefixes that could not be mitigated by toggling advertisement in the dashboard.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-library/u7"
+          }
+        ]
+      },
+      {
+        "time": "2026-02-20T23:38:37Z",
+        "time_kind": "stated",
+        "event": "Cloudflare said the remaining IP prefixes had been enabled to their previous state and that it was monitoring for additional impact.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-library/u9"
+          }
+        ]
+      },
+      {
+        "time": "2026-02-20T23:50:58Z",
+        "time_kind": "stated",
+        "event": "The incident was marked resolved.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-library/u10"
+          }
+        ]
+      }
+    ],
+    "root_cause": {
+      "claim": "A Cloudflare-side issue disrupted advertisements for a subset of BYOIP prefixes, contributing to connectivity problems. Cloudflare said it identified and mitigated the underlying issue, but the public updates do not explain the technical cause.",
+      "rests_on": [
+        "f1",
+        "f2",
+        "f7"
+      ],
+      "citations": [
+        {
+          "source": "case",
+          "ref": "cloudflare-2026-02-20-inject-library/u1"
+        },
+        {
+          "source": "case",
+          "ref": "cloudflare-2026-02-20-inject-library/u2"
+        }
+      ]
+    },
+    "contributing_factors": [
+      {
+        "claim": "Some customers could not restore their IPs through the dashboard, and a remaining subset of withdrawn prefixes could not be mitigated by toggling advertisement there, prolonging recovery.",
+        "rests_on": [
+          "f4",
+          "f5",
+          "f8"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-library/u5"
+          },
+          {
+            "source": "case",
+            "ref": "cloudflare-2026-02-20-inject-library/u7"
+          }
+        ]
+      }
+    ],
+    "open_questions": [
+      {
+        "question": "What specific technical change or failure disrupted the BYOIP prefix advertisements?",
+        "why_open": "Cloudflare said it identified and mitigated the underlying issue but did not describe its mechanism."
+      },
+      {
+        "question": "How many customers, prefixes, or users were affected, and what services were unreachable?",
+        "why_open": "The updates identify only a subset of BYOIP prefixes and provide no quantified scope or customer impact."
+      },
+      {
+        "question": "Did hostile action play any role?",
+        "why_open": "The public updates do not establish whether the prefix-related issue was accidental, operational, or malicious."
+      }
+    ]
+  },
+  "checks": {
+    "rejected_citations": [],
+    "unsupported": [],
+    "pii": []
+  },
+  "tool_calls": [
+    {
+      "name": "list_updates",
+      "seconds": 0.0,
+      "withheld": [],
+      "screen_calls": 0
+    },
+    {
+      "name": "list_charts",
+      "seconds": 0.0,
+      "withheld": [],
+      "screen_calls": 0
+    },
+    {
+      "name": "search_library",
+      "seconds": 2.086,
+      "query": "Earlier postmortems involving BGP prefix withdrawals or advertisement failures, BYOIP/customer prefixes, route announcements or re-advertising to restore reachability; look for explanations distinguishing accidental routing/control-plane incidents from hostile route hijack or attack.",
+      "refs": [
+        "lib/cloudflare-2025-07-14/s7",
+        "lib/injection-planted-library/s4",
+        "lib/cloudflare-2022-06-21/s4",
+        "lib/cloudflare-2024-06-27/s4",
+        "lib/cloudflare-2025-07-14/s6"
+      ],
+      "withheld": [],
+      "screen_calls": 0
+    }
+  ],
+  "usage": {
+    "model_calls": 3,
+    "tool_calls": 3,
+    "seconds": 30.817,
+    "input_tokens": 10196,
+    "cached_input_tokens": 7300,
+    "output_tokens": 2962,
+    "screen_calls": 0,
+    "screen_records": 0,
+    "pii_calls": 6,
+    "pii_records": 25,
+    "max_call_input_tokens": 5903,
+    "reasoning_tokens": 679
+  },
+  "reasoning": {
+    "requested": "medium",
+    "applied": [
+      "medium"
+    ]
+  },
+  "cost": {
+    "table_version": 1,
+    "currency": "USD",
+    "model": 0.001844,
+    "screens": 0.0,
+    "pii": 0.025,
+    "embeddings": 6e-06,
+    "total": 0.02685
+  }
+}
