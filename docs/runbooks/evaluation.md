@@ -3,10 +3,10 @@
 Status: Written on 2026-11-04.
 
 - Steps 1 to 17 ran on 2026-11-03 and 2026-11-04 with the output shown, steps 5 to 8 again for the case-chart variant ([decision 0026](../decisions/0026-case-chart-injection.md)).
-- Steps 18 and 19 (the reviewer's freeze and test call) ran on 2026-11-04. Steps 20 to 22 (the reviewer's run, the decisions, the scores) are written; the outputs shown are expected, not observed, until they run.
+- Steps 18 to 23 (the reviewer, the decisions, the scores, and the spend) ran on 2026-11-04 with the output shown.
 - The search service was deleted on 2026-11-04 after step 14, recreated for the case-chart runs, and deleted again at 17:41Z. Steps 4 to 11 need it: recreate it with the [retrieval runbook](retrieval.md) first.
 
-The procedure scores Hindcast's reconstructions of the showcase cases against their frozen keys ([decision 0006](../decisions/0006-evaluation-design.md), [rubric version 3](../../eval/rubric/rubric.md)): five arms, four cases, three runs each; the injection tests on two layers ([decisions 0025](../decisions/0025-injection-test-layers.md) and [0026](../decisions/0026-case-chart-injection.md)); the Foundry cloud evaluators; then, offline, the judge, the reviewer model that decides the review queue, and the scores. The results are in the [evaluation report](../../eval/reconstruction/showcase-v1/README.md) and the [injection report](../../eval/injection/dev-v1/README.md).
+The procedure scores Hindcast's reconstructions of the showcase cases against their frozen keys ([decision 0006](../decisions/0006-evaluation-design.md), [rubric version 3](../../eval/rubric/rubric.md)): five arms, four cases, three runs each; the injection tests on two layers ([decisions 0025](../decisions/0025-injection-test-layers.md) and [0026](../decisions/0026-case-chart-injection.md)); the Foundry cloud evaluators; then, offline, the judge, the reviewer model that decides the review queue, the scores, and their spend. The results are in the [evaluation report](../../eval/reconstruction/showcase-v1/README.md) and the [injection report](../../eval/injection/dev-v1/README.md).
 
 ## Inputs and access
 
@@ -182,7 +182,7 @@ The reviewer model decides the review queue; no person decides an item ([decisio
     PYTHONPATH=src uv run --frozen --extra judge --env-file .env python -m hindcast.evaluation.reviewer run
     ```
 
-    Expected: counts for the runs and the prior answers, the error kinds, and the summed usage. Run it again until both report `errors 0`: it keeps every second judgment and judges only the errored ones.
+    Expected: counts for the runs and the prior answers, the error kinds, and the summed usage. Run it again until both report `errors 0`: it keeps every second judgment and judges only the errored ones. Observed on 2026-11-04 from 19:02:48Z to 19:17:22Z, four workers: runs `judged 59, errors 0, kept 1` (the test call's), prior answers `judged 14, errors 0`; 450,390 input, 3,644 cache-write, 158,600 cache-read, and 296,580 output tokens over all second judgments.
 
 21. Write the reviewer's verdicts as the review decisions.
 
@@ -190,7 +190,7 @@ The reviewer model decides the review queue; no person decides an item ([decisio
     PYTHONPATH=src uv run --frozen python -m hindcast.evaluation.reviewer apply
     ```
 
-    Expected: `runs 60, decisions 880, missing 0` and `prior answers 14, decisions 18, missing 0`; one file per run under `reviews/` in each root. A second judgment made on other input or under another lock stops the command. Commit the second judgments and the reviews together. The local page, `streamlit run src/hindcast/review.py`, then shows `Every item is decided.`
+    Expected: `runs 60, decisions 880, missing 0` and `prior answers 14, decisions 18, missing 0`; one file per run under `reviews/` in each root. A second judgment made on other input or under another lock stops the command. Commit the second judgments and the reviews. The local page, `streamlit run src/hindcast/review.py`, then shows `Every item is decided.` Observed on 2026-11-04: as expected, decisions dated 19:17:49Z to 19:17:50Z; a second `apply` wrote no decision.
 
 22. Score.
 
@@ -198,11 +198,19 @@ The reviewer model decides the review queue; no person decides an item ([decisio
     PYTHONPATH=src uv run --frozen python -m hindcast.evaluation.score
     ```
 
-    Expected: the run and answer counts and `open review items 0`, then `scores.json` under `eval/reconstruction/showcase-v1/` and `eval/prior-knowledge/v1/`. With review items open the command refuses; `--draft` prints the counts and writes nothing.
+    Expected: the run and answer counts and `open review items 0`, then `scores.json` under `eval/reconstruction/showcase-v1/` and `eval/prior-knowledge/v1/`. With review items open the command refuses; `--draft` prints the counts and writes nothing. A decision the reviewer made is checked against the hash of the reviewer judgment it names. Observed on 2026-11-04: `prior answers 14, open review items 0`, `runs 60, open review items 0`, and `eval/reconstruction/showcase-v1/scores.json: 60 runs`.
+
+23. Price the judge's and the reviewer's Claude API usage.
+
+    ```bash
+    PYTHONPATH=src uv run --frozen python -m hindcast.evaluation.spend
+    ```
+
+    Expected: one line per stage and model with its calls, unpriced calls, and cost, a total, and `eval/judge/spend.json: written`. An unpriced call is one that errored and was run again, so its usage is not in any file. Then compare the total with the billed usage in the Anthropic Console for the same day; calls made outside the judgment folders, such as test calls, are in the Console only. Observed on 2026-11-04: judge 60 runs USD 5.54 and 14 answers USD 0.11, reviewer 60 runs USD 19.14 and 14 answers USD 0.27, `total USD 25.07, 0 unpriced calls (Claude price table version 1, read 2026-11-04)`.
 
 ## Clean up
 
-23. Remove the role that step 4 needed, and delete the services the steps no longer need. Each is a change on Azure.
+24. Remove the role that step 4 needed, and delete the services the steps no longer need. Each is a change on Azure.
 
     ```bash
     az role assignment delete --assignee <user-object-id> --role "Cognitive Services Contributor" --scope <foundry-resource-id>

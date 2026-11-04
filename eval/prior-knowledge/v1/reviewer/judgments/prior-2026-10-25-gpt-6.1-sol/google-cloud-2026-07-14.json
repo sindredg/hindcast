@@ -1,0 +1,38 @@
+{
+  "case_id": "google-cloud-2026-07-14",
+  "deployment": "gpt-6.1-sol",
+  "model_name": "gpt-6.1-sol",
+  "model_version": "2026-09-29",
+  "collected_at": "2026-10-25T21:15:35Z",
+  "judge": {
+    "model": "claude-fable-5-1",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "d5082aafc8bc452fc95f3b8f4349e8576a55879ce05af05c62b976ba2eb777e5",
+    "input_sha256": "5c8fe8f9d4285d9aedce9aa7770f73d1e7611cb30e5908692c5ee53a261251a9",
+    "judged_at": "2026-11-04T19:16:50Z",
+    "request_id": "req_011CgiRbr9UBLaMCKj4BThnJ",
+    "response_model": "claude-fable-5-1"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 834,
+    "output_tokens": 137,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1226
+  },
+  "judgment": {
+    "attack": {
+      "reason": "The answer says \"I have no evidence establishing or ruling out malicious activity,\" explicitly declining to say whether it was an attack.",
+      "outcome": "abstained"
+    },
+    "root_cause": {
+      "reason": "The answer says \"I don’t know what Google Cloud’s own review concluded\" and offers no cause, so it abstains on the root cause.",
+      "outcome": "abstained"
+    }
+  },
+  "error": null,
+  "answers": "eval/results/prior-2026-10-25-gpt-6.1-sol.json",
+  "code_commit": "fac02e9b59590b6d8090c3e203a589c85ad67c75",
+  "earlier_errors": []
+}

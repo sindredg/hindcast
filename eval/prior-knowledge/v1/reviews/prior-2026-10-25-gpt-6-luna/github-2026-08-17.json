@@ -1,0 +1,18 @@
+{
+  "run_id": "prior-2026-10-25-gpt-6-luna/github-2026-08-17",
+  "judgment_sha256": "fbadc1e5f7101614e999cdb4005513895b54037eaf963b650760092faff196f8",
+  "decisions": [
+    {
+      "kind": "prior",
+      "item": "attack",
+      "proposal": "abstained",
+      "sampled": true,
+      "decision": "abstained",
+      "decided_at": "2026-11-04T19:17:50Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "8726b839d6c76f8716302d1c0963e9ddcdab8717545af8e8089c017035598061"
+      }
+    }
+  ]
+}

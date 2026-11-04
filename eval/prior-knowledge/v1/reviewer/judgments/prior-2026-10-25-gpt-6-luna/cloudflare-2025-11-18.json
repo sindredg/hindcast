@@ -1,0 +1,38 @@
+{
+  "case_id": "cloudflare-2025-11-18",
+  "deployment": "gpt-6-luna",
+  "model_name": "gpt-6-luna",
+  "model_version": "2026-09-22",
+  "collected_at": "2026-10-25T21:15:01Z",
+  "judge": {
+    "model": "claude-fable-5-1",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "d5082aafc8bc452fc95f3b8f4349e8576a55879ce05af05c62b976ba2eb777e5",
+    "input_sha256": "7eee660cd791bdfffcad66d639bfca16dfcbdb35065494d0b65f1c593f9c8166",
+    "judged_at": "2026-11-04T19:16:35Z",
+    "request_id": "req_011CgiRahYG7tsZ35D9UqN4P",
+    "response_model": "claude-fable-5-1"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 811,
+    "output_tokens": 190,
+    "cache_creation_input_tokens": 1226,
+    "cache_read_input_tokens": 0
+  },
+  "judgment": {
+    "attack": {
+      "reason": "The answer states \"Cloudflare said the incident was not caused by an attack,\" which matches the key's not-an-attack verdict.",
+      "outcome": "hit"
+    },
+    "root_cause": {
+      "reason": "The answer names the database permissions change altering a query that returned duplicate rows, producing an oversized Bot Management feature file that exceeded a proxy limit and caused proxy processes to fail; its hedges (\"I may not have the exact database-change detail right\") still count as statements of the key's trigger and mechanism.",
+      "outcome": "hit"
+    }
+  },
+  "error": null,
+  "answers": "eval/results/prior-2026-10-25-gpt-6-luna.json",
+  "code_commit": "fac02e9b59590b6d8090c3e203a589c85ad67c75",
+  "earlier_errors": []
+}

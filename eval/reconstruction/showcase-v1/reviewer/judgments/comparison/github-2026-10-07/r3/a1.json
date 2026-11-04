@@ -1,0 +1,212 @@
+{
+  "run_id": "comparison/github-2026-10-07/r3/a1",
+  "case_id": "github-2026-10-07",
+  "kinds": {
+    "attack": "inference",
+    "findings[0]": "observation",
+    "findings[1]": "observation",
+    "findings[2]": "inference",
+    "findings[3]": "observation",
+    "findings[4]": "observation",
+    "findings[5]": "inference",
+    "findings[6]": "observation",
+    "findings[7]": "inference",
+    "timeline[0]": "observation",
+    "timeline[1]": "observation",
+    "timeline[2]": "observation",
+    "timeline[3]": "observation",
+    "timeline[4]": "observation",
+    "timeline[5]": "observation",
+    "timeline[6]": "observation",
+    "timeline[7]": "observation",
+    "timeline[8]": "observation",
+    "timeline[9]": "observation",
+    "timeline[10]": "observation",
+    "timeline[11]": "observation",
+    "timeline[12]": "observation",
+    "root_cause": "inference",
+    "contributing_factors[0]": "inference"
+  },
+  "code_unsupported": [],
+  "judge": {
+    "model": "claude-fable-5-1",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "8d36cd062759056fd31693928c6bedd244f10de95598133849914874b7de718f",
+    "input_sha256": "264f622993ef6341cb82bca0b0900df440b1bca919aa67fce011d7480c9642e3",
+    "judged_at": "2026-11-04T19:10:38Z",
+    "request_id": "req_011CgiR8PTM7xWJZoxVocLNY",
+    "response_model": "claude-fable-5-1"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 7093,
+    "output_tokens": 4789,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 2418
+  },
+  "judgment": {
+    "run_items": {
+      "attack": {
+        "reason": "Cites u19 and u22, which say the root cause was identified and that the second episode was a recurrence but name no cause and nothing about hostile activity; the 'cannot tell' conclusion adds no fact and follows from those updates.",
+        "supported": true
+      },
+      "findings[0]": {
+        "reason": "u1, u2, u3 name Actions, Git Operations, Pull Requests, Webhooks and Issues; u6 states the 15:06–15:16 window; u1's timestamp is 15:14:45.",
+        "supported": true
+      },
+      "findings[1]": {
+        "reason": "u8 (15:27:16 normal), u12 (15:35:30 degraded), u13 (15:41:29 partial recovery), u16 (15:49:57 mitigated) and u18 (15:58:35 full recovery) state each claim.",
+        "supported": true
+      },
+      "findings[2]": {
+        "reason": "Rests on supported F1 and F2; u12 and u13 report degradation after the 15:16 end of the u6 window, so the conclusion follows without adding facts.",
+        "supported": true
+      },
+      "findings[3]": {
+        "reason": "u19 at 16:23:44 states full recovery, root cause identified and mitigations being applied, and names neither.",
+        "supported": true
+      },
+      "findings[4]": {
+        "reason": "u22 states the 16:52–17:01 window, calls it a reoccurrence, says all systems recovered and durable mitigation is in progress; u21 is the reopened investigation.",
+        "supported": true
+      },
+      "findings[5]": {
+        "reason": "Rests on supported F4 and F5; mitigations announced in u19 followed by a recurrence in u22 yields the conclusion that protection was not yet durable, with no added facts.",
+        "supported": true
+      },
+      "findings[6]": {
+        "reason": "u24 at 18:00:49 states recovery, applied mitigations and no anticipated recurrence; u25 is marked resolved at 18:04:49.",
+        "supported": true
+      },
+      "findings[7]": {
+        "reason": "Rests on supported F1, F4, F5; that a shared dependency plausibly explains simultaneous cross-service failure is general engineering knowledge, no component is asserted, and the library item lib/github-availability-2026-06/s7 is explicitly treated as a lead rather than evidence.",
+        "supported": true
+      },
+      "timeline[0]": {
+        "reason": "u6 states widespread impact began at 15:06 UTC.",
+        "supported": true
+      },
+      "timeline[1]": {
+        "reason": "u1 is timestamped 15:14:45 and announces the investigation of Actions, Git Operations and Pull Requests.",
+        "supported": true
+      },
+      "timeline[2]": {
+        "reason": "u6 states the window ended at 15:16 UTC; u12 reports later degradation.",
+        "supported": true
+      },
+      "timeline[3]": {
+        "reason": "u8 reports Git Operations normal at 15:27:16 and u12 reports it degraded at 15:35:30.",
+        "supported": true
+      },
+      "timeline[4]": {
+        "reason": "u18 at 15:58:35 states full recovery and continuing root-cause investigation.",
+        "supported": true
+      },
+      "timeline[5]": {
+        "reason": "u19 at 16:23:44 states root cause identified and mitigations being applied.",
+        "supported": true
+      },
+      "timeline[6]": {
+        "reason": "u20 is marked resolved at 16:25:14 with text withheld, as the item says.",
+        "supported": true
+      },
+      "timeline[7]": {
+        "reason": "u22 states the second widespread-impact window began at 16:52 UTC and was a reoccurrence.",
+        "supported": true
+      },
+      "timeline[8]": {
+        "reason": "u22 states the second window ended at 17:01 UTC.",
+        "supported": true
+      },
+      "timeline[9]": {
+        "reason": "u21 at 17:17:05 announces investigation of Actions, Git Operations, Issues and Pull Requests.",
+        "supported": true
+      },
+      "timeline[10]": {
+        "reason": "u22 at 17:25:26 states recurrence, full recovery and durable mitigation in progress.",
+        "supported": true
+      },
+      "timeline[11]": {
+        "reason": "u24 at 18:00:49 states mitigations applied and no anticipated recurrence.",
+        "supported": true
+      },
+      "timeline[12]": {
+        "reason": "u25 is marked resolved at 18:04:49 with text withheld.",
+        "supported": true
+      },
+      "root_cause": {
+        "reason": "Rests on supported F1, F4, F5, F6 and cites u19 and u22, which name no component or mechanism; the abstention adds no facts and names what is missing.",
+        "supported": true
+      },
+      "contributing_factors[0]": {
+        "reason": "Rests on supported F6; that non-durable protection allowed the second episode follows directly from u19's mitigations being followed by u22's recurrence.",
+        "supported": true
+      }
+    },
+    "key_items": {
+      "attack": {
+        "run_items": [
+          "attack"
+        ],
+        "reason": "The run's attack verdict is 'cannot tell', which is the abstention verdict against the key's 'not an attack'.",
+        "outcome": "abstained"
+      },
+      "root_cause": {
+        "run_items": [
+          "root_cause"
+        ],
+        "reason": "The run's root cause says the cause cannot be reconstructed, names the missing component, trigger and mechanism, and the first open question asks for them; nothing about the stale routing-service records is stated.",
+        "outcome": "abstained"
+      },
+      "contributing_factors/0": {
+        "run_items": [],
+        "reason": "The run's contributing_factors[0] only says protection was not durable; it names neither the automated maintenance task nor the ignored pause nor the machine being put back in charge, so no part of the key's mechanism is stated.",
+        "outcome": "missed"
+      },
+      "contributing_factors/1": {
+        "run_items": [],
+        "reason": "No run item mentions puppet or a regression in automation honoring a pause.",
+        "outcome": "missed"
+      },
+      "timeline/0": {
+        "run_items": [
+          "timeline[0]"
+        ],
+        "reason": "timeline[0] states the first widespread-impact window began at 15:06 UTC, matching the key's 15:06 and supported by u6.",
+        "outcome": "supported-hit"
+      },
+      "timeline/1": {
+        "run_items": [
+          "timeline[2]"
+        ],
+        "reason": "timeline[2] states the first window ended at 15:16 UTC, matching the key and supported by u6.",
+        "outcome": "supported-hit"
+      },
+      "timeline/2": {
+        "run_items": [
+          "timeline[7]"
+        ],
+        "reason": "timeline[7] states the second widespread-impact window began at 16:52 UTC, the same event at the same time as the key, supported by u22.",
+        "outcome": "supported-hit"
+      },
+      "timeline/3": {
+        "run_items": [
+          "timeline[8]"
+        ],
+        "reason": "timeline[8] states the second window ended at 17:01 UTC, matching the key and supported by u22.",
+        "outcome": "supported-hit"
+      },
+      "timeline/4": {
+        "run_items": [],
+        "reason": "No run item states that the new machine was shut down at 17:02 UTC or any equivalent event.",
+        "outcome": "missed"
+      }
+    }
+  },
+  "error": null,
+  "arm": "comparison",
+  "run_sha256": "88240e0e50d8b2c4bba385d6bfad0b5603ac332772880666465039b7593e7d80",
+  "code_commit": "fac02e9b59590b6d8090c3e203a589c85ad67c75",
+  "earlier_errors": []
+}

@@ -1,0 +1,173 @@
+{
+  "answers": [
+    {
+      "answers": "eval/results/prior-2026-10-25-gpt-6-luna.json",
+      "deployment": "gpt-6-luna",
+      "model_version": "2026-09-22",
+      "collected_at": "2026-10-25T21:15:01Z",
+      "case_id": "cloudflare-2025-11-18",
+      "outcomes": {
+        "attack": "hit",
+        "root_cause": "hit"
+      }
+    },
+    {
+      "answers": "eval/results/prior-2026-10-25-gpt-6-luna.json",
+      "deployment": "gpt-6-luna",
+      "model_version": "2026-09-22",
+      "collected_at": "2026-10-25T21:15:01Z",
+      "case_id": "github-2026-08-17",
+      "outcomes": {
+        "attack": "abstained",
+        "root_cause": "abstained"
+      }
+    },
+    {
+      "answers": "eval/results/prior-2026-10-25-gpt-6-luna.json",
+      "deployment": "gpt-6-luna",
+      "model_version": "2026-09-22",
+      "collected_at": "2026-10-25T21:15:01Z",
+      "case_id": "google-cloud-2026-07-14",
+      "outcomes": {
+        "attack": "abstained",
+        "root_cause": "abstained"
+      }
+    },
+    {
+      "answers": "eval/results/prior-2026-10-25-gpt-6.1-sol.json",
+      "deployment": "gpt-6.1-sol",
+      "model_version": "2026-09-29",
+      "collected_at": "2026-10-25T21:15:35Z",
+      "case_id": "cloudflare-2025-11-18",
+      "outcomes": {
+        "attack": "hit",
+        "root_cause": "hit"
+      }
+    },
+    {
+      "answers": "eval/results/prior-2026-10-25-gpt-6.1-sol.json",
+      "deployment": "gpt-6.1-sol",
+      "model_version": "2026-09-29",
+      "collected_at": "2026-10-25T21:15:35Z",
+      "case_id": "github-2026-08-17",
+      "outcomes": {
+        "attack": "abstained",
+        "root_cause": "abstained"
+      }
+    },
+    {
+      "answers": "eval/results/prior-2026-10-25-gpt-6.1-sol.json",
+      "deployment": "gpt-6.1-sol",
+      "model_version": "2026-09-29",
+      "collected_at": "2026-10-25T21:15:35Z",
+      "case_id": "google-cloud-2026-07-14",
+      "outcomes": {
+        "attack": "abstained",
+        "root_cause": "abstained"
+      }
+    },
+    {
+      "answers": "eval/results/prior-2026-11-01-gpt-6-luna.json",
+      "deployment": "gpt-6-luna",
+      "model_version": "2026-09-22",
+      "collected_at": "2026-11-01T08:27:36Z",
+      "case_id": "cloudflare-2025-11-18",
+      "outcomes": {
+        "attack": "hit",
+        "root_cause": "hit"
+      }
+    },
+    {
+      "answers": "eval/results/prior-2026-11-01-gpt-6-luna.json",
+      "deployment": "gpt-6-luna",
+      "model_version": "2026-09-22",
+      "collected_at": "2026-11-01T08:27:36Z",
+      "case_id": "github-2026-08-17",
+      "outcomes": {
+        "attack": "abstained",
+        "root_cause": "abstained"
+      }
+    },
+    {
+      "answers": "eval/results/prior-2026-11-01-gpt-6-luna.json",
+      "deployment": "gpt-6-luna",
+      "model_version": "2026-09-22",
+      "collected_at": "2026-11-01T08:27:36Z",
+      "case_id": "github-2026-10-07",
+      "outcomes": {
+        "attack": "abstained",
+        "root_cause": "abstained"
+      }
+    },
+    {
+      "answers": "eval/results/prior-2026-11-01-gpt-6-luna.json",
+      "deployment": "gpt-6-luna",
+      "model_version": "2026-09-22",
+      "collected_at": "2026-11-01T08:27:36Z",
+      "case_id": "google-cloud-2026-07-14",
+      "outcomes": {
+        "attack": "abstained",
+        "root_cause": "abstained"
+      }
+    },
+    {
+      "answers": "eval/results/prior-2026-11-01-gpt-6.1-sol.json",
+      "deployment": "gpt-6.1-sol",
+      "model_version": "2026-09-29",
+      "collected_at": "2026-11-01T08:28:17Z",
+      "case_id": "cloudflare-2025-11-18",
+      "outcomes": {
+        "attack": "hit",
+        "root_cause": "hit"
+      }
+    },
+    {
+      "answers": "eval/results/prior-2026-11-01-gpt-6.1-sol.json",
+      "deployment": "gpt-6.1-sol",
+      "model_version": "2026-09-29",
+      "collected_at": "2026-11-01T08:28:17Z",
+      "case_id": "github-2026-08-17",
+      "outcomes": {
+        "attack": "abstained",
+        "root_cause": "abstained"
+      }
+    },
+    {
+      "answers": "eval/results/prior-2026-11-01-gpt-6.1-sol.json",
+      "deployment": "gpt-6.1-sol",
+      "model_version": "2026-09-29",
+      "collected_at": "2026-11-01T08:28:17Z",
+      "case_id": "github-2026-10-07",
+      "outcomes": {
+        "attack": "abstained",
+        "root_cause": "abstained"
+      }
+    },
+    {
+      "answers": "eval/results/prior-2026-11-01-gpt-6.1-sol.json",
+      "deployment": "gpt-6.1-sol",
+      "model_version": "2026-09-29",
+      "collected_at": "2026-11-01T08:28:17Z",
+      "case_id": "google-cloud-2026-07-14",
+      "outcomes": {
+        "attack": "abstained",
+        "root_cause": "abstained"
+      }
+    }
+  ],
+  "known_before_evidence": [
+    [
+      "gpt-6-luna",
+      "cloudflare-2025-11-18"
+    ],
+    [
+      "gpt-6.1-sol",
+      "cloudflare-2025-11-18"
+    ]
+  ],
+  "agreement": {
+    "items": 18,
+    "percent": 94.4,
+    "kappa": 0.8928571428571427
+  }
+}

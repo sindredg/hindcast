@@ -1,0 +1,64 @@
+{
+  "table": {
+    "version": 1,
+    "retrieved": "2026-11-04",
+    "currency": "USD",
+    "source": "https://platform.claude.com/docs/en/about-claude/pricing"
+  },
+  "stages": [
+    {
+      "stage": "judge, scored runs",
+      "model": "claude-opus-5-5",
+      "calls": 60,
+      "unpriced_calls": 0,
+      "usage": {
+        "input_tokens": 438615,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 145740,
+        "output_tokens": 187630
+      },
+      "cost": 5.536208
+    },
+    {
+      "stage": "judge, prior answers",
+      "model": "claude-opus-5-5",
+      "calls": 14,
+      "unpriced_calls": 0,
+      "usage": {
+        "input_tokens": 11775,
+        "cache_creation_input_tokens": 1237,
+        "cache_read_input_tokens": 16081,
+        "output_tokens": 2712
+      },
+      "cost": 0.110741
+    },
+    {
+      "stage": "reviewer, scored runs",
+      "model": "claude-fable-5-1",
+      "calls": 60,
+      "unpriced_calls": 0,
+      "usage": {
+        "input_tokens": 438615,
+        "cache_creation_input_tokens": 2418,
+        "cache_read_input_tokens": 142662,
+        "output_tokens": 293842
+      },
+      "cost": 19.14414
+    },
+    {
+      "stage": "reviewer, prior answers",
+      "model": "claude-fable-5-1",
+      "calls": 14,
+      "unpriced_calls": 0,
+      "usage": {
+        "input_tokens": 11775,
+        "cache_creation_input_tokens": 1226,
+        "cache_read_input_tokens": 15938,
+        "output_tokens": 2738
+      },
+      "cost": 0.27396
+    }
+  ],
+  "unpriced_calls": 0,
+  "total": 25.065049
+}

@@ -1,0 +1,38 @@
+{
+  "case_id": "google-cloud-2026-07-14",
+  "deployment": "gpt-6-luna",
+  "model_name": "gpt-6-luna",
+  "model_version": "2026-09-22",
+  "collected_at": "2026-10-25T21:15:01Z",
+  "judge": {
+    "model": "claude-fable-5-1",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "d5082aafc8bc452fc95f3b8f4349e8576a55879ce05af05c62b976ba2eb777e5",
+    "input_sha256": "21b15cd2c2d6a092cf453db01c514e517a452cf69ca816000ebfc52ff63c11ad",
+    "judged_at": "2026-11-04T19:16:40Z",
+    "request_id": "req_011CgiRb6vC44wx8P1MJ3zei",
+    "response_model": "claude-fable-5-1"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 658,
+    "output_tokens": 137,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1226
+  },
+  "judgment": {
+    "attack": {
+      "reason": "The answer says it \"can't reliably ... say whether it was an attack,\" which is an explicit statement that it does not know.",
+      "outcome": "abstained"
+    },
+    "root_cause": {
+      "reason": "The answer says it \"can't reliably ... identify Google's stated root cause and contributing factors\" and only repeats the title, so it declines to state a cause.",
+      "outcome": "abstained"
+    }
+  },
+  "error": null,
+  "answers": "eval/results/prior-2026-10-25-gpt-6-luna.json",
+  "code_commit": "fac02e9b59590b6d8090c3e203a589c85ad67c75",
+  "earlier_errors": []
+}

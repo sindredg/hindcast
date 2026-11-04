@@ -1,0 +1,222 @@
+{
+  "run_id": "comparison/cloudflare-2025-11-18/r3/a1",
+  "judgment_sha256": "127f020780ce0176cc18925a2a8e53cb5fff734c1f788adadb9819ee095dede3",
+  "decisions": [
+    {
+      "kind": "match",
+      "item": "timeline/4",
+      "proposal": "supported-hit",
+      "sampled": false,
+      "decision": "supported-hit",
+      "decided_at": "2026-11-04T19:17:50Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "e3f81f52a2f769a4132629211c78d58d23a6605427f6374edf29eeccbca8b32c"
+      }
+    },
+    {
+      "kind": "match",
+      "item": "timeline/7",
+      "proposal": "supported-hit",
+      "sampled": false,
+      "decision": "supported-hit",
+      "decided_at": "2026-11-04T19:17:50Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "e3f81f52a2f769a4132629211c78d58d23a6605427f6374edf29eeccbca8b32c"
+      }
+    },
+    {
+      "kind": "match",
+      "item": "timeline/8",
+      "proposal": "supported-hit",
+      "sampled": false,
+      "decision": "supported-hit",
+      "decided_at": "2026-11-04T19:17:50Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "e3f81f52a2f769a4132629211c78d58d23a6605427f6374edf29eeccbca8b32c"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "attack",
+      "proposal": true,
+      "sampled": false,
+      "decision": true,
+      "decided_at": "2026-11-04T19:17:50Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "e3f81f52a2f769a4132629211c78d58d23a6605427f6374edf29eeccbca8b32c"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "findings[6]",
+      "proposal": true,
+      "sampled": false,
+      "decision": true,
+      "decided_at": "2026-11-04T19:17:50Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "e3f81f52a2f769a4132629211c78d58d23a6605427f6374edf29eeccbca8b32c"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "findings[7]",
+      "proposal": true,
+      "sampled": false,
+      "decision": true,
+      "decided_at": "2026-11-04T19:17:50Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "e3f81f52a2f769a4132629211c78d58d23a6605427f6374edf29eeccbca8b32c"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "root_cause",
+      "proposal": true,
+      "sampled": false,
+      "decision": true,
+      "decided_at": "2026-11-04T19:17:50Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "e3f81f52a2f769a4132629211c78d58d23a6605427f6374edf29eeccbca8b32c"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "contributing_factors[0]",
+      "proposal": true,
+      "sampled": false,
+      "decision": true,
+      "decided_at": "2026-11-04T19:17:50Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "e3f81f52a2f769a4132629211c78d58d23a6605427f6374edf29eeccbca8b32c"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "contributing_factors[1]",
+      "proposal": true,
+      "sampled": false,
+      "decision": true,
+      "decided_at": "2026-11-04T19:17:50Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "e3f81f52a2f769a4132629211c78d58d23a6605427f6374edf29eeccbca8b32c"
+      }
+    },
+    {
+      "kind": "match",
+      "item": "root_cause",
+      "proposal": "abstained",
+      "sampled": true,
+      "decision": "abstained",
+      "decided_at": "2026-11-04T19:17:50Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "e3f81f52a2f769a4132629211c78d58d23a6605427f6374edf29eeccbca8b32c"
+      }
+    },
+    {
+      "kind": "match",
+      "item": "contributing_factors/6",
+      "proposal": "missed",
+      "sampled": true,
+      "decision": "partial",
+      "decided_at": "2026-11-04T19:17:50Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "e3f81f52a2f769a4132629211c78d58d23a6605427f6374edf29eeccbca8b32c"
+      }
+    },
+    {
+      "kind": "match",
+      "item": "timeline/10",
+      "proposal": "wrong",
+      "sampled": true,
+      "decision": "wrong",
+      "decided_at": "2026-11-04T19:17:50Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "e3f81f52a2f769a4132629211c78d58d23a6605427f6374edf29eeccbca8b32c"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "findings[4]",
+      "proposal": true,
+      "sampled": true,
+      "decision": true,
+      "decided_at": "2026-11-04T19:17:50Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "e3f81f52a2f769a4132629211c78d58d23a6605427f6374edf29eeccbca8b32c"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "timeline[2]",
+      "proposal": true,
+      "sampled": true,
+      "decision": true,
+      "decided_at": "2026-11-04T19:17:50Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "e3f81f52a2f769a4132629211c78d58d23a6605427f6374edf29eeccbca8b32c"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "timeline[4]",
+      "proposal": true,
+      "sampled": true,
+      "decision": true,
+      "decided_at": "2026-11-04T19:17:50Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "e3f81f52a2f769a4132629211c78d58d23a6605427f6374edf29eeccbca8b32c"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "timeline[5]",
+      "proposal": true,
+      "sampled": true,
+      "decision": true,
+      "decided_at": "2026-11-04T19:17:50Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "e3f81f52a2f769a4132629211c78d58d23a6605427f6374edf29eeccbca8b32c"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "timeline[8]",
+      "proposal": true,
+      "sampled": true,
+      "decision": true,
+      "decided_at": "2026-11-04T19:17:50Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "e3f81f52a2f769a4132629211c78d58d23a6605427f6374edf29eeccbca8b32c"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "timeline[11]",
+      "proposal": true,
+      "sampled": true,
+      "decision": true,
+      "decided_at": "2026-11-04T19:17:50Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "e3f81f52a2f769a4132629211c78d58d23a6605427f6374edf29eeccbca8b32c"
+      }
+    }
+  ]
+}

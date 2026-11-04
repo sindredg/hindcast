@@ -299,3 +299,136 @@ def test_prior_score_refuses_a_judgment_from_another_prompt(tmp_path: Path) -> N
     path.write_text(json.dumps(answer), encoding="utf-8")
     with pytest.raises(ValueError, match="another judge prompt or model"):
         prior_scores(tmp_path / "root", (prompt, frozen))
+
+
+def reviewer_decided(rec: dict, item: str, decision: str) -> dict:
+    """accept_all, with one match decided by a reviewer model instead."""
+    review = accept_all(rec)
+    review["decisions"] = [d for d in review["decisions"] if d["item"] != item]
+    review["decisions"].append(
+        {
+            "kind": "match",
+            "item": item,
+            "proposal": rec["judgment"]["key_items"][item]["outcome"],
+            "decision": decision,
+            "decided_by": {"model": "claude-fable-5-1", "judgment_sha256": "0" * 64},
+        }
+    )
+    return review
+
+
+def test_a_reviewer_decision_rests_on_the_reviewers_run_items() -> None:
+    # The judge found nothing for the factor; the reviewer matched it to a
+    # supported finding. The finding backs the reviewer's partial, and it is
+    # inside the key, not outside it.
+    rec = record()
+    second = record(contributing_factors__1=verdict("partial", "findings[0]"))
+    review = reviewer_decided(rec, "contributing_factors/1", "partial")
+    score = score_run(rec, review, LABELS, second=second)
+    assert score.outcomes["contributing_factors/1"] == "partial"
+    assert score.contradictions == []
+    assert score.extra_supported == ["findings[1]"]
+
+
+def test_a_reviewer_decision_without_its_judgment_is_refused() -> None:
+    rec = record()
+    review = reviewer_decided(rec, "contributing_factors/1", "partial")
+    with pytest.raises(ValueError, match="reviewer judgment"):
+        score_run(rec, review, LABELS)
+
+
+def test_second_judgments_load_only_when_their_hash_matches(tmp_path: Path) -> None:
+    from hindcast.evaluation.score import load_second_judgments
+
+    rec = record()
+    path = tmp_path / "reviewer/judgments/hindcast/dev/r1/a1.json"
+    path.parent.mkdir(parents=True)
+    data = json.dumps(record()).encode()
+    path.write_bytes(data)
+    review = reviewer_decided(rec, "contributing_factors/1", "partial")
+    with pytest.raises(ValueError, match="another reviewer judgment"):
+        load_second_judgments(tmp_path, {rec["run_id"]: review})
+    import hashlib
+
+    review["decisions"][-1]["decided_by"]["judgment_sha256"] = hashlib.sha256(data).hexdigest()
+    loaded = load_second_judgments(tmp_path, {rec["run_id"]: review, "other/dev/r1/a1": {}})
+    assert list(loaded) == [rec["run_id"]]
+
+
+def test_whole_judgment_agreement_counts_every_item() -> None:
+    from hindcast.evaluation.score import whole_agreement
+
+    first = record()
+    second = record(timeline__1=verdict("supported-hit", "timeline[0]"))
+    second["judgment"]["run_items"]["findings[0]"]["supported"] = False
+    out = whole_agreement([(first, second)])
+    # Six key items, one differs; seven run items, one differs.
+    assert out["match"]["items"] == 6 and out["match"]["percent"] == 83.3
+    assert out["support"]["items"] == 7 and out["support"]["percent"] == 85.7
+
+
+def test_each_judge_alone_is_scored_without_the_review() -> None:
+    from hindcast.evaluation.score import alone
+
+    rec = record()
+    second = record(root_cause=verdict("wrong", "root_cause"))
+    judge_scores, reviewer_scores = alone(
+        {rec["run_id"]: rec}, {rec["run_id"]: second}, {"dev": LABELS}
+    )
+    # The judge alone keeps its supported hit; the reviewer alone its wrong.
+    assert judge_scores[0].outcomes["root_cause"] == "supported-hit"
+    assert reviewer_scores[0].outcomes["root_cause"] == "wrong"
+
+
+def test_a_person_decision_keeps_the_judges_run_items() -> None:
+    # One item decided by the reviewer model, another by a person: the
+    # person's decision is checked against the judge's run items, which list
+    # nothing for the factor, so the partial is a contradiction.
+    rec = record()
+    second = record(contributing_factors__1=verdict("partial", "findings[0]"))
+    review = reviewer_decided(rec, "timeline/1", "missed")
+    review["decisions"].append(
+        {
+            "kind": "match",
+            "item": "contributing_factors/1",
+            "proposal": "missed",
+            "decision": "partial",
+        }
+    )
+    score = score_run(rec, review, LABELS, second=second)
+    assert score.contradictions == ["contributing_factors/1"]
+
+
+def test_the_latest_decision_on_an_item_names_who_decided() -> None:
+    # A person's later decision replaces the reviewer's on the same item, so
+    # the judge's run items back it, not the reviewer's.
+    rec = record()
+    second = record(contributing_factors__1=verdict("partial", "findings[0]"))
+    review = reviewer_decided(rec, "contributing_factors/1", "partial")
+    review["decisions"].append(
+        {
+            "kind": "match",
+            "item": "contributing_factors/1",
+            "proposal": "missed",
+            "decision": "partial",
+        }
+    )
+    score = score_run(rec, review, LABELS, second=second)
+    assert score.contradictions == ["contributing_factors/1"]
+
+
+def test_second_opinion_needs_a_reviewer_judgment_for_every_run() -> None:
+    from hindcast.evaluation.score import second_opinion
+
+    first, other = record(), record("comparison/dev/r1/a1")
+    records = {first["run_id"]: first, other["run_id"]: other}
+
+    def tables(scores: list) -> dict:
+        return {"by_arm": {}, "known_before_evidence": {}}
+
+    labels = {"dev": LABELS}
+    assert second_opinion(records, {first["run_id"]: record()}, labels, tables) is None
+    assert second_opinion({}, {}, labels, tables) is None
+    both = {first["run_id"]: record(), other["run_id"]: record()}
+    out = second_opinion(records, both, labels, tables)
+    assert out is not None and out["whole_agreement"]["match"]["items"] == 12

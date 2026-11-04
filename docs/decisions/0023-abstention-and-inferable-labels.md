@@ -1,6 +1,6 @@
 # 23. Abstention: inferable-from-evidence labels, and a score that tells a miss from an unknowable item
 
-Status: Accepted (2026-11-03).
+Status: Accepted (2026-11-03). A reviewer model, not a person, decides the review queue, per [decision 0027](0027-reviewer-model.md).
 
 Extends the scoring of [decision 0006](0006-evaluation-design.md) and names the arms it compares.
 

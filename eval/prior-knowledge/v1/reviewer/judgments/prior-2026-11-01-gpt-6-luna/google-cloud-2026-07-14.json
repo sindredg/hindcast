@@ -1,0 +1,38 @@
+{
+  "case_id": "google-cloud-2026-07-14",
+  "deployment": "gpt-6-luna",
+  "model_name": "gpt-6-luna",
+  "model_version": "2026-09-22",
+  "collected_at": "2026-11-01T08:27:36Z",
+  "judge": {
+    "model": "claude-fable-5-1",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "d5082aafc8bc452fc95f3b8f4349e8576a55879ce05af05c62b976ba2eb777e5",
+    "input_sha256": "e78d6c8c2402c7c9b0fcb16af1ac449cd7d7f0f958e9bdc6f4430e8aad891022",
+    "judged_at": "2026-11-04T19:17:08Z",
+    "request_id": "req_011CgiRdAypS1f6aQ1y1MTEz",
+    "response_model": "claude-fable-5-1"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 631,
+    "output_tokens": 130,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1226
+  },
+  "judgment": {
+    "attack": {
+      "reason": "The answer says it \"can't say ... whether it was an attack\", so it neither states nor contradicts the key's verdict.",
+      "outcome": "abstained"
+    },
+    "root_cause": {
+      "reason": "The answer says it \"can't say what happened in sequence ... or what root cause and contributing factors Google found\", giving no cause at all.",
+      "outcome": "abstained"
+    }
+  },
+  "error": null,
+  "answers": "eval/results/prior-2026-11-01-gpt-6-luna.json",
+  "code_commit": "fac02e9b59590b6d8090c3e203a589c85ad67c75",
+  "earlier_errors": []
+}

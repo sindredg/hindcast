@@ -1,0 +1,174 @@
+{
+  "run_id": "library-off/google-cloud-2026-07-14/r2/a1",
+  "case_id": "google-cloud-2026-07-14",
+  "kinds": {
+    "attack": "inference",
+    "findings[0]": "observation",
+    "findings[1]": "observation",
+    "findings[2]": "observation",
+    "findings[3]": "observation",
+    "findings[4]": "observation",
+    "findings[5]": "observation",
+    "findings[6]": "inference",
+    "timeline[0]": "observation",
+    "timeline[1]": "observation",
+    "timeline[2]": "observation",
+    "timeline[3]": "observation",
+    "timeline[4]": "observation",
+    "timeline[5]": "observation",
+    "timeline[6]": "observation",
+    "root_cause": "inference",
+    "contributing_factors[0]": "inference",
+    "contributing_factors[1]": "inference"
+  },
+  "code_unsupported": [],
+  "judge": {
+    "model": "claude-fable-5-1",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "8d36cd062759056fd31693928c6bedd244f10de95598133849914874b7de718f",
+    "input_sha256": "b6889aaf0d49fee34f76e9f3b551667dfcd6ee08fffe7479ce70121fa4a983d6",
+    "judged_at": "2026-11-04T19:12:15Z",
+    "request_id": "req_011CgiRFZghXaTgpVdvoib5D",
+    "response_model": "claude-fable-5-1"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 7128,
+    "output_tokens": 5073,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 2418
+  },
+  "judgment": {
+    "run_items": {
+      "attack": {
+        "reason": "Cites u3 and u4, which name a recent configuration update as the likely cause but never address hostile action; the item adds no fact and only states that the updates leave the question open, which follows from the cited text (though a reader could lean toward not-an-attack).",
+        "supported": true
+      },
+      "findings[0]": {
+        "reason": "u1 and u2 state inter-site communication failures, degraded connectivity to VMs, and that Storage and Compute appear unaffected.",
+        "supported": true
+      },
+      "findings[1]": {
+        "reason": "u3 states inter-zone communication failures, BGP session flapping, lost connectivity to the witness appliance, inability to safely synchronize state, and VMs isolated possibly without writable data.",
+        "supported": true
+      },
+      "findings[2]": {
+        "reason": "u4 states that a recent configuration update is the likely cause of the inter-zone network disruption.",
+        "supported": true
+      },
+      "findings[3]": {
+        "reason": "u5 states a remediation rollout is in progress and recommends migrating VMs to the healthy secondary zone with Google Support guidance.",
+        "supported": true
+      },
+      "findings[4]": {
+        "reason": "u5 states that northamerica-northeast2 was not impacted.",
+        "supported": true
+      },
+      "findings[5]": {
+        "reason": "u9's title shows status AVAILABLE and its text is withheld, which is exactly what the item states.",
+        "supported": true
+      },
+      "findings[6]": {
+        "reason": "Rests on supported f1, f2, f3; the conclusion that a configuration change disrupted inter-zone connectivity and that witness/sync failures explain isolation follows directly from u2, u3, u4 without adding new facts.",
+        "supported": true
+      },
+      "timeline[0]": {
+        "reason": "u1 states the issue began Tuesday 2026-07-14 at 10:00 PDT, which is 17:00Z.",
+        "supported": true
+      },
+      "timeline[1]": {
+        "reason": "u1 is timestamped 2026-07-14T20:24:18Z and reports the GCVE stretched-cluster zonal outage and connectivity issues.",
+        "supported": true
+      },
+      "timeline[2]": {
+        "reason": "u2 is timestamped 21:31:52Z and describes an underlying network connectivity issue linking zones and the VM migration workaround.",
+        "supported": true
+      },
+      "timeline[3]": {
+        "reason": "u3 is timestamped 22:16:55Z and reports inter-zone failures, BGP flapping, witness connectivity loss, and VM risk.",
+        "supported": true
+      },
+      "timeline[4]": {
+        "reason": "u4 is timestamped 23:05:33Z and identifies a recent configuration update as likely cause with remediation underway.",
+        "supported": true
+      },
+      "timeline[5]": {
+        "reason": "u5 is timestamped 2026-07-15T00:13:18Z and states remediation rollout in progress and northamerica-northeast2 not impacted.",
+        "supported": true
+      },
+      "timeline[6]": {
+        "reason": "u9 is timestamped 2026-07-15T05:34:26Z with status AVAILABLE and text withheld.",
+        "supported": true
+      },
+      "root_cause": {
+        "reason": "Rests on supported f2, f3, f7; the statement that a configuration update likely caused the inter-zone disruption, with BGP flapping and witness loss preventing safe synchronization, is given by u3 and u4 and adds no new component or cause.",
+        "supported": true
+      },
+      "contributing_factors[0]": {
+        "reason": "Rests on supported f2; u3 states the witness appliance was unreachable so zones could not safely synchronize and VMs became isolated.",
+        "supported": true
+      },
+      "contributing_factors[1]": {
+        "reason": "Rests on supported f5; u5 states northamerica-northeast2 was not impacted, so the claim adds nothing beyond the cited update.",
+        "supported": true
+      }
+    },
+    "key_items": {
+      "attack": {
+        "run_items": [
+          "attack"
+        ],
+        "reason": "The run's verdict is 'cannot tell' and an open question asks whether hostile action was involved; the key says not an attack.",
+        "outcome": "abstained"
+      },
+      "root_cause": {
+        "run_items": [
+          "root_cause",
+          "findings[6]"
+        ],
+        "reason": "The run's supported root_cause and f7 name the trigger (a recent configuration update causing inter-zone network disruption) but not the mechanism from the key: an implementation gap in the control plane's routing logic causing hosts to misprogram routing tables and drop traffic for the Stretched Cluster private IP space, triggering HA failovers.",
+        "outcome": "partial"
+      },
+      "contributing_factors/0": {
+        "run_items": [],
+        "reason": "No run item mentions the configuration payload passing initial validations or automated safeguards failing to block the deployment.",
+        "outcome": "missed"
+      },
+      "contributing_factors/1": {
+        "run_items": [],
+        "reason": "No run item states that health-checking protocols stayed functional on separate address spaces so failover did not detect the selective drop; the run instead relays u3's 'BGP session flapping' as an observation, which is in tension with the key but is not offered as a contributing factor.",
+        "outcome": "missed"
+      },
+      "contributing_factors/2": {
+        "run_items": [],
+        "reason": "No run item mentions non-vSAN replicated workloads pinned to a single zone without cross-site replication.",
+        "outcome": "missed"
+      },
+      "timeline/0": {
+        "run_items": [
+          "timeline[0]"
+        ],
+        "reason": "Supported timeline[0] states the incident began at 17:00Z (10:00 PDT), matching the key's start of inter-site communication failures.",
+        "outcome": "supported-hit"
+      },
+      "timeline/1": {
+        "run_items": [
+          "timeline[4]"
+        ],
+        "reason": "Supported timeline[4] states that at 23:05:33Z Google identified a recent configuration update as the likely cause, matching the key's 23:05Z update.",
+        "outcome": "supported-hit"
+      },
+      "timeline/2": {
+        "run_items": [],
+        "reason": "The key's event is connectivity restoration at 03:40Z after rollback; the run's only end-state item (timeline[6]) describes the status page turning AVAILABLE at 05:34Z and explicitly says resolution details were not published, which is a different event rather than a claim about when connectivity was restored.",
+        "outcome": "missed"
+      }
+    }
+  },
+  "error": null,
+  "arm": "library-off",
+  "run_sha256": "c3d0af6040449c105ad3fe4c8ce4e51fe3e2ff444a9c25698de0e536bbd2fa01",
+  "code_commit": "fac02e9b59590b6d8090c3e203a589c85ad67c75",
+  "earlier_errors": []
+}
