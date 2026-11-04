@@ -1,0 +1,322 @@
+{
+  "run_id": "hindcast/google-cloud-2026-07-14/r3/a1",
+  "case_id": "google-cloud-2026-07-14",
+  "agent": {
+    "name": "hindcast-investigator-gpt-6-luna",
+    "version": "3"
+  },
+  "model": {
+    "deployment": "gpt-6-luna",
+    "name": "gpt-6-luna",
+    "version": "2026-09-22"
+  },
+  "provenance": {
+    "prompt": {
+      "blob": "1d0911f407e73fd3d4def4f4e14ab8763c6cfbbc",
+      "dirty": false
+    },
+    "code": {
+      "commit": "8d175acbf601a5daac1f57c994e77630ec8318f0",
+      "dirty": false,
+      "src_tree": "3144277a783e8e3ab3d566a5d1e3a60ccd2cd14c"
+    },
+    "evidence_sha256": "b4fa7c503cf93b309310bd6e8796a7fdaab6daa98b995f7defc863f8623e7b26",
+    "library": {
+      "registry": {
+        "blob": "ca5fb507e65dab71001a76adb9ae2258aae261b4",
+        "dirty": false
+      },
+      "index": "hindcast-library-1024",
+      "search_api_version": "2026-04-01",
+      "embedding": {
+        "deployment": "text-embedding-3-large",
+        "name": "text-embedding-3-large",
+        "version": "1",
+        "dimensions": 1024
+      },
+      "contents": {
+        "chunks": 88,
+        "sha256": "aacb2bc98a31b1286b34bb30e075b1ee03666975d4d4ca5a6c8b4e7ea2440c03"
+      }
+    },
+    "arm": "hindcast",
+    "screens": true
+  },
+  "status": "complete",
+  "incomplete_reason": null,
+  "investigation": {
+    "attack": {
+      "verdict": "cannot tell",
+      "reasoning": "The provider attributed the disruption as likely caused by a recent configuration update, but did not say whether that change was accidental or deliberate. The published updates do not establish hostile action or rule it out.",
+      "citations": [
+        {
+          "source": "case",
+          "ref": "google-cloud-2026-07-14/u4"
+        }
+      ]
+    },
+    "findings": [
+      {
+        "id": "f1",
+        "kind": "observation",
+        "claim": "The incident affected Google Cloud VMware Engine stretched-cluster customers, causing inter-site communication and network connectivity problems across multiple regions.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "google-cloud-2026-07-14/u1"
+          },
+          {
+            "source": "case",
+            "ref": "google-cloud-2026-07-14/u2"
+          }
+        ]
+      },
+      {
+        "id": "f2",
+        "kind": "observation",
+        "claim": "The provider reported inter-zone communication failures, BGP session flapping, and loss of connectivity between affected zones and the witness appliance. It said the zones could not safely synchronize state, leaving some VMs isolated and potentially without writable data.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "google-cloud-2026-07-14/u3"
+          }
+        ]
+      },
+      {
+        "id": "f3",
+        "kind": "observation",
+        "claim": "The provider identified a recent configuration update as the likely cause of the inter-zone network disruption.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "google-cloud-2026-07-14/u4"
+          }
+        ]
+      },
+      {
+        "id": "f4",
+        "kind": "observation",
+        "claim": "A remediation rollout to address the underlying network issue was in progress; the provider reported that northamerica-northeast2 was not impacted.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "google-cloud-2026-07-14/u5"
+          }
+        ]
+      },
+      {
+        "id": "f5",
+        "kind": "inference",
+        "claim": "The likely failure chain was a configuration change disrupting inter-zone network connectivity, which contributed to BGP flapping and loss of witness reachability; without the witness, affected zones could not safely synchronize cluster state, isolating some VMs.",
+        "rests_on": [
+          "f2",
+          "f3"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "google-cloud-2026-07-14/u3"
+          },
+          {
+            "source": "case",
+            "ref": "google-cloud-2026-07-14/u4"
+          }
+        ]
+      }
+    ],
+    "timeline": [
+      {
+        "time": "2026-07-14T17:00:00Z",
+        "time_kind": "stated",
+        "event": "The provider's incident start time; updates describe the issue as beginning at 10:00 PDT.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "google-cloud-2026-07-14/u1"
+          }
+        ]
+      },
+      {
+        "time": "2026-07-14T20:24:18Z",
+        "time_kind": "stated",
+        "event": "The provider publicly reported the stretched-cluster network disruption and inter-site communication failures.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "google-cloud-2026-07-14/u1"
+          }
+        ]
+      },
+      {
+        "time": "2026-07-14T22:16:55Z",
+        "time_kind": "stated",
+        "event": "The provider reported BGP session flapping, lost connectivity to the witness appliance, and resulting VM isolation and risk of non-writable data.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "google-cloud-2026-07-14/u3"
+          }
+        ]
+      },
+      {
+        "time": "2026-07-14T23:05:33Z",
+        "time_kind": "stated",
+        "event": "The provider identified a recent configuration update as the likely cause and said remediation was underway.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "google-cloud-2026-07-14/u4"
+          }
+        ]
+      },
+      {
+        "time": "2026-07-15T00:13:18Z",
+        "time_kind": "stated",
+        "event": "The provider said a remediation rollout was in progress and that northamerica-northeast2 was not impacted.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "google-cloud-2026-07-14/u5"
+          }
+        ]
+      },
+      {
+        "time": "2026-07-15T05:34:26Z",
+        "time_kind": "stated",
+        "event": "The incident status changed to available; the resolved update's text was withheld.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "google-cloud-2026-07-14/u9"
+          }
+        ]
+      }
+    ],
+    "root_cause": {
+      "claim": "A recent configuration update was the provider's stated likely cause of the inter-zone network disruption. The published evidence supports that as the likely root cause, but does not disclose the precise configuration error or how it produced the reported BGP and witness-connectivity failures.",
+      "rests_on": [
+        "f2",
+        "f3",
+        "f5"
+      ],
+      "citations": [
+        {
+          "source": "case",
+          "ref": "google-cloud-2026-07-14/u3"
+        },
+        {
+          "source": "case",
+          "ref": "google-cloud-2026-07-14/u4"
+        }
+      ]
+    },
+    "contributing_factors": [
+      {
+        "claim": "Loss of connectivity to the witness appliance prevented affected zones from safely synchronizing state, contributing to VM isolation and possible loss of writable data.",
+        "rests_on": [
+          "f2"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "google-cloud-2026-07-14/u3"
+          }
+        ]
+      },
+      {
+        "claim": "The provider recommended migrating affected VMs to the healthy side of the stretched cluster as the primary mitigation, while warning customers to consult support because of failover risks and secondary-zone health.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "google-cloud-2026-07-14/u3"
+          }
+        ]
+      }
+    ],
+    "open_questions": [
+      {
+        "question": "What exact configuration change failed, and how did it cause the inter-zone network and BGP problems?",
+        "why_open": "The provider called a recent configuration update the likely cause but did not describe the change or its technical failure mechanism."
+      },
+      {
+        "question": "Was the configuration update accidental, or was any part of the outage caused by deliberate hostile action?",
+        "why_open": "The updates do not address intent or report an investigation into hostile activity."
+      },
+      {
+        "question": "What specific remediation was rolled out, and when did service recover for affected customers?",
+        "why_open": "The provider reported that a remediation rollout was in progress, but the final available update has no text and does not give customer-level recovery details."
+      },
+      {
+        "question": "Which regions and customers were affected, and how many VMs experienced isolation or writable-data risk?",
+        "why_open": "The updates describe impact across multiple regions and identify one unaffected region, but do not provide a complete scope or counts."
+      }
+    ]
+  },
+  "checks": {
+    "rejected_citations": [],
+    "unsupported": [],
+    "pii": []
+  },
+  "tool_calls": [
+    {
+      "name": "list_updates",
+      "seconds": 1.989,
+      "withheld": [],
+      "screen_calls": 2
+    },
+    {
+      "name": "list_charts",
+      "seconds": 0.0,
+      "withheld": [],
+      "screen_calls": 0
+    },
+    {
+      "name": "search_library",
+      "seconds": 1.121,
+      "query": "Earlier postmortems involving inter-zone network connectivity failures, BGP session flapping, unreachable witness appliance in stretched clusters, and a recent configuration update or remediation rollout causing outages.",
+      "refs": [
+        "lib/google-cloud-2018-10-11/s1",
+        "lib/google-cloud-2018-10-11/s1",
+        "lib/cloudflare-2025-07-14/s7",
+        "lib/google-cloud-2019-04-04/s4",
+        "lib/google-cloud-2019-04-04/s8"
+      ],
+      "withheld": [],
+      "screen_calls": 2
+    }
+  ],
+  "usage": {
+    "model_calls": 3,
+    "tool_calls": 3,
+    "seconds": 23.565,
+    "input_tokens": 12525,
+    "cached_input_tokens": 9780,
+    "output_tokens": 2253,
+    "screen_calls": 4,
+    "screen_records": 30,
+    "pii_calls": 6,
+    "pii_records": 24,
+    "max_call_input_tokens": 6992,
+    "reasoning_tokens": 347
+  },
+  "reasoning": {
+    "requested": "medium",
+    "applied": [
+      "medium"
+    ]
+  },
+  "cost": {
+    "table_version": 1,
+    "currency": "USD",
+    "model": 0.001499,
+    "screens": 0.01125,
+    "pii": 0.024,
+    "embeddings": 5e-06,
+    "total": 0.036754
+  }
+}

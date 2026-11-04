@@ -1,0 +1,436 @@
+{
+  "run_id": "library-off/github-2026-08-17/r2/a1",
+  "case_id": "github-2026-08-17",
+  "agent": {
+    "name": "hindcast-investigator-gpt-6-luna-library-off",
+    "version": "1"
+  },
+  "model": {
+    "deployment": "gpt-6-luna",
+    "name": "gpt-6-luna",
+    "version": "2026-09-22"
+  },
+  "provenance": {
+    "prompt": {
+      "blob": "60d84db0df9806c70ad6068a0cfde06d5279e3f5",
+      "dirty": false
+    },
+    "code": {
+      "commit": "8d175acbf601a5daac1f57c994e77630ec8318f0",
+      "dirty": false,
+      "src_tree": "3144277a783e8e3ab3d566a5d1e3a60ccd2cd14c"
+    },
+    "evidence_sha256": "f45a778dc5a4db145f2ae8ab3c6f5100a1d5da187648531c7669ca1b07c768ee",
+    "library": null,
+    "arm": "library-off",
+    "screens": true
+  },
+  "status": "complete",
+  "incomplete_reason": null,
+  "investigation": {
+    "attack": {
+      "verdict": "cannot tell",
+      "reasoning": "The published updates describe widespread service degradation and later identify a problematic component, but do not say what that component was or what caused it. They provide no evidence establishing deliberate hostile action, and the available evidence is insufficient to rule it out.",
+      "citations": [
+        {
+          "source": "case",
+          "ref": "github-2026-08-17/u22"
+        },
+        {
+          "source": "case",
+          "ref": "github-2026-08-17/u23"
+        }
+      ]
+    },
+    "findings": [
+      {
+        "id": "f1",
+        "kind": "observation",
+        "claim": "The incident began with reports of impaired performance for some GitHub services; API Requests, Actions, and Webhooks were subsequently reported as degraded.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u1"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u2"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u3"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u4"
+          }
+        ]
+      },
+      {
+        "id": "f2",
+        "kind": "observation",
+        "claim": "At 14:04 UTC, GitHub reported approximately 20% error rates for web experiences and API traffic, and approximately 50% error rates for archive and raw repository content downloads.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u8"
+          }
+        ]
+      },
+      {
+        "id": "f3",
+        "kind": "observation",
+        "claim": "The reported impact expanded across numerous services, including authentication-related services; later updates also reported degraded Git Operations and Pages.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u9"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u10"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u18"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u19"
+          }
+        ]
+      },
+      {
+        "id": "f4",
+        "kind": "inference",
+        "claim": "The incident had a broad impact across services, rather than being limited to one user-facing feature.",
+        "rests_on": [
+          "f1",
+          "f2",
+          "f3"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u8"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u9"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u19"
+          }
+        ]
+      },
+      {
+        "id": "f5",
+        "kind": "observation",
+        "claim": "GitHub said it identified a problematic component and took corrective actions, but did not name the component or explain its failure mechanism in the updates.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u23"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u26"
+          }
+        ]
+      },
+      {
+        "id": "f6",
+        "kind": "observation",
+        "claim": "During residual sporadic authentication failures, GitHub partially disabled authentication token retries and reported improvement.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u28"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u32"
+          }
+        ]
+      },
+      {
+        "id": "f7",
+        "kind": "observation",
+        "claim": "After the main degradation was reported mitigated, some service-specific and authentication-related impact continued; Copilot authentication failures in some applications remained under mitigation, while CLI and GitHub App usage were reported unaffected.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u24"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u32"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u33"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u35"
+          }
+        ]
+      }
+    ],
+    "timeline": [
+      {
+        "time": "2026-08-17T13:40:03Z",
+        "time_kind": "stated",
+        "event": "Incident start; GitHub reported investigating impacts to performance for some services.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u1"
+          }
+        ]
+      },
+      {
+        "time": "2026-08-17T14:04:45Z",
+        "time_kind": "stated",
+        "event": "GitHub reported approximately 20% error rates for web experiences and API traffic, and approximately 50% for archive and raw repository content downloads.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u8"
+          }
+        ]
+      },
+      {
+        "time": "2026-08-17T14:24:53Z",
+        "time_kind": "stated",
+        "event": "SAML and OIDC authentication, SCIM, and Team Sync were also reported impacted.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u9"
+          }
+        ]
+      },
+      {
+        "time": "2026-08-17T16:36:25Z",
+        "time_kind": "stated",
+        "event": "GitHub said it had identified the problematic component and taken corrective actions; signs of recovery were strong, though errors remained slightly elevated.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u23"
+          }
+        ]
+      },
+      {
+        "time": "2026-08-17T16:59:38Z",
+        "time_kind": "stated",
+        "event": "Degradation affecting API Requests, Actions, Git Operations, Issues, Pages, Pull Requests, and Webhooks was reported mitigated.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u24"
+          }
+        ]
+      },
+      {
+        "time": "2026-08-17T17:34:22Z",
+        "time_kind": "stated",
+        "event": "GitHub reported residual impact across numerous services after corrective actions, and said it was applying additional mitigations.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u26"
+          }
+        ]
+      },
+      {
+        "time": "2026-08-17T18:11:30Z",
+        "time_kind": "stated",
+        "event": "GitHub described residual sporadic authentication failures and continued mitigations.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u28"
+          }
+        ]
+      },
+      {
+        "time": "2026-08-17T19:13:20Z",
+        "time_kind": "stated",
+        "event": "GitHub reported partially disabling authentication token retries and seeing improvement.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u32"
+          }
+        ]
+      },
+      {
+        "time": "2026-08-17T20:08:40Z",
+        "time_kind": "stated",
+        "event": "Sporadic Copilot authentication failures in some applications were still under investigation; GitHub CLI and GitHub App usage were reported unaffected.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u33"
+          }
+        ]
+      },
+      {
+        "time": "2026-08-17T21:15:46Z",
+        "time_kind": "stated",
+        "event": "The incident status changed to resolved; the resolved-update text is unavailable.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u36"
+          }
+        ]
+      }
+    ],
+    "root_cause": {
+      "claim": "The precise technical root cause cannot be determined from the published updates. GitHub said it identified a problematic component and took corrective action, but did not identify that component or explain the underlying failure.",
+      "rests_on": [
+        "f5"
+      ],
+      "citations": [
+        {
+          "source": "case",
+          "ref": "github-2026-08-17/u22"
+        },
+        {
+          "source": "case",
+          "ref": "github-2026-08-17/u23"
+        }
+      ]
+    },
+    "contributing_factors": [
+      {
+        "claim": "The impact crossed multiple service areas, including web and API traffic, downloads, authentication-related services, and Git Operations.",
+        "rests_on": [
+          "f4"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u8"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u9"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u19"
+          }
+        ]
+      },
+      {
+        "claim": "Authentication token retries were a mitigation concern during the residual authentication failures: GitHub partially disabled them and reported improvement. The updates do not establish whether retries caused or amplified the original outage.",
+        "rests_on": [
+          "f6"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u32"
+          }
+        ]
+      },
+      {
+        "claim": "Recovery was not immediate after the initial broad mitigation; residual service impacts and sporadic authentication failures continued to be reported.",
+        "rests_on": [
+          "f7"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u26"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u28"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u35"
+          }
+        ]
+      }
+    ],
+    "open_questions": [
+      {
+        "question": "What was the problematic component, and what specific technical failure caused the initial broad degradation?",
+        "why_open": "The updates say the component was identified and corrective actions were taken, but do not name it or describe its failure mechanism."
+      },
+      {
+        "question": "Did authentication token retries contribute to or amplify any part of the incident?",
+        "why_open": "GitHub reported improvement after partially disabling retries during residual authentication failures, but did not say retries caused or worsened the outage."
+      },
+      {
+        "question": "Was the outage caused in whole or in part by deliberate hostile action?",
+        "why_open": "The published updates do not identify an attack or provide enough evidence to confirm or exclude one."
+      },
+      {
+        "question": "What specific condition was confirmed as resolved at 21:15 UTC?",
+        "why_open": "The final update provides only a resolved status and time; its text is withheld."
+      }
+    ]
+  },
+  "checks": {
+    "rejected_citations": [],
+    "unsupported": [],
+    "pii": []
+  },
+  "tool_calls": [
+    {
+      "name": "list_updates",
+      "seconds": 2.908,
+      "withheld": [],
+      "screen_calls": 8
+    },
+    {
+      "name": "list_charts",
+      "seconds": 0.0,
+      "withheld": [],
+      "screen_calls": 0
+    }
+  ],
+  "usage": {
+    "model_calls": 2,
+    "tool_calls": 2,
+    "seconds": 26.669,
+    "input_tokens": 4929,
+    "cached_input_tokens": 4923,
+    "output_tokens": 3211,
+    "screen_calls": 8,
+    "screen_records": 36,
+    "pii_calls": 6,
+    "pii_records": 30,
+    "max_call_input_tokens": 3850,
+    "reasoning_tokens": 357
+  },
+  "reasoning": {
+    "requested": "medium",
+    "applied": [
+      "medium"
+    ]
+  },
+  "cost": {
+    "table_version": 1,
+    "currency": "USD",
+    "model": 0.001655,
+    "screens": 0.0135,
+    "pii": 0.03,
+    "embeddings": 0.0,
+    "total": 0.045155
+  }
+}

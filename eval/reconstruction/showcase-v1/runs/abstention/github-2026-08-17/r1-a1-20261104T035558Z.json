@@ -1,0 +1,391 @@
+{
+  "run_id": "abstention/github-2026-08-17/r1/a1",
+  "case_id": "github-2026-08-17",
+  "agent": {
+    "name": "hindcast-investigator-gpt-6-luna-abstention",
+    "version": "1"
+  },
+  "model": {
+    "deployment": "gpt-6-luna",
+    "name": "gpt-6-luna",
+    "version": "2026-09-22"
+  },
+  "provenance": {
+    "prompt": {
+      "blob": "4fc4aed8ba9f12e36cb11f8839be45b40fdd1cd4",
+      "dirty": false
+    },
+    "code": {
+      "commit": "8d175acbf601a5daac1f57c994e77630ec8318f0",
+      "dirty": false,
+      "src_tree": "3144277a783e8e3ab3d566a5d1e3a60ccd2cd14c"
+    },
+    "evidence_sha256": "f45a778dc5a4db145f2ae8ab3c6f5100a1d5da187648531c7669ca1b07c768ee",
+    "library": {
+      "registry": {
+        "blob": "ca5fb507e65dab71001a76adb9ae2258aae261b4",
+        "dirty": false
+      },
+      "index": "hindcast-library-1024",
+      "search_api_version": "2026-04-01",
+      "embedding": {
+        "deployment": "text-embedding-3-large",
+        "name": "text-embedding-3-large",
+        "version": "1",
+        "dimensions": 1024
+      },
+      "contents": {
+        "chunks": 79,
+        "sha256": "6ac51b3c2590770e257f6c44b1ab53932803ea487a6160b7e5ea42f1f327d7b3"
+      }
+    },
+    "arm": "abstention",
+    "screens": true
+  },
+  "status": "complete",
+  "incomplete_reason": null,
+  "investigation": {
+    "attack": {
+      "verdict": "cannot tell",
+      "reasoning": "The updates document widespread service failures and mitigations but do not identify hostile activity, an attacker, or an attack as a cause. The published evidence is insufficient to determine whether deliberate hostile action contributed to the outage.",
+      "citations": [
+        {
+          "source": "case",
+          "ref": "github-2026-08-17/u8"
+        },
+        {
+          "source": "case",
+          "ref": "github-2026-08-17/u23"
+        }
+      ]
+    },
+    "findings": [
+      {
+        "id": "impact",
+        "kind": "observation",
+        "claim": "The outage affected many GitHub services. Updates reported about 20% error rates for web experiences and API traffic, about 50% for archive and raw-content downloads, and impacts to authentication and other services.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u8"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u9"
+          }
+        ]
+      },
+      {
+        "id": "mitigation",
+        "kind": "observation",
+        "claim": "The provider said it identified a problematic component, took corrective actions, and observed signs of recovery; it did not name the component or describe those actions.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u23"
+          }
+        ]
+      },
+      {
+        "id": "residual-impact",
+        "kind": "observation",
+        "claim": "After reporting broad service degradation mitigated, the provider continued to report residual impact, including sporadic authentication failures and Copilot authentication failures in some applications.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u24"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u28"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u33"
+          }
+        ]
+      },
+      {
+        "id": "retry-mitigation",
+        "kind": "observation",
+        "claim": "The provider partially disabled authentication-token retries and reported improvement while monitoring the effect.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u32"
+          }
+        ]
+      },
+      {
+        "id": "retry-contribution",
+        "kind": "inference",
+        "claim": "Authentication-token retries may have contributed to the persistence or severity of the sporadic authentication failures, since partially disabling them was followed by reported improvement. The updates do not establish the original cause of those failures.",
+        "rests_on": [
+          "residual-impact",
+          "retry-mitigation"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u32"
+          }
+        ]
+      }
+    ],
+    "timeline": [
+      {
+        "time": "2026-08-17T13:40:03Z",
+        "time_kind": "stated",
+        "event": "The incident began; GitHub reported investigating impacted performance for some services.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u1"
+          }
+        ]
+      },
+      {
+        "time": "2026-08-17T13:45:45Z",
+        "time_kind": "stated",
+        "event": "GitHub reported an approximate 20% error rate across numerous experiences, including Pull Requests and Issues.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u5"
+          }
+        ]
+      },
+      {
+        "time": "2026-08-17T14:04:45Z",
+        "time_kind": "stated",
+        "event": "GitHub reported approximately 20% error rates for web experiences and API traffic, and approximately 50% for archive and raw repository content downloads.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u8"
+          }
+        ]
+      },
+      {
+        "time": "2026-08-17T14:58:12Z",
+        "time_kind": "stated",
+        "event": "GitHub said it was performing mitigations based on its investigation and monitoring for improvement.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u15"
+          }
+        ]
+      },
+      {
+        "time": "2026-08-17T16:16:13Z",
+        "time_kind": "stated",
+        "event": "GitHub said it was still working to identify the root cause while continuing mitigation.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u22"
+          }
+        ]
+      },
+      {
+        "time": "2026-08-17T16:36:25Z",
+        "time_kind": "stated",
+        "event": "GitHub said it had identified the problematic component and taken corrective actions; recovery was underway, though errors remained slightly elevated.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u23"
+          }
+        ]
+      },
+      {
+        "time": "2026-08-17T16:59:38Z",
+        "time_kind": "stated",
+        "event": "GitHub said degradation affecting API Requests, Actions, Git Operations, Issues, Pages, Pull Requests, and Webhooks had been mitigated, and it was monitoring stability.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u24"
+          }
+        ]
+      },
+      {
+        "time": "2026-08-17T17:34:22Z",
+        "time_kind": "stated",
+        "event": "GitHub reported residual impact across numerous services and said it was applying further mitigations.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u26"
+          }
+        ]
+      },
+      {
+        "time": "2026-08-17T18:11:30Z",
+        "time_kind": "stated",
+        "event": "GitHub reported sporadic authentication failures as residual impact and continued mitigation.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u28"
+          }
+        ]
+      },
+      {
+        "time": "2026-08-17T19:13:20Z",
+        "time_kind": "stated",
+        "event": "GitHub said it had partially disabled authentication-token retries, observed improvement, and was monitoring before fully applying the mitigation.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u32"
+          }
+        ]
+      },
+      {
+        "time": "2026-08-17T20:08:40Z",
+        "time_kind": "stated",
+        "event": "GitHub was still investigating sporadic Copilot authentication failures in some applications; CLI and GitHub App usage were reported unaffected.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u33"
+          }
+        ]
+      },
+      {
+        "time": "2026-08-17T20:45:28Z",
+        "time_kind": "stated",
+        "event": "GitHub said it was continuing mitigations for sporadic Copilot authentication failures in some applications and expected full recovery within 30 minutes.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u35"
+          }
+        ]
+      },
+      {
+        "time": "2026-08-17T21:15:46Z",
+        "time_kind": "stated",
+        "event": "The incident was marked resolved; the resolved update's text is unavailable.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u36"
+          }
+        ]
+      }
+    ],
+    "root_cause": {
+      "claim": "The root cause cannot be determined from the published updates. GitHub said it identified a problematic component, but did not identify that component, explain how it failed, or describe the corrective actions in enough detail to establish the causal mechanism.",
+      "rests_on": [
+        "mitigation"
+      ],
+      "citations": [
+        {
+          "source": "case",
+          "ref": "github-2026-08-17/u22"
+        },
+        {
+          "source": "case",
+          "ref": "github-2026-08-17/u23"
+        }
+      ]
+    },
+    "contributing_factors": [
+      {
+        "claim": "Authentication-token retries may have prolonged or amplified sporadic authentication failures; the provider reported improvement after partially disabling retries, but did not state that retries caused the original incident.",
+        "rests_on": [
+          "retry-contribution"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-08-17/u32"
+          }
+        ]
+      }
+    ],
+    "open_questions": [
+      {
+        "question": "What was the problematic component, how did it fail, and how did that failure produce the broad service errors?",
+        "why_open": "The updates say the component was identified and corrective actions taken, but do not name it or describe the failure mechanism."
+      },
+      {
+        "question": "Did deliberate hostile activity contribute to the outage?",
+        "why_open": "The updates describe impact and mitigation but do not state whether hostile action occurred or rule it out."
+      },
+      {
+        "question": "What caused the residual and sporadic authentication failures, and what ultimately restored Copilot authentication in affected applications?",
+        "why_open": "The updates report retries being partially disabled and later mitigations, but do not identify the underlying authentication failure or describe the final recovery; the resolved update has no text."
+      }
+    ]
+  },
+  "checks": {
+    "rejected_citations": [],
+    "unsupported": [],
+    "pii": []
+  },
+  "tool_calls": [
+    {
+      "name": "list_updates",
+      "seconds": 2.891,
+      "withheld": [],
+      "screen_calls": 8
+    },
+    {
+      "name": "list_charts",
+      "seconds": 0.0,
+      "withheld": [],
+      "screen_calls": 0
+    },
+    {
+      "name": "search_library",
+      "seconds": 1.085,
+      "query": "Search earlier postmortems for symptoms likely to appear in the incident updates, including service degradation, elevated errors or latency, traffic or load spikes, network/connectivity issues, and mitigation or recovery.",
+      "refs": [
+        "lib/github-availability-2026-06/s7",
+        "lib/github-availability-2026-06/s3",
+        "lib/github-availability-2026-06/s4",
+        "lib/cloudflare-2025-06-12/s2",
+        "lib/aws-2021-12-07/s1"
+      ],
+      "withheld": [],
+      "screen_calls": 2
+    }
+  ],
+  "usage": {
+    "model_calls": 2,
+    "tool_calls": 3,
+    "seconds": 27.938,
+    "input_tokens": 8010,
+    "cached_input_tokens": 2626,
+    "output_tokens": 2976,
+    "screen_calls": 10,
+    "screen_records": 49,
+    "pii_calls": 7,
+    "pii_records": 28,
+    "max_call_input_tokens": 6694,
+    "reasoning_tokens": 516
+  },
+  "reasoning": {
+    "requested": "medium",
+    "applied": [
+      "medium"
+    ]
+  },
+  "cost": {
+    "table_version": 1,
+    "currency": "USD",
+    "model": 0.002053,
+    "screens": 0.018375,
+    "pii": 0.028,
+    "embeddings": 5e-06,
+    "total": 0.048433
+  }
+}

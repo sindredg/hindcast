@@ -1,0 +1,159 @@
+{
+  "run_id": "single-search/google-cloud-2026-07-14/r1/a1",
+  "case_id": "google-cloud-2026-07-14",
+  "kinds": {
+    "attack": "inference",
+    "findings[0]": "observation",
+    "findings[1]": "observation",
+    "findings[2]": "observation",
+    "findings[3]": "observation",
+    "findings[4]": "observation",
+    "findings[5]": "inference",
+    "timeline[0]": "observation",
+    "timeline[1]": "observation",
+    "timeline[2]": "observation",
+    "timeline[3]": "observation",
+    "timeline[4]": "observation",
+    "root_cause": "inference",
+    "contributing_factors[0]": "inference",
+    "contributing_factors[1]": "inference"
+  },
+  "code_unsupported": [],
+  "judge": {
+    "model": "claude-opus-5-5",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "9de219e1f08dd185277139c88c3957bc4f67a3a4cf94e90e7523281cfd202a22",
+    "input_sha256": "43891f06923830a78b8bf2d409cc67234d172838f17f08aff2309dd48eac18b3",
+    "judged_at": "2026-11-04T17:18:56Z",
+    "request_id": "req_011CgiGcNSKQYFQ5AkMUmCMH",
+    "response_model": "claude-opus-5-5"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 6695,
+    "output_tokens": 2372,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 2429
+  },
+  "judgment": {
+    "run_items": {
+      "attack": {
+        "reason": "u4 names only a configuration update as the likely cause and says nothing of who made it or why. A 'cannot tell' verdict follows from that gap.",
+        "supported": true
+      },
+      "findings[0]": {
+        "reason": "u1 and u2 state the inter-site connectivity failures across multiple regions, that storage and compute were unaffected, and that VMs were running but connectivity could be degraded.",
+        "supported": true
+      },
+      "findings[1]": {
+        "reason": "u3 states the inter-zone failures, BGP session flapping, the lost connection to the witness appliance, and the risk of VM isolation.",
+        "supported": true
+      },
+      "findings[2]": {
+        "reason": "u4 states that a recent configuration update is the likely cause.",
+        "supported": true
+      },
+      "findings[3]": {
+        "reason": "u5 states that a remediation rollout was in progress and that northamerica-northeast2 was not impacted.",
+        "supported": true
+      },
+      "findings[4]": {
+        "reason": "u9 is titled AVAILABLE, which shows the incident ended with that update.",
+        "supported": true
+      },
+      "findings[5]": {
+        "reason": "Calling the outage a network partition between the zones and the witness follows directly from supported findings f1 and f2.",
+        "supported": true
+      },
+      "timeline[0]": {
+        "reason": "u1 states the issue began at 10:00 PDT, which is 17:00 UTC.",
+        "supported": true
+      },
+      "timeline[1]": {
+        "reason": "u3, timestamped 22:16:55Z, reports the inter-zone failures, BGP flapping and loss of the witness.",
+        "supported": true
+      },
+      "timeline[2]": {
+        "reason": "u4, timestamped 23:05:33Z, names the likely configuration update and says teams were working on remediation.",
+        "supported": true
+      },
+      "timeline[3]": {
+        "reason": "u5, timestamped 00:13:18Z, reports the remediation rollout and that northamerica-northeast2 was not impacted.",
+        "supported": true
+      },
+      "timeline[4]": {
+        "reason": "The u9 AVAILABLE update is timestamped 05:34:26Z and its text is withheld, as the item says.",
+        "supported": true
+      },
+      "root_cause": {
+        "reason": "This restates u4's likely cause through f3 and declines to name a mechanism. It adds no new fact.",
+        "supported": true
+      },
+      "contributing_factors[0]": {
+        "reason": "This restates what u3, f2 and f6 say about the witness loss and BGP flapping, and adds nothing new.",
+        "supported": true
+      },
+      "contributing_factors[1]": {
+        "reason": "u1 says multiple regions were affected and u5 says northamerica-northeast2 was not.",
+        "supported": true
+      }
+    },
+    "key_items": {
+      "attack": {
+        "run_items": [
+          "attack"
+        ],
+        "reason": "The run's attack verdict is 'cannot tell', which counts as abstained.",
+        "outcome": "abstained"
+      },
+      "root_cause": {
+        "run_items": [
+          "root_cause",
+          "findings[2]"
+        ],
+        "reason": "The run names the configuration update as the trigger, supported by u4. It gives none of the mechanism: the control-plane routing gap and the dropped private IP range.",
+        "outcome": "partial"
+      },
+      "contributing_factors/0": {
+        "run_items": [],
+        "reason": "No run item mentions the configuration passing payload validation.",
+        "outcome": "missed"
+      },
+      "contributing_factors/1": {
+        "run_items": [],
+        "reason": "No run item says health checks stayed functional on separate address spaces. The run mentions BGP flapping only as a symptom, not as this factor.",
+        "outcome": "missed"
+      },
+      "contributing_factors/2": {
+        "run_items": [],
+        "reason": "No run item mentions non-vSAN workloads pinned to a single zone.",
+        "outcome": "missed"
+      },
+      "timeline/0": {
+        "run_items": [
+          "timeline[0]"
+        ],
+        "reason": "timeline[0] gives the start as 17:00Z, matching the key, and u1 supports it.",
+        "outcome": "supported-hit"
+      },
+      "timeline/1": {
+        "run_items": [
+          "timeline[2]"
+        ],
+        "reason": "timeline[2] puts the likely-cause update at 23:05:33Z, matching the key's 23:05Z, and u4 supports it.",
+        "outcome": "supported-hit"
+      },
+      "timeline/2": {
+        "run_items": [],
+        "reason": "The run gives no time for full restoration; its open question says the restoration time is unknown. timeline[4] marks only the AVAILABLE status update, not restoration.",
+        "outcome": "missed"
+      }
+    }
+  },
+  "error": null,
+  "arm": "single-search",
+  "run_sha256": "551c3d58d671f847fd83902f48058763a8ba67b14a427b80388c9d4f97f01544",
+  "code_commit": "ac7de8a41095f762cca58bf10ec0faf5b086a8b0",
+  "earlier_errors": []
+}

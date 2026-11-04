@@ -33,6 +33,11 @@ dependencies = [
 # The web page's runtime. An extra, not a core dependency: the capture,
 # ingest, keys, and investigate commands never import it.
 app = ["streamlit==1.66.1"]
+# The offline judge of the scored runs (hindcast.evaluation.judge), on the
+# Anthropic API: a model family that none of the scored arms uses. An extra,
+# so the page's image never installs it. Trade-off: a second provider, its
+# key in the local .env, and run text sent outside Azure for judging.
+judge = ["anthropic==2.4.0"]
 
 # Exact pins. uv.lock records the full tree with hashes. Dependabot proposes
 # the updates (.github/dependabot.yml).

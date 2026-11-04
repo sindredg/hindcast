@@ -1,0 +1,175 @@
+{
+  "run_id": "single-search/google-cloud-2026-07-14/r3/a1",
+  "case_id": "google-cloud-2026-07-14",
+  "kinds": {
+    "attack": "inference",
+    "findings[0]": "observation",
+    "findings[1]": "observation",
+    "findings[2]": "observation",
+    "findings[3]": "observation",
+    "findings[4]": "observation",
+    "findings[5]": "observation",
+    "findings[6]": "observation",
+    "findings[7]": "inference",
+    "timeline[0]": "observation",
+    "timeline[1]": "observation",
+    "timeline[2]": "observation",
+    "timeline[3]": "observation",
+    "timeline[4]": "observation",
+    "timeline[5]": "observation",
+    "timeline[6]": "observation",
+    "root_cause": "inference",
+    "contributing_factors[0]": "inference"
+  },
+  "code_unsupported": [],
+  "judge": {
+    "model": "claude-opus-5-5",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "9de219e1f08dd185277139c88c3957bc4f67a3a4cf94e90e7523281cfd202a22",
+    "input_sha256": "3dd08f981df500c623ecc59fb66ed280e311d84c62146ce00045bb43666282c5",
+    "judged_at": "2026-11-04T17:19:09Z",
+    "request_id": "req_011CgiGdKHas6ARzGPb3v88B",
+    "response_model": "claude-opus-5-5"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 7687,
+    "output_tokens": 2384,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 2429
+  },
+  "judgment": {
+    "run_items": {
+      "attack": {
+        "reason": "u4 names a recent configuration update as the likely cause, and general knowledge supports reading that as a non-hostile change.",
+        "supported": true
+      },
+      "findings[0]": {
+        "reason": "u1 and u2 state the 10:00 PDT start, inter-site communication failures, and impact across multiple regions.",
+        "supported": true
+      },
+      "findings[1]": {
+        "reason": "u1 and u2 state that Storage and Compute appear unaffected and VMs are running, while connectivity may be affected.",
+        "supported": true
+      },
+      "findings[2]": {
+        "reason": "u3 states the inter-zone failures, BGP session flapping, lost witness connectivity, inability to synchronize state, and VM isolation.",
+        "supported": true
+      },
+      "findings[3]": {
+        "reason": "u4 states that a recent configuration update is the likely cause and that teams are working on remediation.",
+        "supported": true
+      },
+      "findings[4]": {
+        "reason": "u5 states that northamerica-northeast2 was not impacted.",
+        "supported": true
+      },
+      "findings[5]": {
+        "reason": "u5 and u8 state that a remediation rollout is in progress and that VM migration is the primary mitigation.",
+        "supported": true
+      },
+      "findings[6]": {
+        "reason": "The u9 title shows an AVAILABLE status.",
+        "supported": true
+      },
+      "findings[7]": {
+        "reason": "Follows directly from F3 and F4 (u3, u4) and adds no new facts.",
+        "supported": true
+      },
+      "timeline[0]": {
+        "reason": "u1 states the 10:00 PDT start time.",
+        "supported": true
+      },
+      "timeline[1]": {
+        "reason": "The u1 timestamp and text match the item.",
+        "supported": true
+      },
+      "timeline[2]": {
+        "reason": "The u2 timestamp and its description of the underlying network issue match the item.",
+        "supported": true
+      },
+      "timeline[3]": {
+        "reason": "The u3 timestamp and content match the item.",
+        "supported": true
+      },
+      "timeline[4]": {
+        "reason": "The u4 timestamp and its configuration-update statement match the item.",
+        "supported": true
+      },
+      "timeline[5]": {
+        "reason": "The u5 timestamp, remediation rollout, and northamerica-northeast2 clarification match the item.",
+        "supported": true
+      },
+      "timeline[6]": {
+        "reason": "The u9 title shows AVAILABLE at 05:34:26Z, and its text is withheld.",
+        "supported": true
+      },
+      "root_cause": {
+        "reason": "Rests on F3 and F4, which state the likely configuration-update cause, and correctly notes that the mechanism is unstated.",
+        "supported": true
+      },
+      "contributing_factors[0]": {
+        "reason": "Restates the causal chain in u3 (F3): BGP flapping, witness unreachable, sync impossible, VM isolation.",
+        "supported": true
+      }
+    },
+    "key_items": {
+      "attack": {
+        "run_items": [
+          "attack"
+        ],
+        "reason": "The run's verdict is not an attack, and it is supported by u4.",
+        "outcome": "supported-hit"
+      },
+      "root_cause": {
+        "run_items": [
+          "root_cause",
+          "findings[7]"
+        ],
+        "reason": "The run names the configuration update as the trigger but not the control-plane routing gap that dropped the GCVE private IP range. That is the trigger without the mechanism.",
+        "outcome": "partial"
+      },
+      "contributing_factors/0": {
+        "run_items": [],
+        "reason": "No run item mentions payload validations failing to block the deployment.",
+        "outcome": "missed"
+      },
+      "contributing_factors/1": {
+        "run_items": [],
+        "reason": "No run item says health checks ran on separate address spaces and so missed the dropped range. The run instead cites BGP flapping from u3 and does not address detection.",
+        "outcome": "missed"
+      },
+      "contributing_factors/2": {
+        "run_items": [],
+        "reason": "No run item mentions non-vSAN workloads pinned to a single zone without replication.",
+        "outcome": "missed"
+      },
+      "timeline/0": {
+        "run_items": [
+          "timeline[0]",
+          "findings[0]"
+        ],
+        "reason": "timeline[0] gives a 17:00Z start of inter-site failures, citing u1.",
+        "outcome": "supported-hit"
+      },
+      "timeline/1": {
+        "run_items": [
+          "timeline[4]"
+        ],
+        "reason": "timeline[4] at 23:05:33Z records the configuration update named as the likely cause, matching u4.",
+        "outcome": "supported-hit"
+      },
+      "timeline/2": {
+        "run_items": [],
+        "reason": "No run item states when connectivity was restored. timeline[6] records only the AVAILABLE status change at 05:34Z, which is a different event.",
+        "outcome": "missed"
+      }
+    }
+  },
+  "error": null,
+  "arm": "single-search",
+  "run_sha256": "9910c8f1908dd135bb9e2bad2c7162d2d6fbb7abe5abb0045481dd32cc075239",
+  "code_commit": "ac7de8a41095f762cca58bf10ec0faf5b086a8b0",
+  "earlier_errors": []
+}

@@ -1,0 +1,391 @@
+{
+  "run_id": "hindcast/github-2026-10-07/r1/a1",
+  "case_id": "github-2026-10-07",
+  "agent": {
+    "name": "hindcast-investigator-gpt-6-luna",
+    "version": "3"
+  },
+  "model": {
+    "deployment": "gpt-6-luna",
+    "name": "gpt-6-luna",
+    "version": "2026-09-22"
+  },
+  "provenance": {
+    "prompt": {
+      "blob": "1d0911f407e73fd3d4def4f4e14ab8763c6cfbbc",
+      "dirty": false
+    },
+    "code": {
+      "commit": "8d175acbf601a5daac1f57c994e77630ec8318f0",
+      "dirty": false,
+      "src_tree": "3144277a783e8e3ab3d566a5d1e3a60ccd2cd14c"
+    },
+    "evidence_sha256": "9589943f72e1123ebb1c4d976ee36fe3274c851e268e7563c8776a80cc76938d",
+    "library": {
+      "registry": {
+        "blob": "ca5fb507e65dab71001a76adb9ae2258aae261b4",
+        "dirty": false
+      },
+      "index": "hindcast-library-1024",
+      "search_api_version": "2026-04-01",
+      "embedding": {
+        "deployment": "text-embedding-3-large",
+        "name": "text-embedding-3-large",
+        "version": "1",
+        "dimensions": 1024
+      },
+      "contents": {
+        "chunks": 44,
+        "sha256": "d639d7a001c320127dba9f552dec71631cbb4525fbae062947f2a08d7fa2c287"
+      }
+    },
+    "arm": "hindcast",
+    "screens": true
+  },
+  "status": "complete",
+  "incomplete_reason": null,
+  "investigation": {
+    "attack": {
+      "verdict": "cannot tell",
+      "reasoning": "The updates document widespread, short-lived service disruption and a recurrence, but do not describe a hostile action or identify the cause. GitHub says the root cause was identified and mitigations were being applied, without disclosing what that cause was. The evidence is therefore insufficient to determine whether an attack contributed.",
+      "citations": [
+        {
+          "source": "case",
+          "ref": "github-2026-10-07/u6"
+        },
+        {
+          "source": "case",
+          "ref": "github-2026-10-07/u19"
+        },
+        {
+          "source": "case",
+          "ref": "github-2026-10-07/u22"
+        }
+      ]
+    },
+    "findings": [
+      {
+        "id": "f1",
+        "kind": "observation",
+        "claim": "The first incident was reported as degraded availability or performance affecting Actions, Git Operations, Pull Requests, Webhooks, Issues, and, in a later update, widespread GitHub services.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u1"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u2"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u3"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u6"
+          }
+        ]
+      },
+      {
+        "id": "f2",
+        "kind": "observation",
+        "claim": "GitHub reported widespread impact between 15:06 and 15:16 UTC on October 7, 2026, and later described recovery as partial and then full.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u6"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u13"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u18"
+          }
+        ]
+      },
+      {
+        "id": "f3",
+        "kind": "observation",
+        "claim": "At 16:23 UTC, GitHub said the affected services were fully recovered and stable, that the root cause had been identified, and that mitigations were being applied to prevent recurrence.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u19"
+          }
+        ]
+      },
+      {
+        "id": "f4",
+        "kind": "observation",
+        "claim": "A second incident was explicitly described as a recurrence of the earlier incident. GitHub reported widespread impact from 16:52 to 17:01 UTC, with systems recovered by the time of the update.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u21"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u22"
+          }
+        ]
+      },
+      {
+        "id": "f5",
+        "kind": "observation",
+        "claim": "At 18:00 UTC, GitHub said all systems had recovered, mitigations had been applied, and it did not anticipate another recurrence.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u24"
+          }
+        ]
+      },
+      {
+        "id": "f6",
+        "kind": "inference",
+        "claim": "The public updates establish that the disruption recurred, but do not disclose the technical cause or the causal chain behind either period of impact.",
+        "rests_on": [
+          "f2",
+          "f3",
+          "f4"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u19"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u22"
+          }
+        ]
+      }
+    ],
+    "timeline": [
+      {
+        "time": "2026-10-07T15:14:45Z",
+        "time_kind": "stated",
+        "event": "GitHub opened the first incident, reporting degraded availability for Actions, Git Operations, and Pull Requests.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u1"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-07T15:06:00Z",
+        "time_kind": "stated",
+        "event": "Beginning of the first widespread-impact interval, as later reported by GitHub; the update places its end at 15:16 UTC.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u6"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-07T15:16:00Z",
+        "time_kind": "stated",
+        "event": "End of the first widespread-impact interval reported by GitHub. Service-specific degraded-performance reports and recovery updates continued afterward.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u6"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u7"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u9"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u12"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-07T15:58:35Z",
+        "time_kind": "stated",
+        "event": "GitHub reported full recovery across systems, while saying it was still investigating the cause of the earlier disruption.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u18"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-07T16:23:44Z",
+        "time_kind": "stated",
+        "event": "GitHub said services were fully recovered and stable, the root cause had been identified, and mitigations were being applied.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u19"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-07T16:25:14Z",
+        "time_kind": "stated",
+        "event": "The first incident reached its resolved status; the resolved update text is not available.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u20"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-07T16:52:00Z",
+        "time_kind": "stated",
+        "event": "Beginning of the second widespread-impact interval, later described as a recurrence of the earlier incident; the reported interval ended at 17:01 UTC.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u22"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-07T17:01:00Z",
+        "time_kind": "stated",
+        "event": "End of the second widespread-impact interval reported by GitHub; the update said all systems had recovered.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u22"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-07T18:00:49Z",
+        "time_kind": "stated",
+        "event": "GitHub reported all systems recovered, mitigations applied, and no anticipated further recurrence.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u24"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-07T18:04:49Z",
+        "time_kind": "stated",
+        "event": "The second incident reached its resolved status; the resolved update text is not available.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u25"
+          }
+        ]
+      }
+    ],
+    "root_cause": {
+      "claim": "The technical root cause cannot be reconstructed from the published updates. GitHub said it had identified the cause and was applying mitigations, but did not state what the cause was.",
+      "rests_on": [
+        "f3",
+        "f6"
+      ],
+      "citations": [
+        {
+          "source": "case",
+          "ref": "github-2026-10-07/u19"
+        },
+        {
+          "source": "case",
+          "ref": "github-2026-10-07/u22"
+        }
+      ]
+    },
+    "contributing_factors": [],
+    "open_questions": [
+      {
+        "question": "What technical failure caused the widespread impact in either interval, and how were the two disruptions connected?",
+        "why_open": "The updates say the root cause was identified and call the second incident a recurrence, but do not disclose the cause or the relationship in technical detail."
+      },
+      {
+        "question": "What specific mitigations were applied, and what prevented another recurrence?",
+        "why_open": "GitHub reports that mitigations were applied and that it did not anticipate another recurrence, but gives no description of the mitigations."
+      },
+      {
+        "question": "Did hostile action contribute to the outage?",
+        "why_open": "The status updates do not identify an attack or rule one out, and do not provide the underlying cause."
+      }
+    ]
+  },
+  "checks": {
+    "rejected_citations": [],
+    "unsupported": [],
+    "pii": []
+  },
+  "tool_calls": [
+    {
+      "name": "list_updates",
+      "seconds": 2.386,
+      "withheld": [],
+      "screen_calls": 5
+    },
+    {
+      "name": "list_charts",
+      "seconds": 0.0,
+      "withheld": [],
+      "screen_calls": 0
+    },
+    {
+      "name": "search_library",
+      "seconds": 0.917,
+      "query": "GitHub widespread degradation Git Operations Pull Requests Actions Issues Webhooks abrupt short-lived outage recovery recurrence root cause identified mitigations; earlier public postmortems about infrastructure/service incidents.",
+      "refs": [
+        "lib/github-availability-2026-06/s7",
+        "lib/github-availability-2026-06/s3",
+        "lib/github-availability-2023-11/s1",
+        "lib/github-2016-01-28/s3",
+        "lib/github-availability-2026-06/s4"
+      ],
+      "withheld": [],
+      "screen_calls": 1
+    }
+  ],
+  "usage": {
+    "model_calls": 3,
+    "tool_calls": 3,
+    "seconds": 28.978,
+    "input_tokens": 9333,
+    "cached_input_tokens": 5645,
+    "output_tokens": 3030,
+    "screen_calls": 6,
+    "screen_records": 34,
+    "pii_calls": 6,
+    "pii_records": 25,
+    "max_call_input_tokens": 4956,
+    "reasoning_tokens": 609
+  },
+  "reasoning": {
+    "requested": "medium",
+    "applied": [
+      "medium"
+    ]
+  },
+  "cost": {
+    "table_version": 1,
+    "currency": "USD",
+    "model": 0.00194,
+    "screens": 0.01275,
+    "pii": 0.025,
+    "embeddings": 5e-06,
+    "total": 0.039695
+  }
+}

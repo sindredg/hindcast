@@ -1,6 +1,27 @@
 # Models, tokens, and rate limits
 
-Findings about the deployed models: [gpt-6-luna](../decisions/0012-models.md) 2026-09-22 and gpt-6.1-sol 2026-09-29, Global Standard, Sweden Central.
+Findings about the deployed models, [gpt-6-luna](../decisions/0012-models.md) 2026-09-22 and gpt-6.1-sol 2026-09-29, Global Standard, Sweden Central, and about the judge, `claude-opus-5-5` on the Anthropic API ([decision 0024](../decisions/0024-judge-model.md)).
+
+## Structured output refuses a schema with one array per key item (2026-11-04)
+
+**Seen:** the Anthropic API refused the judge's first reply schema with HTTP 400 `invalid_request_error`, "The compiled grammar is too large, which would cause performance issues. Simplify your tool schemas or reduce the number of strict tools." The request had no tools. The schema was built per run: one required object per run item (a reason and a support flag) and one per key item (an array of run-item names, a reason, and an outcome enum). The [structured outputs documentation](https://platform.claude.com/docs/en/build-with-claude/structured-outputs) sets explicit limits on strict tools, optional parameters, and union types, none of which this schema used, and says further internal limits on grammar size exist, without numbers. The error it names for them is "Schema is too complex for compilation", not the message seen here.
+
+**Evidence:** tested live, 2026-11-04, 16:40 to 17:10 UTC, with the development run's schema: 21 key items, 18 run items. The first two rows are judge calls; the rest are probes that change one part and send a one-line message with `max_tokens` 64. A refused schema gets its 400 before any output.
+
+| Schema | Result |
+|---|---|
+| Built per run, each array limited to the run's item names (enum) | 400 |
+| The same, without the enum | 400 |
+| The same, without the outcome enums | 400 |
+| Key items only | 400 |
+| Key items only, without the array | accepted |
+| Key items only, without the reason | 400 |
+| The first 10 key items only | accepted |
+| The first 15 key items only | 400 |
+| Run items only | accepted |
+| Two lists of objects, the same for every run | accepted |
+
+**For Hindcast:** the judge sends one fixed schema with two lists and checks in code what the per-run schema enforced ([worklog](../worklogs/05-evaluation.md#the-judge)). Its size no longer depends on the run or the key, which hold 7 to 21 key items.
 
 ## The project endpoint serves no embeddings (2026-11-01)
 

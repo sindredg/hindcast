@@ -27,9 +27,11 @@ import argparse
 import hashlib
 import json
 import os
+from collections.abc import Mapping
 from dataclasses import asdict, replace
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 from hindcast import investigate, telemetry
 from hindcast.arms import ARMS
@@ -159,6 +161,17 @@ def sealed_agents(path: Path) -> dict[str, str]:
 
 def load_attempts(path: Path) -> list[dict]:
     return json.loads(path.read_text("utf-8"))["attempts"] if path.is_file() else []
+
+
+def verified_run(entry: Mapping[str, Any], runs_dir: Path = RUNS_DIR) -> dict:
+    """A filled attempt's result file, refused when it differs from the hash in the ledger."""
+    data = (runs_dir / entry["file"]).read_bytes()
+    if hashlib.sha256(data).hexdigest() != entry["sha256"]:
+        raise ValueError(f"{entry['run_id']}: the result file differs from its recorded hash")
+    document = json.loads(data)
+    if document.get("run_id") != entry["run_id"]:
+        raise ValueError(f"{entry['run_id']}: the result file names another run")
+    return document
 
 
 def write_attempts(path: Path, attempts: list[dict]) -> None:

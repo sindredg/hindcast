@@ -1,0 +1,191 @@
+{
+  "run_id": "hindcast/github-2026-08-17/r1/a1",
+  "case_id": "github-2026-08-17",
+  "kinds": {
+    "attack": "inference",
+    "findings[0]": "observation",
+    "findings[1]": "observation",
+    "findings[2]": "observation",
+    "findings[3]": "observation",
+    "findings[4]": "observation",
+    "findings[5]": "observation",
+    "findings[6]": "observation",
+    "findings[7]": "inference",
+    "findings[8]": "inference",
+    "timeline[0]": "observation",
+    "timeline[1]": "observation",
+    "timeline[2]": "observation",
+    "timeline[3]": "observation",
+    "timeline[4]": "observation",
+    "timeline[5]": "observation",
+    "timeline[6]": "observation",
+    "timeline[7]": "observation",
+    "timeline[8]": "observation",
+    "timeline[9]": "observation",
+    "root_cause": "inference",
+    "contributing_factors[0]": "inference"
+  },
+  "code_unsupported": [],
+  "judge": {
+    "model": "claude-opus-5-5",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "9de219e1f08dd185277139c88c3957bc4f67a3a4cf94e90e7523281cfd202a22",
+    "input_sha256": "d5ea2372c1fa253bf07b5ec93368c1e2ffeec7f61a29e85e73495b0933e0d4e6",
+    "judged_at": "2026-11-04T17:16:59Z",
+    "request_id": "req_011CgiGTiSqWBBZDMF4qSmEN",
+    "response_model": "claude-opus-5-5"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 6921,
+    "output_tokens": 2950,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 2429
+  },
+  "judgment": {
+    "run_items": {
+      "attack": {
+        "reason": "The cited updates u8, u22 and u23 describe errors and corrective action but say nothing about hostile activity. A 'cannot tell' verdict follows from them.",
+        "supported": true
+      },
+      "findings[0]": {
+        "reason": "u2, u5, u9, u10, u18 and u19 state the widening impact: API Requests, PRs/Issues, web, downloads, auth services, Copilot, Pages and Git Operations. The starting mention of Actions and Webhooks is not in the cited updates, but the core claim about broadening is stated.",
+        "supported": true
+      },
+      "findings[1]": {
+        "reason": "u8 and u9 state the ~20% and ~50% error rates and the SAML/OIDC, SCIM and Team Sync impact.",
+        "supported": true
+      },
+      "findings[2]": {
+        "reason": "u23 states the problematic component was identified, with recovery under way and errors slightly elevated.",
+        "supported": true
+      },
+      "findings[3]": {
+        "reason": "u24 states the mitigation of the listed services and continued monitoring.",
+        "supported": true
+      },
+      "findings[4]": {
+        "reason": "u25, u26, u27 and u28 state the further Git Operations and Issues degradation, residual impact, and sporadic authentication failures.",
+        "supported": true
+      },
+      "findings[5]": {
+        "reason": "u32 states that token retries were partially disabled and improvement was seen.",
+        "supported": true
+      },
+      "findings[6]": {
+        "reason": "u33 and u35 state the sporadic Copilot authentication failures and that the CLI and App were unaffected.",
+        "supported": true
+      },
+      "findings[7]": {
+        "reason": "From F1, F3 and F4, a shared component is a reasonable hedged reading, and the item adds no new facts.",
+        "supported": true
+      },
+      "findings[8]": {
+        "reason": "This is a hedged inference from F5 and F6 (u32: improvement after retries were partially disabled) and adds nothing beyond them.",
+        "supported": true
+      },
+      "timeline[0]": {
+        "reason": "u1 at 13:40:03 states that investigation began.",
+        "supported": true
+      },
+      "timeline[1]": {
+        "reason": "u5 at 13:45:45 states the ~20% errors.",
+        "supported": true
+      },
+      "timeline[2]": {
+        "reason": "u8 at 14:04:45 states the error rates given.",
+        "supported": true
+      },
+      "timeline[3]": {
+        "reason": "u9 at 14:24:53 adds SAML, OIDC, SCIM and Team Sync.",
+        "supported": true
+      },
+      "timeline[4]": {
+        "reason": "u23 at 16:36:25 states it.",
+        "supported": true
+      },
+      "timeline[5]": {
+        "reason": "u24 at 16:59:38 states it.",
+        "supported": true
+      },
+      "timeline[6]": {
+        "reason": "u28 at 18:11:30 states it.",
+        "supported": true
+      },
+      "timeline[7]": {
+        "reason": "u32 at 19:13:20 states it.",
+        "supported": true
+      },
+      "timeline[8]": {
+        "reason": "u33 at 20:08:40 states it.",
+        "supported": true
+      },
+      "timeline[9]": {
+        "reason": "u36 is a resolved update at 21:15:46, and its text is withheld, as the item says.",
+        "supported": true
+      },
+      "root_cause": {
+        "reason": "This abstention rests on the supported F3, F4, F5 and F8. The updates (u23, u28) name no component or mechanism.",
+        "supported": true
+      },
+      "contributing_factors[0]": {
+        "reason": "This is a hedged inference from F5, F6 and F9, based on u32's improvement after retries were partially disabled, and adds no new facts.",
+        "supported": true
+      }
+    },
+    "key_items": {
+      "attack": {
+        "run_items": [
+          "attack"
+        ],
+        "reason": "The run's verdict is 'cannot tell', with an open question on hostile activity.",
+        "outcome": "abstained"
+      },
+      "root_cause": {
+        "run_items": [
+          "root_cause"
+        ],
+        "reason": "The root cause says the updates do not establish what failed, and the first open question asks for the component and mechanism. It names no load balancer or sidecar.",
+        "outcome": "abstained"
+      },
+      "contributing_factors/0": {
+        "run_items": [],
+        "reason": "No run item mentions load-balancer network flow exhaustion or the degraded gateway authentication path.",
+        "outcome": "missed"
+      },
+      "contributing_factors/1": {
+        "run_items": [
+          "contributing_factors[0]",
+          "findings[8]"
+        ],
+        "reason": "The run says authentication token retries prolonged residual authentication failures, which is the retry-amplification mechanism slowing recovery. It lacks the latent client bug and the specific endpoint and Copilot Token Service.",
+        "outcome": "partial"
+      },
+      "contributing_factors/2": {
+        "run_items": [],
+        "reason": "The run does not mention the sidecar failing to scale or unbounded clients amplifying the broad overload, and it limits retries to residual failures.",
+        "outcome": "missed"
+      },
+      "timeline/0": {
+        "run_items": [
+          "timeline[0]"
+        ],
+        "reason": "timeline[0] gives a 13:40:03 start (u1), which matches 13:40.",
+        "outcome": "supported-hit"
+      },
+      "timeline/1": {
+        "run_items": [
+          "timeline[9]"
+        ],
+        "reason": "timeline[9] gives resolution at 21:15:46 (u36), which matches 21:15.",
+        "outcome": "supported-hit"
+      }
+    }
+  },
+  "error": null,
+  "arm": "hindcast",
+  "run_sha256": "57c732cd05324aa9e0bf563953eb8c67f1896a3a3abd0cd9882b3f2fe36e24e2",
+  "code_commit": "ac7de8a41095f762cca58bf10ec0faf5b086a8b0",
+  "earlier_errors": []
+}

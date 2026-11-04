@@ -1,0 +1,2704 @@
+{
+  "attempts": [
+    {
+      "run_id": "hindcast/cloudflare-2025-11-18/r1/a1",
+      "arm": "hindcast",
+      "case_id": "cloudflare-2025-11-18",
+      "repeat": 1,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:10:58Z",
+      "status": "complete",
+      "reason": null,
+      "file": "hindcast/cloudflare-2025-11-18/r1-a1-20261104T031058Z.json",
+      "sha256": "97da538ac57f9899b557489716de22cce1e4a9b48bd1e5fe18f995f74ab6fcf5",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 31.777,
+        "input_tokens": 10571,
+        "cached_input_tokens": 4667,
+        "output_tokens": 3297,
+        "screen_calls": 7,
+        "screen_records": 36,
+        "pii_calls": 7,
+        "pii_records": 31,
+        "max_call_input_tokens": 5898,
+        "reasoning_tokens": 482
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.002286,
+        "screens": 0.0135,
+        "pii": 0.031,
+        "embeddings": 6e-06,
+        "total": 0.046792
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna",
+        "version": "3"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "hindcast/cloudflare-2025-11-18/r2/a1",
+      "arm": "hindcast",
+      "case_id": "cloudflare-2025-11-18",
+      "repeat": 2,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:12:38Z",
+      "status": "complete",
+      "reason": null,
+      "file": "hindcast/cloudflare-2025-11-18/r2-a1-20261104T031238Z.json",
+      "sha256": "a996aac25e73c60f6887b2af7c7c3bdf4f7f5565334dcbc606621edc1bc0d8a4",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 31.931,
+        "input_tokens": 11158,
+        "cached_input_tokens": 8060,
+        "output_tokens": 3475,
+        "screen_calls": 8,
+        "screen_records": 38,
+        "pii_calls": 7,
+        "pii_records": 30,
+        "max_call_input_tokens": 6485,
+        "reasoning_tokens": 623
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.002128,
+        "screens": 0.01425,
+        "pii": 0.03,
+        "embeddings": 6e-06,
+        "total": 0.046384
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna",
+        "version": "3"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "hindcast/cloudflare-2025-11-18/r3/a1",
+      "arm": "hindcast",
+      "case_id": "cloudflare-2025-11-18",
+      "repeat": 3,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:13:13Z",
+      "status": "complete",
+      "reason": null,
+      "file": "hindcast/cloudflare-2025-11-18/r3-a1-20261104T031313Z.json",
+      "sha256": "3e9e450152db6d1de9aa8ae3f031f93f14f1db5576d11799002abef171a7cc36",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 31.151,
+        "input_tokens": 11193,
+        "cached_input_tokens": 8060,
+        "output_tokens": 3654,
+        "screen_calls": 8,
+        "screen_records": 39,
+        "pii_calls": 7,
+        "pii_records": 31,
+        "max_call_input_tokens": 6520,
+        "reasoning_tokens": 553
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.002221,
+        "screens": 0.014625,
+        "pii": 0.031,
+        "embeddings": 7e-06,
+        "total": 0.047853
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna",
+        "version": "3"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "hindcast/github-2026-08-17/r1/a1",
+      "arm": "hindcast",
+      "case_id": "github-2026-08-17",
+      "repeat": 1,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:13:47Z",
+      "status": "complete",
+      "reason": null,
+      "file": "hindcast/github-2026-08-17/r1-a1-20261104T031347Z.json",
+      "sha256": "57c732cd05324aa9e0bf563953eb8c67f1896a3a3abd0cd9882b3f2fe36e24e2",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 31.506,
+        "input_tokens": 10898,
+        "cached_input_tokens": 6593,
+        "output_tokens": 3523,
+        "screen_calls": 9,
+        "screen_records": 44,
+        "pii_calls": 7,
+        "pii_records": 31,
+        "max_call_input_tokens": 5573,
+        "reasoning_tokens": 539
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.002258,
+        "screens": 0.0165,
+        "pii": 0.031,
+        "embeddings": 4e-06,
+        "total": 0.049762
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna",
+        "version": "3"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "hindcast/github-2026-08-17/r2/a1",
+      "arm": "hindcast",
+      "case_id": "github-2026-08-17",
+      "repeat": 2,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:14:21Z",
+      "status": "complete",
+      "reason": null,
+      "file": "hindcast/github-2026-08-17/r2-a1-20261104T031421Z.json",
+      "sha256": "bba57f2dc46f2c57ecb49c5a2ae52f872afa51cd87f326d420622281a9f07c6e",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 32.939,
+        "input_tokens": 12165,
+        "cached_input_tokens": 9364,
+        "output_tokens": 3542,
+        "screen_calls": 10,
+        "screen_records": 49,
+        "pii_calls": 8,
+        "pii_records": 32,
+        "max_call_input_tokens": 6840,
+        "reasoning_tokens": 540
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.002145,
+        "screens": 0.018375,
+        "pii": 0.032,
+        "embeddings": 6e-06,
+        "total": 0.052526
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna",
+        "version": "3"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "hindcast/github-2026-08-17/r3/a1",
+      "arm": "hindcast",
+      "case_id": "github-2026-08-17",
+      "repeat": 3,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:14:57Z",
+      "status": "complete",
+      "reason": null,
+      "file": "hindcast/github-2026-08-17/r3-a1-20261104T031457Z.json",
+      "sha256": "43e24e73b190c7df8d990f8a47f05c8798f7bd6455cd1023e20f2c538a3bb3f6",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 5,
+        "seconds": 35.475,
+        "input_tokens": 14194,
+        "cached_input_tokens": 9364,
+        "output_tokens": 4020,
+        "screen_calls": 11,
+        "screen_records": 51,
+        "pii_calls": 8,
+        "pii_records": 37,
+        "max_call_input_tokens": 8869,
+        "reasoning_tokens": 670
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.002587,
+        "screens": 0.019125,
+        "pii": 0.037,
+        "embeddings": 9e-06,
+        "total": 0.058721
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna",
+        "version": "3"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "hindcast/google-cloud-2026-07-14/r1/a1",
+      "arm": "hindcast",
+      "case_id": "google-cloud-2026-07-14",
+      "repeat": 1,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:15:35Z",
+      "status": "complete",
+      "reason": null,
+      "file": "hindcast/google-cloud-2026-07-14/r1-a1-20261104T031535Z.json",
+      "sha256": "bd84f5c86c1c500e7766dd551fbd1414782b91cbdc9d66697aa4da311f7ea18b",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 28.851,
+        "input_tokens": 14100,
+        "cached_input_tokens": 6801,
+        "output_tokens": 3079,
+        "screen_calls": 5,
+        "screen_records": 38,
+        "pii_calls": 6,
+        "pii_records": 26,
+        "max_call_input_tokens": 8567,
+        "reasoning_tokens": 912
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.002337,
+        "screens": 0.01425,
+        "pii": 0.026,
+        "embeddings": 5e-06,
+        "total": 0.042592
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna",
+        "version": "3"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "hindcast/google-cloud-2026-07-14/r2/a1",
+      "arm": "hindcast",
+      "case_id": "google-cloud-2026-07-14",
+      "repeat": 2,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:16:07Z",
+      "status": "complete",
+      "reason": null,
+      "file": "hindcast/google-cloud-2026-07-14/r2-a1-20261104T031607Z.json",
+      "sha256": "38ebd481d2eb0c5bb3b53a059b1e5685f0c14e2b238bbbc552a5892a947988d2",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 29.674,
+        "input_tokens": 12503,
+        "cached_input_tokens": 9780,
+        "output_tokens": 2830,
+        "screen_calls": 4,
+        "screen_records": 30,
+        "pii_calls": 6,
+        "pii_records": 26,
+        "max_call_input_tokens": 6970,
+        "reasoning_tokens": 678
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001785,
+        "screens": 0.01125,
+        "pii": 0.026,
+        "embeddings": 4e-06,
+        "total": 0.039039
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna",
+        "version": "3"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "hindcast/google-cloud-2026-07-14/r3/a1",
+      "arm": "hindcast",
+      "case_id": "google-cloud-2026-07-14",
+      "repeat": 3,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:16:40Z",
+      "status": "complete",
+      "reason": null,
+      "file": "hindcast/google-cloud-2026-07-14/r3-a1-20261104T031640Z.json",
+      "sha256": "dad11ff463baf9bc0c7c03975844ffd3c1ce4a41058eef53f0355d3f56c9dbd4",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 23.565,
+        "input_tokens": 12525,
+        "cached_input_tokens": 9780,
+        "output_tokens": 2253,
+        "screen_calls": 4,
+        "screen_records": 30,
+        "pii_calls": 6,
+        "pii_records": 24,
+        "max_call_input_tokens": 6992,
+        "reasoning_tokens": 347
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001499,
+        "screens": 0.01125,
+        "pii": 0.024,
+        "embeddings": 5e-06,
+        "total": 0.036754
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna",
+        "version": "3"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "hindcast/github-2026-10-07/r1/a1",
+      "arm": "hindcast",
+      "case_id": "github-2026-10-07",
+      "repeat": 1,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:17:06Z",
+      "status": "complete",
+      "reason": null,
+      "file": "hindcast/github-2026-10-07/r1-a1-20261104T031706Z.json",
+      "sha256": "a4202b88547e01c3df77180c2266a7d923fb697a5160c9b9162de83ff5e47340",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 28.978,
+        "input_tokens": 9333,
+        "cached_input_tokens": 5645,
+        "output_tokens": 3030,
+        "screen_calls": 6,
+        "screen_records": 34,
+        "pii_calls": 6,
+        "pii_records": 25,
+        "max_call_input_tokens": 4956,
+        "reasoning_tokens": 609
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.00194,
+        "screens": 0.01275,
+        "pii": 0.025,
+        "embeddings": 5e-06,
+        "total": 0.039695
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna",
+        "version": "3"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "hindcast/github-2026-10-07/r2/a1",
+      "arm": "hindcast",
+      "case_id": "github-2026-10-07",
+      "repeat": 2,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:17:38Z",
+      "status": "complete",
+      "reason": null,
+      "file": "hindcast/github-2026-10-07/r2-a1-20261104T031738Z.json",
+      "sha256": "1f9ff226ea0ef46ebbe4b676dacc030d5023b4a3736f11f932a811c2a1322068",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 28.483,
+        "input_tokens": 9171,
+        "cached_input_tokens": 7468,
+        "output_tokens": 3040,
+        "screen_calls": 6,
+        "screen_records": 33,
+        "pii_calls": 7,
+        "pii_records": 27,
+        "max_call_input_tokens": 4794,
+        "reasoning_tokens": 536
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001765,
+        "screens": 0.012375,
+        "pii": 0.027,
+        "embeddings": 6e-06,
+        "total": 0.041146
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna",
+        "version": "3"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "hindcast/github-2026-10-07/r3/a1",
+      "arm": "hindcast",
+      "case_id": "github-2026-10-07",
+      "repeat": 3,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:18:09Z",
+      "status": "complete",
+      "reason": null,
+      "file": "hindcast/github-2026-10-07/r3-a1-20261104T031809Z.json",
+      "sha256": "94db936d09395fb399c010630c1ccb1881f961d0425d6801c842690c41e48db7",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 36.308,
+        "input_tokens": 9819,
+        "cached_input_tokens": 7468,
+        "output_tokens": 3680,
+        "screen_calls": 6,
+        "screen_records": 36,
+        "pii_calls": 8,
+        "pii_records": 32,
+        "max_call_input_tokens": 5442,
+        "reasoning_tokens": 1002
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.00215,
+        "screens": 0.0135,
+        "pii": 0.032,
+        "embeddings": 6e-06,
+        "total": 0.047656
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna",
+        "version": "3"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "single-search/cloudflare-2025-11-18/r1/a1",
+      "arm": "single-search",
+      "case_id": "cloudflare-2025-11-18",
+      "repeat": 1,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:19:08Z",
+      "status": "complete",
+      "reason": null,
+      "file": "single-search/cloudflare-2025-11-18/r1-a1-20261104T031908Z.json",
+      "sha256": "e5d20958209469b0de14a37f9f430235c5cc9524fc0e5191137799024234f756",
+      "usage": {
+        "model_calls": 1,
+        "tool_calls": 3,
+        "seconds": 26.232,
+        "input_tokens": 5072,
+        "cached_input_tokens": 0,
+        "output_tokens": 3109,
+        "screen_calls": 7,
+        "screen_records": 34,
+        "pii_calls": 7,
+        "pii_records": 27,
+        "max_call_input_tokens": 5072,
+        "reasoning_tokens": 808
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.002062,
+        "screens": 0.01275,
+        "pii": 0.027,
+        "embeddings": 6e-06,
+        "total": 0.041818
+      },
+      "agent": {
+        "name": null,
+        "version": null
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "single-search/cloudflare-2025-11-18/r2/a1",
+      "arm": "single-search",
+      "case_id": "cloudflare-2025-11-18",
+      "repeat": 2,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:19:54Z",
+      "status": "complete",
+      "reason": null,
+      "file": "single-search/cloudflare-2025-11-18/r2-a1-20261104T031954Z.json",
+      "sha256": "e5891a1b25d145cddecb33cb4ee912b29fe7e4a5d672d21f70936f4981158d96",
+      "usage": {
+        "model_calls": 1,
+        "tool_calls": 3,
+        "seconds": 24.265,
+        "input_tokens": 5072,
+        "cached_input_tokens": 5069,
+        "output_tokens": 2982,
+        "screen_calls": 7,
+        "screen_records": 34,
+        "pii_calls": 7,
+        "pii_records": 29,
+        "max_call_input_tokens": 5072,
+        "reasoning_tokens": 412
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001542,
+        "screens": 0.01275,
+        "pii": 0.029,
+        "embeddings": 6e-06,
+        "total": 0.043298
+      },
+      "agent": {
+        "name": null,
+        "version": null
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "single-search/cloudflare-2025-11-18/r3/a1",
+      "arm": "single-search",
+      "case_id": "cloudflare-2025-11-18",
+      "repeat": 3,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:20:21Z",
+      "status": "complete",
+      "reason": null,
+      "file": "single-search/cloudflare-2025-11-18/r3-a1-20261104T032021Z.json",
+      "sha256": "00bc4b37d28e4e1481792e477790a33069f325d42944756cc76323bc747cee8d",
+      "usage": {
+        "model_calls": 1,
+        "tool_calls": 3,
+        "seconds": 21.239,
+        "input_tokens": 5072,
+        "cached_input_tokens": 5069,
+        "output_tokens": 2559,
+        "screen_calls": 7,
+        "screen_records": 34,
+        "pii_calls": 7,
+        "pii_records": 29,
+        "max_call_input_tokens": 5072,
+        "reasoning_tokens": 312
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.00133,
+        "screens": 0.01275,
+        "pii": 0.029,
+        "embeddings": 6e-06,
+        "total": 0.043086
+      },
+      "agent": {
+        "name": null,
+        "version": null
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "single-search/github-2026-08-17/r1/a1",
+      "arm": "single-search",
+      "case_id": "github-2026-08-17",
+      "repeat": 1,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:20:45Z",
+      "status": "complete",
+      "reason": null,
+      "file": "single-search/github-2026-08-17/r1-a1-20261104T032045Z.json",
+      "sha256": "73120f79015064f978967af6f22f41e8d452f3495d92fc3ed4476c19cc14770a",
+      "usage": {
+        "model_calls": 1,
+        "tool_calls": 3,
+        "seconds": 24.98,
+        "input_tokens": 5776,
+        "cached_input_tokens": 1140,
+        "output_tokens": 3015,
+        "screen_calls": 9,
+        "screen_records": 46,
+        "pii_calls": 7,
+        "pii_records": 30,
+        "max_call_input_tokens": 5776,
+        "reasoning_tokens": 426
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001982,
+        "screens": 0.01725,
+        "pii": 0.03,
+        "embeddings": 3e-06,
+        "total": 0.049235
+      },
+      "agent": {
+        "name": null,
+        "version": null
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "single-search/github-2026-08-17/r2/a1",
+      "arm": "single-search",
+      "case_id": "github-2026-08-17",
+      "repeat": 2,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:21:13Z",
+      "status": "complete",
+      "reason": null,
+      "file": "single-search/github-2026-08-17/r2-a1-20261104T032113Z.json",
+      "sha256": "836de09f00cfade726d789bf39fc9ac6429154cf76849e0c7ba93f9c5348db88",
+      "usage": {
+        "model_calls": 1,
+        "tool_calls": 3,
+        "seconds": 28.13,
+        "input_tokens": 5776,
+        "cached_input_tokens": 5773,
+        "output_tokens": 3132,
+        "screen_calls": 9,
+        "screen_records": 46,
+        "pii_calls": 7,
+        "pii_records": 28,
+        "max_call_input_tokens": 5776,
+        "reasoning_tokens": 697
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001624,
+        "screens": 0.01725,
+        "pii": 0.028,
+        "embeddings": 3e-06,
+        "total": 0.046877
+      },
+      "agent": {
+        "name": null,
+        "version": null
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "single-search/github-2026-08-17/r3/a1",
+      "arm": "single-search",
+      "case_id": "github-2026-08-17",
+      "repeat": 3,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:21:44Z",
+      "status": "complete",
+      "reason": null,
+      "file": "single-search/github-2026-08-17/r3-a1-20261104T032144Z.json",
+      "sha256": "4050632dd3a4c41f56b7b15114008d69f00396643efb95e560b728e989b952ea",
+      "usage": {
+        "model_calls": 1,
+        "tool_calls": 3,
+        "seconds": 26.438,
+        "input_tokens": 5776,
+        "cached_input_tokens": 5773,
+        "output_tokens": 3405,
+        "screen_calls": 9,
+        "screen_records": 46,
+        "pii_calls": 8,
+        "pii_records": 33,
+        "max_call_input_tokens": 5776,
+        "reasoning_tokens": 370
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001761,
+        "screens": 0.01725,
+        "pii": 0.033,
+        "embeddings": 3e-06,
+        "total": 0.052014
+      },
+      "agent": {
+        "name": null,
+        "version": null
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "single-search/google-cloud-2026-07-14/r1/a1",
+      "arm": "single-search",
+      "case_id": "google-cloud-2026-07-14",
+      "repeat": 1,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:22:13Z",
+      "status": "complete",
+      "reason": null,
+      "file": "single-search/google-cloud-2026-07-14/r1-a1-20261104T032213Z.json",
+      "sha256": "551c3d58d671f847fd83902f48058763a8ba67b14a427b80388c9d4f97f01544",
+      "usage": {
+        "model_calls": 1,
+        "tool_calls": 3,
+        "seconds": 20.131,
+        "input_tokens": 4789,
+        "cached_input_tokens": 1140,
+        "output_tokens": 2209,
+        "screen_calls": 3,
+        "screen_records": 21,
+        "pii_calls": 6,
+        "pii_records": 22,
+        "max_call_input_tokens": 4789,
+        "reasoning_tokens": 459
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001481,
+        "screens": 0.007875,
+        "pii": 0.022,
+        "embeddings": 2.6e-05,
+        "total": 0.031382
+      },
+      "agent": {
+        "name": null,
+        "version": null
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "single-search/google-cloud-2026-07-14/r2/a1",
+      "arm": "single-search",
+      "case_id": "google-cloud-2026-07-14",
+      "repeat": 2,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:22:36Z",
+      "status": "complete",
+      "reason": null,
+      "file": "single-search/google-cloud-2026-07-14/r2-a1-20261104T032236Z.json",
+      "sha256": "23873f79afdb10ed0b2e072e04f0038997e9b789c2a8db855866f3647bdbc981",
+      "usage": {
+        "model_calls": 1,
+        "tool_calls": 3,
+        "seconds": 20.939,
+        "input_tokens": 4789,
+        "cached_input_tokens": 4786,
+        "output_tokens": 2461,
+        "screen_calls": 3,
+        "screen_records": 21,
+        "pii_calls": 6,
+        "pii_records": 24,
+        "max_call_input_tokens": 4789,
+        "reasoning_tokens": 469
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001279,
+        "screens": 0.007875,
+        "pii": 0.024,
+        "embeddings": 2.6e-05,
+        "total": 0.03318
+      },
+      "agent": {
+        "name": null,
+        "version": null
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "single-search/google-cloud-2026-07-14/r3/a1",
+      "arm": "single-search",
+      "case_id": "google-cloud-2026-07-14",
+      "repeat": 3,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:22:59Z",
+      "status": "complete",
+      "reason": null,
+      "file": "single-search/google-cloud-2026-07-14/r3-a1-20261104T032259Z.json",
+      "sha256": "9910c8f1908dd135bb9e2bad2c7162d2d6fbb7abe5abb0045481dd32cc075239",
+      "usage": {
+        "model_calls": 1,
+        "tool_calls": 3,
+        "seconds": 25.722,
+        "input_tokens": 4789,
+        "cached_input_tokens": 4786,
+        "output_tokens": 2557,
+        "screen_calls": 3,
+        "screen_records": 21,
+        "pii_calls": 6,
+        "pii_records": 25,
+        "max_call_input_tokens": 4789,
+        "reasoning_tokens": 516
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001327,
+        "screens": 0.007875,
+        "pii": 0.025,
+        "embeddings": 2.6e-05,
+        "total": 0.034228
+      },
+      "agent": {
+        "name": null,
+        "version": null
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "single-search/github-2026-10-07/r1/a1",
+      "arm": "single-search",
+      "case_id": "github-2026-10-07",
+      "repeat": 1,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:23:27Z",
+      "status": "complete",
+      "reason": null,
+      "file": "single-search/github-2026-10-07/r1-a1-20261104T032327Z.json",
+      "sha256": "b20bb588802b0c9d7dc82727559de70bfd59499ccf218112ff5b13adbd28f67d",
+      "usage": {
+        "model_calls": 1,
+        "tool_calls": 3,
+        "seconds": 26.606,
+        "input_tokens": 4997,
+        "cached_input_tokens": 1140,
+        "output_tokens": 2988,
+        "screen_calls": 6,
+        "screen_records": 35,
+        "pii_calls": 6,
+        "pii_records": 24,
+        "max_call_input_tokens": 4997,
+        "reasoning_tokens": 803
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001891,
+        "screens": 0.013125,
+        "pii": 0.024,
+        "embeddings": 4e-06,
+        "total": 0.03902
+      },
+      "agent": {
+        "name": null,
+        "version": null
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "single-search/github-2026-10-07/r2/a1",
+      "arm": "single-search",
+      "case_id": "github-2026-10-07",
+      "repeat": 2,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:23:56Z",
+      "status": "complete",
+      "reason": null,
+      "file": "single-search/github-2026-10-07/r2-a1-20261104T032356Z.json",
+      "sha256": "879bb491a6be49f672d950cb0ffbd7dbb0575ec8c03bafb2d50a5c02dc485f71",
+      "usage": {
+        "model_calls": 1,
+        "tool_calls": 3,
+        "seconds": 28.285,
+        "input_tokens": 4997,
+        "cached_input_tokens": 4994,
+        "output_tokens": 3353,
+        "screen_calls": 6,
+        "screen_records": 35,
+        "pii_calls": 6,
+        "pii_records": 26,
+        "max_call_input_tokens": 4997,
+        "reasoning_tokens": 1034
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001727,
+        "screens": 0.013125,
+        "pii": 0.026,
+        "embeddings": 4e-06,
+        "total": 0.040856
+      },
+      "agent": {
+        "name": null,
+        "version": null
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "single-search/github-2026-10-07/r3/a1",
+      "arm": "single-search",
+      "case_id": "github-2026-10-07",
+      "repeat": 3,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:24:27Z",
+      "status": "complete",
+      "reason": null,
+      "file": "single-search/github-2026-10-07/r3-a1-20261104T032427Z.json",
+      "sha256": "e87728a3bdda1f382e2e3503ad2cc3db44716597006fde0f4b8bcc474f256315",
+      "usage": {
+        "model_calls": 1,
+        "tool_calls": 3,
+        "seconds": 30.561,
+        "input_tokens": 4997,
+        "cached_input_tokens": 4994,
+        "output_tokens": 2864,
+        "screen_calls": 6,
+        "screen_records": 35,
+        "pii_calls": 7,
+        "pii_records": 27,
+        "max_call_input_tokens": 4997,
+        "reasoning_tokens": 499
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001482,
+        "screens": 0.013125,
+        "pii": 0.027,
+        "embeddings": 4e-06,
+        "total": 0.041611
+      },
+      "agent": {
+        "name": null,
+        "version": null
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "comparison/cloudflare-2025-11-18/r1/a1",
+      "arm": "comparison",
+      "case_id": "cloudflare-2025-11-18",
+      "repeat": 1,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:25:19Z",
+      "status": "complete",
+      "reason": null,
+      "file": "comparison/cloudflare-2025-11-18/r1-a1-20261104T032519Z.json",
+      "sha256": "6bc3b38fe0f7bf2bb77f23d0c1621c73d61d4174dc2c7632e7a62630ba55b768",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 64.308,
+        "input_tokens": 10887,
+        "cached_input_tokens": 4667,
+        "output_tokens": 3348,
+        "screen_calls": 8,
+        "screen_records": 37,
+        "pii_calls": 8,
+        "pii_records": 36,
+        "max_call_input_tokens": 6214,
+        "reasoning_tokens": 127
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.046387,
+        "screens": 0.013875,
+        "pii": 0.036,
+        "embeddings": 3e-06,
+        "total": 0.096265
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-1-sol",
+        "version": "2"
+      },
+      "model": {
+        "deployment": "gpt-6.1-sol",
+        "name": "gpt-6.1-sol",
+        "version": "2026-09-29"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "comparison/cloudflare-2025-11-18/r2/a1",
+      "arm": "comparison",
+      "case_id": "cloudflare-2025-11-18",
+      "repeat": 2,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:26:26Z",
+      "status": "complete",
+      "reason": null,
+      "file": "comparison/cloudflare-2025-11-18/r2-a1-20261104T032626Z.json",
+      "sha256": "d05bfae29cf33f6864412cc2cfb08a080b865f32b01157183d87e94eea90e14e",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 62.339,
+        "input_tokens": 10913,
+        "cached_input_tokens": 8060,
+        "output_tokens": 3207,
+        "screen_calls": 8,
+        "screen_records": 37,
+        "pii_calls": 8,
+        "pii_records": 35,
+        "max_call_input_tokens": 6240,
+        "reasoning_tokens": 107
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.038582,
+        "screens": 0.013875,
+        "pii": 0.035,
+        "embeddings": 3e-06,
+        "total": 0.08746
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-1-sol",
+        "version": "2"
+      },
+      "model": {
+        "deployment": "gpt-6.1-sol",
+        "name": "gpt-6.1-sol",
+        "version": "2026-09-29"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "comparison/cloudflare-2025-11-18/r3/a1",
+      "arm": "comparison",
+      "case_id": "cloudflare-2025-11-18",
+      "repeat": 3,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:27:32Z",
+      "status": "complete",
+      "reason": null,
+      "file": "comparison/cloudflare-2025-11-18/r3-a1-20261104T032732Z.json",
+      "sha256": "dec17ec26dde73820fa73caa3123bb0912fcace3efbaced081eeb89bf1fe6083",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 63.312,
+        "input_tokens": 10640,
+        "cached_input_tokens": 8060,
+        "output_tokens": 3350,
+        "screen_calls": 7,
+        "screen_records": 36,
+        "pii_calls": 9,
+        "pii_records": 38,
+        "max_call_input_tokens": 5967,
+        "reasoning_tokens": 115
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.039466,
+        "screens": 0.0135,
+        "pii": 0.038,
+        "embeddings": 3e-06,
+        "total": 0.090969
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-1-sol",
+        "version": "2"
+      },
+      "model": {
+        "deployment": "gpt-6.1-sol",
+        "name": "gpt-6.1-sol",
+        "version": "2026-09-29"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "comparison/github-2026-08-17/r1/a1",
+      "arm": "comparison",
+      "case_id": "github-2026-08-17",
+      "repeat": 1,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:28:38Z",
+      "status": "complete",
+      "reason": null,
+      "file": "comparison/github-2026-08-17/r1-a1-20261104T032838Z.json",
+      "sha256": "1878092e1f87525fc9b2810240c6808db33f353c64321c0bae86c861a970ff07",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 56.729,
+        "input_tokens": 11650,
+        "cached_input_tokens": 6593,
+        "output_tokens": 3132,
+        "screen_calls": 9,
+        "screen_records": 47,
+        "pii_calls": 8,
+        "pii_records": 36,
+        "max_call_input_tokens": 6325,
+        "reasoning_tokens": 57
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.042093,
+        "screens": 0.017625,
+        "pii": 0.036,
+        "embeddings": 3e-06,
+        "total": 0.095721
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-1-sol",
+        "version": "2"
+      },
+      "model": {
+        "deployment": "gpt-6.1-sol",
+        "name": "gpt-6.1-sol",
+        "version": "2026-09-29"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "comparison/github-2026-08-17/r2/a1",
+      "arm": "comparison",
+      "case_id": "github-2026-08-17",
+      "repeat": 2,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:29:38Z",
+      "status": "complete",
+      "reason": null,
+      "file": "comparison/github-2026-08-17/r2-a1-20261104T032938Z.json",
+      "sha256": "f51e5d4b27dc961f82840bd7ad8d34962da82a7228d24ce93c5d4bf50d6c1aee",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 63.376,
+        "input_tokens": 11537,
+        "cached_input_tokens": 9364,
+        "output_tokens": 3427,
+        "screen_calls": 9,
+        "screen_records": 46,
+        "pii_calls": 9,
+        "pii_records": 41,
+        "max_call_input_tokens": 6212,
+        "reasoning_tokens": 95
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.039552,
+        "screens": 0.01725,
+        "pii": 0.041,
+        "embeddings": 3e-06,
+        "total": 0.097805
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-1-sol",
+        "version": "2"
+      },
+      "model": {
+        "deployment": "gpt-6.1-sol",
+        "name": "gpt-6.1-sol",
+        "version": "2026-09-29"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "comparison/github-2026-08-17/r3/a1",
+      "arm": "comparison",
+      "case_id": "github-2026-08-17",
+      "repeat": 3,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:30:44Z",
+      "status": "complete",
+      "reason": null,
+      "file": "comparison/github-2026-08-17/r3-a1-20261104T033044Z.json",
+      "sha256": "e6a443363d70c3b112eede9d795a4b6f85e1aac9df3188150cff6fe033671979",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 57.407,
+        "input_tokens": 11996,
+        "cached_input_tokens": 9364,
+        "output_tokens": 3184,
+        "screen_calls": 10,
+        "screen_records": 48,
+        "pii_calls": 9,
+        "pii_records": 38,
+        "max_call_input_tokens": 6671,
+        "reasoning_tokens": 60
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.03804,
+        "screens": 0.018,
+        "pii": 0.038,
+        "embeddings": 3e-06,
+        "total": 0.094043
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-1-sol",
+        "version": "2"
+      },
+      "model": {
+        "deployment": "gpt-6.1-sol",
+        "name": "gpt-6.1-sol",
+        "version": "2026-09-29"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "comparison/google-cloud-2026-07-14/r1/a1",
+      "arm": "comparison",
+      "case_id": "google-cloud-2026-07-14",
+      "repeat": 1,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:31:45Z",
+      "status": "complete",
+      "reason": null,
+      "file": "comparison/google-cloud-2026-07-14/r1-a1-20261104T033145Z.json",
+      "sha256": "e4bc54eb70d0c9fccb06d1c0566022243afb5d1d5d02ba5218f301b5d228c5f9",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 50.352,
+        "input_tokens": 13948,
+        "cached_input_tokens": 6801,
+        "output_tokens": 2638,
+        "screen_calls": 4,
+        "screen_records": 34,
+        "pii_calls": 7,
+        "pii_records": 31,
+        "max_call_input_tokens": 8415,
+        "reasoning_tokens": 89
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.041354,
+        "screens": 0.01275,
+        "pii": 0.031,
+        "embeddings": 4e-06,
+        "total": 0.085108
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-1-sol",
+        "version": "2"
+      },
+      "model": {
+        "deployment": "gpt-6.1-sol",
+        "name": "gpt-6.1-sol",
+        "version": "2026-09-29"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "comparison/google-cloud-2026-07-14/r2/a1",
+      "arm": "comparison",
+      "case_id": "google-cloud-2026-07-14",
+      "repeat": 2,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:32:38Z",
+      "status": "complete",
+      "reason": null,
+      "file": "comparison/google-cloud-2026-07-14/r2-a1-20261104T033238Z.json",
+      "sha256": "72e780523c544ecd9cad006453e7600ee4097f320db935e44a1832b1d951d403",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 47.47,
+        "input_tokens": 15922,
+        "cached_input_tokens": 9780,
+        "output_tokens": 2579,
+        "screen_calls": 5,
+        "screen_records": 47,
+        "pii_calls": 7,
+        "pii_records": 29,
+        "max_call_input_tokens": 10389,
+        "reasoning_tokens": 111
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.039052,
+        "screens": 0.017625,
+        "pii": 0.029,
+        "embeddings": 3e-06,
+        "total": 0.08568
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-1-sol",
+        "version": "2"
+      },
+      "model": {
+        "deployment": "gpt-6.1-sol",
+        "name": "gpt-6.1-sol",
+        "version": "2026-09-29"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "comparison/google-cloud-2026-07-14/r3/a1",
+      "arm": "comparison",
+      "case_id": "google-cloud-2026-07-14",
+      "repeat": 3,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:33:29Z",
+      "status": "complete",
+      "reason": null,
+      "file": "comparison/google-cloud-2026-07-14/r3-a1-20261104T033329Z.json",
+      "sha256": "5d57c0a93927856abac0f213cec4a86667475810972cb147c1412060e192695b",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 49.748,
+        "input_tokens": 13710,
+        "cached_input_tokens": 9780,
+        "output_tokens": 2597,
+        "screen_calls": 4,
+        "screen_records": 34,
+        "pii_calls": 7,
+        "pii_records": 29,
+        "max_call_input_tokens": 8177,
+        "reasoning_tokens": 89
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.034808,
+        "screens": 0.01275,
+        "pii": 0.029,
+        "embeddings": 3e-06,
+        "total": 0.076561
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-1-sol",
+        "version": "2"
+      },
+      "model": {
+        "deployment": "gpt-6.1-sol",
+        "name": "gpt-6.1-sol",
+        "version": "2026-09-29"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "comparison/github-2026-10-07/r1/a1",
+      "arm": "comparison",
+      "case_id": "github-2026-10-07",
+      "repeat": 1,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:34:21Z",
+      "status": "complete",
+      "reason": null,
+      "file": "comparison/github-2026-10-07/r1-a1-20261104T033421Z.json",
+      "sha256": "93893db1e871955fc45e01f45eadf32737d9317ffbf3c1261c971c9293172c66",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 58.869,
+        "input_tokens": 9320,
+        "cached_input_tokens": 5645,
+        "output_tokens": 3173,
+        "screen_calls": 6,
+        "screen_records": 34,
+        "pii_calls": 9,
+        "pii_records": 37,
+        "max_call_input_tokens": 4943,
+        "reasoning_tokens": 112
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.039644,
+        "screens": 0.01275,
+        "pii": 0.037,
+        "embeddings": 3e-06,
+        "total": 0.089397
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-1-sol",
+        "version": "2"
+      },
+      "model": {
+        "deployment": "gpt-6.1-sol",
+        "name": "gpt-6.1-sol",
+        "version": "2026-09-29"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "comparison/github-2026-10-07/r2/a1",
+      "arm": "comparison",
+      "case_id": "github-2026-10-07",
+      "repeat": 2,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:35:23Z",
+      "status": "complete",
+      "reason": null,
+      "file": "comparison/github-2026-10-07/r2-a1-20261104T033523Z.json",
+      "sha256": "b7194f07fdb614aa9b58c88e8f8b76450f166165154f06e4e33460ccd63f5835",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 58.73,
+        "input_tokens": 9320,
+        "cached_input_tokens": 7468,
+        "output_tokens": 3188,
+        "screen_calls": 6,
+        "screen_records": 34,
+        "pii_calls": 8,
+        "pii_records": 34,
+        "max_call_input_tokens": 4943,
+        "reasoning_tokens": 164
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.036331,
+        "screens": 0.01275,
+        "pii": 0.034,
+        "embeddings": 3e-06,
+        "total": 0.083084
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-1-sol",
+        "version": "2"
+      },
+      "model": {
+        "deployment": "gpt-6.1-sol",
+        "name": "gpt-6.1-sol",
+        "version": "2026-09-29"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "comparison/github-2026-10-07/r3/a1",
+      "arm": "comparison",
+      "case_id": "github-2026-10-07",
+      "repeat": 3,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:36:25Z",
+      "status": "complete",
+      "reason": null,
+      "file": "comparison/github-2026-10-07/r3-a1-20261104T033625Z.json",
+      "sha256": "88240e0e50d8b2c4bba385d6bfad0b5603ac332772880666465039b7593e7d80",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 55.283,
+        "input_tokens": 9320,
+        "cached_input_tokens": 7468,
+        "output_tokens": 3081,
+        "screen_calls": 6,
+        "screen_records": 34,
+        "pii_calls": 8,
+        "pii_records": 33,
+        "max_call_input_tokens": 4943,
+        "reasoning_tokens": 104
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.035261,
+        "screens": 0.01275,
+        "pii": 0.033,
+        "embeddings": 3e-06,
+        "total": 0.081014
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-1-sol",
+        "version": "2"
+      },
+      "model": {
+        "deployment": "gpt-6.1-sol",
+        "name": "gpt-6.1-sol",
+        "version": "2026-09-29"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "library-off/cloudflare-2025-11-18/r1/a1",
+      "arm": "library-off",
+      "case_id": "cloudflare-2025-11-18",
+      "repeat": 1,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:37:40Z",
+      "status": "complete",
+      "reason": null,
+      "file": "library-off/cloudflare-2025-11-18/r1-a1-20261104T033740Z.json",
+      "sha256": "2c00fddd569656de2602dd80d21d2a54a5c41020cd6c4e576c1529ed70c4abe3",
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 2,
+        "seconds": 25.721,
+        "input_tokens": 4277,
+        "cached_input_tokens": 1076,
+        "output_tokens": 2632,
+        "screen_calls": 6,
+        "screen_records": 24,
+        "pii_calls": 5,
+        "pii_records": 22,
+        "max_call_input_tokens": 3198,
+        "reasoning_tokens": 621
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001647,
+        "screens": 0.009,
+        "pii": 0.022,
+        "embeddings": 0.0,
+        "total": 0.032647
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna-library-off",
+        "version": "1"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "library-off/cloudflare-2025-11-18/r2/a1",
+      "arm": "library-off",
+      "case_id": "cloudflare-2025-11-18",
+      "repeat": 2,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:38:17Z",
+      "status": "complete",
+      "reason": null,
+      "file": "library-off/cloudflare-2025-11-18/r2-a1-20261104T033817Z.json",
+      "sha256": "a2fbf223abc405d116878fc829f2ae3cf78148c67956855cde38feceedfa5ec7",
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 2,
+        "seconds": 26.288,
+        "input_tokens": 4277,
+        "cached_input_tokens": 4271,
+        "output_tokens": 2805,
+        "screen_calls": 6,
+        "screen_records": 24,
+        "pii_calls": 5,
+        "pii_records": 25,
+        "max_call_input_tokens": 3198,
+        "reasoning_tokens": 502
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001446,
+        "screens": 0.009,
+        "pii": 0.025,
+        "embeddings": 0.0,
+        "total": 0.035446
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna-library-off",
+        "version": "1"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "library-off/cloudflare-2025-11-18/r3/a1",
+      "arm": "library-off",
+      "case_id": "cloudflare-2025-11-18",
+      "repeat": 3,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:38:44Z",
+      "status": "complete",
+      "reason": null,
+      "file": "library-off/cloudflare-2025-11-18/r3-a1-20261104T033844Z.json",
+      "sha256": "1d353b3234c219e2364a09f7eb3f30ceb2d7035d89527994c675f73bf6ba98a1",
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 2,
+        "seconds": 23.789,
+        "input_tokens": 4277,
+        "cached_input_tokens": 4271,
+        "output_tokens": 2664,
+        "screen_calls": 6,
+        "screen_records": 24,
+        "pii_calls": 5,
+        "pii_records": 25,
+        "max_call_input_tokens": 3198,
+        "reasoning_tokens": 311
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001375,
+        "screens": 0.009,
+        "pii": 0.025,
+        "embeddings": 0.0,
+        "total": 0.035375
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna-library-off",
+        "version": "1"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "library-off/github-2026-08-17/r1/a1",
+      "arm": "library-off",
+      "case_id": "github-2026-08-17",
+      "repeat": 1,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:39:08Z",
+      "status": "complete",
+      "reason": null,
+      "file": "library-off/github-2026-08-17/r1-a1-20261104T033908Z.json",
+      "sha256": "c9280d6af3ea4361072c2e9b8fe9836dcc8341b772d7362b9e87484c069c4641",
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 2,
+        "seconds": 27.293,
+        "input_tokens": 4929,
+        "cached_input_tokens": 2152,
+        "output_tokens": 3114,
+        "screen_calls": 8,
+        "screen_records": 36,
+        "pii_calls": 7,
+        "pii_records": 31,
+        "max_call_input_tokens": 3850,
+        "reasoning_tokens": 253
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001856,
+        "screens": 0.0135,
+        "pii": 0.031,
+        "embeddings": 0.0,
+        "total": 0.046356
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna-library-off",
+        "version": "1"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "library-off/github-2026-08-17/r2/a1",
+      "arm": "library-off",
+      "case_id": "github-2026-08-17",
+      "repeat": 2,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:39:35Z",
+      "status": "complete",
+      "reason": null,
+      "file": "library-off/github-2026-08-17/r2-a1-20261104T033935Z.json",
+      "sha256": "8b54ca1ccb5fcf92e270554e51fbb3c86d3685af9c7ddf8d7bbe9b7a6268221d",
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 2,
+        "seconds": 26.669,
+        "input_tokens": 4929,
+        "cached_input_tokens": 4923,
+        "output_tokens": 3211,
+        "screen_calls": 8,
+        "screen_records": 36,
+        "pii_calls": 6,
+        "pii_records": 30,
+        "max_call_input_tokens": 3850,
+        "reasoning_tokens": 357
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001655,
+        "screens": 0.0135,
+        "pii": 0.03,
+        "embeddings": 0.0,
+        "total": 0.045155
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna-library-off",
+        "version": "1"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "library-off/github-2026-08-17/r3/a1",
+      "arm": "library-off",
+      "case_id": "github-2026-08-17",
+      "repeat": 3,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:40:02Z",
+      "status": "complete",
+      "reason": null,
+      "file": "library-off/github-2026-08-17/r3-a1-20261104T034002Z.json",
+      "sha256": "086ee6e55ca9c878a5c88c419e676107090d6d4498cf54e9ca3ea6953ef7e111",
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 2,
+        "seconds": 30.385,
+        "input_tokens": 4929,
+        "cached_input_tokens": 4923,
+        "output_tokens": 2963,
+        "screen_calls": 8,
+        "screen_records": 36,
+        "pii_calls": 6,
+        "pii_records": 27,
+        "max_call_input_tokens": 3850,
+        "reasoning_tokens": 379
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001531,
+        "screens": 0.0135,
+        "pii": 0.027,
+        "embeddings": 0.0,
+        "total": 0.042031
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna-library-off",
+        "version": "1"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "library-off/google-cloud-2026-07-14/r1/a1",
+      "arm": "library-off",
+      "case_id": "google-cloud-2026-07-14",
+      "repeat": 1,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:40:33Z",
+      "status": "complete",
+      "reason": null,
+      "file": "library-off/google-cloud-2026-07-14/r1-a1-20261104T034033Z.json",
+      "sha256": "b2f98638beac74230fcd8e3cffd83844c11b27d6399f80bbf0d48c4c87343afa",
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 2,
+        "seconds": 20.501,
+        "input_tokens": 5137,
+        "cached_input_tokens": 2152,
+        "output_tokens": 2094,
+        "screen_calls": 2,
+        "screen_records": 16,
+        "pii_calls": 6,
+        "pii_records": 27,
+        "max_call_input_tokens": 4058,
+        "reasoning_tokens": 432
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001367,
+        "screens": 0.006,
+        "pii": 0.027,
+        "embeddings": 0.0,
+        "total": 0.034367
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna-library-off",
+        "version": "1"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "library-off/google-cloud-2026-07-14/r2/a1",
+      "arm": "library-off",
+      "case_id": "google-cloud-2026-07-14",
+      "repeat": 2,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:40:54Z",
+      "status": "complete",
+      "reason": null,
+      "file": "library-off/google-cloud-2026-07-14/r2-a1-20261104T034054Z.json",
+      "sha256": "c3d0af6040449c105ad3fe4c8ce4e51fe3e2ff444a9c25698de0e536bbd2fa01",
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 2,
+        "seconds": 24.785,
+        "input_tokens": 5137,
+        "cached_input_tokens": 5131,
+        "output_tokens": 2529,
+        "screen_calls": 2,
+        "screen_records": 16,
+        "pii_calls": 6,
+        "pii_records": 26,
+        "max_call_input_tokens": 4058,
+        "reasoning_tokens": 425
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001316,
+        "screens": 0.006,
+        "pii": 0.026,
+        "embeddings": 0.0,
+        "total": 0.033316
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna-library-off",
+        "version": "1"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "library-off/google-cloud-2026-07-14/r3/a1",
+      "arm": "library-off",
+      "case_id": "google-cloud-2026-07-14",
+      "repeat": 3,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:41:19Z",
+      "status": "complete",
+      "reason": null,
+      "file": "library-off/google-cloud-2026-07-14/r3-a1-20261104T034119Z.json",
+      "sha256": "fe79b63b402e39df6ed31b1a055e668c916e8d26343ddd83b4a84c9018c0148b",
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 2,
+        "seconds": 22.549,
+        "input_tokens": 5137,
+        "cached_input_tokens": 5131,
+        "output_tokens": 2670,
+        "screen_calls": 2,
+        "screen_records": 16,
+        "pii_calls": 5,
+        "pii_records": 24,
+        "max_call_input_tokens": 4058,
+        "reasoning_tokens": 606
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001387,
+        "screens": 0.006,
+        "pii": 0.024,
+        "embeddings": 0.0,
+        "total": 0.031387
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna-library-off",
+        "version": "1"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "library-off/github-2026-10-07/r1/a1",
+      "arm": "library-off",
+      "case_id": "github-2026-10-07",
+      "repeat": 1,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:41:41Z",
+      "status": "complete",
+      "reason": null,
+      "file": "library-off/github-2026-10-07/r1-a1-20261104T034141Z.json",
+      "sha256": "a86a6d31468ca8f63ecf2ca3a3c677a527d6c696093435709040d9f1393d5063",
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 2,
+        "seconds": 24.358,
+        "input_tokens": 3981,
+        "cached_input_tokens": 2152,
+        "output_tokens": 2754,
+        "screen_calls": 5,
+        "screen_records": 24,
+        "pii_calls": 5,
+        "pii_records": 25,
+        "max_call_input_tokens": 2902,
+        "reasoning_tokens": 404
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001581,
+        "screens": 0.009,
+        "pii": 0.025,
+        "embeddings": 0.0,
+        "total": 0.035581
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna-library-off",
+        "version": "1"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "library-off/github-2026-10-07/r2/a1",
+      "arm": "library-off",
+      "case_id": "github-2026-10-07",
+      "repeat": 2,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:42:06Z",
+      "status": "complete",
+      "reason": null,
+      "file": "library-off/github-2026-10-07/r2-a1-20261104T034206Z.json",
+      "sha256": "74a3a7ac179c11596b10948361425f68a0f71e4fd6d716e10bf5867e6c2f6e4d",
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 2,
+        "seconds": 21.215,
+        "input_tokens": 3981,
+        "cached_input_tokens": 3975,
+        "output_tokens": 2263,
+        "screen_calls": 5,
+        "screen_records": 24,
+        "pii_calls": 5,
+        "pii_records": 23,
+        "max_call_input_tokens": 2902,
+        "reasoning_tokens": 311
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001172,
+        "screens": 0.009,
+        "pii": 0.023,
+        "embeddings": 0.0,
+        "total": 0.033172
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna-library-off",
+        "version": "1"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "library-off/github-2026-10-07/r3/a1",
+      "arm": "library-off",
+      "case_id": "github-2026-10-07",
+      "repeat": 3,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:42:27Z",
+      "status": "complete",
+      "reason": null,
+      "file": "library-off/github-2026-10-07/r3-a1-20261104T034227Z.json",
+      "sha256": "f9b1cf287d78445001c6c0e0450595784c582e092c8ad367d97eb2064c0a4f60",
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 2,
+        "seconds": 25.181,
+        "input_tokens": 3981,
+        "cached_input_tokens": 3975,
+        "output_tokens": 2998,
+        "screen_calls": 5,
+        "screen_records": 24,
+        "pii_calls": 6,
+        "pii_records": 28,
+        "max_call_input_tokens": 2902,
+        "reasoning_tokens": 456
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001539,
+        "screens": 0.009,
+        "pii": 0.028,
+        "embeddings": 0.0,
+        "total": 0.038539
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna-library-off",
+        "version": "1"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "abstention/cloudflare-2025-11-18/r1/a1",
+      "arm": "abstention",
+      "case_id": "cloudflare-2025-11-18",
+      "repeat": 1,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:54:04Z",
+      "status": "complete",
+      "reason": null,
+      "file": "abstention/cloudflare-2025-11-18/r1-a1-20261104T035404Z.json",
+      "sha256": "9e77ad7da9ec8aaf2594ddf24b8dde60fe074adbc74c7fcb4cca0855381b7590",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 4,
+        "seconds": 34.991,
+        "input_tokens": 17567,
+        "cached_input_tokens": 7719,
+        "output_tokens": 3491,
+        "screen_calls": 9,
+        "screen_records": 49,
+        "pii_calls": 7,
+        "pii_records": 30,
+        "max_call_input_tokens": 9842,
+        "reasoning_tokens": 595
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.002807,
+        "screens": 0.018375,
+        "pii": 0.03,
+        "embeddings": 1.5e-05,
+        "total": 0.051197
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna-abstention",
+        "version": "1"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "abstention/cloudflare-2025-11-18/r2/a1",
+      "arm": "abstention",
+      "case_id": "cloudflare-2025-11-18",
+      "repeat": 2,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:54:55Z",
+      "status": "complete",
+      "reason": null,
+      "file": "abstention/cloudflare-2025-11-18/r2-a1-20261104T035455Z.json",
+      "sha256": "17850334edd8bb9628204c55957d7d6cc65bbab9253b424dcc74d16e933c81e5",
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 3,
+        "seconds": 28.78,
+        "input_tokens": 7249,
+        "cached_input_tokens": 2626,
+        "output_tokens": 3025,
+        "screen_calls": 7,
+        "screen_records": 37,
+        "pii_calls": 6,
+        "pii_records": 26,
+        "max_call_input_tokens": 5933,
+        "reasoning_tokens": 508
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.002001,
+        "screens": 0.013875,
+        "pii": 0.026,
+        "embeddings": 6e-06,
+        "total": 0.041882
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna-abstention",
+        "version": "1"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "abstention/cloudflare-2025-11-18/r3/a1",
+      "arm": "abstention",
+      "case_id": "cloudflare-2025-11-18",
+      "repeat": 3,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:55:27Z",
+      "status": "complete",
+      "reason": null,
+      "file": "abstention/cloudflare-2025-11-18/r3-a1-20261104T035527Z.json",
+      "sha256": "7b200145ef03ce31f2941960115c823347279196693bab33b9fdd46c66754719",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 28.085,
+        "input_tokens": 10892,
+        "cached_input_tokens": 6058,
+        "output_tokens": 2888,
+        "screen_calls": 8,
+        "screen_records": 36,
+        "pii_calls": 6,
+        "pii_records": 26,
+        "max_call_input_tokens": 6141,
+        "reasoning_tokens": 439
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001988,
+        "screens": 0.0135,
+        "pii": 0.026,
+        "embeddings": 7e-06,
+        "total": 0.041495
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna-abstention",
+        "version": "1"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "abstention/github-2026-08-17/r1/a1",
+      "arm": "abstention",
+      "case_id": "github-2026-08-17",
+      "repeat": 1,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:55:58Z",
+      "status": "complete",
+      "reason": null,
+      "file": "abstention/github-2026-08-17/r1-a1-20261104T035558Z.json",
+      "sha256": "bf7d11ffb70f9571b0c7f164bcf8bb2356f4d08b27471b5069bfbf24e2be2db0",
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 3,
+        "seconds": 27.938,
+        "input_tokens": 8010,
+        "cached_input_tokens": 2626,
+        "output_tokens": 2976,
+        "screen_calls": 10,
+        "screen_records": 49,
+        "pii_calls": 7,
+        "pii_records": 28,
+        "max_call_input_tokens": 6694,
+        "reasoning_tokens": 516
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.002053,
+        "screens": 0.018375,
+        "pii": 0.028,
+        "embeddings": 5e-06,
+        "total": 0.048433
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna-abstention",
+        "version": "1"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "abstention/github-2026-08-17/r2/a1",
+      "arm": "abstention",
+      "case_id": "github-2026-08-17",
+      "repeat": 2,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:56:28Z",
+      "status": "complete",
+      "reason": null,
+      "file": "abstention/github-2026-08-17/r2-a1-20261104T035628Z.json",
+      "sha256": "e707fb9c95f5c2c7a50311f3a82b404ebcce41046a84687d68ade429ce7c28d7",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 33.586,
+        "input_tokens": 12342,
+        "cached_input_tokens": 6710,
+        "output_tokens": 3717,
+        "screen_calls": 10,
+        "screen_records": 49,
+        "pii_calls": 8,
+        "pii_records": 33,
+        "max_call_input_tokens": 6939,
+        "reasoning_tokens": 483
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.002489,
+        "screens": 0.018375,
+        "pii": 0.033,
+        "embeddings": 6e-06,
+        "total": 0.05387
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna-abstention",
+        "version": "1"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "abstention/github-2026-08-17/r3/a1",
+      "arm": "abstention",
+      "case_id": "github-2026-08-17",
+      "repeat": 3,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:57:05Z",
+      "status": "complete",
+      "reason": null,
+      "file": "abstention/github-2026-08-17/r3-a1-20261104T035705Z.json",
+      "sha256": "c12d6b979acef08b63c48dc98b9601b99e5ffbb4ec168eb9a497bbc1746d387c",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 29.271,
+        "input_tokens": 11703,
+        "cached_input_tokens": 9481,
+        "output_tokens": 3289,
+        "screen_calls": 9,
+        "screen_records": 47,
+        "pii_calls": 7,
+        "pii_records": 29,
+        "max_call_input_tokens": 6300,
+        "reasoning_tokens": 455
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001962,
+        "screens": 0.017625,
+        "pii": 0.029,
+        "embeddings": 4e-06,
+        "total": 0.048591
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna-abstention",
+        "version": "1"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "abstention/google-cloud-2026-07-14/r1/a1",
+      "arm": "abstention",
+      "case_id": "google-cloud-2026-07-14",
+      "repeat": 1,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:57:37Z",
+      "status": "complete",
+      "reason": null,
+      "file": "abstention/google-cloud-2026-07-14/r1-a1-20261104T035737Z.json",
+      "sha256": "08a7a80bf16ed2c1e96496ccbf3864b2671d51a2f1ed79fd6fbf21aa98316862",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 30.111,
+        "input_tokens": 15825,
+        "cached_input_tokens": 6918,
+        "output_tokens": 2595,
+        "screen_calls": 5,
+        "screen_records": 46,
+        "pii_calls": 6,
+        "pii_records": 24,
+        "max_call_input_tokens": 10214,
+        "reasoning_tokens": 529
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.002257,
+        "screens": 0.01725,
+        "pii": 0.024,
+        "embeddings": 5e-06,
+        "total": 0.043512
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna-abstention",
+        "version": "1"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "abstention/google-cloud-2026-07-14/r2/a1",
+      "arm": "abstention",
+      "case_id": "google-cloud-2026-07-14",
+      "repeat": 2,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:58:10Z",
+      "status": "complete",
+      "reason": null,
+      "file": "abstention/google-cloud-2026-07-14/r2-a1-20261104T035810Z.json",
+      "sha256": "ea2d50c2aad949272ea76093a1b92c1ecbe60e6ee515576106b6222ff0f99c05",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 25.552,
+        "input_tokens": 12871,
+        "cached_input_tokens": 9897,
+        "output_tokens": 2489,
+        "screen_calls": 4,
+        "screen_records": 31,
+        "pii_calls": 6,
+        "pii_records": 24,
+        "max_call_input_tokens": 7260,
+        "reasoning_tokens": 508
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001641,
+        "screens": 0.011625,
+        "pii": 0.024,
+        "embeddings": 5e-06,
+        "total": 0.037271
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna-abstention",
+        "version": "1"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "abstention/google-cloud-2026-07-14/r3/a1",
+      "arm": "abstention",
+      "case_id": "google-cloud-2026-07-14",
+      "repeat": 3,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:58:38Z",
+      "status": "complete",
+      "reason": null,
+      "file": "abstention/google-cloud-2026-07-14/r3-a1-20261104T035838Z.json",
+      "sha256": "296419e0145e38052863a3c98d562265261e84512e21caf32edeaa30d9369453",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 4,
+        "seconds": 29.277,
+        "input_tokens": 19722,
+        "cached_input_tokens": 9897,
+        "output_tokens": 2828,
+        "screen_calls": 7,
+        "screen_records": 56,
+        "pii_calls": 6,
+        "pii_records": 26,
+        "max_call_input_tokens": 14111,
+        "reasoning_tokens": 605
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.002495,
+        "screens": 0.021,
+        "pii": 0.026,
+        "embeddings": 8e-06,
+        "total": 0.049503
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna-abstention",
+        "version": "1"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "abstention/github-2026-10-07/r1/a1",
+      "arm": "abstention",
+      "case_id": "github-2026-10-07",
+      "repeat": 1,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:59:10Z",
+      "status": "complete",
+      "reason": null,
+      "file": "abstention/github-2026-10-07/r1-a1-20261104T035910Z.json",
+      "sha256": "e6f3b6b2abf77613b99c56214caee7dd4c33f097cfc7343a1f309a3ab44a251c",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 28.405,
+        "input_tokens": 8976,
+        "cached_input_tokens": 5762,
+        "output_tokens": 3191,
+        "screen_calls": 6,
+        "screen_records": 31,
+        "pii_calls": 7,
+        "pii_records": 28,
+        "max_call_input_tokens": 4521,
+        "reasoning_tokens": 538
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001975,
+        "screens": 0.011625,
+        "pii": 0.028,
+        "embeddings": 4e-06,
+        "total": 0.041604
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna-abstention",
+        "version": "1"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "abstention/github-2026-10-07/r2/a1",
+      "arm": "abstention",
+      "case_id": "github-2026-10-07",
+      "repeat": 2,
+      "attempt": 1,
+      "started_at": "2026-11-04T03:59:41Z",
+      "status": "complete",
+      "reason": null,
+      "file": "abstention/github-2026-10-07/r2-a1-20261104T035941Z.json",
+      "sha256": "8c82b59dce8d119133eff1e556db56c1c3e7af6d528255bfd22d1bda4d51d6c7",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 26.281,
+        "input_tokens": 9551,
+        "cached_input_tokens": 7585,
+        "output_tokens": 2838,
+        "screen_calls": 6,
+        "screen_records": 34,
+        "pii_calls": 6,
+        "pii_records": 26,
+        "max_call_input_tokens": 5096,
+        "reasoning_tokens": 466
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001691,
+        "screens": 0.01275,
+        "pii": 0.026,
+        "embeddings": 5e-06,
+        "total": 0.040446
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna-abstention",
+        "version": "1"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    },
+    {
+      "run_id": "abstention/github-2026-10-07/r3/a1",
+      "arm": "abstention",
+      "case_id": "github-2026-10-07",
+      "repeat": 3,
+      "attempt": 1,
+      "started_at": "2026-11-04T04:00:10Z",
+      "status": "complete",
+      "reason": null,
+      "file": "abstention/github-2026-10-07/r3-a1-20261104T040010Z.json",
+      "sha256": "6e6e04eb4f1a3684758c551930a782ecd5525dd5603fda4000ea0541fd762c66",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 27.611,
+        "input_tokens": 9804,
+        "cached_input_tokens": 7585,
+        "output_tokens": 2942,
+        "screen_calls": 6,
+        "screen_records": 36,
+        "pii_calls": 6,
+        "pii_records": 22,
+        "max_call_input_tokens": 5349,
+        "reasoning_tokens": 721
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001769,
+        "screens": 0.0135,
+        "pii": 0.022,
+        "embeddings": 4e-06,
+        "total": 0.037273
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna-abstention",
+        "version": "1"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "8d175acbf601a5daac1f57c994e77630ec8318f0"
+    }
+  ]
+}

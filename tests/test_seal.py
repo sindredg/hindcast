@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from azure.core.exceptions import ResourceExistsError
 
 from hindcast import investigate, seal
 from hindcast.cases import Case
@@ -195,6 +196,34 @@ def test_upload_retries_the_same_bytes(monkeypatch: pytest.MonkeyPatch, tmp_path
     with pytest.raises(SealRefused, match="does not match"):
         main(["upload", "seal", entry["file"]])
     assert len(uploads.calls) == 1
+
+
+def test_upload_completes_when_an_earlier_upload_reached_the_service(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    # The first upload stored the blob but reported an error (#37); a retry
+    # finds it there and must not overwrite it.
+    seals = stub_seal(monkeypatch, tmp_path, FakeClient(response(call()), final()), Uploads(1))
+    assert main(["run", "seal"]) == 1
+    [entry] = entries(seals)
+    name = f"sealed/seal/{entry['file']}"
+    stored = {name: (tmp_path / "sealed" / "seal" / entry["file"]).read_bytes()}
+
+    def exists(container: str, name: str, data: bytes, *, overwrite: bool = False) -> None:
+        assert overwrite is False
+        raise ResourceExistsError("The specified blob already exists.")
+
+    monkeypatch.setattr(seal, "upload_bytes", exists)
+    monkeypatch.setattr(seal, "_read_blob", lambda name: stored[name])
+    assert main(["upload", "seal", entry["file"]]) == 0
+    assert entries(seals)[0]["blob"] == name
+
+    # Other bytes under that name are not this seal's: the entry stays open.
+    entry["blob"] = None
+    seals.write_text(json.dumps({"seals": [entry]}), encoding="utf-8")
+    stored[name] = b"other bytes"
+    assert main(["upload", "seal", entry["file"]]) == 1
+    assert entries(seals)[0]["blob"] is None
 
 
 def test_output_has_no_investigation_text(
@@ -470,6 +499,24 @@ def test_run_refuses_a_shrunk_record_before_any_cloud_call(
 def test_committed_seal_record_only_grows() -> None:
     # Runs on the repository itself; CI checks out the full history for it.
     assert history_problems(Path(".")) == []
+
+
+def test_committed_snapshot_record_only_grows() -> None:
+    # The leak check at a reveal trusts each snapshot's recorded hash (#63).
+    assert history_problems(Path("."), seal.SNAPSHOTS, key="snapshots") == []
+
+
+def test_snapshot_history_with_a_changed_hash_is_a_problem(tmp_path: Path) -> None:
+    git(tmp_path, "init", "-q")
+    path = tmp_path / seal.SNAPSHOTS
+    path.parent.mkdir(parents=True)
+    first = {"case_id": "a", "chunks": 267, "sha256": "1" * 64}
+    for snapshots, message in (([first], "one"), ([first | {"sha256": "9" * 64}], "edit")):
+        path.write_text(json.dumps({"snapshots": snapshots}), encoding="utf-8")
+        git(tmp_path, "add", seal.SNAPSHOTS.as_posix())
+        git(tmp_path, "commit", "-q", "-m", message)
+    [problem] = history_problems(tmp_path, seal.SNAPSHOTS, key="snapshots")
+    assert "entry 0 changed: sha256" in problem
 
 
 def test_run_refuses_when_the_search_does_not_answer(

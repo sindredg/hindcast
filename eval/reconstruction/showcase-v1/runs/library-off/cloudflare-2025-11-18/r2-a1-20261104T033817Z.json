@@ -1,0 +1,373 @@
+{
+  "run_id": "library-off/cloudflare-2025-11-18/r2/a1",
+  "case_id": "cloudflare-2025-11-18",
+  "agent": {
+    "name": "hindcast-investigator-gpt-6-luna-library-off",
+    "version": "1"
+  },
+  "model": {
+    "deployment": "gpt-6-luna",
+    "name": "gpt-6-luna",
+    "version": "2026-09-22"
+  },
+  "provenance": {
+    "prompt": {
+      "blob": "60d84db0df9806c70ad6068a0cfde06d5279e3f5",
+      "dirty": false
+    },
+    "code": {
+      "commit": "8d175acbf601a5daac1f57c994e77630ec8318f0",
+      "dirty": false,
+      "src_tree": "3144277a783e8e3ab3d566a5d1e3a60ccd2cd14c"
+    },
+    "evidence_sha256": "8b7e1ccb5bf0188613b7f7c76719ebc665d5787fcf90197ece0ae0d295f60fb6",
+    "library": null,
+    "arm": "library-off",
+    "screens": true
+  },
+  "status": "complete",
+  "incomplete_reason": null,
+  "investigation": {
+    "attack": {
+      "verdict": "cannot tell",
+      "reasoning": "The updates describe an internal service degradation and remediation, but do not establish whether deliberate hostile action contributed to the outage.",
+      "citations": [
+        {
+          "source": "case",
+          "ref": "cloudflare-2025-11-18/u1"
+        }
+      ]
+    },
+    "findings": [
+      {
+        "id": "F1",
+        "kind": "observation",
+        "claim": "Cloudflare reported an internal service degradation with some services intermittently impacted.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2025-11-18/u1"
+          }
+        ]
+      },
+      {
+        "id": "F2",
+        "kind": "observation",
+        "claim": "During remediation, Cloudflare disabled WARP access in London; later it re-enabled access there.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2025-11-18/u6"
+          },
+          {
+            "source": "case",
+            "ref": "cloudflare-2025-11-18/u8"
+          }
+        ]
+      },
+      {
+        "id": "F3",
+        "kind": "observation",
+        "claim": "Cloudflare said changes allowed Access and WARP to recover to pre-incident error rates, while other services still required restoration.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2025-11-18/u8"
+          }
+        ]
+      },
+      {
+        "id": "F4",
+        "kind": "observation",
+        "claim": "Cloudflare reported that a deployed change restored dashboard services, while broad application-services impact remained under remediation.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2025-11-18/u12"
+          }
+        ]
+      },
+      {
+        "id": "F5",
+        "kind": "observation",
+        "claim": "After saying it believed the incident resolved, Cloudflare continued reporting dashboard issues, post-fix issues, intermittent errors, and bot-score impacts during recovery.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2025-11-18/u13"
+          },
+          {
+            "source": "case",
+            "ref": "cloudflare-2025-11-18/u14"
+          },
+          {
+            "source": "case",
+            "ref": "cloudflare-2025-11-18/u16"
+          },
+          {
+            "source": "case",
+            "ref": "cloudflare-2025-11-18/u17"
+          },
+          {
+            "source": "case",
+            "ref": "cloudflare-2025-11-18/u18"
+          }
+        ]
+      },
+      {
+        "id": "F6",
+        "kind": "observation",
+        "claim": "Cloudflare later reported that services were operating normally with no elevated errors or latency, while engineering continued investigating; it said no configuration changes were being made at that time.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2025-11-18/u21"
+          }
+        ]
+      },
+      {
+        "id": "F7",
+        "kind": "inference",
+        "claim": "The public updates do not establish the technical mechanism or initiating event behind the degradation; they describe recovery actions and service-level effects, not an underlying causal explanation.",
+        "rests_on": [
+          "F1",
+          "F3",
+          "F4",
+          "F6"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2025-11-18/u7"
+          },
+          {
+            "source": "case",
+            "ref": "cloudflare-2025-11-18/u20"
+          },
+          {
+            "source": "case",
+            "ref": "cloudflare-2025-11-18/u21"
+          }
+        ]
+      }
+    ],
+    "timeline": [
+      {
+        "time": "2025-11-18T11:48:27Z",
+        "time_kind": "stated",
+        "event": "Cloudflare reported an internal service degradation and began investigating.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2025-11-18/u1"
+          }
+        ]
+      },
+      {
+        "time": "2025-11-18T13:04:09Z",
+        "time_kind": "stated",
+        "event": "Cloudflare said it had disabled WARP access in London during remediation.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2025-11-18/u6"
+          }
+        ]
+      },
+      {
+        "time": "2025-11-18T13:09:53Z",
+        "time_kind": "stated",
+        "event": "Cloudflare said the issue had been identified and a fix was being implemented.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2025-11-18/u7"
+          }
+        ]
+      },
+      {
+        "time": "2025-11-18T13:13:39Z",
+        "time_kind": "stated",
+        "event": "Cloudflare reported Access and WARP recovery, re-enabled WARP access in London, and continued working to restore other services.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2025-11-18/u8"
+          }
+        ]
+      },
+      {
+        "time": "2025-11-18T14:34:03Z",
+        "time_kind": "stated",
+        "event": "Cloudflare said a change had restored dashboard services, while broad application-services impact remained.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2025-11-18/u12"
+          }
+        ]
+      },
+      {
+        "time": "2025-11-18T14:42:37Z",
+        "time_kind": "stated",
+        "event": "Cloudflare said a fix had been implemented and it believed the incident was resolved, while monitoring continued.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2025-11-18/u13"
+          }
+        ]
+      },
+      {
+        "time": "2025-11-18T17:44:58Z",
+        "time_kind": "stated",
+        "event": "Cloudflare reported normal operations and no elevated errors or latency, while deeper investigation continued.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2025-11-18/u21"
+          }
+        ]
+      },
+      {
+        "time": "2025-11-18T19:28:36Z",
+        "time_kind": "stated",
+        "event": "The status incident was marked resolved; the resolved update's text is unavailable.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2025-11-18/u22"
+          }
+        ]
+      }
+    ],
+    "root_cause": {
+      "claim": "The underlying technical root cause cannot be determined from the published updates. They identify an internal service degradation and describe fixes and recovery, but do not say what triggered the degradation or what specific technical failure caused it.",
+      "rests_on": [
+        "F1",
+        "F3",
+        "F4",
+        "F6",
+        "F7"
+      ],
+      "citations": [
+        {
+          "source": "case",
+          "ref": "cloudflare-2025-11-18/u7"
+        },
+        {
+          "source": "case",
+          "ref": "cloudflare-2025-11-18/u20"
+        },
+        {
+          "source": "case",
+          "ref": "cloudflare-2025-11-18/u21"
+        }
+      ]
+    },
+    "contributing_factors": [
+      {
+        "claim": "The impact spanned multiple service areas: Access and WARP, application services, the dashboard, and bot scores were separately mentioned during recovery.",
+        "rests_on": [
+          "F3",
+          "F4",
+          "F5"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2025-11-18/u8"
+          },
+          {
+            "source": "case",
+            "ref": "cloudflare-2025-11-18/u12"
+          },
+          {
+            "source": "case",
+            "ref": "cloudflare-2025-11-18/u17"
+          }
+        ]
+      },
+      {
+        "claim": "Cloudflare temporarily disabled WARP access in London as a remediation measure, causing users there attempting internet access through WARP to see connection failures during that period.",
+        "rests_on": [
+          "F2"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "cloudflare-2025-11-18/u6"
+          }
+        ]
+      }
+    ],
+    "open_questions": [
+      {
+        "question": "What specific technical failure or initiating event caused the internal service degradation?",
+        "why_open": "The updates describe identification, fixes, and recovery but do not publish a technical cause."
+      },
+      {
+        "question": "Did deliberate hostile action contribute to the outage?",
+        "why_open": "The updates do not state whether hostile action occurred or rule it out."
+      },
+      {
+        "question": "What were the full scope and duration of impact for each affected service and customer group?",
+        "why_open": "The updates name several affected service areas and describe recovery in stages, but provide no complete impact breakdown."
+      }
+    ]
+  },
+  "checks": {
+    "rejected_citations": [],
+    "unsupported": [],
+    "pii": []
+  },
+  "tool_calls": [
+    {
+      "name": "list_updates",
+      "seconds": 2.45,
+      "withheld": [],
+      "screen_calls": 5
+    },
+    {
+      "name": "list_charts",
+      "seconds": 0.146,
+      "withheld": [],
+      "screen_calls": 1
+    }
+  ],
+  "usage": {
+    "model_calls": 2,
+    "tool_calls": 2,
+    "seconds": 26.288,
+    "input_tokens": 4277,
+    "cached_input_tokens": 4271,
+    "output_tokens": 2805,
+    "screen_calls": 6,
+    "screen_records": 24,
+    "pii_calls": 5,
+    "pii_records": 25,
+    "max_call_input_tokens": 3198,
+    "reasoning_tokens": 502
+  },
+  "reasoning": {
+    "requested": "medium",
+    "applied": [
+      "medium"
+    ]
+  },
+  "cost": {
+    "table_version": 1,
+    "currency": "USD",
+    "model": 0.001446,
+    "screens": 0.009,
+    "pii": 0.025,
+    "embeddings": 0.0,
+    "total": 0.035446
+  }
+}

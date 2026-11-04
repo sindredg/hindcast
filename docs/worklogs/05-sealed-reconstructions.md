@@ -1,6 +1,6 @@
 # Milestone 5, first part: Sealed reconstructions and the October case
 
-Status: Built on 2026-11-01. Three October outages are sealed on both models, and GitHub 2026-10-07 is a fourth scored case with its evidence, prior-knowledge answers, library picks, and frozen key. The [independent review](#independent-review) ran with its fixes in. On 2026-11-02 the three cases were [sealed again with the library search](#second-seals-with-the-library-2026-11-02), still before any provider published a cause. On 2026-11-03 the drop date moved from 2026-11-09 to 2026-11-30 ([decision 0022](../decisions/0022-sealed-drop-date-and-offline-reveal.md)). The milestone state is in the [roadmap](../roadmap.md).
+Status: Built on 2026-11-01. Three October outages are sealed on both models, and GitHub 2026-10-07 is a fourth scored case with its evidence, prior-knowledge answers, library picks, and frozen key. The [independent review](#independent-review) ran with its fixes in. On 2026-11-02 the three cases were [sealed again with the library search](#second-seals-with-the-library-2026-11-02), still before any provider published a cause. On 2026-11-03 the drop date moved from 2026-11-09 to 2026-11-30 ([decision 0022](../decisions/0022-sealed-drop-date-and-offline-reveal.md)). On 2026-11-04 [two GitHub outages of that day](#third-seals-two-github-outages-of-2026-11-04) were sealed on both models with the library search. The milestone state is in the [roadmap](../roadmap.md).
 
 ## Scope
 
@@ -146,3 +146,35 @@ Each seal ran `python -m hindcast.seal run <case_id>` with `--env-file .env`, fr
 All six are first attempts, uploaded to Blob `extracted/sealed/<case_id>/`, with their SHA-256 in [`seals.json`](../../eval/sealed/seals.json) under `library: true`. The luna runs searched but cited no library section; the sol runs each kept one. A seventh `seal run` on `cloudflare-2026-10-20` was refused before any cloud call: `SealRefused: cloudflare-2026-10-20 is already sealed on gpt-6-luna`.
 
 `seals.json` was committed as `974febf` and pushed at 18:49:12 UTC by the workstation clock. GitHub's check runs for that commit started at 18:49:21Z, which is GitHub's own record that the commit was on GitHub by then. `test_committed_seal_record_only_grows` passes on it: the six first-series entries are unchanged.
+
+## Third seals: two GitHub outages of 2026-11-04
+
+Two major GitHub incidents of 2026-11-04 met the [sealing rules](../runbooks/sealing.md#choose-the-outages): resolved, eight updates before the resolved one, and harm to nobody. Each resolved update is the same 180 characters, which promise a root cause analysis and state no cause, and neither incident has a postmortem update.
+
+| Case | Incident | Title | Start | Resolved |
+|---|---|---|---|---|
+| `github-2026-11-04-pull-requests` | `smtdswd1h2w4` | Incident with Pull Requests, Git Operations and Issues | 09:49:55Z | 11:50:06Z |
+| `github-2026-11-04-actions` | `xr3myzj7ms51` | Incident with Actions and Pages | 16:05:31Z | 17:01:11Z |
+
+The search service was recreated from `infra/search.bicep` (16:38:56Z to 16:39:38Z) and the library index rebuilt (267 chunks, 16:40:18Z to 16:42:38Z), as the [retrieval runbook](../runbooks/retrieval.md) describes. Both incidents were captured at 17:18:11Z and 17:18:12Z, registered with role `sealed` (`42c308a`), uploaded, and cut into evidence: 9 updates each, `dropped 0`.
+
+Each seal ran `python -m hindcast.seal run <case_id>` with `--env-file .env`, from commit `42c308a`, committed and clean, between 17:19 and 17:22 UTC, on the agent versions of the second series. Each one made the preflight search, which answered.
+
+| Case | Deployment | Status | Searches | Library citations kept | Rejected, unsupported | Seconds | Tokens in (cached) / out |
+|---|---|---|---|---|---|---|---|
+| `github-2026-11-04-pull-requests` | gpt-6-luna | complete | 1 | 0 | 0, 0 | 32.316 | 7,731 (3,364) / 2,675 |
+| `github-2026-11-04-actions` | gpt-6-luna | complete | 1 | 0 | 0, 0 | 27.175 | 6,794 (4,576) / 2,339 |
+| `github-2026-11-04-pull-requests` | gpt-6.1-sol | complete | 1 | 2 | 0, 0 | 50.653 | 7,476 (3,364) / 2,607 |
+| `github-2026-11-04-actions` | gpt-6.1-sol | complete | 1 | 2 | 0, 0 | 42.111 | 7,090 (4,576) / 2,004 |
+
+All four are first attempts, with no withheld item and no PII hit, uploaded to Blob `extracted/sealed/<case_id>/`, with their SHA-256 in [`seals.json`](../../eval/sealed/seals.json) under `library: true`. Running `seal run` again was refused before any cloud call, for `github-2026-11-04-actions` on gpt-6-luna and for `github-2026-11-04-pull-requests` on gpt-6.1-sol: `SealRefused: <case_id> is already sealed on <deployment>`.
+
+`seals.json` was committed as `f571a41` and pushed at 17:23:18 UTC by the workstation clock; GitHub's check runs for that commit started at 17:23:25Z. Each case's library snapshot followed at 17:23:36Z and 17:23:39Z: 267 chunks each, recorded in [`library-snapshots.json`](../../eval/sealed/library-snapshots.json). The search service was deleted again at 17:41:08Z.
+
+Three open issues name a sealed case in their trigger:
+
+- [#42](https://github.com/sindredg/hindcast/issues/42), the day bound: the newest library document is dated 2026-07-08, 119 days before either case began, so the bound exposes nothing.
+- [#37](https://github.com/sindredg/hindcast/issues/37), an upload that succeeds but reports an error: its fix was due before these seals and was not made. All four uploads reported success, so the case it describes did not occur.
+- [#63](https://github.com/sindredg/hindcast/issues/63), no history test for the snapshot record: also due before these snapshots and not made. The commit adds two entries and changes no line of the earlier three.
+
+Both were fixed after the seals, before any further seal. `seal upload` now reads an existing blob back and records it only when its bytes match the recorded hash (`test_upload_completes_when_an_earlier_upload_reached_the_service`), and the snapshot record's history is walked like the seal record's (`test_committed_snapshot_record_only_grows`, `test_snapshot_history_with_a_changed_hash_is_a_problem`). Each test failed with its check broken: any existing blob accepted, the existing blob not handled, or the record's list key ignored.

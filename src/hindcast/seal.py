@@ -41,13 +41,15 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from azure.core.exceptions import ResourceExistsError
+
 from hindcast import telemetry
 from hindcast.cases import Case, load_cases
 from hindcast.config import ModelSettings, load_settings
 from hindcast.evaluation.prior import _git
 from hindcast.investigate import no_result, prepare, run_investigation, summary, write_result
 from hindcast.library import LibraryDocument, load_library
-from hindcast.storage import upload_bytes
+from hindcast.storage import container, upload_bytes
 from hindcast.tools import CaseTools
 
 SEALS = Path("eval/sealed/seals.json")
@@ -159,7 +161,7 @@ def record_problems(old: list[dict], new: list[dict]) -> list[str]:
     return problems
 
 
-def _version(repo: Path, rev: str, path: Path) -> list[dict]:
+def _version(repo: Path, rev: str, path: Path, key: str = "seals") -> list[dict]:
     """The record at a commit; empty only when the commit has no such file."""
     if _git(repo, "rev-parse", "--verify", "--quiet", f"{rev}^{{commit}}").returncode != 0:
         raise RuntimeError(f"cannot read commit {rev}")
@@ -168,11 +170,17 @@ def _version(repo: Path, rev: str, path: Path) -> list[dict]:
     shown = _git(repo, "show", f"{rev}:{path.as_posix()}")
     if shown.returncode != 0:
         raise RuntimeError(f"cannot read {path} at {rev}")
-    return json.loads(shown.stdout)["seals"]
+    return json.loads(shown.stdout)[key]
 
 
-def history_problems(repo: Path = Path("."), path: Path = SEALS) -> list[str]:
-    """Every committed version of the record checked against the one before it."""
+def history_problems(
+    repo: Path = Path("."), path: Path = SEALS, *, key: str = "seals"
+) -> list[str]:
+    """Every committed version of the record checked against the one before it.
+
+    key names the record's list: `seals` in seals.json, `snapshots` in the
+    library snapshots' record.
+    """
     shallow = _git(repo, "rev-parse", "--is-shallow-repository")
     if shallow.returncode != 0:
         raise RuntimeError("cannot read the Git history")
@@ -191,9 +199,9 @@ def history_problems(repo: Path = Path("."), path: Path = SEALS) -> list[str]:
         # With a path, the parents are the nearest earlier commits that
         # changed the file, so each version is compared with the one before.
         commit, *parents = line.split()
-        new = _version(repo, commit, path)
+        new = _version(repo, commit, path, key)
         for parent in parents:
-            old = _version(repo, parent, path)
+            old = _version(repo, parent, path, key)
             problems += [f"{commit[:12]}: {p}" for p in record_problems(old, new)]
     return problems
 
@@ -308,10 +316,29 @@ def run(case: Case) -> int:
     return 1 if entry["status"] == "no-result" else uploaded
 
 
+def _read_blob(name: str) -> bytes:
+    return container(CONTAINER).download_blob(name).readall()
+
+
 def _upload(case_id: str, entry: dict, data: bytes, seals: list[dict]) -> int:
     name = f"{BLOB_PREFIX}/{case_id}/{entry['file']}"
     try:
         upload_bytes(CONTAINER, name, data, overwrite=False)
+    except ResourceExistsError:
+        # An upload can reach the service and still report an error (#37).
+        # Uploads never overwrite, so the blob there counts as this seal's
+        # only when its bytes hash to the recorded SHA-256.
+        try:
+            existing = hashlib.sha256(_read_blob(name)).hexdigest()
+        except Exception as error:
+            print(
+                f"upload failed ({type(error).__name__}); "
+                f"retry: seal upload {case_id} {entry['file']}"
+            )
+            return 1
+        if existing != entry["sha256"]:
+            print(f"upload refused: {CONTAINER}/{name} exists and does not match the SHA-256")
+            return 1
     except Exception as error:
         print(
             f"upload failed ({type(error).__name__}); retry: seal upload {case_id} {entry['file']}"

@@ -23,6 +23,22 @@
       "chunks": 267,
       "sha256": "b51e9d08833f6dd7b0e9885e03999cd7a2392704cf30c36c103c0fb1c3f80040",
       "taken_at": "2026-11-03T21:24:52Z"
+    },
+    {
+      "case_id": "github-2026-11-04-pull-requests",
+      "index": "hindcast-library-1024",
+      "filter": "published_at lt 2026-11-04T00:00:00Z",
+      "chunks": 267,
+      "sha256": "6fb0054312eee857308a7b5ef137703bc90f9eaa20f6a9a7f744749f6a45201a",
+      "taken_at": "2026-11-04T17:23:36Z"
+    },
+    {
+      "case_id": "github-2026-11-04-actions",
+      "index": "hindcast-library-1024",
+      "filter": "published_at lt 2026-11-04T00:00:00Z",
+      "chunks": 267,
+      "sha256": "87cfded23c562922992d56dd7c4c629a2ff380bceaf9f26e9832bc7123b2bd71",
+      "taken_at": "2026-11-04T17:23:39Z"
     }
   ]
 }

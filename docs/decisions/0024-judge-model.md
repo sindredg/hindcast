@@ -1,6 +1,6 @@
 # 24. The judge: Claude Opus 5.5 on the Anthropic API
 
-Status: Accepted (2026-11-03).
+Status: Accepted (2026-11-03). A reviewer model, not a person, decides the judge's proposals, per [decision 0027](0027-reviewer-model.md).
 
 Replaces [decision 0012](0012-models.md)'s interim judge, the comparison deployment, for the reconstruction scores of [decision 0006](0006-evaluation-design.md).
 

@@ -1,0 +1,311 @@
+{
+  "run_id": "library-off/github-2026-10-07/r2/a1",
+  "case_id": "github-2026-10-07",
+  "agent": {
+    "name": "hindcast-investigator-gpt-6-luna-library-off",
+    "version": "1"
+  },
+  "model": {
+    "deployment": "gpt-6-luna",
+    "name": "gpt-6-luna",
+    "version": "2026-09-22"
+  },
+  "provenance": {
+    "prompt": {
+      "blob": "60d84db0df9806c70ad6068a0cfde06d5279e3f5",
+      "dirty": false
+    },
+    "code": {
+      "commit": "8d175acbf601a5daac1f57c994e77630ec8318f0",
+      "dirty": false,
+      "src_tree": "3144277a783e8e3ab3d566a5d1e3a60ccd2cd14c"
+    },
+    "evidence_sha256": "9589943f72e1123ebb1c4d976ee36fe3274c851e268e7563c8776a80cc76938d",
+    "library": null,
+    "arm": "library-off",
+    "screens": true
+  },
+  "status": "complete",
+  "incomplete_reason": null,
+  "investigation": {
+    "attack": {
+      "verdict": "cannot tell",
+      "reasoning": "The public updates describe service disruption and investigation of its root cause, but do not say whether hostile action occurred. The available evidence does not support concluding either that this was an attack or that it was not.",
+      "citations": [
+        {
+          "source": "case",
+          "ref": "github-2026-10-07/u6"
+        },
+        {
+          "source": "case",
+          "ref": "github-2026-10-07/u22"
+        }
+      ]
+    },
+    "findings": [
+      {
+        "id": "f1",
+        "kind": "observation",
+        "claim": "The provider reported widespread impact across GitHub services from 15:06 to 15:16 UTC, and said systems were recovering.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u6"
+          }
+        ]
+      },
+      {
+        "id": "f2",
+        "kind": "observation",
+        "claim": "The provider later reported full recovery across systems, while still investigating the cause of the disruption from 15:06 to 15:16 UTC.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u18"
+          }
+        ]
+      },
+      {
+        "id": "f3",
+        "kind": "observation",
+        "claim": "At 16:23 UTC, the provider said the affected services were stable, that it had identified the root cause, and that mitigations were being applied; it did not state what the cause was.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u19"
+          }
+        ]
+      },
+      {
+        "id": "f4",
+        "kind": "observation",
+        "claim": "A later incident involved reported widespread impact from 16:52 to 17:01 UTC. The provider explicitly called it a recurrence of the earlier incident and said durable mitigation was in progress.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u22"
+          }
+        ]
+      },
+      {
+        "id": "f5",
+        "kind": "observation",
+        "claim": "The provider said all systems had recovered and mitigations had been applied, and it did not anticipate another recurrence.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u24"
+          }
+        ]
+      },
+      {
+        "id": "f6",
+        "kind": "inference",
+        "claim": "The two reported periods of widespread impact were related disruptions: the provider described the later one as a recurrence of the earlier incident.",
+        "rests_on": [
+          "f1",
+          "f4"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u22"
+          }
+        ]
+      }
+    ],
+    "timeline": [
+      {
+        "time": "2026-10-07T15:06:00Z",
+        "time_kind": "stated",
+        "event": "Beginning of the first widespread-impact interval, as reported by the provider.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u6"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-07T15:16:00Z",
+        "time_kind": "stated",
+        "event": "End of the first widespread-impact interval, as reported by the provider.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u6"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-07T15:58:35Z",
+        "time_kind": "stated",
+        "event": "The provider reported full recovery across all systems and continued investigation of the first disruption's cause.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u18"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-07T16:23:44Z",
+        "time_kind": "stated",
+        "event": "The provider said the affected services were stable, the root cause had been identified, and mitigations were being applied.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u19"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-07T16:52:00Z",
+        "time_kind": "stated",
+        "event": "Beginning of the later widespread-impact interval, reported in the recurrence update.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u22"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-07T17:01:00Z",
+        "time_kind": "stated",
+        "event": "End of the later widespread-impact interval, reported in the recurrence update.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u22"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-07T18:00:49Z",
+        "time_kind": "stated",
+        "event": "The provider reported recovery, applied mitigations, and said it did not anticipate another recurrence.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u24"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-07T18:04:49Z",
+        "time_kind": "stated",
+        "event": "The later incident was marked resolved; the resolved update's text is withheld.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u25"
+          }
+        ]
+      }
+    ],
+    "root_cause": {
+      "claim": "The specific technical root cause cannot be established from the published updates. The provider said it had identified a cause and was applying mitigations, and called the later disruption a recurrence, but did not disclose the cause.",
+      "rests_on": [
+        "f3",
+        "f4"
+      ],
+      "citations": [
+        {
+          "source": "case",
+          "ref": "github-2026-10-07/u19"
+        },
+        {
+          "source": "case",
+          "ref": "github-2026-10-07/u22"
+        }
+      ]
+    },
+    "contributing_factors": [
+      {
+        "claim": "The disruption recurred before the provider said durable mitigation was in progress; the updates do not reveal why the earlier mitigation did not prevent recurrence.",
+        "rests_on": [
+          "f3",
+          "f4"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u19"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-07/u22"
+          }
+        ]
+      }
+    ],
+    "open_questions": [
+      {
+        "question": "What was the specific technical root cause?",
+        "why_open": "The provider said it had identified the root cause but did not name it in the available updates (github-2026-10-07/u19)."
+      },
+      {
+        "question": "What caused the recurrence, and why did the earlier mitigation not prevent it?",
+        "why_open": "The provider called the later incident a recurrence and said durable mitigation was in progress, but did not explain the recurrence mechanism (github-2026-10-07/u22)."
+      },
+      {
+        "question": "Was hostile action involved?",
+        "why_open": "The updates do not attribute the incident to an attack or rule one out; they only say the cause was under investigation or identified (github-2026-10-07/u6; github-2026-10-07/u19)."
+      }
+    ]
+  },
+  "checks": {
+    "rejected_citations": [],
+    "unsupported": [],
+    "pii": []
+  },
+  "tool_calls": [
+    {
+      "name": "list_updates",
+      "seconds": 2.595,
+      "withheld": [],
+      "screen_calls": 5
+    },
+    {
+      "name": "list_charts",
+      "seconds": 0.0,
+      "withheld": [],
+      "screen_calls": 0
+    }
+  ],
+  "usage": {
+    "model_calls": 2,
+    "tool_calls": 2,
+    "seconds": 21.215,
+    "input_tokens": 3981,
+    "cached_input_tokens": 3975,
+    "output_tokens": 2263,
+    "screen_calls": 5,
+    "screen_records": 24,
+    "pii_calls": 5,
+    "pii_records": 23,
+    "max_call_input_tokens": 2902,
+    "reasoning_tokens": 311
+  },
+  "reasoning": {
+    "requested": "medium",
+    "applied": [
+      "medium"
+    ]
+  },
+  "cost": {
+    "table_version": 1,
+    "currency": "USD",
+    "model": 0.001172,
+    "screens": 0.009,
+    "pii": 0.023,
+    "embeddings": 0.0,
+    "total": 0.033172
+  }
+}

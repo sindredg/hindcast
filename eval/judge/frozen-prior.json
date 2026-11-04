@@ -1,0 +1,11 @@
+{
+  "prompt": "prompts/judge-prior.md",
+  "prompt_sha256": "cccb57abf3ca90d67cf7656c2dcbebaeaecf9147ea9fc899effaad3bdbe255a6",
+  "rubric": "eval/rubric/rubric.md",
+  "rubric_sha256": "46bed8b5de4bd4a0fff898fc388057bfb4886e87f6c12b8504c1f2376d95b9f2",
+  "system_sha256": "229001a32a081bc6387e6607fdf70c46407368ce02baa714a2a86fbdcf16884b",
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "max_tokens": 64000,
+  "frozen_at": "2026-11-04T15:59:40Z"
+}

@@ -1,8 +1,14 @@
 {
   "rubric": "eval/rubric/rubric.md",
-  "rubric_sha256": "46bed8b5de4bd4a0fff898fc388057bfb4886e87f6c12b8504c1f2376d95b9f2",
+  "rubric_version": 3,
+  "rubric_sha256": "a8b78af78b312d89d0886fe48f755433d96d5857d7dd541af94b678598acd417",
   "labels_frozen_sha256": "ab55c54b4b5b5f8d94f89a0010cff2c5c3f65140cab7e9f4a392a7f8a3ae052f",
   "keys_frozen_sha256": "0683eeb4e59822850ad856e5393eaaa79e998736e622fe3f2861d4cb31c188dc",
   "tolerance_minutes": 30,
-  "frozen_at": "2026-11-04T02:53:28Z"
+  "frozen_at": "2026-11-04T18:56:41Z",
+  "replaces": {
+    "rubric_version": 2,
+    "rubric_sha256": "46bed8b5de4bd4a0fff898fc388057bfb4886e87f6c12b8504c1f2376d95b9f2",
+    "frozen_at": "2026-11-04T02:53:28Z"
+  }
 }
