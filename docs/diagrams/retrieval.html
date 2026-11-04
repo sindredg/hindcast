@@ -8,10 +8,10 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --color-paper:   #2d3142;
+      --color-paper:   #000000;
       --color-ink:     #f5f5f5;
-      --color-muted:   #bfc0c0;
-      --color-accent:  #f08a59;
+      --color-muted:   #b4b4b4;
+      --color-accent:  #22c55e;
       --font-sans:     'Geist', system-ui, sans-serif;
       --font-serif:    'Instrument Serif', serif;
       --font-mono:     'Geist Mono', ui-monospace, monospace;
@@ -62,113 +62,113 @@
         <title id="retrieval-title">Library index and search</title>
         <desc id="retrieval-desc">The index build reads the library extracts, checks each against its blob, cuts them into chunks that stay inside one section or one figure, embeds them through the Foundry resource endpoint, and pushes them to the library index in Azure AI Search, refusing an index that already holds documents. A search takes a case ID and a query: the filter comes from the registries alone (published before the case's start day and, unless the case is sealed, picked for the case), the query text reaches only the hybrid keyword, vector, and semantic search on the index, and every hit is checked again against the same rule and the extracts. Hits that pass are returned with their ref, document, and date; a hit outside the rule raises LibraryLeak and nothing is returned.</desc>
         <defs>
-          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#bfc0c0"/></marker>
-          <marker id="arrow-start" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto-start-reverse"><polygon points="0 0, 8 3, 0 6" fill="#bfc0c0"/></marker>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#b4b4b4"/></marker>
+          <marker id="arrow-start" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto-start-reverse"><polygon points="0 0, 8 3, 0 6" fill="#b4b4b4"/></marker>
         </defs>
 
-        <rect width="100%" height="100%" fill="#2d3142"/>
+        <rect width="100%" height="100%" fill="#000000"/>
 
         <!-- Band headings -->
-        <text x="40" y="40" fill="#949eb2" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">INDEX BUILD · hindcast.index build</text>
-        <text x="656" y="40" fill="#949eb2" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">SEARCH · search_library(case_id, query)</text>
+        <text x="40" y="40" fill="#8c8c8c" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">INDEX BUILD · hindcast.index build</text>
+        <text x="656" y="40" fill="#8c8c8c" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">SEARCH · search_library(case_id, query)</text>
 
         <!-- Connectors (drawn before the nodes) -->
-        <line x1="168" y1="136" x2="168" y2="168" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
-        <line x1="168" y1="240" x2="168" y2="272" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
-        <path d="M 296,308 H 460 Q 468,308 468,300 V 240" fill="none" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
-        <line x1="808" y1="136" x2="808" y2="168" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
-        <line x1="576" y1="204" x2="656" y2="204" stroke="#bfc0c0" stroke-width="1.2" marker-start="url(#arrow-start)" marker-end="url(#arrow)"/>
-        <line x1="808" y1="240" x2="808" y2="272" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
-        <line x1="728" y1="344" x2="728" y2="384" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
-        <line x1="888" y1="344" x2="888" y2="384" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="168" y1="136" x2="168" y2="168" stroke="#b4b4b4" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="168" y1="240" x2="168" y2="272" stroke="#b4b4b4" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <path d="M 296,308 H 460 Q 468,308 468,300 V 240" fill="none" stroke="#b4b4b4" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="808" y1="136" x2="808" y2="168" stroke="#b4b4b4" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="576" y1="204" x2="656" y2="204" stroke="#b4b4b4" stroke-width="1.2" marker-start="url(#arrow-start)" marker-end="url(#arrow)"/>
+        <line x1="808" y1="240" x2="808" y2="272" stroke="#b4b4b4" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="728" y1="344" x2="728" y2="384" stroke="#b4b4b4" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="888" y1="344" x2="888" y2="384" stroke="#b4b4b4" stroke-width="1.2" marker-end="url(#arrow)"/>
 
         <!-- Connector labels -->
-        <rect x="320" y="290" width="32" height="12" rx="2" fill="#2d3142"/>
-        <text x="336" y="299" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">PUSH</text>
-        <rect x="816" y="150" width="44" height="12" rx="2" fill="#2d3142"/>
-        <text x="838" y="159" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">FILTER</text>
-        <rect x="816" y="254" width="32" height="12" rx="2" fill="#2d3142"/>
-        <text x="832" y="263" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">HITS</text>
-        <rect x="736" y="358" width="32" height="12" rx="2" fill="#2d3142"/>
-        <text x="752" y="367" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">PASS</text>
-        <rect x="896" y="358" width="40" height="12" rx="2" fill="#2d3142"/>
-        <text x="916" y="367" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">FAILS</text>
+        <rect x="320" y="290" width="32" height="12" rx="2" fill="#000000"/>
+        <text x="336" y="299" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">PUSH</text>
+        <rect x="816" y="150" width="44" height="12" rx="2" fill="#000000"/>
+        <text x="838" y="159" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">FILTER</text>
+        <rect x="816" y="254" width="32" height="12" rx="2" fill="#000000"/>
+        <text x="832" y="263" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">HITS</text>
+        <rect x="736" y="358" width="32" height="12" rx="2" fill="#000000"/>
+        <text x="752" y="367" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">PASS</text>
+        <rect x="896" y="358" width="40" height="12" rx="2" fill="#000000"/>
+        <text x="916" y="367" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">FAILS</text>
 
         <!-- Index build -->
-        <rect x="40" y="64" width="256" height="72" rx="6" fill="#2d3142"/>
-        <rect x="40" y="64" width="256" height="72" rx="6" fill="rgba(245,245,245,0.05)" stroke="#bfc0c0" stroke-width="1"/>
-        <rect x="48" y="72" width="32" height="12" rx="2" fill="transparent" stroke="rgba(191,192,192,0.50)" stroke-width="0.8"/>
-        <text x="64" y="81" fill="#bfc0c0" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">FILE</text>
+        <rect x="40" y="64" width="256" height="72" rx="6" fill="#000000"/>
+        <rect x="40" y="64" width="256" height="72" rx="6" fill="rgba(245,245,245,0.05)" stroke="#b4b4b4" stroke-width="1"/>
+        <rect x="48" y="72" width="32" height="12" rx="2" fill="transparent" stroke="rgba(180,180,180,0.50)" stroke-width="0.8"/>
+        <text x="64" y="81" fill="#b4b4b4" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">FILE</text>
         <text x="168" y="94" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Library extracts</text>
-        <text x="168" y="110" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">23 documents, sections, figures</text>
-        <text x="168" y="124" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">each checked against its blob</text>
-        <rect x="40" y="168" width="256" height="72" rx="6" fill="#2d3142"/>
-        <rect x="40" y="168" width="256" height="72" rx="6" fill="#393e53" stroke="#f5f5f5" stroke-width="1"/>
+        <text x="168" y="110" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">23 documents, sections, figures</text>
+        <text x="168" y="124" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">each checked against its blob</text>
+        <rect x="40" y="168" width="256" height="72" rx="6" fill="#000000"/>
+        <rect x="40" y="168" width="256" height="72" rx="6" fill="#141414" stroke="#f5f5f5" stroke-width="1"/>
         <rect x="48" y="176" width="32" height="12" rx="2" fill="transparent" stroke="rgba(245,245,245,0.40)" stroke-width="0.8"/>
         <text x="64" y="185" fill="#f5f5f5" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">STEP</text>
         <text x="168" y="198" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Chunks</text>
-        <text x="168" y="214" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">inside one section or one figure</text>
-        <text x="168" y="228" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">split past 4,000 characters · 267</text>
-        <rect x="40" y="272" width="256" height="72" rx="6" fill="#2d3142"/>
-        <rect x="40" y="272" width="256" height="72" rx="6" fill="#393e53" stroke="#f5f5f5" stroke-width="1"/>
+        <text x="168" y="214" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">inside one section or one figure</text>
+        <text x="168" y="228" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">split past 4,000 characters · 267</text>
+        <rect x="40" y="272" width="256" height="72" rx="6" fill="#000000"/>
+        <rect x="40" y="272" width="256" height="72" rx="6" fill="#141414" stroke="#f5f5f5" stroke-width="1"/>
         <rect x="48" y="280" width="32" height="12" rx="2" fill="transparent" stroke="rgba(245,245,245,0.40)" stroke-width="0.8"/>
         <text x="64" y="289" fill="#f5f5f5" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">STEP</text>
         <text x="168" y="302" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Embed</text>
-        <text x="168" y="318" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">text-embedding-3-large · 1,024</text>
-        <text x="168" y="332" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Foundry resource endpoint</text>
+        <text x="168" y="318" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">text-embedding-3-large · 1,024</text>
+        <text x="168" y="332" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Foundry resource endpoint</text>
 
         <!-- The index -->
-        <rect x="360" y="168" width="216" height="72" rx="6" fill="#2d3142"/>
-        <rect x="360" y="168" width="216" height="72" rx="6" fill="rgba(245,245,245,0.05)" stroke="#bfc0c0" stroke-width="1"/>
-        <rect x="368" y="176" width="32" height="12" rx="2" fill="transparent" stroke="rgba(191,192,192,0.50)" stroke-width="0.8"/>
-        <text x="384" y="185" fill="#bfc0c0" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SRCH</text>
+        <rect x="360" y="168" width="216" height="72" rx="6" fill="#000000"/>
+        <rect x="360" y="168" width="216" height="72" rx="6" fill="rgba(245,245,245,0.05)" stroke="#b4b4b4" stroke-width="1"/>
+        <rect x="368" y="176" width="32" height="12" rx="2" fill="transparent" stroke="rgba(180,180,180,0.50)" stroke-width="0.8"/>
+        <text x="384" y="185" fill="#b4b4b4" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SRCH</text>
         <text x="468" y="198" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Library index</text>
-        <text x="468" y="214" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Azure AI Search</text>
-        <text x="468" y="228" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">built empty, or with --replace</text>
+        <text x="468" y="214" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Azure AI Search</text>
+        <text x="468" y="228" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">built empty, or with --replace</text>
 
         <!-- Search -->
-        <rect x="656" y="64" width="304" height="72" rx="6" fill="#2d3142"/>
-        <rect x="656" y="64" width="304" height="72" rx="6" fill="rgba(240,138,89,0.10)" stroke="#f08a59" stroke-width="1"/>
-        <rect x="664" y="72" width="38" height="12" rx="2" fill="transparent" stroke="rgba(240,138,89,0.50)" stroke-width="0.8"/>
-        <text x="683" y="81" fill="#f08a59" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">GUARD</text>
+        <rect x="656" y="64" width="304" height="72" rx="6" fill="#000000"/>
+        <rect x="656" y="64" width="304" height="72" rx="6" fill="rgba(34,197,94,0.10)" stroke="#22c55e" stroke-width="1"/>
+        <rect x="664" y="72" width="38" height="12" rx="2" fill="transparent" stroke="rgba(34,197,94,0.50)" stroke-width="0.8"/>
+        <text x="683" y="81" fill="#22c55e" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">GUARD</text>
         <text x="808" y="94" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Filter from the registries</text>
-        <text x="808" y="110" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">published before the start day</text>
-        <text x="808" y="124" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">and picked for the case, unless sealed</text>
-        <rect x="656" y="168" width="304" height="72" rx="6" fill="#2d3142"/>
-        <rect x="656" y="168" width="304" height="72" rx="6" fill="#393e53" stroke="#f5f5f5" stroke-width="1"/>
+        <text x="808" y="110" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">published before the start day</text>
+        <text x="808" y="124" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">and picked for the case, unless sealed</text>
+        <rect x="656" y="168" width="304" height="72" rx="6" fill="#000000"/>
+        <rect x="656" y="168" width="304" height="72" rx="6" fill="#141414" stroke="#f5f5f5" stroke-width="1"/>
         <rect x="664" y="176" width="32" height="12" rx="2" fill="transparent" stroke="rgba(245,245,245,0.40)" stroke-width="0.8"/>
         <text x="680" y="185" fill="#f5f5f5" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">STEP</text>
         <text x="808" y="198" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Hybrid search</text>
-        <text x="808" y="214" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">keyword · vector · semantic ranking</text>
-        <text x="808" y="228" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">the only place the query goes</text>
-        <rect x="656" y="272" width="304" height="72" rx="6" fill="#2d3142"/>
-        <rect x="656" y="272" width="304" height="72" rx="6" fill="rgba(240,138,89,0.10)" stroke="#f08a59" stroke-width="1"/>
-        <rect x="664" y="280" width="38" height="12" rx="2" fill="transparent" stroke="rgba(240,138,89,0.50)" stroke-width="0.8"/>
-        <text x="683" y="289" fill="#f08a59" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">GUARD</text>
+        <text x="808" y="214" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">keyword · vector · semantic ranking</text>
+        <text x="808" y="228" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">the only place the query goes</text>
+        <rect x="656" y="272" width="304" height="72" rx="6" fill="#000000"/>
+        <rect x="656" y="272" width="304" height="72" rx="6" fill="rgba(34,197,94,0.10)" stroke="#22c55e" stroke-width="1"/>
+        <rect x="664" y="280" width="38" height="12" rx="2" fill="transparent" stroke="rgba(34,197,94,0.50)" stroke-width="0.8"/>
+        <text x="683" y="289" fill="#22c55e" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">GUARD</text>
         <text x="808" y="302" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Check every hit again</text>
-        <text x="808" y="318" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">the same rule, from the registries</text>
-        <text x="808" y="332" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">its ref resolves in the extracts</text>
-        <rect x="656" y="384" width="144" height="48" rx="20" fill="#2d3142"/>
-        <rect x="656" y="384" width="144" height="48" rx="20" fill="rgba(191,192,192,0.10)" stroke="#949eb2" stroke-width="1"/>
+        <text x="808" y="318" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">the same rule, from the registries</text>
+        <text x="808" y="332" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">its ref resolves in the extracts</text>
+        <rect x="656" y="384" width="144" height="48" rx="20" fill="#000000"/>
+        <rect x="656" y="384" width="144" height="48" rx="20" fill="rgba(180,180,180,0.10)" stroke="#8c8c8c" stroke-width="1"/>
         <text x="728" y="408" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Hits returned</text>
-        <text x="728" y="424" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">ref · document · date</text>
-        <rect x="816" y="384" width="144" height="48" rx="20" fill="#2d3142"/>
-        <rect x="816" y="384" width="144" height="48" rx="20" fill="rgba(191,192,192,0.10)" stroke="#949eb2" stroke-width="1"/>
+        <text x="728" y="424" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">ref · document · date</text>
+        <rect x="816" y="384" width="144" height="48" rx="20" fill="#000000"/>
+        <rect x="816" y="384" width="144" height="48" rx="20" fill="rgba(180,180,180,0.10)" stroke="#8c8c8c" stroke-width="1"/>
         <text x="888" y="408" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">LibraryLeak</text>
-        <text x="888" y="424" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">raised, none returned</text>
+        <text x="888" y="424" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">raised, none returned</text>
 
         <!-- Legend -->
         <line x1="40" y1="472" x2="960" y2="472" stroke="rgba(245,245,245,0.10)" stroke-width="0.8"/>
-        <text x="40" y="488" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND</text>
-        <rect x="40" y="500" width="14" height="10" rx="2" fill="#393e53" stroke="#f5f5f5" stroke-width="1"/>
-        <text x="60" y="508" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">Step</text>
-        <rect x="104" y="500" width="14" height="10" rx="2" fill="rgba(245,245,245,0.05)" stroke="#bfc0c0" stroke-width="1"/>
-        <text x="124" y="508" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">Store</text>
-        <rect x="172" y="500" width="14" height="10" rx="2" fill="rgba(240,138,89,0.10)" stroke="#f08a59" stroke-width="1"/>
-        <text x="192" y="508" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">Guard built from the registries</text>
-        <rect x="344" y="500" width="14" height="10" rx="5" fill="rgba(191,192,192,0.10)" stroke="#949eb2" stroke-width="1"/>
-        <text x="364" y="508" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">Outcome</text>
-        <text x="960" y="488" fill="#949eb2" font-size="8.5" font-family="'Geist', sans-serif" text-anchor="end">Registries: data/cases.yaml and data/library.yaml · every call uses an Entra token</text>
+        <text x="40" y="488" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+        <rect x="40" y="500" width="14" height="10" rx="2" fill="#141414" stroke="#f5f5f5" stroke-width="1"/>
+        <text x="60" y="508" fill="#b4b4b4" font-size="8.5" font-family="'Geist', sans-serif">Step</text>
+        <rect x="104" y="500" width="14" height="10" rx="2" fill="rgba(245,245,245,0.05)" stroke="#b4b4b4" stroke-width="1"/>
+        <text x="124" y="508" fill="#b4b4b4" font-size="8.5" font-family="'Geist', sans-serif">Store</text>
+        <rect x="172" y="500" width="14" height="10" rx="2" fill="rgba(34,197,94,0.10)" stroke="#22c55e" stroke-width="1"/>
+        <text x="192" y="508" fill="#b4b4b4" font-size="8.5" font-family="'Geist', sans-serif">Guard built from the registries</text>
+        <rect x="344" y="500" width="14" height="10" rx="5" fill="rgba(180,180,180,0.10)" stroke="#8c8c8c" stroke-width="1"/>
+        <text x="364" y="508" fill="#b4b4b4" font-size="8.5" font-family="'Geist', sans-serif">Outcome</text>
+        <text x="960" y="488" fill="#8c8c8c" font-size="8.5" font-family="'Geist', sans-serif" text-anchor="end">Registries: data/cases.yaml and data/library.yaml · every call uses an Entra token</text>
       </svg>
     </div>
   </div>
