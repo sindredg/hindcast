@@ -3,105 +3,105 @@
         <title id="evaluation-flow-title">Scoring the reconstructions</title>
         <desc id="evaluation-flow-desc">Every filled scored run and every prior-knowledge answer goes to the judge, claude-opus-5-5 on the Anthropic API, with the frozen keys and the rubric's outcome and support rules but without the run's arm or the labels; the reviewer, claude-fable-5-1 on the Anthropic API, judges each run and answer again from the same input without the judge's proposals, and its verdicts decide the review queue that the judge's proposals select; the score reads the judgments and the reviewer's decisions, a decision replacing the judge's proposal, and applies the frozen labels' credit; the Foundry cloud evaluators score repeat 1 of each arm and case with gpt-6.1-sol as their judge; both go into the evaluation report per arm and case.</desc>
         <defs>
-      <style>#evaluation-flow-root { --color-paper:   #2d3142;
+      <style>#evaluation-flow-root { --color-paper:   #000000;
       --color-ink:     #f5f5f5;
-      --color-muted:   #bfc0c0;
-      --color-accent:  #f08a59;
+      --color-muted:   #b4b4b4;
+      --color-accent:  #22c55e;
       --font-sans:     'Geist', system-ui, sans-serif;
       --font-serif:    'Instrument Serif', serif;
       --font-mono:     'Geist Mono', ui-monospace, monospace; }
       #evaluation-flow-root { font-family: var(--font-sans); color: var(--color-ink); }
       #evaluation-flow-root .diagram-container { width: 100%; overflow-x: auto; }
       #evaluation-flow-root .diagram-container { overflow-x: visible; }</style>
-          <marker id="evaluation-flow-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#bfc0c0"/></marker>
+          <marker id="evaluation-flow-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#b4b4b4"/></marker>
         </defs>
 
-        <rect width="100%" height="100%" fill="#2d3142"/>
+        <rect width="100%" height="100%" fill="#000000"/>
 
         <!-- Arrows -->
-        <line x1="248" y1="84" x2="336" y2="84" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#evaluation-flow-arrow)"/>
-        <path d="M248,108 H280 Q288,108 288,116 V168 Q288,176 296,176 H336" fill="none" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#evaluation-flow-arrow)"/>
-        <line x1="248" y1="192" x2="336" y2="192" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#evaluation-flow-arrow)"/>
-        <path d="M248,288 H296 Q304,288 304,280 V216 Q304,208 312,208 H336" fill="none" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#evaluation-flow-arrow)"/>
-        <line x1="544" y1="192" x2="624" y2="192" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#evaluation-flow-arrow)"/>
-        <line x1="728" y1="224" x2="728" y2="416" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#evaluation-flow-arrow)"/>
-        <line x1="248" y1="460" x2="624" y2="460" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#evaluation-flow-arrow)"/>
-        <path d="M440,224 V424 Q440,432 448,432 H624" fill="none" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#evaluation-flow-arrow)"/>
-        <line x1="728" y1="480" x2="728" y2="544" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#evaluation-flow-arrow)"/>
-        <path d="M544,72 H872 Q880,72 880,80 V568 Q880,576 872,576 H832" fill="none" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#evaluation-flow-arrow)"/>
+        <line x1="248" y1="84" x2="336" y2="84" stroke="#b4b4b4" stroke-width="1.2" marker-end="url(#evaluation-flow-arrow)"/>
+        <path d="M248,108 H280 Q288,108 288,116 V168 Q288,176 296,176 H336" fill="none" stroke="#b4b4b4" stroke-width="1.2" marker-end="url(#evaluation-flow-arrow)"/>
+        <line x1="248" y1="192" x2="336" y2="192" stroke="#b4b4b4" stroke-width="1.2" marker-end="url(#evaluation-flow-arrow)"/>
+        <path d="M248,288 H296 Q304,288 304,280 V216 Q304,208 312,208 H336" fill="none" stroke="#b4b4b4" stroke-width="1.2" marker-end="url(#evaluation-flow-arrow)"/>
+        <line x1="544" y1="192" x2="624" y2="192" stroke="#b4b4b4" stroke-width="1.2" marker-end="url(#evaluation-flow-arrow)"/>
+        <line x1="728" y1="224" x2="728" y2="416" stroke="#b4b4b4" stroke-width="1.2" marker-end="url(#evaluation-flow-arrow)"/>
+        <line x1="248" y1="460" x2="624" y2="460" stroke="#b4b4b4" stroke-width="1.2" marker-end="url(#evaluation-flow-arrow)"/>
+        <path d="M440,224 V424 Q440,432 448,432 H624" fill="none" stroke="#b4b4b4" stroke-width="1.2" marker-end="url(#evaluation-flow-arrow)"/>
+        <line x1="728" y1="480" x2="728" y2="544" stroke="#b4b4b4" stroke-width="1.2" marker-end="url(#evaluation-flow-arrow)"/>
+        <path d="M544,72 H872 Q880,72 880,80 V568 Q880,576 872,576 H832" fill="none" stroke="#b4b4b4" stroke-width="1.2" marker-end="url(#evaluation-flow-arrow)"/>
 
         <!-- Arrow labels -->
-        <rect x="566" y="172" width="36" height="12" rx="2" fill="#2d3142"/>
-        <text x="584" y="181" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">QUEUE</text>
-        <rect x="736" y="314" width="52" height="12" rx="2" fill="#2d3142"/>
-        <text x="762" y="323" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">DECISIONS</text>
-        <rect x="320" y="440" width="40" height="12" rx="2" fill="#2d3142"/>
-        <text x="340" y="449" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">CREDIT</text>
-        <rect x="448" y="314" width="56" height="12" rx="2" fill="#2d3142"/>
-        <text x="476" y="323" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">JUDGMENTS</text>
-        <rect x="888" y="314" width="72" height="12" rx="2" fill="#2d3142"/>
-        <text x="924" y="323" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">MEANS PER ARM</text>
+        <rect x="566" y="172" width="36" height="12" rx="2" fill="#000000"/>
+        <text x="584" y="181" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">QUEUE</text>
+        <rect x="736" y="314" width="52" height="12" rx="2" fill="#000000"/>
+        <text x="762" y="323" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">DECISIONS</text>
+        <rect x="320" y="440" width="40" height="12" rx="2" fill="#000000"/>
+        <text x="340" y="449" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">CREDIT</text>
+        <rect x="448" y="314" width="56" height="12" rx="2" fill="#000000"/>
+        <text x="476" y="323" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">JUDGMENTS</text>
+        <rect x="888" y="314" width="72" height="12" rx="2" fill="#000000"/>
+        <text x="924" y="323" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">MEANS PER ARM</text>
 
         <!-- Nodes: committed files -->
-        <rect x="40" y="64" width="208" height="64" rx="6" fill="#2d3142"/>
-        <rect x="40" y="64" width="208" height="64" rx="6" fill="#f5f5f5" fill-opacity="0.05" stroke="#bfc0c0" stroke-width="1"/>
+        <rect x="40" y="64" width="208" height="64" rx="6" fill="#000000"/>
+        <rect x="40" y="64" width="208" height="64" rx="6" fill="#f5f5f5" fill-opacity="0.05" stroke="#b4b4b4" stroke-width="1"/>
         <text x="144" y="94" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Scored runs</text>
-        <text x="144" y="110" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">60 runs · attempts.json</text>
+        <text x="144" y="110" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">60 runs · attempts.json</text>
 
-        <rect x="40" y="160" width="208" height="64" rx="6" fill="#2d3142"/>
-        <rect x="40" y="160" width="208" height="64" rx="6" fill="#f5f5f5" fill-opacity="0.05" stroke="#bfc0c0" stroke-width="1"/>
+        <rect x="40" y="160" width="208" height="64" rx="6" fill="#000000"/>
+        <rect x="40" y="160" width="208" height="64" rx="6" fill="#f5f5f5" fill-opacity="0.05" stroke="#b4b4b4" stroke-width="1"/>
         <text x="144" y="190" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Prior answers</text>
-        <text x="144" y="206" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">14 answers · no evidence</text>
+        <text x="144" y="206" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">14 answers · no evidence</text>
 
-        <rect x="40" y="256" width="208" height="64" rx="6" fill="#2d3142"/>
-        <rect x="40" y="256" width="208" height="64" rx="6" fill="#f5f5f5" fill-opacity="0.05" stroke="#bfc0c0" stroke-width="1"/>
+        <rect x="40" y="256" width="208" height="64" rx="6" fill="#000000"/>
+        <rect x="40" y="256" width="208" height="64" rx="6" fill="#f5f5f5" fill-opacity="0.05" stroke="#b4b4b4" stroke-width="1"/>
         <text x="144" y="286" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Frozen keys and rubric</text>
-        <text x="144" y="302" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">rubric v3 · frozen prompts</text>
+        <text x="144" y="302" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">rubric v3 · frozen prompts</text>
 
-        <rect x="40" y="416" width="208" height="64" rx="6" fill="#2d3142"/>
-        <rect x="40" y="416" width="208" height="64" rx="6" fill="#f5f5f5" fill-opacity="0.05" stroke="#bfc0c0" stroke-width="1"/>
+        <rect x="40" y="416" width="208" height="64" rx="6" fill="#000000"/>
+        <rect x="40" y="416" width="208" height="64" rx="6" fill="#f5f5f5" fill-opacity="0.05" stroke="#b4b4b4" stroke-width="1"/>
         <text x="144" y="446" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Frozen labels</text>
-        <text x="144" y="462" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">stated · inferable · not inferable</text>
+        <text x="144" y="462" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">stated · inferable · not inferable</text>
 
-        <rect x="624" y="544" width="208" height="64" rx="6" fill="#2d3142"/>
-        <rect x="624" y="544" width="208" height="64" rx="6" fill="#f5f5f5" fill-opacity="0.05" stroke="#bfc0c0" stroke-width="1"/>
+        <rect x="624" y="544" width="208" height="64" rx="6" fill="#000000"/>
+        <rect x="624" y="544" width="208" height="64" rx="6" fill="#f5f5f5" fill-opacity="0.05" stroke="#b4b4b4" stroke-width="1"/>
         <text x="728" y="574" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Evaluation report</text>
-        <text x="728" y="590" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">per arm and case</text>
+        <text x="728" y="590" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">per arm and case</text>
 
         <!-- Nodes: commands and services -->
-        <rect x="336" y="40" width="208" height="64" rx="6" fill="#2d3142"/>
-        <rect x="336" y="40" width="208" height="64" rx="6" fill="#393e53" stroke="#f5f5f5" stroke-width="1"/>
+        <rect x="336" y="40" width="208" height="64" rx="6" fill="#000000"/>
+        <rect x="336" y="40" width="208" height="64" rx="6" fill="#141414" stroke="#f5f5f5" stroke-width="1"/>
         <text x="440" y="70" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Foundry evaluators</text>
-        <text x="440" y="86" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">repeat 1 · gpt-6.1-sol judges</text>
+        <text x="440" y="86" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">repeat 1 · gpt-6.1-sol judges</text>
 
-        <rect x="624" y="416" width="208" height="64" rx="6" fill="#2d3142"/>
-        <rect x="624" y="416" width="208" height="64" rx="6" fill="#393e53" stroke="#f5f5f5" stroke-width="1"/>
+        <rect x="624" y="416" width="208" height="64" rx="6" fill="#000000"/>
+        <rect x="624" y="416" width="208" height="64" rx="6" fill="#141414" stroke="#f5f5f5" stroke-width="1"/>
         <text x="728" y="446" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Score</text>
-        <text x="728" y="462" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">credit per label · kappa</text>
+        <text x="728" y="462" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">credit per label · kappa</text>
 
         <!-- Nodes: focal -->
-        <rect x="336" y="160" width="208" height="64" rx="6" fill="#2d3142"/>
-        <rect x="336" y="160" width="208" height="64" rx="6" fill="#f08a59" fill-opacity="0.10" stroke="#f08a59" stroke-width="1"/>
+        <rect x="336" y="160" width="208" height="64" rx="6" fill="#000000"/>
+        <rect x="336" y="160" width="208" height="64" rx="6" fill="#22c55e" fill-opacity="0.10" stroke="#22c55e" stroke-width="1"/>
         <text x="440" y="190" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Judge</text>
-        <text x="440" y="206" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">claude-opus-5-5 · Anthropic API</text>
+        <text x="440" y="206" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">claude-opus-5-5 · Anthropic API</text>
 
-        <rect x="624" y="160" width="208" height="64" rx="6" fill="#2d3142"/>
-        <rect x="624" y="160" width="208" height="64" rx="6" fill="#f08a59" fill-opacity="0.10" stroke="#f08a59" stroke-width="1"/>
+        <rect x="624" y="160" width="208" height="64" rx="6" fill="#000000"/>
+        <rect x="624" y="160" width="208" height="64" rx="6" fill="#22c55e" fill-opacity="0.10" stroke="#22c55e" stroke-width="1"/>
         <text x="728" y="190" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Reviewer</text>
-        <text x="728" y="206" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">claude-fable-5-1 · judges blind</text>
+        <text x="728" y="206" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">claude-fable-5-1 · judges blind</text>
 
         <!-- Legend strip -->
         <line x1="40" y1="648" x2="960" y2="648" stroke="#f5f5f5" stroke-opacity="0.10" stroke-width="0.8"/>
-        <text x="40" y="664" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+        <text x="40" y="664" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND</text>
 
-        <rect x="40" y="676" width="14" height="10" rx="2" fill="#f08a59" fill-opacity="0.10" stroke="#f08a59" stroke-width="1"/>
-        <text x="60" y="684" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">Proposes and decides</text>
+        <rect x="40" y="676" width="14" height="10" rx="2" fill="#22c55e" fill-opacity="0.10" stroke="#22c55e" stroke-width="1"/>
+        <text x="60" y="684" fill="#b4b4b4" font-size="8.5" font-family="'Geist', sans-serif">Proposes and decides</text>
 
-        <rect x="168" y="676" width="14" height="10" rx="2" fill="#393e53" stroke="#f5f5f5" stroke-width="1"/>
-        <text x="188" y="684" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">Command or service</text>
+        <rect x="168" y="676" width="14" height="10" rx="2" fill="#141414" stroke="#f5f5f5" stroke-width="1"/>
+        <text x="188" y="684" fill="#b4b4b4" font-size="8.5" font-family="'Geist', sans-serif">Command or service</text>
 
-        <rect x="292" y="676" width="14" height="10" rx="2" fill="#f5f5f5" fill-opacity="0.05" stroke="#bfc0c0" stroke-width="1"/>
-        <text x="312" y="684" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">Committed file</text>
+        <rect x="292" y="676" width="14" height="10" rx="2" fill="#f5f5f5" fill-opacity="0.05" stroke="#b4b4b4" stroke-width="1"/>
+        <text x="312" y="684" fill="#b4b4b4" font-size="8.5" font-family="'Geist', sans-serif">Committed file</text>
 
-        <text x="960" y="664" fill="#949eb2" font-size="8.5" font-family="'Geist', sans-serif" text-anchor="end">Neither model sees the run's arm or the labels; the reviewer never sees the judge's proposals</text>
+        <text x="960" y="664" fill="#8c8c8c" font-size="8.5" font-family="'Geist', sans-serif" text-anchor="end">Neither model sees the run's arm or the labels; the reviewer never sees the judge's proposals</text>
       </svg>
