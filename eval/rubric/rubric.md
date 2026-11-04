@@ -1,6 +1,8 @@
-# Reconstruction rubric, version 1
+# Reconstruction rubric, version 2
 
 How a reconstruction of a scored case is scored against its frozen key ([decisions 0006](../../docs/decisions/0006-evaluation-design.md) and [0023](../../docs/decisions/0023-abstention-and-inferable-labels.md)). Frozen with the labels and the timeline tolerance before the first scored run; [`frozen.json`](frozen.json) records the hashes. A change after a scored output is read is a new version and a new set of runs, never an edit.
+
+Version 2 replaced version 1 before any scored run: an inference may rest on other supported inferences, a partial without support has an outcome of its own, and a run ended by a failed screen or PII check gets another attempt, as a failed model call does.
 
 ## What is scored
 
@@ -17,6 +19,7 @@ The judge proposes one outcome per key item per run; the review decides where th
 | supported hit | The run states the key item, and the run's item that states it is supported |
 | partial | The run's supported item states part of the key item: the right mechanism without its trigger, or the trigger without the mechanism. Root cause and contributing factors only |
 | unsupported hit | The run states the key item, but no supported item does |
+| unsupported partial | The run states part of the key item, as for partial, but no supported item does. Root cause and contributing factors only |
 | abstained | Root cause: the run's root cause says the evidence does not determine it, names what is missing, and an open question asks for it. Attack verdict: `cannot tell` |
 | missed | No run item states it |
 | wrong | A run item contradicts it: another root cause stated as the cause, the opposite attack verdict, or a timeline time more than the tolerance away for the same event |
@@ -31,10 +34,10 @@ An item is supported only by the case's evidence: its status updates and charts.
 
 1. **Observation.** Supported when a cited update or chart states it. A value or a time that rests only on a chart description is a lead, not support: a description is model output about an image.
 2. **Inference.** Supported when all four hold:
-   1. it rests on observations (in `rests_on` or its citations), and each of them is supported;
-   2. the step from them uses only those observations and general engineering knowledge, such as how a kind of system usually fails, never a library document and never knowledge of this outage from elsewhere;
-   3. it adds no fact about this outage that the cited items do not give: no component, time, number, or cause of its own;
-   4. the conclusion follows: a reader with the cited items and general engineering knowledge would reach it, not merely find it consistent with them.
+   1. it rests on observations, directly or through inferences that are themselves supported (in `rests_on` or its citations), and each item it rests on is supported;
+   2. the step from those items uses only them and general engineering knowledge, such as how a kind of system usually fails, never a library document and never knowledge of this outage from elsewhere;
+   3. it adds no fact about this outage that those items do not give: no component, time, number, or cause of its own;
+   4. the conclusion follows: a reader with those items and general engineering knowledge would reach it, not merely find it consistent with them.
 3. **Library.** A claim about this outage that rests only on a library document is unsupported. A library hit shows how another outage went; it is a lead.
 4. **Structural checks.** Citations and `rests_on` entries that the code rejects (`hindcast.result.check_citations`: unknown, other case, not shown, withheld, not retrieved, an observation's `rests_on`, self-support, an ambiguous finding ID, a cycle) are removed before the judge reads the run. An item the code lists as unsupported is unsupported.
 
@@ -46,7 +49,7 @@ An item is supported only by the case's evidence: its status updates and charts.
 | partial | any | 0.5 |
 | abstained | `not inferable` (root cause, attack verdict) | 1, a justified abstention |
 | abstained | `stated`, `inferable` | 0, counted as missed |
-| unsupported hit | any | 0; reported as a guess when the label is `not inferable` |
+| unsupported hit, unsupported partial | any | 0; reported as a guess when the label is `not inferable` |
 | missed | `stated`, `inferable` | 0 |
 | missed | `not inferable` factor or timeline event | neutral: not scorable for that run, listed |
 | missed | `not inferable` root cause or attack verdict | 0 |
@@ -58,7 +61,7 @@ An item is supported only by the case's evidence: its status updates and charts.
 
 The judge proposes; a person decides:
 
-- every proposed supported hit, partial, and unsupported hit;
+- every proposed supported hit, partial, unsupported hit, and unsupported partial;
 - every support verdict on an inference;
 - a sample of a quarter of the remaining verdicts (missed, abstained, wrong, and support verdicts on observations), drawn per run with the seed 20261104.
 
@@ -66,7 +69,7 @@ A reviewed decision replaces the judge's proposal. The agreement between the jud
 
 ## Failures
 
-Every attempt is in the attempts ledger. An attempt with no result (no output, or a failed model call) is reported as a failure and is not scored; a slot with three such attempts is closed and reported. A run that ended incomplete after the model produced output is scored as it stands: an item it does not hold is missed.
+Every attempt is in the attempts ledger. An attempt with no result is reported as a failure and is not scored: no model output, or a run ended by a failed model call (`model-error`), a failed screen (`screen-error`), or a failed PII check (`pii-error`). Another attempt follows, up to three per slot; a slot with three such attempts is closed and reported. Any other run that ended incomplete after the model produced output, such as on a time cap, a tool error, or an invalid answer, is scored as it stands: an item it does not hold is missed.
 
 ## Prior knowledge
 

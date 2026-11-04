@@ -4,7 +4,7 @@ The scored reconstructions of the four showcase cases: each arm of [decision 002
 
 ## Status
 
-Frozen on 2026-11-03 before any scored run: the rubric (version 1), the inferable-from-evidence labels, and the timeline tolerance of 30 minutes, with the keys frozen earlier. [`eval/rubric/frozen.json`](../../rubric/frozen.json) records their hashes, and `tests/test_rubric.py` fails if any of them changes. No scored run has been made.
+Frozen before any scored run: the inferable-from-evidence labels on 2026-11-03, and the rubric (version 2) with the timeline tolerance of 30 minutes on 2026-11-04, with the keys frozen earlier. Version 2 replaced version 1, frozen on 2026-11-03, before any run used it. [`eval/rubric/frozen.json`](../../rubric/frozen.json) records their hashes, and `tests/test_rubric.py` fails if any of them changes. No scored run has been made.
 
 ## Dataset
 
