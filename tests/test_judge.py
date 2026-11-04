@@ -51,8 +51,16 @@ def document(unsupported: list[str] | None = None, run_id: str = "hindcast/dev/r
     }
 
 
+def wire(keyed: dict) -> dict:
+    """A judgment keyed by item, as the reply writes it: two lists."""
+    return {
+        "run_items": [{"where": w} | v for w, v in keyed["run_items"].items()],
+        "key_items": [{"id": k} | v for k, v in keyed["key_items"].items()],
+    }
+
+
 def reply(**changes: dict) -> dict:
-    """A valid, consistent judgment: every run item supported, the attack missed."""
+    """A valid, consistent reply: every run item supported, the attack missed."""
     out = {
         "run_items": {w: {"reason": "u1 states it.", "supported": True} for w in WHERES},
         "key_items": {
@@ -68,7 +76,7 @@ def reply(**changes: dict) -> dict:
     }
     for part, items in changes.items():
         out[part] = out[part] | items
-    return out
+    return wire(out)
 
 
 def message(text: str = "", stop_reason: str = "end_turn") -> SimpleNamespace:
@@ -187,17 +195,45 @@ def test_schema_failure_is_error() -> None:
     bad = reply(key_items={"root_cause": {"run_items": [], "reason": "-", "outcome": "maybe"}})
     assert judged(message(json.dumps(bad)))["error"] == "schema"
     assert judged(message("not json"))["error"] == "schema"
+    # Only the local schema check catches these: a verdict that is not a
+    # boolean, and a key item without its reason.
+    not_boolean = reply(run_items={"root_cause": {"reason": "-", "supported": "yes"}})
+    assert judged(message(json.dumps(not_boolean)))["error"] == "schema"
+    no_reason = reply()
+    del no_reason["key_items"][0]["reason"]
+    assert judged(message(json.dumps(no_reason)))["error"] == "schema"
 
 
 def test_judgment_covers_every_key_item() -> None:
     missing = reply()
-    del missing["key_items"]["timeline/0"]
+    missing["key_items"] = [k for k in missing["key_items"] if k["id"] != "timeline/0"]
     assert judged(message(json.dumps(missing)))["error"] == "schema"
     unknown = reply(key_items={"timeline/1": {"run_items": [], "reason": "-", "outcome": "missed"}})
     assert judged(message(json.dumps(unknown)))["error"] == "schema"
     no_item = reply()
-    del no_item["run_items"]["findings[0]"]
+    no_item["run_items"] = [r for r in no_item["run_items"] if r["where"] != "findings[0]"]
     assert judged(message(json.dumps(no_item)))["error"] == "schema"
+    unknown_item = reply()
+    unknown_item["run_items"].append({"where": "findings[9]", "reason": "-", "supported": True})
+    assert judged(message(json.dumps(unknown_item)))["error"] == "schema"
+
+
+def test_judgment_names_each_item_once() -> None:
+    twice = reply()
+    twice["key_items"].append(twice["key_items"][0])
+    assert judged(message(json.dumps(twice)))["error"] == "schema"
+    twice = reply()
+    twice["run_items"].append(twice["run_items"][0])
+    assert judged(message(json.dumps(twice)))["error"] == "schema"
+
+
+def test_judgment_is_stored_keyed_by_item() -> None:
+    backwards = reply()
+    backwards = {part: items[::-1] for part, items in backwards.items()}
+    judgment = judged(message(json.dumps(backwards)))["judgment"]
+    assert list(judgment["run_items"]) == WHERES
+    assert list(judgment["key_items"]) == KEY_IDS
+    assert judgment["run_items"]["root_cause"] == {"reason": "u1 states it.", "supported": True}
 
 
 def test_outcome_must_fit_the_key_item() -> None:
@@ -232,11 +268,33 @@ def test_inconsistent_reply_is_error() -> None:
     assert judged(message(json.dumps(bad)))["error"] == "inconsistent"
 
 
+def test_reply_schema_is_the_same_for_every_run() -> None:
+    # A schema that named each item of the run was refused by the API (HTTP
+    # 400, compiled grammar too large): its size grew with the key items'
+    # lists. One fixed schema has three lists whatever the run's size.
+    sent = []
+    for unsupported in ([], ["root_cause"]):
+        client = FakeClient(message(json.dumps(reply())))
+        judge_run(document(unsupported), KEY, EVIDENCE, LIBRARY, client=client, system="s")
+        sent.append(client.calls[0]["output_config"]["format"]["schema"])
+    assert sent[0] == sent[1] == judgment_schema()
+    assert json.dumps(sent[0]).count('"type": "array"') == 3
+
+
+def test_a_key_item_naming_an_unknown_run_item_is_error() -> None:
+    bad = reply(
+        key_items={
+            "root_cause": {
+                "run_items": ["root_cause", "findings[9]"],
+                "reason": "-",
+                "outcome": "supported-hit",
+            }
+        }
+    )
+    assert judged(message(json.dumps(bad)))["error"] == "schema"
+
+
 def test_code_unsupported_items_cannot_be_judged_supported() -> None:
-    schema = judgment_schema(KEY_IDS, run_items(FINAL), {"root_cause"})
-    assert schema["properties"]["run_items"]["properties"]["root_cause"]["properties"][
-        "supported"
-    ] == {"type": "boolean", "const": False}
     bad = reply()
     record = judged(message(json.dumps(bad)), unsupported=["root_cause"])
     assert record["error"] == "schema"
@@ -253,9 +311,10 @@ def test_no_fallbacks_sent() -> None:
 
 
 def test_read_reply_checks_the_stop_reason_before_the_text() -> None:
-    schema = judgment_schema(KEY_IDS, run_items(FINAL), set())
     with pytest.raises(JudgeError) as caught:
-        read_reply(message(json.dumps(reply()), stop_reason="pause_turn"), schema, run_items(FINAL))
+        read_reply(
+            message(json.dumps(reply()), stop_reason="pause_turn"), run_items(FINAL), KEY_IDS, set()
+        )
     assert caught.value.kind == "stop-pause_turn"
 
 

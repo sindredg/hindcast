@@ -16,7 +16,7 @@ from hindcast.evaluation.review import (
     run_order,
     undo_last,
 )
-from test_judge import document, reply
+from test_judge import document, judged, message, reply
 
 KINDS = {
     "attack": "inference",
@@ -146,14 +146,8 @@ def test_review_refuses_decisions_on_another_judgment(tmp_path: Path) -> None:
 
 
 def test_fixture_reply_is_a_judgment_the_queue_reads() -> None:
-    # The judge's own reply shape feeds the queue unchanged.
-    data = {
-        "run_id": document()["run_id"],
-        "kinds": {i["where"]: i["kind"] for i in judge.run_items(document()["investigation"])},
-        "code_unsupported": [],
-        "judgment": reply(),
-        "error": None,
-    }
+    # The judgment the judge stores from a reply feeds the queue unchanged.
+    data = judged(message(json.dumps(reply())))
     required = {i.item for i in review_queue(data) if i.kind == "match" and not i.sampled}
     assert required == {"root_cause"}
 

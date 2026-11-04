@@ -13,14 +13,15 @@ the run cites (hindcast.excerpts). It does not see the run's arm, its model,
 or the key items' labels: the outcomes do not depend on them, and the score
 applies the labels afterwards.
 
-One JSON schema per run makes the reply name every key item and every run
-item exactly once, limits each key item to the outcomes the rubric allows
-for it, and fixes the code's unsupported items as unsupported. The reply is
-checked against the same schema locally. A refusal, an empty reply, a reply
-cut at max_tokens, a reply that fails the schema, or one whose outcomes
-contradict its own support verdicts is recorded as a judge error for that
-run, never read as a verdict; `run` judges an errored run again on its next
-call and keeps every judgment it already has.
+The reply follows one fixed JSON schema: a list of run items with their
+support verdicts and a list of key items with their outcomes. The code then
+checks that it names every key item and every run item exactly once, gives
+each key item an outcome the rubric allows for it, and leaves the code's
+unsupported items unsupported; a reply that fails is a schema error. A
+refusal, an empty reply, a reply cut at max_tokens, a schema error, or a
+reply whose outcomes contradict its own support verdicts is recorded as a
+judge error for that run, never read as a verdict; `run` judges an errored
+run again on its next call and keeps every judgment it already has.
 
 No server-side fallback is sent: a fallback would let another model judge
 some runs. `run` refuses unless the prompt and the rubric match
@@ -319,37 +320,48 @@ def _object(properties: dict[str, Any]) -> dict:
     }
 
 
-def judgment_schema(
-    key_ids: Iterable[str], items: Iterable[Mapping[str, Any]], code_unsupported: set[str]
-) -> dict:
-    """The reply's schema for one run: every key item and every run item, once each."""
-    items = list(items)
-    wheres = [i["where"] for i in items]
-    supported_false = {"type": "boolean", "const": False}
-    run_part = _object(
+def judgment_schema() -> dict:
+    """The reply's schema, the same for every run: a list of run items and of key items.
+
+    A schema that named each item of the run was refused by the API (HTTP 400,
+    compiled grammar too large): the grammar grew with every key item's list
+    of run items, past the limit at 15 key items. read_reply checks what that
+    schema enforced.
+    """
+    run_item = _object({"where": _STRING, "reason": _STRING, "supported": {"type": "boolean"}})
+    key_item = _object(
         {
-            w: _object(
-                {
-                    "reason": _STRING,
-                    "supported": supported_false if w in code_unsupported else {"type": "boolean"},
-                }
-            )
-            for w in wheres
+            "id": _STRING,
+            "run_items": {"type": "array", "items": _STRING},
+            "reason": _STRING,
+            "outcome": {"type": "string", "enum": list(OUTCOMES["root_cause"])},
         }
     )
-    key_part = _object(
+    return _object(
         {
-            k: _object(
-                {
-                    "run_items": {"type": "array", "items": {"type": "string", "enum": wheres}},
-                    "reason": _STRING,
-                    "outcome": {"type": "string", "enum": list(OUTCOMES[k.split("/")[0]])},
-                }
-            )
-            for k in key_ids
+            "run_items": {"type": "array", "items": run_item},
+            "key_items": {"type": "array", "items": key_item},
         }
     )
-    return _object({"run_items": run_part, "key_items": key_part})
+
+
+def _keyed(entries: list[dict], name: str, expected: list[str]) -> dict[str, dict]:
+    """The reply's list keyed by item; each expected item exactly once, or a schema error."""
+    keyed = {e[name]: {k: v for k, v in e.items() if k != name} for e in entries}
+    if len(keyed) != len(entries) or set(keyed) != set(expected):
+        raise JudgeError("schema")
+    return {item: keyed[item] for item in expected}
+
+
+def _check_fits(data: Mapping[str, Any], code_unsupported: set[str]) -> None:
+    """What a per-run schema would enforce: outcomes the rubric allows, code verdicts kept."""
+    for item, verdict in data["key_items"].items():
+        if verdict["outcome"] not in OUTCOMES[item.split("/")[0]]:
+            raise JudgeError("schema")
+        if not set(verdict["run_items"]) <= data["run_items"].keys():
+            raise JudgeError("schema")
+    if any(data["run_items"][w]["supported"] for w in code_unsupported):
+        raise JudgeError("schema")
 
 
 def _check_consistent(data: Mapping[str, Any]) -> None:
@@ -384,9 +396,20 @@ def read_json(message: Any, schema: dict) -> dict:
     return data
 
 
-def read_reply(message: Any, schema: dict, items: list[dict]) -> dict:
-    """A reconstruction's judgment: valid JSON whose outcomes fit its support verdicts."""
-    data = read_json(message, schema)
+def read_reply(
+    message: Any, items: list[dict], key_ids: list[str], code_unsupported: set[str]
+) -> dict:
+    """A reconstruction's judgment, keyed by item: every item once, outcomes that fit.
+
+    The judgment is stored keyed by key item ID and by run item `where`, in
+    the run's and the key's order.
+    """
+    reply = read_json(message, judgment_schema())
+    data = {
+        "run_items": _keyed(reply["run_items"], "where", [i["where"] for i in items]),
+        "key_items": _keyed(reply["key_items"], "id", key_ids),
+    }
+    _check_fits(data, code_unsupported)
     _check_consistent(data)
     return data
 
@@ -463,7 +486,7 @@ def judge_run(
     items = run_items(document["investigation"])
     code_unsupported = set(document["checks"]["unsupported"])
     content = judge_input(document, key, evidence, library)
-    schema = judgment_schema(item_ids(key), items, code_unsupported)
+    key_ids = item_ids(key)
     record: dict[str, Any] = {
         "run_id": document["run_id"],
         "case_id": document["case_id"],
@@ -471,7 +494,14 @@ def judge_run(
         "code_unsupported": sorted(code_unsupported),
         **new_record(system, content),
     }
-    return call(client, system, content, schema, record, lambda m: read_reply(m, schema, items))
+    return call(
+        client,
+        system,
+        content,
+        judgment_schema(),
+        record,
+        lambda m: read_reply(m, items, key_ids, code_unsupported),
+    )
 
 
 def judgment_path(out_dir: Path, run_id: str) -> Path:
