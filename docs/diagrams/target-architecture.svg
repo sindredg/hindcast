@@ -95,7 +95,7 @@
         <rect x="736" y="120" width="40" height="12" rx="2" fill="none" stroke="#f5f5f5" stroke-opacity="0.40" stroke-width="0.8"/>
         <text x="756" y="129" fill="#f5f5f5" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">AGENT</text>
         <text x="836" y="150" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Prompt agent + models</text>
-        <text x="836" y="166" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">chat · judge · embeddings</text>
+        <text x="836" y="166" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">chat · embeddings</text>
 
         <!-- Node: Content Safety and Language -->
         <rect x="728" y="232" width="216" height="64" rx="6" fill="#2d3142"/>
