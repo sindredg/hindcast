@@ -13,6 +13,8 @@ Findings about Entra ID roles, scopes, and keyless access. Hindcast uses no keys
 
 **Refused, 2026-11-04:** the next Content Understanding calls were refused: a defaults read at 03:05:34 UTC (`PermissionDenied`, data action `Microsoft.CognitiveServices/accounts/MultiModalIntelligence/defaults/read`) and `get_analyzer("hindcast_chart")` at 03:06:01. The last call recorded as accepted ran at 14:45:33 on 2026-11-01, and no Content Understanding call is recorded in between, so when access ended is not known. The role list then held no Content Understanding role, and OpenAI User on the resource.
 
+**Assigned and removed again, 2026-11-04:** Content Understanding Contributor was assigned at 03:34:12 UTC. A defaults read was accepted at 03:40:07; the analyzer read (`get_analyzer`) was refused at 03:40:12 and 03:40:29 and accepted at 03:42:11, so the grant reached the two operations about 6 and 8 minutes after the assignment. The role was removed at 05:49:42, and `get_analyzer`, polled every 60 seconds, was refused at 05:50:09, 27 seconds later. Tested live from the developer's sign-in.
+
 **For Hindcast:** the assignment list does not show what an identity can do on Content Understanding, and neither does the permissions API. A removal is checked by retrying a refused call ([retrieval runbook](../runbooks/retrieval.md), step 17); until that call is refused, the developer is treated as able to run and change analyzers. The 2026-11-01 removal was seen refused on 2026-11-04.
 
 ## An admin key gets 401, not 403, when local authentication is off (2026-11-01)
