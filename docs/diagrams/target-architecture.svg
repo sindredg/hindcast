@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg viewBox="0 0 1000 640" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="target-architecture-title target-architecture-desc" id="target-architecture-root">
         <title id="target-architecture-title">Hindcast target architecture</title>
-        <desc id="target-architecture-desc">A signed-in reader uses the Hindcast app on Container Apps, which runs the Foundry prompt agent, checks tool results and outputs with Content Safety and Language, reads the case evidence from Blob Storage, searches the postmortem library in AI Search, and sends traces to Application Insights; an ingest command captures status updates and postmortems, analyzes library pages, charts, and answer keys with Content Understanding, stores sources and extracts in Blob Storage, and indexes only library documents, so answer keys never reach the index.</desc>
+        <desc id="target-architecture-desc">A signed-in reader uses the Hindcast app on Container Apps, which runs the Foundry prompt agent, checks tool results and outputs with Content Safety and Language, reads the case evidence from Blob Storage, searches the postmortem library in AI Search, and sends traces to Application Insights; an ingest command captures status updates and postmortems, analyzes library pages, charts, and answer keys with Content Understanding, stores sources, evidence, and extracts in Blob Storage, embeds the library chunks with the embedding deployment, and indexes only library documents, so answer keys never reach the index.</desc>
         <defs>
       <style>#target-architecture-root { --color-paper:   #000000;
       --color-ink:     #f5f5f5;
@@ -38,19 +38,21 @@
         <path d="M 420,240 V 276 Q 420,284 428,284 H 552 Q 560,284 560,292 V 328" fill="none" stroke="#b4b4b4" stroke-width="1.2" marker-end="url(#target-architecture-arrow)"/>
 
         <!-- Arrows: ingestion path -->
-        <path d="M 200,488 H 368 Q 376,488 376,480 V 392" fill="none" stroke="#b4b4b4" stroke-width="1.2" marker-end="url(#target-architecture-arrow)"/>
-        <path d="M 200,504 H 576 Q 584,504 584,496 V 392" fill="none" stroke="#22c55e" stroke-width="1.4" marker-end="url(#target-architecture-arrow-accent)"/>
+        <path d="M 200,484 H 368 Q 376,484 376,476 V 392" fill="none" stroke="#b4b4b4" stroke-width="1.2" marker-end="url(#target-architecture-arrow)"/>
+        <path d="M 200,496 H 576 Q 584,496 584,488 V 392" fill="none" stroke="#22c55e" stroke-width="1.4" marker-end="url(#target-architecture-arrow-accent)"/>
+        <!-- Library chunk embeddings are pushed from code (decision 0019); enters the models box from below, so it crosses no other path -->
+        <path d="M 200,508 H 692 Q 700,508 700,500 V 428 Q 700,420 708,420 H 828 Q 836,420 836,412 V 296" fill="none" stroke="#b4b4b4" stroke-width="1.2" marker-end="url(#target-architecture-arrow)"/>
         <line x1="200" y1="520" x2="728" y2="520" stroke="#b4b4b4" stroke-width="1.2" marker-end="url(#target-architecture-arrow)"/>
 
         <!-- Arrow labels -->
         <rect x="204" y="150" width="80" height="12" rx="2" fill="#000000"/>
         <text x="244" y="159" fill="#f0b429" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">ENTRA SIGN-IN</text>
 
-        <rect x="560" y="126" width="68" height="12" rx="2" fill="#000000"/>
-        <text x="594" y="135" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">AGENT RUNS</text>
+        <rect x="554" y="126" width="80" height="12" rx="2" fill="#000000"/>
+        <text x="594" y="135" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">SHIELDS + PII</text>
 
-        <rect x="536" y="174" width="80" height="12" rx="2" fill="#000000"/>
-        <text x="576" y="183" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">SHIELDS + PII</text>
+        <rect x="542" y="174" width="68" height="12" rx="2" fill="#000000"/>
+        <text x="576" y="183" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">AGENT RUNS</text>
 
         <rect x="192" y="266" width="48" height="12" rx="2" fill="#000000"/>
         <text x="216" y="275" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">TRACES</text>
@@ -61,14 +63,18 @@
         <rect x="460" y="266" width="84" height="12" rx="2" fill="#000000"/>
         <text x="502" y="275" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">LIBRARY QUERY</text>
 
-        <rect x="384" y="432" width="56" height="12" rx="2" fill="#000000"/>
-        <text x="412" y="441" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">SOURCES</text>
+        <rect x="384" y="432" width="72" height="12" rx="2" fill="#000000"/>
+        <text x="420" y="441" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">READ · WRITE</text>
 
         <rect x="592" y="432" width="84" height="12" rx="2" fill="#000000"/>
         <text x="634" y="441" fill="#22c55e" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">LIBRARY ONLY</text>
 
-        <rect x="612" y="500" width="88" height="12" rx="2" fill="#000000"/>
-        <text x="656" y="509" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">ANALYZE PAGES</text>
+        <!-- Below its line: the embeddings path runs just above it -->
+        <rect x="612" y="528" width="88" height="12" rx="2" fill="#000000"/>
+        <text x="656" y="537" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">ANALYZE PAGES</text>
+
+        <rect x="844" y="348" width="68" height="12" rx="2" fill="#000000"/>
+        <text x="878" y="357" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">EMBEDDINGS</text>
 
         <!-- Node: Reader (input) -->
         <rect x="40" y="136" width="160" height="64" rx="6" fill="#000000"/>
@@ -89,21 +95,21 @@
         <text x="376" y="208" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Container Apps</text>
         <text x="376" y="224" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">managed identity</text>
 
-        <!-- Node: Prompt agent and models -->
+        <!-- Node: Content Safety and Language -->
         <rect x="728" y="112" width="216" height="64" rx="6" fill="#000000"/>
         <rect x="728" y="112" width="216" height="64" rx="6" fill="#141414" stroke="#f5f5f5" stroke-width="1"/>
-        <rect x="736" y="120" width="40" height="12" rx="2" fill="none" stroke="#f5f5f5" stroke-opacity="0.40" stroke-width="0.8"/>
-        <text x="756" y="129" fill="#f5f5f5" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">AGENT</text>
-        <text x="836" y="150" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Prompt agent + models</text>
-        <text x="836" y="166" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">chat · embeddings</text>
+        <rect x="736" y="120" width="32" height="12" rx="2" fill="none" stroke="#f5f5f5" stroke-opacity="0.40" stroke-width="0.8"/>
+        <text x="752" y="129" fill="#f5f5f5" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SAFE</text>
+        <text x="836" y="150" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Content Safety + Language</text>
+        <text x="836" y="166" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Prompt Shields · PII</text>
 
-        <!-- Node: Content Safety and Language -->
+        <!-- Node: Prompt agent and models (middle slot, so the ingest embeddings reach its bottom edge) -->
         <rect x="728" y="232" width="216" height="64" rx="6" fill="#000000"/>
         <rect x="728" y="232" width="216" height="64" rx="6" fill="#141414" stroke="#f5f5f5" stroke-width="1"/>
-        <rect x="736" y="240" width="32" height="12" rx="2" fill="none" stroke="#f5f5f5" stroke-opacity="0.40" stroke-width="0.8"/>
-        <text x="752" y="249" fill="#f5f5f5" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SAFE</text>
-        <text x="836" y="270" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Content Safety + Language</text>
-        <text x="836" y="286" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Prompt Shields · PII</text>
+        <rect x="736" y="240" width="40" height="12" rx="2" fill="none" stroke="#f5f5f5" stroke-opacity="0.40" stroke-width="0.8"/>
+        <text x="756" y="249" fill="#f5f5f5" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">AGENT</text>
+        <text x="836" y="270" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Prompt agent + models</text>
+        <text x="836" y="286" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">chat · embeddings</text>
 
         <!-- Node: Content Understanding -->
         <rect x="728" y="488" width="216" height="64" rx="6" fill="#000000"/>
@@ -127,7 +133,7 @@
         <rect x="288" y="336" width="28" height="12" rx="2" fill="none" stroke="#b4b4b4" stroke-opacity="0.50" stroke-width="0.8"/>
         <text x="302" y="345" fill="#b4b4b4" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">BLOB</text>
         <text x="376" y="366" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Blob Storage</text>
-        <text x="376" y="382" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">sources · extracts · citations</text>
+        <text x="376" y="382" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">sources · evidence · extracts</text>
 
         <!-- Node: Azure AI Search (store) -->
         <rect x="504" y="328" width="160" height="64" rx="6" fill="#000000"/>

@@ -26,7 +26,7 @@ Milestone 6 also starts with a slice: a page that renders one stored result, dep
 
 Planned, not built yet. What is built now: [architecture](architecture/).
 
-![Target architecture: a reader signs in with Entra ID to the Hindcast app on Azure Container Apps. The app runs the Foundry prompt agent, checks every tool result with Prompt Shields and every output for personal data, reads the case evidence from Blob Storage, searches the postmortem library in Azure AI Search in Switzerland North, and sends traces to Application Insights. An ingest command captures status updates and postmortems, analyzes library pages, charts, and answer keys with Content Understanding, stores sources and extracts in Blob Storage, and indexes only library documents, so answer keys never reach the index. Service calls use Entra tokens, no keys; traces use the Application Insights connection string](diagrams/target-architecture.svg)
+![Target architecture: a reader signs in with Entra ID to the Hindcast app on Azure Container Apps. The app runs the Foundry prompt agent, checks every tool result with Prompt Shields and every output for personal data, reads the case evidence from Blob Storage, searches the postmortem library in Azure AI Search in Switzerland North, and sends traces to Application Insights. An ingest command captures status updates and postmortems, analyzes library pages, charts, and answer keys with Content Understanding, stores sources, evidence, and extracts in Blob Storage, embeds the library chunks with the embedding deployment, and indexes only library documents, so answer keys never reach the index. Service calls use Entra tokens, no keys; traces use the Application Insights connection string](diagrams/target-architecture.svg)
 
 ## 1. Foundations
 
