@@ -1,0 +1,207 @@
+{
+  "run_id": "hindcast/github-2026-10-07/r3/a1",
+  "case_id": "github-2026-10-07",
+  "kinds": {
+    "attack": "inference",
+    "findings[0]": "observation",
+    "findings[1]": "observation",
+    "findings[2]": "observation",
+    "findings[3]": "observation",
+    "findings[4]": "observation",
+    "findings[5]": "observation",
+    "findings[6]": "inference",
+    "findings[7]": "inference",
+    "timeline[0]": "observation",
+    "timeline[1]": "observation",
+    "timeline[2]": "observation",
+    "timeline[3]": "observation",
+    "timeline[4]": "observation",
+    "timeline[5]": "observation",
+    "timeline[6]": "observation",
+    "timeline[7]": "observation",
+    "timeline[8]": "observation",
+    "timeline[9]": "observation",
+    "timeline[10]": "observation",
+    "timeline[11]": "observation",
+    "root_cause": "inference",
+    "contributing_factors[0]": "inference"
+  },
+  "code_unsupported": [],
+  "judge": {
+    "model": "claude-fable-5-1",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "8d36cd062759056fd31693928c6bedd244f10de95598133849914874b7de718f",
+    "input_sha256": "03bc16d4f92a785a8a87c6c773f8b45ebf644112d4c4ffa4fa877255ee1d0a00",
+    "judged_at": "2026-11-04T19:05:00Z",
+    "request_id": "req_011CgiQhTtocMFn8JvGVsPVk",
+    "response_model": "claude-fable-5-1"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 6008,
+    "output_tokens": 3386,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 2418
+  },
+  "judgment": {
+    "run_items": {
+      "attack": {
+        "reason": "u6 and u22 describe widespread impact and a recurrence without mentioning hostile action; the 'cannot tell' conclusion follows from those updates alone.",
+        "supported": true
+      },
+      "findings[0]": {
+        "reason": "u1 names Actions, Git Operations and Pull Requests; u2 and u3 add Webhooks and Issues as degraded.",
+        "supported": true
+      },
+      "findings[1]": {
+        "reason": "u6 states widespread impact between 15:06 and 15:16 UTC and that all systems were recovering.",
+        "supported": true
+      },
+      "findings[2]": {
+        "reason": "u7, u9, u12 show continued degradation updates and u18 reports full recovery at 15:58 UTC.",
+        "supported": true
+      },
+      "findings[3]": {
+        "reason": "u19 (16:23:44Z) says root cause identified and mitigations being applied, without naming the cause.",
+        "supported": true
+      },
+      "findings[4]": {
+        "reason": "u22 states impact from 16:52 to 17:01 UTC, calls it a reoccurrence, and says durable mitigation is in progress.",
+        "supported": true
+      },
+      "findings[5]": {
+        "reason": "u24 (18:00:49Z) states mitigations applied and no recurrence anticipated; u25's title shows the resolved status at 18:04:49Z.",
+        "supported": true
+      },
+      "findings[6]": {
+        "reason": "Rests on supported F4; u19 indeed says a cause was identified without describing it, so the inference adds nothing beyond the update.",
+        "supported": true
+      },
+      "findings[7]": {
+        "reason": "Rests on supported F4 and F5; u22's recurrence and 'durable mitigation in progress' directly yield that earlier measures were not yet durable.",
+        "supported": true
+      },
+      "timeline[0]": {
+        "reason": "u6 states impact began at 15:06 UTC.",
+        "supported": true
+      },
+      "timeline[1]": {
+        "reason": "u1 at 15:14:45Z opens the incident naming Actions, Git Operations and Pull Requests.",
+        "supported": true
+      },
+      "timeline[2]": {
+        "reason": "u6 states impact ended at 15:16 UTC and systems were recovering.",
+        "supported": true
+      },
+      "timeline[3]": {
+        "reason": "u15 at 15:49:53Z says Git Operations and Webhooks degradation mitigated.",
+        "supported": true
+      },
+      "timeline[4]": {
+        "reason": "u18 at 15:58:35Z reports full recovery while still investigating root cause.",
+        "supported": true
+      },
+      "timeline[5]": {
+        "reason": "u19 at 16:23:44Z states root cause identified and mitigations being applied.",
+        "supported": true
+      },
+      "timeline[6]": {
+        "reason": "u20's title shows the resolved status at 16:25:14Z, though its text is withheld.",
+        "supported": true
+      },
+      "timeline[7]": {
+        "reason": "u22 states the second impact window began at 16:52 UTC and was a reoccurrence.",
+        "supported": true
+      },
+      "timeline[8]": {
+        "reason": "u22 states the second window ended at 17:01 UTC with all systems recovered.",
+        "supported": true
+      },
+      "timeline[9]": {
+        "reason": "u21 at 17:17:05Z opens an investigation naming Actions, Git Operations, Issues and Pull Requests.",
+        "supported": true
+      },
+      "timeline[10]": {
+        "reason": "u24 at 18:00:49Z says all systems recovered, mitigations applied, no recurrence anticipated.",
+        "supported": true
+      },
+      "timeline[11]": {
+        "reason": "u25's title shows the resolved status at 18:04:49Z.",
+        "supported": true
+      },
+      "root_cause": {
+        "reason": "Rests on supported F4 and F7; u19 confirms the cause was identified but not stated, so the abstention follows from the cited evidence.",
+        "supported": true
+      },
+      "contributing_factors[0]": {
+        "reason": "Rests on supported F8 and u22, which says the incident recurred and durable mitigation was in progress; the inference adds no new fact.",
+        "supported": true
+      }
+    },
+    "key_items": {
+      "attack": {
+        "run_items": [
+          "attack"
+        ],
+        "reason": "The run's attack verdict is 'cannot tell', which the rubric scores as abstained.",
+        "outcome": "abstained"
+      },
+      "root_cause": {
+        "run_items": [
+          "root_cause"
+        ],
+        "reason": "The run says the cause cannot be reconstructed, names the missing provider-identified cause, and the first open question asks for it; it does not name the outdated-records/routing mechanism.",
+        "outcome": "abstained"
+      },
+      "contributing_factors/0": {
+        "run_items": [],
+        "reason": "No run item mentions an automated maintenance task ignoring a pause; the run's generic 'mitigation not durable' factor does not name this mechanism or its trigger.",
+        "outcome": "missed"
+      },
+      "contributing_factors/1": {
+        "run_items": [],
+        "reason": "No run item mentions a puppet infrastructure regression.",
+        "outcome": "missed"
+      },
+      "timeline/0": {
+        "run_items": [
+          "timeline[0]"
+        ],
+        "reason": "timeline[0] states the first outage began at 15:06 UTC, matching the key exactly, supported by u6.",
+        "outcome": "supported-hit"
+      },
+      "timeline/1": {
+        "run_items": [
+          "timeline[2]"
+        ],
+        "reason": "timeline[2] states the first window ended at 15:16 UTC, matching the key, supported by u6.",
+        "outcome": "supported-hit"
+      },
+      "timeline/2": {
+        "run_items": [
+          "timeline[7]"
+        ],
+        "reason": "timeline[7] states the second outage began at 16:52 UTC as a recurrence, same event and time as the key, supported by u22.",
+        "outcome": "supported-hit"
+      },
+      "timeline/3": {
+        "run_items": [
+          "timeline[8]"
+        ],
+        "reason": "timeline[8] states the second window ended at 17:01 UTC, matching the key, supported by u22.",
+        "outcome": "supported-hit"
+      },
+      "timeline/4": {
+        "run_items": [],
+        "reason": "No run item mentions shutting down the new machine at 17:02 UTC.",
+        "outcome": "missed"
+      }
+    }
+  },
+  "error": null,
+  "arm": "hindcast",
+  "run_sha256": "94db936d09395fb399c010630c1ccb1881f961d0425d6801c842690c41e48db7",
+  "code_commit": "fac02e9b59590b6d8090c3e203a589c85ad67c75",
+  "earlier_errors": []
+}

@@ -6,6 +6,10 @@ records the table version next to its cost. A deployment missing from the
 table raises KeyError: a cost of zero would read as a free run. The cost is
 an estimate from list prices; decision 0011 checks it once against billed
 cost.
+
+data/claude-prices.yaml holds the Claude API prices for the judge and the
+reviewer, which bill on the Anthropic API; hindcast.evaluation.spend prices
+their recorded usage with it.
 """
 
 import math
@@ -103,3 +107,48 @@ def run_cost(table: PriceTable, deployment: str, usage: RunUsage, *, embedding_t
         **rounded,
         "total": round(math.fsum(rounded.values()), 6),
     }
+
+
+CLAUDE_PRICES = Path("data/claude-prices.yaml")
+# The Anthropic usage fields and the price each one takes. The API counts
+# input_tokens after the cache, so the three input parts do not overlap.
+CLAUDE_USAGE_PRICE = {
+    "input_tokens": "input",
+    "cache_creation_input_tokens": "cache_write_5m",
+    "cache_read_input_tokens": "cache_read",
+    "output_tokens": "output",
+}
+
+
+@dataclass(frozen=True)
+class ClaudePriceTable:
+    version: int
+    retrieved: str
+    currency: str
+    source: str
+    # Per million tokens, keyed by the values of CLAUDE_USAGE_PRICE.
+    models: Mapping[str, Mapping[str, float]]
+
+
+def load_claude_prices(path: Path = CLAUDE_PRICES) -> ClaudePriceTable:
+    raw = YAML(typ="safe").load(path.read_text(encoding="utf-8"))
+    return ClaudePriceTable(
+        version=int(raw["version"]),
+        retrieved=str(raw["retrieved"]),
+        currency=str(raw["currency"]),
+        source=str(raw["source"]),
+        models={
+            name: {k: float(v) for k, v in prices.items()} for name, prices in raw["models"].items()
+        },
+    )
+
+
+def claude_cost(table: ClaudePriceTable, model: str, usage: Mapping[str, int]) -> float:
+    """One Claude call's cost from its recorded usage, at list prices."""
+    if model not in table.models:
+        raise KeyError(f"{model} is not in Claude price table version {table.version}")
+    missing = sorted(set(CLAUDE_USAGE_PRICE) - usage.keys())
+    if missing:
+        raise ValueError(f"usage has no {', '.join(missing)}")
+    prices = table.models[model]
+    return math.fsum(usage[f] * prices[p] for f, p in CLAUDE_USAGE_PRICE.items()) / PER_MILLION

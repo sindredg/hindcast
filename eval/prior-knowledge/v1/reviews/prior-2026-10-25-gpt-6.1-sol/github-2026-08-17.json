@@ -1,0 +1,18 @@
+{
+  "run_id": "prior-2026-10-25-gpt-6.1-sol/github-2026-08-17",
+  "judgment_sha256": "9c781254c0966d746f4200e99930276865bfedcb8b10f3944ca6d988341d2f45",
+  "decisions": [
+    {
+      "kind": "prior",
+      "item": "root_cause",
+      "proposal": "abstained",
+      "sampled": true,
+      "decision": "abstained",
+      "decided_at": "2026-11-04T19:17:50Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "72c5433a5c9e5adb3be293bc9cd04557b002221d627577e02d48d6eb62b8cc84"
+      }
+    }
+  ]
+}

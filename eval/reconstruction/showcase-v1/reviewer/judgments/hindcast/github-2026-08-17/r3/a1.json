@@ -1,0 +1,213 @@
+{
+  "run_id": "hindcast/github-2026-08-17/r3/a1",
+  "case_id": "github-2026-08-17",
+  "kinds": {
+    "attack": "inference",
+    "findings[0]": "observation",
+    "findings[1]": "observation",
+    "findings[2]": "observation",
+    "findings[3]": "observation",
+    "findings[4]": "observation",
+    "findings[5]": "observation",
+    "findings[6]": "observation",
+    "findings[7]": "observation",
+    "findings[8]": "inference",
+    "findings[9]": "inference",
+    "timeline[0]": "observation",
+    "timeline[1]": "observation",
+    "timeline[2]": "observation",
+    "timeline[3]": "observation",
+    "timeline[4]": "observation",
+    "timeline[5]": "observation",
+    "timeline[6]": "observation",
+    "timeline[7]": "observation",
+    "timeline[8]": "observation",
+    "timeline[9]": "observation",
+    "timeline[10]": "observation",
+    "timeline[11]": "observation",
+    "root_cause": "inference",
+    "contributing_factors[0]": "inference",
+    "contributing_factors[1]": "inference"
+  },
+  "code_unsupported": [],
+  "judge": {
+    "model": "claude-fable-5-1",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "8d36cd062759056fd31693928c6bedd244f10de95598133849914874b7de718f",
+    "input_sha256": "7763ae6d9f47a1c17cf4727c6a713b0b8bdf62a50fce911898220e97767e8902",
+    "judged_at": "2026-11-04T19:03:37Z",
+    "request_id": "req_011CgiQbP6QWnbiC5cTfqE7y",
+    "response_model": "claude-fable-5-1"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 7672,
+    "output_tokens": 4370,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 2418
+  },
+  "judgment": {
+    "run_items": {
+      "attack": {
+        "reason": "The verdict is 'cannot tell'; u8 and u23 cited report error rates and a problematic component without naming any cause, so the claim that the updates neither identify nor exclude hostile activity follows from the cited text.",
+        "supported": true
+      },
+      "findings[0]": {
+        "reason": "u1 reports impaired performance and u2, u3, u4, u6, u7 each name API Requests, Actions, Webhooks, Issues, and Pull Requests as degraded.",
+        "supported": true
+      },
+      "findings[1]": {
+        "reason": "u8 states ~20% errors for web and API and ~50% for archive and raw downloads.",
+        "supported": true
+      },
+      "findings[2]": {
+        "reason": "u9 names SAML/OIDC, SCIM, Team Sync; u10 Copilot; u18 Pages; u19 Git Operations.",
+        "supported": true
+      },
+      "findings[3]": {
+        "reason": "u23 at 16:36:25Z says the problematic component was identified, corrective action taken, strong signs of recovery with slightly elevated errors.",
+        "supported": true
+      },
+      "findings[4]": {
+        "reason": "u24 at 16:59:38Z lists those services as mitigated and says monitoring continues.",
+        "supported": true
+      },
+      "findings[5]": {
+        "reason": "u25 and u27 report Git Operations and Issues degraded again after u24, and u26 describes residual impact across numerous services.",
+        "supported": true
+      },
+      "findings[6]": {
+        "reason": "u28 describes residual impact as sporadic authentication failures; u32 says partially disabling token retries brought improvement.",
+        "supported": true
+      },
+      "findings[7]": {
+        "reason": "u33 and u35 report sporadic Copilot authentication failures, CLI and GitHub App unaffected, and the 30-minute recovery expectation at 20:45.",
+        "supported": true
+      },
+      "findings[8]": {
+        "reason": "Rests on supported f1-f4 and u23, which says a problematic component was identified; the conclusion that it affected many services and is unnamed follows without adding facts.",
+        "supported": true
+      },
+      "findings[9]": {
+        "reason": "Rests on supported f5-f7 and u32; auth failures lingering after u24 and improvement after retry disabling are stated there, and the item adds no new fact.",
+        "supported": true
+      },
+      "timeline[0]": {
+        "reason": "u1 at 13:40:03Z states investigation of impacted performance.",
+        "supported": true
+      },
+      "timeline[1]": {
+        "reason": "u5 at 13:45:45Z states ~20% error rate across Pull Requests, Issues, and others.",
+        "supported": true
+      },
+      "timeline[2]": {
+        "reason": "u8 at 14:04:45Z states the 20%/50% error rates.",
+        "supported": true
+      },
+      "timeline[3]": {
+        "reason": "u9 at 14:24:53Z adds SAML/OIDC, SCIM, Team Sync as impacted.",
+        "supported": true
+      },
+      "timeline[4]": {
+        "reason": "u15 (14:58:12Z, three seconds off the run's stated time) says mitigations are being performed and monitored.",
+        "supported": true
+      },
+      "timeline[5]": {
+        "reason": "u23 at 16:36:25Z states component identified, corrective action, recovery with elevated errors.",
+        "supported": true
+      },
+      "timeline[6]": {
+        "reason": "u24 at 16:59:38Z reports the named services mitigated with monitoring.",
+        "supported": true
+      },
+      "timeline[7]": {
+        "reason": "u26 at 17:34:22Z reports residual impact across numerous services and additional mitigations.",
+        "supported": true
+      },
+      "timeline[8]": {
+        "reason": "u28 at 18:11:30Z characterizes remaining impact as sporadic authentication failures.",
+        "supported": true
+      },
+      "timeline[9]": {
+        "reason": "u32 at 19:13:20Z states partial disabling of token retries with improvement.",
+        "supported": true
+      },
+      "timeline[10]": {
+        "reason": "u35 at 20:45:28Z states ongoing Copilot auth mitigation and 30-minute recovery expectation.",
+        "supported": true
+      },
+      "timeline[11]": {
+        "reason": "u36 is the resolved update at 21:15:46Z; its text is withheld but its status and time are shown, which is all the item claims.",
+        "supported": true
+      },
+      "root_cause": {
+        "reason": "Rests on supported f4, f5, f7, f9, f10 and u23/u28/u32; it states only that the component and mechanism are undisclosed and auth failures were residual, adding no cause of its own.",
+        "supported": true
+      },
+      "contributing_factors[0]": {
+        "reason": "Rests on supported f7 and f10 and u32, which states retries were partially disabled with improvement; the item claims no more than that.",
+        "supported": true
+      },
+      "contributing_factors[1]": {
+        "reason": "Rests on supported f5-f8 and u26/u35, which show residual and sporadic impact after the 16:59 mitigation through 20:45.",
+        "supported": true
+      }
+    },
+    "key_items": {
+      "attack": {
+        "run_items": [
+          "attack"
+        ],
+        "reason": "The run's verdict is 'cannot tell' against the key's 'not an attack'.",
+        "outcome": "abstained"
+      },
+      "root_cause": {
+        "run_items": [
+          "root_cause"
+        ],
+        "reason": "The run's root cause says the updates do not disclose the component, failure, or initiator, and open question 1 asks for exactly that; no load balancer, traffic peak, or sidecar is named.",
+        "outcome": "abstained"
+      },
+      "contributing_factors/0": {
+        "run_items": [],
+        "reason": "No run item names load-balancer nodes, network flow limits, or a gateway authentication path; authentication failures appear only as a symptom.",
+        "outcome": "missed"
+      },
+      "contributing_factors/1": {
+        "run_items": [
+          "contributing_factors[0]",
+          "findings[9]"
+        ],
+        "reason": "Supported cf[0] and f10 name authentication token retries as tied to the sporadic auth failures and their mitigation, but do not state the retry bug amplified traffic to an auth endpoint or slowed Copilot Token Service recovery.",
+        "outcome": "partial"
+      },
+      "contributing_factors/2": {
+        "run_items": [
+          "contributing_factors[0]"
+        ],
+        "reason": "Supported cf[0] names retry behavior as a factor but says nothing of the sidecar failing to scale or unbounded clients amplifying degradation; only the retry portion is stated.",
+        "outcome": "partial"
+      },
+      "timeline/0": {
+        "run_items": [
+          "timeline[0]"
+        ],
+        "reason": "Supported timeline[0] places the incident start at 13:40:03Z via u1, matching the key's 13:40.",
+        "outcome": "supported-hit"
+      },
+      "timeline/1": {
+        "run_items": [
+          "timeline[11]"
+        ],
+        "reason": "Supported timeline[11] places resolution at 21:15:46Z via u36, within tolerance of the key's 21:15.",
+        "outcome": "supported-hit"
+      }
+    }
+  },
+  "error": null,
+  "arm": "hindcast",
+  "run_sha256": "43e24e73b190c7df8d990f8a47f05c8798f7bd6455cd1023e20f2c538a3bb3f6",
+  "code_commit": "fac02e9b59590b6d8090c3e203a589c85ad67c75",
+  "earlier_errors": []
+}

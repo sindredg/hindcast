@@ -1,0 +1,38 @@
+{
+  "case_id": "github-2026-08-17",
+  "deployment": "gpt-6-luna",
+  "model_name": "gpt-6-luna",
+  "model_version": "2026-09-22",
+  "collected_at": "2026-10-25T21:15:01Z",
+  "judge": {
+    "model": "claude-fable-5-1",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "d5082aafc8bc452fc95f3b8f4349e8576a55879ce05af05c62b976ba2eb777e5",
+    "input_sha256": "ba37db1569cae6b20f7e772f0f0861b2fa0f5a50c24f993252e5e7cb47b11812",
+    "judged_at": "2026-11-04T19:16:38Z",
+    "request_id": "req_011CgiRavYMyXFo5ut1fbfQf",
+    "response_model": "claude-fable-5-1"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 505,
+    "output_tokens": 122,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1226
+  },
+  "judgment": {
+    "attack": {
+      "reason": "The answer says it \"can't... say whether it was an attack,\" explicitly declining to give a verdict.",
+      "outcome": "abstained"
+    },
+    "root_cause": {
+      "reason": "The answer says it cannot \"identify its root cause or contributing factors\" and does not want to infer them, so it states no cause.",
+      "outcome": "abstained"
+    }
+  },
+  "error": null,
+  "answers": "eval/results/prior-2026-10-25-gpt-6-luna.json",
+  "code_commit": "fac02e9b59590b6d8090c3e203a589c85ad67c75",
+  "earlier_errors": []
+}

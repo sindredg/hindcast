@@ -1,0 +1,30 @@
+{
+  "run_id": "prior-2026-11-01-gpt-6-luna/cloudflare-2025-11-18",
+  "judgment_sha256": "2a4c82582fe7b186d4320cb90cac60a1ad946b9d54371914f7f460dac0ba2074",
+  "decisions": [
+    {
+      "kind": "prior",
+      "item": "attack",
+      "proposal": "hit",
+      "sampled": false,
+      "decision": "hit",
+      "decided_at": "2026-11-04T19:17:50Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "4f4b585cd2a5ea3d8c2766210508d67dce18d5bec07b5f7c43bab493aaaf63bd"
+      }
+    },
+    {
+      "kind": "prior",
+      "item": "root_cause",
+      "proposal": "partial",
+      "sampled": false,
+      "decision": "hit",
+      "decided_at": "2026-11-04T19:17:50Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "4f4b585cd2a5ea3d8c2766210508d67dce18d5bec07b5f7c43bab493aaaf63bd"
+      }
+    }
+  ]
+}

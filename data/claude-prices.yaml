@@ -1,0 +1,33 @@
+# Claude API list prices for the judge (decision 0024) and the reviewer
+# (decision 0027), which run on the Anthropic API, not on Azure; the Azure
+# table is prices.yaml. A changed price is a new version.
+#
+# Read 2026-11-04 from the pricing page below; the page carries no date of
+# its own. USD per 1,000,000 tokens.
+#
+# Why these columns are enough for the calls the code makes:
+# - The calls send no inference_geo, so they take global routing at standard
+#   prices (US-only inference costs 1.1x).
+# - The one cache breakpoint (the system prompt) uses the default 5-minute
+#   lifetime, so every cache write is a 5-minute write.
+# - Neither model has a long-context tier: the page prices the whole 1M
+#   context at these rates.
+# - No call uses the Batch API or fast mode, which have their own prices.
+version: 1
+retrieved: "2026-11-04"
+currency: USD
+source: https://platform.claude.com/docs/en/about-claude/pricing
+
+models:
+  claude-opus-5-5:
+    input: 4.00
+    cache_write_5m: 5.00
+    # 0.05x the input price, per the page's footnote.
+    cache_read: 0.20
+    output: 20.00
+  claude-fable-5-1:
+    input: 10.00
+    cache_write_5m: 12.50
+    # 0.025x the input price, per the page's footnote.
+    cache_read: 0.25
+    output: 50.00

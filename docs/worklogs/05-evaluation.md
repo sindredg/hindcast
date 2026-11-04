@@ -1,6 +1,6 @@
 # Milestone 5, second part: Scoring the reconstructions
 
-Status: In progress on 2026-11-04. The 60 scored runs, the 16 injection runs, the Foundry cloud evaluation, and the judge on all 60 runs and 14 prior-knowledge answers ran live, with no judge error. Rubric version 3 has a reviewer model decide the judge's proposals (898 items) in place of a person ([decision 0027](../decisions/0027-reviewer-model.md)); its test call ran, its full run and the scores have not, so nothing is scored yet. Milestone state: [roadmap](../roadmap.md#status).
+Status: In progress on 2026-11-04. The 60 scored runs, the 16 injection runs, the Foundry cloud evaluation, the judge, and the reviewer model ([decision 0027](../decisions/0027-reviewer-model.md)) ran live with no error, and the 60 runs and 14 prior-knowledge answers are scored ([report](../../eval/reconstruction/showcase-v1/README.md#results)). Open: the sealed reveals, until 2026-11-30. Milestone state: [roadmap](../roadmap.md#status).
 
 ## Scope
 
@@ -46,6 +46,16 @@ Version 3's title line is part of the judge's system prompt, so composing the pr
 
 `hindcast.evaluation.score` replaces the judge's proposals with the reviewed decisions, applies the frozen labels' credit, and writes per run the primary score and, beside it, the unsupported, wrong, and guessed items, the supported items outside the key, and any review decisions that contradict each other. Per arm and case it gives the mean, minimum, and maximum, summed outcomes, failures, seconds, and cost; a model's runs on a case its prior answer already hit move to a known-before-evidence table. It refuses while a review item is open.
 
+### Scores after the review
+
+The first scores showed three contradictions between a match and its support. Each was the same artifact: where the judge proposed missed and the reviewer found a partial or a hit, the reviewer's outcome was checked against the judge's run items, and the judge listed none. A decision the reviewer model made now rests on the run items its own judgment listed, and the score refuses a decision whose reviewer judgment is missing or has another hash. No primary score moved; the contradictions went to 0, and the counts of supported items outside the key shifted.
+
+The queue's agreement covers mostly proposed hits. `scores.json` therefore also carries `second_opinion`: the agreement over every key item and run item, and each arm's mean with the judge's judgment alone and with the reviewer's alone. Neither replaces the rubric's score; they show how far the choice of judge moves it. They are written only when every run has a decision from the reviewer model, and `score` says when it leaves them out.
+
+### Spend
+
+`hindcast.evaluation.spend` prices the Claude API usage that every judgment file records, per stage and model, at `data/claude-prices.yaml` (version 1, read 2026-11-04 from the Claude pricing page), and writes `eval/judge/spend.json`. The Claude table stays apart from the Azure one: it bills to another account, and its units include cache writes. A call that errored and was run again leaves only its error kind, so it is counted as unpriced, never as free; a stage with no files is refused.
+
 ## Live runs
 
 All on 2026-11-04 unless stated, from the developer's sign-in, with the commands in the [runbook](../runbooks/evaluation.md).
@@ -69,12 +79,16 @@ All on 2026-11-04 unless stated, from the developer's sign-in, with the commands
 | Clean-up | The search service deleted again at 17:41:08Z |
 | Rubric version 3 and the reviewer's locks, 18:56:41Z and 18:57:31Z | Committed and pushed before the full reviewer run (`dafd2df`, `fac02e9`) |
 | Reviewer test call, 18:58:01Z to 18:59:23Z | `runs: judged 1, errors 0`: `hindcast/cloudflare-2025-11-18/r1/a1`, `end_turn` from `claude-fable-5-1`, the same input hash as the judge's, all 20 key items and 22 run items; 7,769 input, 2,418 cache-write, and 6,935 output tokens |
+| Reviewer, 19:02:48Z to 19:17:22Z | Runs `judged 59, errors 0, kept 1`, prior answers `judged 14, errors 0`, four workers, every call `end_turn`; 450,390 input, 3,644 cache-write, 158,600 cache-read, and 296,580 output tokens over all second judgments |
+| Review decisions, 19:17:49Z to 19:17:50Z, locally | `reviewer apply`: `runs 60, decisions 880, missing 0` and `prior answers 14, decisions 18, missing 0`; a second `apply` wrote none. Committed with the second judgments (`cb81716`, `2f08ed2`) |
+| Scores, locally | `score`: `open review items 0` for the 14 answers and the 60 runs; `scores.json` in both roots. Results: [report](../../eval/reconstruction/showcase-v1/README.md#results), [prior knowledge](../../eval/prior-knowledge/v1/README.md#results) |
+| Spend, locally | `spend`: judge USD 5.54 (runs) and 0.11 (answers), reviewer USD 19.14 and 0.27, `total USD 25.07, 0 unpriced calls`. Not compared yet with the Anthropic Console's billed total |
 
 The first scored run read its `reasoning.applied` as `[medium]` ([#26](https://github.com/sindredg/hindcast/issues/26)) and its library contents as 143 chunks with their SHA-256 ([#47](https://github.com/sindredg/hindcast/issues/47)). Its trace in Application Insights held the `investigation` span with three `model_call`, three `tool_call`, and two `pii` children.
 
 ## Checks
 
-Every new check was run once against a broken copy of its code, locally, on 2026-11-04, and failed; each copy was then restored and the suite passed (797 tests; 820 after the reviewer).
+Every new check was run once against a broken copy of its code, locally, on 2026-11-04, and failed; each copy was then restored and the suite passed (797 tests; 820 after the reviewer; 833 after the scores and the spend; 836 after the independent review's fixes). The copies run with pytest's path pointed at them (`-o pythonpath=<copy>`): the project's `pythonpath = ["src"]` otherwise loads the unbroken code first, and every copy passes.
 
 | Broken | Failed tests |
 |---|---|
@@ -117,18 +131,62 @@ Every new check was run once against a broken copy of its code, locally, on 2026
 | The input check, the error check, the open-item filter, or `decided_by` removed | `test_a_second_judgment_on_other_input_is_refused`, `test_an_errored_second_judgment_is_refused`, `test_apply_is_idempotent`, `test_decisions_name_the_reviewer_and_its_judgment` |
 | A second judgment from another lock accepted, an errored one applied, or no-result attempts read | `test_apply_runs_refuses_a_second_judgment_from_another_lock` (both cases), `test_apply_runs_counts_a_missing_or_errored_second_judgment`, `test_apply_runs_writes_the_reviews_of_every_filled_run` |
 | The reviewer's prompt changed beyond the removed sentence | `test_reviewer_prompts_are_the_judges_less_the_review_sentence` |
+| Cache reads left out of the Claude price | `test_claude_cost_prices_each_part`, `test_claude_cost_missing_usage_field_raises`, `test_spend_per_stage_and_model` |
+| A missing usage field priced as zero | `test_claude_cost_missing_usage_field_raises` |
+| The cached tokens subtracted from the input count | `test_claude_cost_prices_each_part`, `test_spend_per_stage_and_model` |
+| An errored call that was run again, or a record without usage, not counted as unpriced | `test_spend_counts_calls_it_cannot_price` (both) |
+| A stage with no files accepted | `test_spend_refuses_an_empty_stage` |
+| A stage folder other than the one the reviewer writes | `test_stages_are_the_folders_the_judge_and_reviewer_write` |
+| A price table without the reviewer's model | `test_committed_table_prices_the_judge_and_reviewer_models` |
+| A reviewer decision checked against, or listed by, the judge's run items | `test_a_reviewer_decision_rests_on_the_reviewers_run_items` (both) |
+| A reviewer decision scored without its judgment | `test_a_reviewer_decision_without_its_judgment_is_refused` |
+| The reviewer judgment's hash not checked | `test_second_judgments_load_only_when_their_hash_matches` |
+| The whole-judgment agreement without the support verdicts, or comparing the judge with itself | `test_whole_judgment_agreement_counts_every_item` (both) |
+| The judge-alone score taken from the reviewer, or the reviewer-alone score from the judge | `test_each_judge_alone_is_scored_without_the_review` (both) |
+| A person's decision checked against the reviewer's run items whenever any item of the run was the reviewer's | `test_a_person_decision_keeps_the_judges_run_items` |
+| The first decision on an item naming who decided, instead of the latest | `test_the_latest_decision_on_an_item_names_who_decided` |
+| The second opinion written when only some runs have a reviewer judgment | `test_second_opinion_needs_a_reviewer_judgment_for_every_run` |
 
 ## Gate
 
 | Criterion | Status | Evidence |
 |---|---|---|
 | Keys, labels, rubric, support criteria, and tolerance frozen before the first scored run, and the leak check passes | Tested, live and locally | Labels frozen 2026-11-03T21:17Z, rubric version 2 2026-11-04T02:53:28Z (`eval/rubric/frozen.json`), keys last changed 2026-11-01; first scored run 03:10:48Z. `tests/test_rubric.py` and `tests/test_labels.py` fail on a changed file ([#67](https://github.com/sindredg/hindcast/pull/67)). Leak check live on 2026-11-01, 0 hits for every case with a frozen key ([worklog 03](03-retrieval.md#gate)); the keys and `data/library.yaml` are unchanged since |
-| Each showcase case scored for every arm with its repeats, each result named | Open | Runs: tested live, 60 of 60 with their provenance in `attempts.json` and each result file. Judging: tested live, 60 judgments with no judge error, 17:16:57Z to 17:23:51Z. Review: the reviewer model's test call ran live on one run; its full run (880 items) and the scores not run |
+| Each showcase case scored for every arm with its repeats, each result named | Tested, live and locally | Runs: live, 60 of 60 with their provenance in `attempts.json` and each result file. Judge and reviewer: live, 60 runs and 14 answers each with no error; 880 and 18 decisions, none open. Scores: locally, `scores.json` from the committed judgments and reviews. Each result is named in the report: the keys, labels, and rubric by hash, the evidence SHA-256 per case, and per arm the deployment, model version, agent version, prompt blob, and run IDs ([dataset](../../eval/reconstruction/showcase-v1/README.md#dataset), [arms](../../eval/reconstruction/showcase-v1/README.md#arms)) |
 | Each sealed case revealed and scored only after its provider published a cause | Open | No provider had published a cause by 2026-11-04; drop date 2026-11-30 ([decision 0022](../decisions/0022-sealed-drop-date-and-offline-reveal.md)) |
-| Unsupported claims counted by the support rules; library-only claims unsupported | Tested locally, with stubs | The citation checks in code ([#25](https://github.com/sindredg/hindcast/issues/25)); the judge's support verdicts and the score's counts, tests above. Not run on the scored runs |
+| Unsupported claims counted by the support rules; library-only claims unsupported | Tested live for the counts; accepted gap for the library-only rule on scored runs | The judge and the reviewer judged the support of all 1,242 run items in the 60 runs; 5 are unsupported, and the report lists each ([error analysis](../../eval/reconstruction/showcase-v1/README.md#unsupported-run-items)). The library-only rule is tested with stubs only: no scored run item cites a library document alone (13 cite one next to case evidence, counted from the run files), so the live runs could not exercise it. Check again at the first scored run item that cites only the library |
 | Planted instructions in an update, a library page, and a chart image not followed, screens on and off | Tested live for the update, the library page, and a planted chart's description; accepted gap for text carried only in an image | 12 runs saw the planted text, none followed it. No search returned the library figure in the 4 chart runs; the 4 case-chart runs read the instruction from the chart's description, where it was written because the analyzer kept it in `text_in_image` ([decision 0026](../decisions/0026-case-chart-injection.md), [report](../../eval/injection/dev-v1/README.md#case-chart-variant)). The gap is accepted because text read off an image has one way to the model: a case chart shows `alt_text` and `description` only (`list_charts` in `src/hindcast/tools.py`), and a library figure's `text_in_image` reaches it as part of the figure's search chunk (`chunks` in `src/hindcast/index.py`), the same search-result path the library-page variant reached and passed in 4 of 4 runs. Not tested: whether the analyzer's reading of an image changes what Prompt Shields or the model do with the text. Check again when a tool shows the model `text_in_image` in another way |
-| The report states results, error analysis, and the named limits | Open | Written after the scores |
+| The report states results, error analysis, and the named limits | Tested locally, by the [independent review](#independent-review) | The review recomputed the report's numbers from the data files, reproduced `scores.json` and `spend.json` byte for byte, and found 13 statements to correct, all fixed. Results per arm, per arm and case, and known before evidence, with the full outcome table; the judge-reviewer agreement; the error analysis with the list decision 0006 asks for (empty) ([report](../../eval/reconstruction/showcase-v1/README.md#results)). The named limits are rows of its Limits table: the 23-document library, the keys public since 2026-10-27 against each model version's date, and the sealed cases without a single-search baseline or library picks |
+
+## Independent review
+
+On 2026-11-04 a read-only review of the branch at `654cb40` checked the spend and score code and their tests, every number and claim in the two reports against `scores.json`, `attempts.json`, the judgments, the reviews, the keys, the labels, the run files, and `spend.json`, the scores against the rubric, the state pages for stale statements, and the public text. It reproduced both `scores.json` files and `spend.json` byte for byte. Each finding was checked against the data before acting on it.
+
+Fixed in this pull request:
+
+| Finding | Fix |
+|---|---|
+| The report said only `u24` names Issues and Pull Requests; nine updates do | It says none of the updates the finding cites names them |
+| The unsupported-items lead said all five carry a detail from an uncited update; two do, two rest on one that does, one is about a withheld text | The lead names the three kinds |
+| "Each `not an attack` adds 0.20" is not exact: one run gains 0.17 | Per-run differences against `hindcast` instead |
+| A limits row said the differences between arms are smaller than the change of judge; three are larger (0.041, 0.037, 0.033 against 0.030) | The row gives the largest difference next to the judge's swing |
+| `comparison` was said to fall "from third to last"; under the rubric it is fourth | Its rank under each of the three scorings |
+| "Supported items outside the key" were called reviewed; 521 of 831 carry the judge's verdict only | The definition says whose verdict it is |
+| The cost table counted runs as calls and read as the whole evaluation | Runs and calls named; the injection runs and the Foundry judge calls named as left out |
+| The architecture page named `eval/*/v1/scores.json`, which misses the showcase file | Both paths |
+| The Abstained column holds 12 abstentions the credit counts as missed | A sentence under the table |
+| The report's gate row named no check | This review is its check |
+| `gpt-6.1-sol` "in the same agent": the arms use two agents with the same prompt and tools | Reworded |
+| A test built a review it never used | Removed |
+| Decision 0023 had no pointer to decision 0027 | One sentence in its status line |
+| Three score paths had no test: a person's decision next to a reviewer's, the latest decision on an item, and the second opinion with some runs not reviewer-decided | Tests added (checks table); the second opinion's condition is a function of its own, and `score` says when it leaves it out |
+| The judge split the same 17:44 claim on `timeline/10` between wrong and missed | The wrong-items row says so |
+
+Planned, not fixed here: [#75](https://github.com/sindredg/hindcast/issues/75), the evaluation diagram's missing input.
 
 ## Issues
 
 - [#69](https://github.com/sindredg/hindcast/issues/69): every injection copy's case ID and refs contain `inject`, which the model can read.
+- [#71](https://github.com/sindredg/hindcast/issues/71): an abstention earns credit when its root-cause item is unsupported.
+- [#72](https://github.com/sindredg/hindcast/issues/72): a partial on a `not inferable` factor lowers the run's score.
+- [#75](https://github.com/sindredg/hindcast/issues/75): the evaluation diagram leaves out the reviewer judgments the score reads.

@@ -1,6 +1,6 @@
 # Prior-knowledge check, `v1`
 
-What each model said about each showcase outage before it saw any evidence, scored against the frozen keys on two items: the root cause and the attack verdict ([rubric](../../rubric/rubric.md#prior-knowledge), version 2). A reconstruction is worth less when the model already knew the cause, so a model whose prior answer hits a case's root cause has its scores on that case reported in a separate known-before-evidence table in the [evaluation report](../../reconstruction/showcase-v1/README.md).
+What each model said about each showcase outage before it saw any evidence, scored against the frozen keys on two items: the root cause and the attack verdict ([rubric](../../rubric/rubric.md#prior-knowledge), version 3; its Prior knowledge section is as version 2 froze it). A reconstruction is worth less when the model already knew the cause, so a model whose prior answer hits a case's root cause has its scores on that case reported in a separate known-before-evidence table in the [evaluation report](../../reconstruction/showcase-v1/README.md).
 
 ## Written before the judge
 
@@ -32,7 +32,25 @@ The 2026-10-25 collection covers `cloudflare-2025-11-18`, `github-2026-08-17`, a
 
 - **Answers, verified:** collected live on 2026-10-25 and 2026-11-01 and committed unread (dates and token counts in the worklogs above).
 - **Judge, verified on 2026-11-04:** `python -m hindcast.evaluation.judge_prior run`, live, 17:24:07Z to 17:24:56Z: `judged 14, errors 0, kept 0`; every call ended `end_turn` ([runbook](../../../docs/runbooks/evaluation.md#judge), step 17). The judgments were committed before any review decision.
-- **Review and scores:** open. The review queue holds 18 items over the 14 answers (`python -m hindcast.evaluation.score --draft`); the reviewer's prompt was frozen on 2026-11-04 at 18:57:31Z ([`eval/judge/frozen-reviewer-prior.json`](../../judge/frozen-reviewer-prior.json)), before any reviewer call.
+- **Reviewer, verified on 2026-11-04:** the prompt was frozen at 18:57:31Z ([`eval/judge/frozen-reviewer-prior.json`](../../judge/frozen-reviewer-prior.json)), before any reviewer call. `python -m hindcast.evaluation.reviewer run` judged the 14 answers again from 19:16:35Z to 19:17:19Z: `judged 14, errors 0`, every call `end_turn`. `reviewer apply` wrote the 18 queue decisions at 19:17:50Z, none missing ([runbook](../../../docs/runbooks/evaluation.md#review-and-scores), steps 20 and 21).
+- **Scores, verified on 2026-11-04:** `python -m hindcast.evaluation.score` wrote [`scores.json`](scores.json) with no open review item (step 22). Results [below](#results).
+
+## Results
+
+Both models named the root cause of `cloudflare-2025-11-18` in every answer, and abstained on both items for the other three cases. Only the Cloudflare outage began before both models' training cutoffs.
+
+Outcomes after review, as root cause, attack verdict:
+
+| Case | `gpt-6-luna`, 2026-10-25 | `gpt-6-luna`, 2026-11-01 | `gpt-6.1-sol`, 2026-10-25 | `gpt-6.1-sol`, 2026-11-01 |
+|---|---|---|---|---|
+| `cloudflare-2025-11-18` | hit, hit | hit, hit | hit, hit | hit, hit |
+| `github-2026-08-17` | abstained, abstained | abstained, abstained | abstained, abstained | abstained, abstained |
+| `google-cloud-2026-07-14` | abstained, abstained | abstained, abstained | abstained, abstained | abstained, abstained |
+| `github-2026-10-07` | not asked | abstained, abstained | not asked | abstained, abstained |
+
+Known before evidence: (`gpt-6-luna`, `cloudflare-2025-11-18`) and (`gpt-6.1-sol`, `cloudflare-2025-11-18`). Every run of every arm on that case moves to the [known-before-evidence table](../../reconstruction/showcase-v1/README.md#known-before-evidence).
+
+The judge and the reviewer agree on 17 of the 18 queue items (94.4%, Cohen's kappa 0.89). The one difference: the judge called the 2026-11-01 `gpt-6-luna` root cause on `cloudflare-2025-11-18` a partial, and the reviewer a hit. The pair is known either way, through the 2026-10-25 answer.
 
 ## Limits
 
@@ -46,4 +64,7 @@ The 2026-10-25 collection covers `cloudflare-2025-11-18`, `github-2026-08-17`, a
 | File | What it is |
 |---|---|
 | `README.md` | This page |
+| `scores.json` | Per answer: its file, deployment, model version, collection time, case, and reviewed outcomes; the known-before-evidence pairs; and the judge-reviewer agreement over the queue |
+| `reviewer/judgments/prior-<date>-<deployment>/<case_id>.json` | The reviewer's second judgment of the same answer, in the same form, made without the judge's proposals |
+| `reviews/prior-<date>-<deployment>/<case_id>.json` | The decision on each queue item: the judge's proposal, whether it was sampled, the decision, its time, and the reviewer model and judgment hash it came from |
 | `judgments/prior-<date>-<deployment>/<case_id>.json` | The judge's proposal for one answer: an outcome and a reason for the root cause and the attack verdict; the answer file, case, deployment, model version, and collection time; the code commit; the judge's model, effort, output limit, system prompt and input hashes, time, and request ID; the stop reason, usage, and any judge error |

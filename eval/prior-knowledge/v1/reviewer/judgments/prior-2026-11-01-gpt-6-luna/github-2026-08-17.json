@@ -1,0 +1,38 @@
+{
+  "case_id": "github-2026-08-17",
+  "deployment": "gpt-6-luna",
+  "model_name": "gpt-6-luna",
+  "model_version": "2026-09-22",
+  "collected_at": "2026-11-01T08:27:36Z",
+  "judge": {
+    "model": "claude-fable-5-1",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "d5082aafc8bc452fc95f3b8f4349e8576a55879ce05af05c62b976ba2eb777e5",
+    "input_sha256": "71dc1840a4bb260122dd47413cd39443a0c2d9564c6726b4659779b2e99a0822",
+    "judged_at": "2026-11-04T19:17:04Z",
+    "request_id": "req_011CgiRcou4XPTeJTMjrdXpQ",
+    "response_model": "claude-fable-5-1"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 516,
+    "output_tokens": 111,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1226
+  },
+  "judgment": {
+    "attack": {
+      "reason": "The answer says it cannot \"say whether it was an attack\" and does not state a verdict.",
+      "outcome": "abstained"
+    },
+    "root_cause": {
+      "reason": "The answer says it \"can't reliably describe what happened\" or \"report root causes\" and names no cause.",
+      "outcome": "abstained"
+    }
+  },
+  "error": null,
+  "answers": "eval/results/prior-2026-11-01-gpt-6-luna.json",
+  "code_commit": "fac02e9b59590b6d8090c3e203a589c85ad67c75",
+  "earlier_errors": []
+}
