@@ -1,6 +1,6 @@
 # 6. Evaluation design: a reviewed judge for the reconstruction, Foundry cloud evaluation for the rest
 
-Status: Accepted (2026-10-25). Abstention is scored against inferable-from-evidence labels, and the arms are named, per [decision 0023](0023-abstention-and-inferable-labels.md); the judge model is set by [decision 0024](0024-judge-model.md).
+Status: Accepted (2026-10-25). Abstention is scored against inferable-from-evidence labels, and the arms are named, per [decision 0023](0023-abstention-and-inferable-labels.md); the judge model is set by [decision 0024](0024-judge-model.md). A reviewer model decides the review queue in place of a person, per [decision 0027](0027-reviewer-model.md).
 
 ## Context
 
