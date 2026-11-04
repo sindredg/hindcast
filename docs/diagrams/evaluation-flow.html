@@ -60,7 +60,7 @@
     <div class="diagram-container">
       <svg viewBox="0 0 1000 704" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="evaluation-flow-title evaluation-flow-desc">
         <title id="evaluation-flow-title">Scoring the reconstructions</title>
-        <desc id="evaluation-flow-desc">Every filled scored run and every prior-knowledge answer goes to the judge, claude-opus-5-5 on the Anthropic API, with the frozen keys and the rubric's outcome and support rules but without the run's arm or the labels; a person decides the judge's proposals in a local review page that hides the arm and the model; the score reads the judgments and the review's decisions, a decision replacing the judge's proposal, and applies the frozen labels' credit; the Foundry cloud evaluators score repeat 1 of each arm and case with gpt-6.1-sol as their judge; both go into the evaluation report per arm and case.</desc>
+        <desc id="evaluation-flow-desc">Every filled scored run and every prior-knowledge answer goes to the judge, claude-opus-5-5 on the Anthropic API, with the frozen keys and the rubric's outcome and support rules but without the run's arm or the labels; the reviewer, claude-fable-5-1 on the Anthropic API, judges each run and answer again from the same input without the judge's proposals, and its verdicts decide the review queue that the judge's proposals select; the score reads the judgments and the reviewer's decisions, a decision replacing the judge's proposal, and applies the frozen labels' credit; the Foundry cloud evaluators score repeat 1 of each arm and case with gpt-6.1-sol as their judge; both go into the evaluation report per arm and case.</desc>
         <defs>
           <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#bfc0c0"/></marker>
         </defs>
@@ -80,8 +80,8 @@
         <path d="M544,72 H872 Q880,72 880,80 V568 Q880,576 872,576 H832" fill="none" stroke="#bfc0c0" stroke-width="1.2" marker-end="url(#arrow)"/>
 
         <!-- Arrow labels -->
-        <rect x="558" y="172" width="52" height="12" rx="2" fill="#2d3142"/>
-        <text x="584" y="181" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">PROPOSALS</text>
+        <rect x="566" y="172" width="36" height="12" rx="2" fill="#2d3142"/>
+        <text x="584" y="181" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">QUEUE</text>
         <rect x="736" y="314" width="52" height="12" rx="2" fill="#2d3142"/>
         <text x="762" y="323" fill="#bfc0c0" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">DECISIONS</text>
         <rect x="320" y="440" width="40" height="12" rx="2" fill="#2d3142"/>
@@ -105,7 +105,7 @@
         <rect x="40" y="256" width="208" height="64" rx="6" fill="#2d3142"/>
         <rect x="40" y="256" width="208" height="64" rx="6" fill="rgba(245,245,245,0.05)" stroke="#bfc0c0" stroke-width="1"/>
         <text x="144" y="286" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Frozen keys and rubric</text>
-        <text x="144" y="302" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">rubric v2 · judge prompts</text>
+        <text x="144" y="302" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">rubric v3 · frozen prompts</text>
 
         <rect x="40" y="416" width="208" height="64" rx="6" fill="#2d3142"/>
         <rect x="40" y="416" width="208" height="64" rx="6" fill="rgba(245,245,245,0.05)" stroke="#bfc0c0" stroke-width="1"/>
@@ -136,8 +136,8 @@
 
         <rect x="624" y="160" width="208" height="64" rx="6" fill="#2d3142"/>
         <rect x="624" y="160" width="208" height="64" rx="6" fill="rgba(240,138,89,0.10)" stroke="#f08a59" stroke-width="1"/>
-        <text x="728" y="190" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Review page</text>
-        <text x="728" y="206" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">a person · arm and model hidden</text>
+        <text x="728" y="190" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Reviewer</text>
+        <text x="728" y="206" fill="#bfc0c0" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">claude-fable-5-1 · judges blind</text>
 
         <!-- Legend strip -->
         <line x1="40" y1="648" x2="960" y2="648" stroke="rgba(245,245,245,0.10)" stroke-width="0.8"/>
@@ -152,7 +152,7 @@
         <rect x="292" y="676" width="14" height="10" rx="2" fill="rgba(245,245,245,0.05)" stroke="#bfc0c0" stroke-width="1"/>
         <text x="312" y="684" fill="#bfc0c0" font-size="8.5" font-family="'Geist', sans-serif">Committed file</text>
 
-        <text x="960" y="664" fill="#949eb2" font-size="8.5" font-family="'Geist', sans-serif" text-anchor="end">The judge sees neither the run's arm nor the labels</text>
+        <text x="960" y="664" fill="#949eb2" font-size="8.5" font-family="'Geist', sans-serif" text-anchor="end">Neither model sees the run's arm or the labels; the reviewer never sees the judge's proposals</text>
       </svg>
     </div>
   </div>
