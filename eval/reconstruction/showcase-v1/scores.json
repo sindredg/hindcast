@@ -4599,5 +4599,151 @@
       "percent": 100.0,
       "kappa": 1.0
     }
+  },
+  "second_opinion": {
+    "whole_agreement": {
+      "match": {
+        "items": 660,
+        "percent": 95.2,
+        "kappa": 0.9259544928654069
+      },
+      "support": {
+        "items": 1242,
+        "percent": 99.9,
+        "kappa": 0.8884898545519833
+      }
+    },
+    "judge_alone": {
+      "by_arm": {
+        "abstention": {
+          "mean": 0.8074074074074074,
+          "min": 0.5,
+          "max": 1.0
+        },
+        "comparison": {
+          "mean": 0.7873015873015873,
+          "min": 0.5,
+          "max": 1.0
+        },
+        "hindcast": {
+          "mean": 0.7814814814814814,
+          "min": 0.5,
+          "max": 1.0
+        },
+        "library-off": {
+          "mean": 0.7814814814814814,
+          "min": 0.5,
+          "max": 1.0
+        },
+        "single-search": {
+          "mean": 0.837037037037037,
+          "min": 0.5,
+          "max": 1.0
+        }
+      },
+      "known_before_evidence": {
+        "abstention": {
+          "cloudflare-2025-11-18": {
+            "mean": 0.7916666666666666,
+            "min": 0.5,
+            "max": 1.0
+          }
+        },
+        "comparison": {
+          "cloudflare-2025-11-18": {
+            "mean": 0.7083333333333334,
+            "min": 0.625,
+            "max": 0.875
+          }
+        },
+        "hindcast": {
+          "cloudflare-2025-11-18": {
+            "mean": 0.8333333333333334,
+            "min": 0.75,
+            "max": 1.0
+          }
+        },
+        "library-off": {
+          "cloudflare-2025-11-18": {
+            "mean": 0.6666666666666666,
+            "min": 0.5,
+            "max": 0.75
+          }
+        },
+        "single-search": {
+          "cloudflare-2025-11-18": {
+            "mean": 0.5416666666666666,
+            "min": 0.375,
+            "max": 0.75
+          }
+        }
+      }
+    },
+    "reviewer_alone": {
+      "by_arm": {
+        "abstention": {
+          "mean": 0.8,
+          "min": 0.5,
+          "max": 1.0
+        },
+        "comparison": {
+          "mean": 0.7592592592592593,
+          "min": 0.4166666666666667,
+          "max": 1.0
+        },
+        "hindcast": {
+          "mean": 0.7777777777777778,
+          "min": 0.5,
+          "max": 1.0
+        },
+        "library-off": {
+          "mean": 0.8,
+          "min": 0.5,
+          "max": 1.0
+        },
+        "single-search": {
+          "mean": 0.8074074074074074,
+          "min": 0.4166666666666667,
+          "max": 1.0
+        }
+      },
+      "known_before_evidence": {
+        "abstention": {
+          "cloudflare-2025-11-18": {
+            "mean": 0.8194444444444445,
+            "min": 0.625,
+            "max": 1.0
+          }
+        },
+        "comparison": {
+          "cloudflare-2025-11-18": {
+            "mean": 0.7361111111111112,
+            "min": 0.6111111111111112,
+            "max": 0.875
+          }
+        },
+        "hindcast": {
+          "cloudflare-2025-11-18": {
+            "mean": 0.8564814814814815,
+            "min": 0.75,
+            "max": 0.9444444444444444
+          }
+        },
+        "library-off": {
+          "cloudflare-2025-11-18": {
+            "mean": 0.6203703703703703,
+            "min": 0.5555555555555556,
+            "max": 0.75
+          }
+        },
+        "single-search": {
+          "cloudflare-2025-11-18": {
+            "mean": 0.6666666666666666,
+            "min": 0.375,
+            "max": 0.875
+          }
+        }
+      }
+    }
   }
 }
