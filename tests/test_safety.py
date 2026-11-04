@@ -376,3 +376,30 @@ def test_screen_pieces_overlap_and_cover_the_text():
         assert any(run in p for p in parts), start
     assert parts[0] == text[:10_000] and text.endswith(parts[-1])
     assert screen_pieces("short", 10_000) == ["short"]
+
+
+EMOJI = "\U0001f642"
+
+
+def units(text: str) -> int:
+    return len(text.encode("utf-16-le")) // 2
+
+
+def test_screen_limits_count_utf16_units():
+    # Prompt Shields counts its 10,000 limit in UTF-16 units: live on
+    # 2026-11-04 it refused 9,990 code points that were 10,217 units and
+    # accepted 9,768 code points that were 9,990 units (#54). An emoji is one
+    # code point and two units.
+    text = ("status " + EMOJI + " ") * 2_500
+    parts = screen_pieces(text)
+    assert all(units(p) <= MAX_CHARACTERS for p in parts)
+    for start in range(0, len(text) - 1_000, 991):
+        assert any(text[start : start + 1_000] in p for p in parts), start
+    half = ("a" + EMOJI) * 3_000
+    out = batches([half, half])
+    # 6,000 code points each, 9,000 units each: one document per batch.
+    assert [len(b) for b in out] == [1, 1]
+    with pytest.raises(ValueError):
+        batches([EMOJI * 5_001])
+    with pytest.raises(ScreenError):
+        PromptShield(FakePost(shield_answer(lambda d: False))).prompt(EMOJI * 5_001, timeout=5)
