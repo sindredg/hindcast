@@ -6,6 +6,12 @@ Given only what an outside engineer could see while an outage was happening, Hin
 
 The provider's own postmortem, published later, is the answer key the reconstruction is scored against; Hindcast never sees it.
 
+## Target architecture
+
+![Target architecture: a reader signs in with Entra ID to the Hindcast app on Azure Container Apps. The app runs the Foundry prompt agent, checks every tool result with Prompt Shields and every output for personal data, reads the case evidence from Blob Storage, searches the postmortem library in Azure AI Search in Switzerland North, and sends traces to Application Insights. An ingest command captures status updates and postmortems, analyzes library pages, charts, and answer keys with Content Understanding, stores sources, evidence, and extracts in Blob Storage, embeds the library chunks with the embedding deployment, and indexes only library documents, so answer keys never reach the index. Service calls use Entra tokens, no keys; traces use the Application Insights connection string](docs/diagrams/target-architecture.svg)
+
+Each milestone's state is in the [roadmap](docs/roadmap.md); the system as it runs today is under [How it is built now](#how-it-is-built-now).
+
 ## Status
 
 Milestones 1 to 3 of 6 are verified, and slices of milestones 4 and 6 are built ([roadmap](docs/roadmap.md)). Built and run:
