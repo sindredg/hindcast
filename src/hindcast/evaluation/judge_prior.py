@@ -82,6 +82,7 @@ def judge_answer(
     *,
     client: Any,
     system: str,
+    model: str = judge.JUDGE_MODEL,
 ) -> dict:
     if entry["case_id"] != key.case_id:
         raise ValueError(f"{entry['case_id']}: the key is for {key.case_id}")
@@ -93,10 +94,16 @@ def judge_answer(
         "model_name": collection["model_name"],
         "model_version": collection["model_version"],
         "collected_at": collection["collected_at"],
-        **judge.new_record(system, content),
+        **judge.new_record(system, content, model),
     }
     return judge.call(
-        client, system, content, reply_schema, record, lambda m: judge.read_json(m, reply_schema)
+        client,
+        system,
+        content,
+        reply_schema,
+        record,
+        lambda m: judge.read_json(m, reply_schema),
+        model,
     )
 
 
@@ -113,9 +120,10 @@ def judge_all(
     root: Path = ROOT,
     paths: tuple[Path, Path, Path] = (PROMPT, judge.RUBRIC, FROZEN),
     stamp: Mapping[str, Any] | None = None,
+    model: str = judge.JUDGE_MODEL,
 ) -> dict[str, int]:
     """Judge every answer without a judgment; keep the judgments that exist."""
-    system = judge.check_frozen(*paths, compose=system_prompt)
+    system = judge.check_frozen(*paths, compose=system_prompt, model=model)
     counts = {"judged": 0, "errors": 0, "kept": 0}
     for answers in files:
         collection = json.loads(answers.read_text(encoding="utf-8"))
@@ -135,6 +143,7 @@ def judge_all(
                 cases[entry["case_id"]],
                 client=client,
                 system=system,
+                model=model,
             )
             record |= {"answers": answers.as_posix(), **(stamp or {})}
             record["earlier_errors"] = earlier

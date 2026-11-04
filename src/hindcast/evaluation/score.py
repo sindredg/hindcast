@@ -265,11 +265,15 @@ def known_before_evidence(
     }
 
 
-def prior_scores(root: Path = PRIOR_ROOT) -> tuple[dict, int]:
+def prior_scores(
+    root: Path = PRIOR_ROOT, lock: tuple[Path, Path] | None = None
+) -> tuple[dict, int]:
     """Every judged prior answer's outcomes, the known pairs, and the open review items."""
-    from hindcast.evaluation.judge import _sha256
+    from hindcast.evaluation import judge_prior
+    from hindcast.evaluation.judge import _sha256, locked_system
     from hindcast.evaluation.review import prior_queue
 
+    locked = locked_system(*(lock or (judge_prior.PROMPT, judge_prior.FROZEN)))
     paths = sorted((root / "judgments").glob("*/*.json"))
     if not paths:
         raise ValueError(f"{root}: no prior-knowledge judgments")
@@ -279,6 +283,8 @@ def prior_scores(root: Path = PRIOR_ROOT) -> tuple[dict, int]:
         record = json.loads(data)
         if record["error"] is not None:
             raise ValueError(f"{path}: judge error {record['error']}")
+        if (record["judge"]["system_sha256"], record["judge"]["model"]) != locked:
+            raise ValueError(f"{path}: judged with another judge prompt or model")
         record_id = f"{path.parent.name}/{path.stem}"
         review_path = root / "reviews" / f"{record_id}.json"
         review = json.loads(review_path.read_text("utf-8")) if review_path.is_file() else {}
@@ -303,11 +309,13 @@ def prior_scores(root: Path = PRIOR_ROOT) -> tuple[dict, int]:
     return {"answers": rows, "known_before_evidence": known, "agreement": agree}, open_items
 
 
-def _load(root: Path) -> tuple[list[dict], dict[str, dict], dict[str, dict]]:
+def _load(
+    root: Path, lock: tuple[Path, Path] | None = None
+) -> tuple[list[dict], dict[str, dict], dict[str, dict]]:
     from hindcast.evaluation.batch import FILLED, load_attempts
-    from hindcast.evaluation.judge import _sha256, check_frozen, judgment_path
+    from hindcast.evaluation.judge import _sha256, judgment_path, locked_system
 
-    system = check_frozen()
+    system_sha256, model = locked_system(*lock) if lock else locked_system()
     attempts = load_attempts(root / "attempts.json")
     records, reviews = {}, {}
     for entry in attempts:
@@ -320,8 +328,8 @@ def _load(root: Path) -> tuple[list[dict], dict[str, dict], dict[str, dict]]:
         record = json.loads(data)
         if record["error"] is not None:
             raise ValueError(f"{entry['run_id']}: judge error {record['error']}")
-        if record["judge"]["system_sha256"] != _sha256(system.encode()):
-            raise ValueError(f"{entry['run_id']}: judged with another judge prompt")
+        if (record["judge"]["system_sha256"], record["judge"]["model"]) != (system_sha256, model):
+            raise ValueError(f"{entry['run_id']}: judged with another judge prompt or model")
         review_path = root / "reviews" / f"{entry['run_id']}.json"
         review = json.loads(review_path.read_text("utf-8")) if review_path.is_file() else {}
         if review and review["judgment_sha256"] != _sha256(data):

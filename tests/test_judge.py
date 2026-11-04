@@ -16,6 +16,7 @@ from hindcast.evaluation.judge import (
     judge_input,
     judge_run,
     judgment_schema,
+    locked_system,
     read_reply,
     run_items,
     system_prompt,
@@ -407,3 +408,45 @@ def test_judge_all_keeps_a_judgment_and_retries_an_error(tmp_path: Path) -> None
 def test_module_names_the_judge() -> None:
     assert judge.JUDGE_MODEL == "claude-opus-5-5"
     assert judge.EFFORT == "high"
+
+
+def test_judge_all_calls_and_records_the_model_it_is_given(tmp_path: Path) -> None:
+    prompt, rubric, frozen = frozen_files(tmp_path)
+    freeze(prompt, rubric, frozen, model="claude-fable-5-1")
+    client = FakeClient(message(json.dumps(reply())))
+    counts = judge_all(
+        [{"run_id": "hindcast/dev/r1/a1", "status": "complete", "case_id": "dev"}],
+        load_run=lambda entry: document(),
+        load_case=lambda case_id: (KEY, EVIDENCE),
+        library=LIBRARY,
+        client=client,
+        out_dir=tmp_path / "judgments",
+        paths=(prompt, rubric, frozen),
+        model="claude-fable-5-1",
+    )
+    assert counts == {"judged": 1, "errors": 0, "kept": 0}
+    assert [c["model"] for c in client.calls] == ["claude-fable-5-1"]
+    record = json.loads((tmp_path / "judgments/hindcast/dev/r1/a1.json").read_text("utf-8"))
+    assert record["judge"]["model"] == "claude-fable-5-1"
+
+
+def test_a_lock_for_one_model_refuses_another(tmp_path: Path) -> None:
+    prompt, rubric, frozen = frozen_files(tmp_path)
+    freeze(prompt, rubric, frozen, model="claude-fable-5-1")
+    with pytest.raises(NotFrozen):
+        check_frozen(prompt, rubric, frozen)
+    assert check_frozen(prompt, rubric, frozen, model="claude-fable-5-1")
+
+
+def test_locked_system_outlives_a_rubric_version_but_not_a_prompt_change(tmp_path: Path) -> None:
+    # A judgment made before a rubric version changed only the title line it
+    # was given stays checkable; a changed judge prompt does not.
+    prompt, rubric, frozen = frozen_files(tmp_path)
+    record = freeze(prompt, rubric, frozen)
+    rubric.write_text(rubric.read_text("utf-8").replace("# R", "# R, version 3"), "utf-8")
+    with pytest.raises(NotFrozen):
+        check_frozen(prompt, rubric, frozen)
+    assert locked_system(prompt, frozen) == (record["system_sha256"], JUDGE_MODEL)
+    prompt.write_text("Judge, leniently.\n", encoding="utf-8")
+    with pytest.raises(NotFrozen):
+        locked_system(prompt, frozen)

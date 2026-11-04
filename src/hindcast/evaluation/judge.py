@@ -127,7 +127,7 @@ def system_prompt(prompt: Path = PROMPT, rubric: Path = RUBRIC) -> str:
 Compose = Callable[[Path, Path], str]
 
 
-def _frozen_record(prompt: Path, rubric: Path, compose: Compose) -> dict:
+def _frozen_record(prompt: Path, rubric: Path, compose: Compose, model: str) -> dict:
     system = compose(prompt, rubric)
     return {
         "prompt": prompt.as_posix(),
@@ -135,7 +135,7 @@ def _frozen_record(prompt: Path, rubric: Path, compose: Compose) -> dict:
         "rubric": rubric.as_posix(),
         "rubric_sha256": _sha256(rubric.read_bytes()),
         "system_sha256": _sha256(system.encode()),
-        "model": JUDGE_MODEL,
+        "model": model,
         "effort": EFFORT,
         "max_tokens": MAX_TOKENS,
     }
@@ -146,11 +146,12 @@ def freeze(
     rubric: Path = RUBRIC,
     frozen: Path = FROZEN,
     compose: Compose = system_prompt,
+    model: str = JUDGE_MODEL,
 ) -> dict:
     """Write the lock. A new version replaces the file in its own commit."""
     if frozen.exists():
         raise FileExistsError(f"{frozen} exists; a new judge version replaces it deliberately")
-    record = _frozen_record(prompt, rubric, compose)
+    record = _frozen_record(prompt, rubric, compose, model)
     record["frozen_at"] = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     frozen.parent.mkdir(parents=True, exist_ok=True)
     frozen.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
@@ -162,15 +163,35 @@ def check_frozen(
     rubric: Path = RUBRIC,
     frozen: Path = FROZEN,
     compose: Compose = system_prompt,
+    model: str = JUDGE_MODEL,
 ) -> str:
     """The system prompt, or NotFrozen when it or the settings differ from the lock."""
     if not frozen.is_file():
         raise NotFrozen(f"{frozen} is missing: freeze the judge prompt first")
     record = json.loads(frozen.read_text(encoding="utf-8"))
     record.pop("frozen_at", None)
-    if record != _frozen_record(prompt, rubric, compose):
+    if record != _frozen_record(prompt, rubric, compose, model):
         raise NotFrozen(f"the judge prompt, the rubric, or the settings differ from {frozen}")
     return compose(prompt, rubric)
+
+
+def locked_system(prompt: Path = PROMPT, frozen: Path = FROZEN) -> tuple[str, str]:
+    """The locked system prompt's hash and model, for checking judgments already made.
+
+    A judgment records the hash of the system prompt it was given. Checking
+    that hash against the lock, not against a prompt composed again from the
+    rubric, keeps a judgment valid after a rubric version that changes no
+    rule the judge reads: the rubric's title line is in the system prompt.
+    The prompt file still has to match the lock.
+    """
+    if not frozen.is_file():
+        raise NotFrozen(f"{frozen} is missing")
+    record = json.loads(frozen.read_text(encoding="utf-8"))
+    if record["prompt"] != prompt.as_posix() or record["prompt_sha256"] != _sha256(
+        prompt.read_bytes()
+    ):
+        raise NotFrozen(f"{prompt} differs from {frozen}")
+    return record["system_sha256"], record["model"]
 
 
 def run_items(investigation: Mapping[str, Any]) -> list[dict]:
@@ -414,10 +435,10 @@ def read_reply(
     return data
 
 
-def new_record(system: str, content: str) -> dict[str, Any]:
+def new_record(system: str, content: str, model: str = JUDGE_MODEL) -> dict[str, Any]:
     return {
         "judge": {
-            "model": JUDGE_MODEL,
+            "model": model,
             "effort": EFFORT,
             "max_tokens": MAX_TOKENS,
             "system_sha256": _sha256(system.encode()),
@@ -440,10 +461,11 @@ def call(
     schema: dict,
     record: dict[str, Any],
     read: Callable[[Any], dict],
+    model: str = JUDGE_MODEL,
 ) -> dict[str, Any]:
     """One streamed judge call; the record gets the reply's judgment or its error kind."""
     with client.messages.stream(
-        model=JUDGE_MODEL,
+        model=model,
         max_tokens=MAX_TOKENS,
         # The same system prompt opens every call; caching it is the only
         # repeated prefix.
@@ -481,6 +503,7 @@ def judge_run(
     *,
     client: Any,
     system: str,
+    model: str = JUDGE_MODEL,
 ) -> dict:
     """One judge call for one run; the record holds a judgment or an error, never both."""
     items = run_items(document["investigation"])
@@ -492,7 +515,7 @@ def judge_run(
         "case_id": document["case_id"],
         "kinds": {i["where"]: i["kind"] for i in items},
         "code_unsupported": sorted(code_unsupported),
-        **new_record(system, content),
+        **new_record(system, content, model),
     }
     return call(
         client,
@@ -501,6 +524,7 @@ def judge_run(
         judgment_schema(),
         record,
         lambda m: read_reply(m, items, key_ids, code_unsupported),
+        model,
     )
 
 
@@ -519,9 +543,10 @@ def judge_all(
     paths: tuple[Path, Path, Path] = (PROMPT, RUBRIC, FROZEN),
     workers: int = 1,
     stamp: Mapping[str, Any] | None = None,
+    model: str = JUDGE_MODEL,
 ) -> dict[str, int]:
     """Judge every filled attempt that has no judgment yet; no-result attempts are never judged."""
-    system = check_frozen(*paths)
+    system = check_frozen(*paths, model=model)
     counts = {"judged": 0, "errors": 0, "kept": 0}
     todo: list[tuple[Mapping[str, Any], list[str]]] = []
     for entry in entries:
@@ -540,7 +565,9 @@ def judge_all(
     def one(job: tuple[Mapping[str, Any], list[str]]) -> str | None:
         entry, earlier = job
         key, evidence = load_case(entry["case_id"])
-        record = judge_run(load_run(entry), key, evidence, library, client=client, system=system)
+        record = judge_run(
+            load_run(entry), key, evidence, library, client=client, system=system, model=model
+        )
         record |= {"arm": entry.get("arm"), "run_sha256": entry.get("sha256"), **(stamp or {})}
         record["earlier_errors"] = earlier
         path = judgment_path(out_dir, entry["run_id"])

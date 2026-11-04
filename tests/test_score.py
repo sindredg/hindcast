@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 import pytest
 
 from hindcast.evaluation.review import review_queue
@@ -226,3 +229,73 @@ def test_known_before_evidence_comes_from_a_reviewed_prior_hit() -> None:
         (answer("gpt-6.1-sol", "hit"), {}),
     ]
     assert known_before_evidence(answers) == {("gpt-6.1-sol", "dev")}
+
+
+def locked_root(tmp_path: Path, **judge_changes: str) -> tuple[Path, tuple[Path, Path]]:
+    """A scored root with one judged run and the judge lock it was judged under."""
+    from hindcast.evaluation.judge import JUDGE_MODEL, freeze
+
+    prompt, rubric, frozen = tmp_path / "judge.md", tmp_path / "rubric.md", tmp_path / "f.json"
+    prompt.write_text("Judge.\n", encoding="utf-8")
+    rubric.write_text("# R\n\n## Outcomes\n\nO.\n\n## Credit\n\nC.\n", encoding="utf-8")
+    lock = freeze(prompt, rubric, frozen)
+    root = tmp_path / "root"
+    entry = {"run_id": "hindcast/dev/r1/a1", "status": "complete", "case_id": "dev"}
+    (root / "judgments/hindcast/dev/r1").mkdir(parents=True)
+    (root / "attempts.json").write_text(json.dumps({"attempts": [entry]}), encoding="utf-8")
+    judged = record() | {
+        "judge": {"system_sha256": lock["system_sha256"], "model": JUDGE_MODEL} | judge_changes
+    }
+    (root / "judgments/hindcast/dev/r1/a1.json").write_text(json.dumps(judged), "utf-8")
+    return root, (prompt, frozen)
+
+
+def test_score_reads_judgments_made_under_the_lock(tmp_path: Path) -> None:
+    from hindcast.evaluation.score import _load
+
+    root, lock = locked_root(tmp_path)
+    attempts, records, reviews = _load(root, lock)
+    assert list(records) == ["hindcast/dev/r1/a1"] and reviews == {"hindcast/dev/r1/a1": {}}
+
+
+@pytest.mark.parametrize("change", [{"system_sha256": "0" * 64}, {"model": "claude-fable-5-1"}])
+def test_score_refuses_a_judgment_from_another_prompt_or_model(
+    tmp_path: Path, change: dict
+) -> None:
+    from hindcast.evaluation.score import _load
+
+    root, lock = locked_root(tmp_path, **change)
+    with pytest.raises(ValueError, match="another judge prompt or model"):
+        _load(root, lock)
+
+
+def test_prior_score_refuses_a_judgment_from_another_prompt(tmp_path: Path) -> None:
+    from hindcast.evaluation.judge import JUDGE_MODEL, freeze
+    from hindcast.evaluation.score import prior_scores
+
+    prompt, rubric, frozen = tmp_path / "p.md", tmp_path / "rubric.md", tmp_path / "f.json"
+    prompt.write_text("Judge the answer.\n", encoding="utf-8")
+    rubric.write_text("# R\n", encoding="utf-8")
+    lock = freeze(prompt, rubric, frozen, compose=lambda p, r: p.read_text("utf-8"))
+    answer = {
+        "answers": "eval/results/prior-x.json",
+        "deployment": "gpt-6-luna",
+        "model_version": "2026-09-22",
+        "collected_at": "2026-11-01T08:27:36Z",
+        "case_id": "dev",
+        "judgment": {
+            "attack": {"reason": "r", "outcome": "missed"},
+            "root_cause": {"reason": "r", "outcome": "missed"},
+        },
+        "error": None,
+        "judge": {"system_sha256": lock["system_sha256"], "model": JUDGE_MODEL},
+    }
+    path = tmp_path / "root/judgments/prior-x/dev.json"
+    path.parent.mkdir(parents=True)
+    path.write_text(json.dumps(answer), encoding="utf-8")
+    scores, open_items = prior_scores(tmp_path / "root", (prompt, frozen))
+    assert [a["case_id"] for a in scores["answers"]] == ["dev"]
+    answer["judge"]["system_sha256"] = "0" * 64
+    path.write_text(json.dumps(answer), encoding="utf-8")
+    with pytest.raises(ValueError, match="another judge prompt or model"):
+        prior_scores(tmp_path / "root", (prompt, frozen))

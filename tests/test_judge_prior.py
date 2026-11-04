@@ -94,3 +94,22 @@ def test_prior_judge_errors_are_recorded_and_retried(tmp_path: Path) -> None:
     assert run(tmp_path, answers, paths, FakeClient(message(json.dumps(good()))))["judged"] == 1
     path = tmp_path / "prior/judgments/prior-2026-10-25-gpt-6-luna/dev.json"
     assert json.loads(path.read_text("utf-8"))["earlier_errors"] == ["schema", "refusal"]
+
+
+def test_prior_judge_calls_and_records_the_model_it_is_given(tmp_path: Path) -> None:
+    answers, paths = setup(tmp_path)
+    judge.freeze(*paths, compose=judge_prior.system_prompt, model="claude-fable-5-1")
+    client = FakeClient(message(json.dumps(good())))
+    counts = judge_prior.judge_all(
+        [answers],
+        load_key=lambda case_id: KEY,
+        cases=CASES,
+        client=client,
+        root=tmp_path / "prior",
+        paths=paths,
+        model="claude-fable-5-1",
+    )
+    assert counts == {"judged": 1, "errors": 0, "kept": 0}
+    assert [c["model"] for c in client.calls] == ["claude-fable-5-1"]
+    path = tmp_path / "prior/judgments/prior-2026-10-25-gpt-6-luna/dev.json"
+    assert json.loads(path.read_text("utf-8"))["judge"]["model"] == "claude-fable-5-1"
