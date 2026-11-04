@@ -2,7 +2,7 @@
 
 Status: Accepted (2026-11-03).
 
-Extends the injection tests of [decision 0007](0007-safety-and-injection.md).
+Extends the injection tests of [decision 0007](0007-safety-and-injection.md). [Decision 0026](0026-case-chart-injection.md) adds a chart among the case's own charts after the library chart variant was not reached.
 
 ## Context
 
