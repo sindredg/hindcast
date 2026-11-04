@@ -25,6 +25,7 @@ from test_investigate import (
     FINAL,
     SOURCE,
     FakeClient,
+    RateLimitError,
     call,
     final,
     response,
@@ -236,11 +237,30 @@ def test_raised_run_is_recorded_as_no_result(
 
     [entry] = entries(seals)
     assert entry["status"] == "no-result"
-    assert entry["file"] is None
-    assert entry["sha256"] is None
-    assert entry["blob"] is None
+    # The failed attempt writes a result with its reason, recorded by hash.
+    assert entry["file"] is not None
+    assert entry["sha256"] is not None
     assert "SECRET" not in capsys.readouterr().out
     # The model produced nothing, so another attempt is allowed.
+    assert check_may_seal(SEALED, entries(seals), "gpt-6-luna", seal.LIBRARY) == 2
+
+
+def test_seal_attempt_with_model_error_is_no_result(
+    capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    # The first call produced output, the second hit a 429: no investigation
+    # came back, so the attempt is no result and may be retried (rule 6).
+    client = FakeClient(response(call()), RateLimitError("429 SECRET-BODY"))
+    seals = stub_seal(monkeypatch, tmp_path, client, Uploads())
+
+    assert main(["run", "seal"]) == 1
+    assert capsys.readouterr().out.startswith("no-result: model-error\n")
+
+    [entry] = entries(seals)
+    assert entry["status"] == "no-result"
+    written = json.loads((tmp_path / "sealed" / "seal" / entry["file"]).read_text("utf-8"))
+    assert written["usage"]["output_tokens"] > 0
+    assert written["incomplete_reason"] == "model-error: RateLimitError"
     assert check_may_seal(SEALED, entries(seals), "gpt-6-luna", seal.LIBRARY) == 2
 
 
@@ -510,3 +530,107 @@ def test_record_value_of_another_type_is_a_change(key: str, value: object) -> No
     # Python's 1 == True and False == 0 would hide these (issue #45).
     entry = E1 | {"attempt": 1, "library": False}
     assert record_problems([entry], [entry | {key: value}]) == [f"entry 0 changed: {key}"]
+
+
+class Listing:
+    """A search client that lists the chunks a filter returns."""
+
+    def __init__(self, chunks: list[dict]) -> None:
+        self.chunks = chunks
+        self.filters: list[str] = []
+
+    def search(self, search_text: str | None = None, /, **kwargs: Any) -> list[dict]:
+        self.filters.append(kwargs["filter"])
+        return self.chunks
+
+
+CHUNKS = [
+    {"id": "lib_b_s1_p0", "ref": "lib/b/s1", "doc_id": "b", "content": "Second."},
+    {"id": "lib_a_s1_p0", "ref": "lib/a/s1", "doc_id": "a", "content": "First."},
+]
+
+
+def library_for_snapshot() -> tuple[dict, dict]:
+    from hindcast.cases import load_cases
+    from hindcast.library import load_library
+
+    cases = load_cases(Path("data/cases.yaml"))
+    return load_library(Path("data/library.yaml"), cases), cases
+
+
+def test_snapshot_writes_the_chunks_and_records_their_hash(tmp_path: Path) -> None:
+    library, cases = library_for_snapshot()
+    record = tmp_path / "library-snapshots.json"
+    client = Listing(CHUNKS)
+    entry = seal.snapshot(
+        "github-2026-10-21",
+        client=client,
+        index="idx",
+        library=library,
+        cases=cases,
+        out_dir=tmp_path / "out",
+        record_path=record,
+        now=NOW,
+    )
+    data = (tmp_path / "out" / "github-2026-10-21.json").read_bytes()
+    written = json.loads(data)
+    # Sorted by chunk ID, so the same index gives the same bytes.
+    assert [c["id"] for c in written["chunks"]] == ["lib_a_s1_p0", "lib_b_s1_p0"]
+    assert entry == {
+        "case_id": "github-2026-10-21",
+        "index": "idx",
+        "filter": client.filters[0],
+        "chunks": 2,
+        "sha256": hashlib.sha256(data).hexdigest(),
+        "taken_at": "2026-11-01T10:00:00Z",
+    }
+    assert json.loads(record.read_text("utf-8")) == {"snapshots": [entry]}
+    # A sealed case's filter is the date bound alone (decision 0017).
+    assert "serves" not in client.filters[0]
+
+
+def test_snapshot_refuses_non_sealed(tmp_path: Path) -> None:
+    library, cases = library_for_snapshot()
+    with pytest.raises(SealRefused, match="not a sealed case"):
+        seal.snapshot(
+            "cloudflare-2026-02-20",
+            client=Listing(CHUNKS),
+            index="idx",
+            library=library,
+            cases=cases,
+            out_dir=tmp_path,
+            record_path=tmp_path / "r.json",
+            now=NOW,
+        )
+
+
+def test_snapshot_refuses_empty(tmp_path: Path) -> None:
+    library, cases = library_for_snapshot()
+    with pytest.raises(SealRefused, match="no library chunks"):
+        seal.snapshot(
+            "github-2026-10-21",
+            client=Listing([]),
+            index="idx",
+            library=library,
+            cases=cases,
+            out_dir=tmp_path,
+            record_path=tmp_path / "r.json",
+            now=NOW,
+        )
+    assert not (tmp_path / "r.json").exists()
+
+
+def test_snapshot_refuses_a_second_snapshot(tmp_path: Path) -> None:
+    library, cases = library_for_snapshot()
+    options: dict[str, Any] = {
+        "client": Listing(CHUNKS),
+        "index": "idx",
+        "library": library,
+        "cases": cases,
+        "out_dir": tmp_path / "out",
+        "record_path": tmp_path / "r.json",
+        "now": NOW,
+    }
+    seal.snapshot("github-2026-10-21", **options)
+    with pytest.raises(SealRefused, match="already"):
+        seal.snapshot("github-2026-10-21", **options)

@@ -18,6 +18,7 @@ Four keys frozen on 2026-10-27 and `github-2026-10-07` on 2026-11-01, each befor
 | [`github-2026-10-07.json`](github-2026-10-07.json) | Scored case, began after both pinned model versions were released |
 | [`cloudflare-2026-02-20.json`](cloudflare-2026-02-20.json) | Development case, not scored |
 | [`frozen.json`](frozen.json) | SHA-256 of each key |
+| [`labels/`](labels/README.md) | One label per scored key item: `stated`, `inferable`, or `not inferable` from the case's evidence, frozen by hash before the first scored run |
 
 ## Fields
 

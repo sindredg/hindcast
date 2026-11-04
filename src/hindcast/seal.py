@@ -35,20 +35,28 @@ the search does not answer.
 import argparse
 import hashlib
 import json
+from collections.abc import Mapping
 from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 from hindcast import telemetry
 from hindcast.cases import Case, load_cases
 from hindcast.config import ModelSettings, load_settings
 from hindcast.evaluation.prior import _git
-from hindcast.investigate import prepare, run_investigation, summary, write_result
+from hindcast.investigate import no_result, prepare, run_investigation, summary, write_result
+from hindcast.library import LibraryDocument, load_library
 from hindcast.storage import upload_bytes
 from hindcast.tools import CaseTools
 
 SEALS = Path("eval/sealed/seals.json")
 OUT_DIR = Path("build/sealed")
+# Each sealed case's library as its filter returned it before teardown, for
+# the leak check of a reveal after the index is gone (decision 0022). The
+# chunks are third-party text, so the file stays local; its hash is committed.
+SNAPSHOTS = Path("eval/sealed/library-snapshots.json")
+SNAPSHOT_DIR = Path("build/sealed-library")
 CONTAINER = "extracted"
 BLOB_PREFIX = "sealed"
 # Everything that shapes a run, so the recorded commit names the exact prompt,
@@ -204,19 +212,20 @@ def check_record_grows(repo: Path = Path(".")) -> None:
 PREFLIGHT_QUERY = "service outage"
 
 
-def preflight_search(tools: CaseTools) -> None:
-    """Refuse a seal, before the first model call, while the library search fails."""
+def preflight_search(tools: CaseTools, refused: type[Exception] = SealRefused) -> None:
+    """Refuse a seal or a scored run, before the first model call, while the search fails."""
     # A search that fails mid-run ends it as a tool error, and a seal with
-    # model output is final (decision 0017). One search first keeps a search
-    # outage from using up the case's seal; a mid-run failure stays possible.
+    # model output is final (decision 0017), as is a scored slot. One search
+    # first keeps a search outage from using up the case's seal or a slot; a
+    # mid-run failure stays possible.
     if tools.search is None:
-        raise SealRefused("no library search is bound")
+        raise refused("no library search is bound")
     try:
         tools.search(PREFLIGHT_QUERY)
     except Exception as error:
         # Only the type: the message can carry the service's response.
-        raise SealRefused(
-            f"the library search did not answer ({type(error).__name__}); seal again later"
+        raise refused(
+            f"the library search did not answer ({type(error).__name__}); run again later"
         ) from None
 
 
@@ -261,8 +270,9 @@ def run(case: Case) -> int:
     try:
         result = run_investigation(setup.turn, setup.tools, case_id=case.case_id, pii=setup.pii)
     except Exception as error:
-        # A 429 or a cut-off response: nothing to seal. The error text can
-        # carry the service's response, so only its type is printed.
+        # A failed model call ends the run with a record (model-error); this
+        # catches anything else the run raises. Nothing to seal. The error text
+        # can carry the service's response, so only its type is printed.
         write_seals(SEALS, [*seals, entry])
         print(f"no-result: {type(error).__name__}; attempt {attempt} of {MAX_ATTEMPTS}")
         return 1
@@ -281,8 +291,7 @@ def run(case: Case) -> int:
     entry |= {
         "file": path.name,
         "sha256": hashlib.sha256(data).hexdigest(),
-        # A time cap on the first call writes a result with no model output.
-        "status": "no-result" if result.usage.output_tokens == 0 else result.status,
+        "status": "no-result" if no_result(result) else result.status,
     }
     # The hash is recorded before the upload, so a failed upload loses nothing.
     seals.append(entry)
@@ -330,11 +339,66 @@ def upload(case_id: str, file: str) -> int:
     return _upload(case_id, entry, data, seals)
 
 
+def snapshot(
+    case_id: str,
+    *,
+    client: Any,
+    index: str,
+    library: Mapping[str, LibraryDocument],
+    cases: Mapping[str, Case],
+    out_dir: Path = SNAPSHOT_DIR,
+    record_path: Path = SNAPSHOTS,
+    now: datetime,
+) -> dict:
+    """Write every chunk the sealed case's filter returns, and record the file's hash once."""
+    from hindcast.search import case_chunks, library_filter
+
+    case = cases[case_id]
+    if case.role != "sealed":
+        raise SealRefused(f"{case_id} is not a sealed case (role {case.role})")
+    record = (
+        json.loads(record_path.read_text("utf-8"))["snapshots"] if record_path.is_file() else []
+    )
+    if any(s["case_id"] == case_id for s in record):
+        raise SealRefused(f"{case_id} has a library snapshot already")
+    query_filter = library_filter(case, library)
+    chunks = case_chunks(case_id, cases=cases, library=library, client=client)
+    if not chunks:
+        # An empty snapshot would let the leak check pass with nothing to compare.
+        raise SealRefused(f"{case_id}: the filter returned no library chunks")
+    data = (
+        json.dumps(
+            {"case_id": case_id, "index": index, "filter": query_filter, "chunks": chunks},
+            indent=2,
+            ensure_ascii=False,
+        )
+        + "\n"
+    ).encode()
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / f"{case_id}.json").write_bytes(data)
+    entry = {
+        "case_id": case_id,
+        "index": index,
+        "filter": query_filter,
+        "chunks": len(chunks),
+        "sha256": hashlib.sha256(data).hexdigest(),
+        "taken_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+    }
+    record_path.write_text(
+        json.dumps({"snapshots": [*record, entry]}, indent=2) + "\n", encoding="utf-8"
+    )
+    return entry
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m hindcast.seal")
     commands = parser.add_subparsers(dest="command", required=True)
     run_parser = commands.add_parser("run", help="investigate a sealed case and record its hash")
     run_parser.add_argument("case_id")
+    snapshot_parser = commands.add_parser(
+        "snapshot", help="save a sealed case's filtered library for an offline reveal"
+    )
+    snapshot_parser.add_argument("case_id")
     upload_parser = commands.add_parser("upload", help="upload a sealed file again")
     upload_parser.add_argument("case_id")
     upload_parser.add_argument("file")
@@ -345,6 +409,25 @@ def main(argv: list[str] | None = None) -> int:
         parser.error(f"unknown case {args.case_id!r}")
     if args.command == "run":
         return run(cases[args.case_id])
+    if args.command == "snapshot":
+        from hindcast.config import SearchSettings
+        from hindcast.index import clients
+
+        index = load_settings(SearchSettings).search_index
+        try:
+            entry = snapshot(
+                args.case_id,
+                client=clients(index)[1],
+                index=index,
+                library=load_library(Path("data/library.yaml"), cases),
+                cases=cases,
+                now=_now(),
+            )
+        except SealRefused as error:
+            print(f"refused: {error}")
+            return 1
+        print(f"{args.case_id}: {entry['chunks']} chunks, sha256 {entry['sha256']}")
+        return 0
     return upload(args.case_id, args.file)
 
 

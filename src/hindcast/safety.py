@@ -17,14 +17,18 @@ message: a service message can quote the principal or the request.
 
 import math
 import time
+from bisect import bisect_right
 from collections.abc import Callable
 from dataclasses import dataclass
+from itertools import accumulate
 from typing import Any, Protocol
 
 from hindcast.config import SafetySettings
 
 SCOPE = "https://cognitiveservices.azure.com/.default"
-# Prompt Shields GA version; its limits per call.
+# Prompt Shields GA version; its limits per call. The character limit counts
+# UTF-16 units: live on 2026-11-04 the service refused a document of 9,990
+# code points that was 10,217 units and accepted one of 9,990 units (#54).
 SHIELD_API_VERSION = "2024-09-01"
 MAX_DOCUMENTS = 5
 MAX_CHARACTERS = 10_000
@@ -122,19 +126,53 @@ def pieces(text: str, limit: int = MAX_CHARACTERS) -> list[str]:
     return [*out, text]
 
 
+# An instruction shorter than this lies whole inside one screened piece.
+SCREEN_OVERLAP = 1_000
+
+
+def utf16_units(text: str) -> int:
+    """The length Prompt Shields counts: two units for a character outside the BMP."""
+    return len(text) + sum(1 for c in text if ord(c) > 0xFFFF)
+
+
+def screen_pieces(
+    text: str, limit: int = MAX_CHARACTERS, overlap: int = SCREEN_OVERLAP
+) -> list[str]:
+    """Pieces for Prompt Shields: each starts `overlap` characters before the last one ended.
+
+    Pieces cut end to end let an instruction across a cut reach the service
+    in two halves, and either half may pass (#50). A text is flagged when
+    any piece is, so the overlap costs only records. Each piece holds at
+    most `limit` UTF-16 units (#54). PII detection keeps pieces(), whose
+    offsets have to add up.
+    """
+    # units[i] is the UTF-16 length of text[:i].
+    units = list(accumulate((2 if ord(c) > 0xFFFF else 1 for c in text), initial=0))
+    out: list[str] = []
+    start = 0
+    while units[-1] - units[start] > limit:
+        end = bisect_right(units, units[start] + limit) - 1
+        if end - overlap <= start:
+            raise ValueError(f"a piece of {limit} units cannot hold an overlap of {overlap}")
+        out.append(text[start:end])
+        start = end - overlap
+    return [*out, text[start:]]
+
+
 def batches(documents: list[str]) -> list[list[str]]:
     """Group documents in order, each group within Prompt Shields' per-call limits."""
     out: list[list[str]] = []
     current: list[str] = []
     size = 0
     for document in documents:
-        if len(document) > MAX_CHARACTERS:
-            raise ValueError(f"a document of {len(document)} characters is over the limit")
-        if current and (len(current) == MAX_DOCUMENTS or size + len(document) > MAX_CHARACTERS):
+        length = utf16_units(document)
+        if length > MAX_CHARACTERS:
+            raise ValueError(f"a document of {length} UTF-16 units is over the limit")
+        if current and (len(current) == MAX_DOCUMENTS or size + length > MAX_CHARACTERS):
             out.append(current)
             current, size = [], 0
         current.append(document)
-        size += len(document)
+        size += length
     return [*out, current] if current else out
 
 
@@ -209,7 +247,7 @@ class PromptShield:
             # Nothing to screen in an empty text; it counts as shown.
             if not text.strip():
                 continue
-            for part in pieces(text):
+            for part in screen_pieces(text):
                 owners.append(index)
                 parts.append(part)
         flagged = [False] * len(texts)
@@ -222,8 +260,8 @@ class PromptShield:
         return flagged
 
     def prompt(self, text: str, *, timeout: float) -> bool:
-        if len(text) > MAX_CHARACTERS:
-            raise ScreenError(f"a prompt of {len(text)} characters is over the limit")
+        if utf16_units(text) > MAX_CHARACTERS:
+            raise ScreenError(f"a prompt of {utf16_units(text)} UTF-16 units is over the limit")
         flag, _ = self._call(text, [], timeout)
         return flag
 

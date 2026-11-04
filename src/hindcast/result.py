@@ -93,6 +93,11 @@ Reason = Literal[
     "not-retrieved",
     "withheld",
     "not-shown",
+    # Structural checks on rests_on (#25).
+    "observation-rests-on",
+    "self-support",
+    "ambiguous-finding",
+    "cycle",
 ]
 
 
@@ -260,6 +265,46 @@ def _reason(
     return None
 
 
+def _cycle_edges(edges: dict[int, list[int]]) -> set[tuple[int, int]]:
+    """The finding-to-finding edges whose two ends sit on one cycle (Tarjan's SCCs)."""
+    index: dict[int, int] = {}
+    low: dict[int, int] = {}
+    stack: list[int] = []
+    on_stack: set[int] = set()
+    component: dict[int, int] = {}
+
+    def visit(node: int) -> None:
+        index[node] = low[node] = len(index)
+        stack.append(node)
+        on_stack.add(node)
+        for target in edges.get(node, []):
+            if target not in index:
+                visit(target)
+                low[node] = min(low[node], low[target])
+            elif target in on_stack:
+                low[node] = min(low[node], index[target])
+        if low[node] == index[node]:
+            while True:
+                member = stack.pop()
+                on_stack.discard(member)
+                component[member] = node
+                if member == node:
+                    break
+
+    for node in edges:
+        if node not in index:
+            visit(node)
+    sizes: dict[int, int] = {}
+    for root in component.values():
+        sizes[root] = sizes.get(root, 0) + 1
+    return {
+        (source, target)
+        for source, targets in edges.items()
+        for target in targets
+        if component[source] == component[target] and sizes[component[source]] > 1
+    }
+
+
 def check_citations(
     investigation: Investigation,
     refs: frozenset[str],
@@ -272,12 +317,43 @@ def check_citations(
 
     shown=None skips the not-shown check, for a stored file that does not
     record what its run showed.
-    """
-    finding_ids = {f.id for f in investigation.findings}
-    rejected: list[RejectedCitation] = []
-    unsupported: list[str] = []
 
-    def check[T: (Attack, Finding, TimelineEvent, RootCause, Factor)](where: str, item: T) -> T:
+    A rests_on entry is rejected when it names no finding (unknown-finding),
+    sits on an observation (observation-rests-on), names its own finding
+    (self-support), names an ID more than one finding carries
+    (ambiguous-finding), or closes a loop among findings (cycle): a chain of
+    inferences that ends where it began rests on nothing. Support is then
+    transitive: an item is supported by a kept case citation, or by a kept
+    rests_on finding that is itself supported.
+    """
+    findings = investigation.findings
+    counts: dict[str, int] = {}
+    for f in findings:
+        counts[f.id] = counts.get(f.id, 0) + 1
+    position = {f.id: n for n, f in enumerate(findings) if counts[f.id] == 1}
+    rejected: list[RejectedCitation] = []
+
+    def rests_on_reason(own: Finding | None, finding_id: str) -> Reason | None:
+        if own is not None and own.kind == "observation":
+            return "observation-rests-on"
+        if own is not None and finding_id == own.id:
+            return "self-support"
+        if finding_id not in counts:
+            return "unknown-finding"
+        if counts[finding_id] > 1:
+            return "ambiguous-finding"
+        return None
+
+    # The finding graph after the per-entry rules, for the cycle check.
+    edges = {
+        n: [position[i] for i in f.rests_on if rests_on_reason(f, i) is None]
+        for n, f in enumerate(findings)
+    }
+    in_cycle = _cycle_edges(edges)
+
+    def check[T: (Attack, Finding, TimelineEvent, RootCause, Factor)](
+        where: str, item: T, own: int | None = None
+    ) -> T:
         kept: list[Citation] = []
         for citation in item.citations:
             reason = _reason(citation, refs, case_id, retrieved, shown, withheld)
@@ -286,20 +362,23 @@ def check_citations(
             else:
                 rejected.append(RejectedCitation(where, citation.ref, reason))
         changes: dict[str, Any] = {"citations": tuple(kept)}
-        rests_on: tuple[str, ...] = getattr(item, "rests_on", ())
-        if rests_on:
-            for finding_id in rests_on:
-                if finding_id not in finding_ids:
-                    rejected.append(RejectedCitation(where, finding_id, "unknown-finding"))
-            rests_on = tuple(i for i in rests_on if i in finding_ids)
-            changes["rests_on"] = rests_on
-        if not any(c.source == "case" for c in kept) and not rests_on:
-            unsupported.append(where)
+        if isinstance(item, (Finding, RootCause, Factor)):
+            finding = findings[own] if own is not None else None
+            rests_on: list[str] = []
+            for finding_id in item.rests_on:
+                reason = rests_on_reason(finding, finding_id)
+                if reason is None and own is not None and (own, position[finding_id]) in in_cycle:
+                    reason = "cycle"
+                if reason is None:
+                    rests_on.append(finding_id)
+                else:
+                    rejected.append(RejectedCitation(where, finding_id, reason))
+            changes["rests_on"] = tuple(rests_on)
         return replace(item, **changes)
 
     checked = Investigation(
         attack=check("attack", investigation.attack),
-        findings=tuple(check(f"findings[{i}]", f) for i, f in enumerate(investigation.findings)),
+        findings=tuple(check(f"findings[{i}]", f, i) for i, f in enumerate(findings)),
         timeline=tuple(check(f"timeline[{i}]", t) for i, t in enumerate(investigation.timeline)),
         root_cause=check("root_cause", investigation.root_cause),
         contributing_factors=tuple(
@@ -308,6 +387,38 @@ def check_citations(
         ),
         open_questions=investigation.open_questions,
     )
+
+    def cited(item: Attack | Finding | TimelineEvent | RootCause | Factor) -> bool:
+        return any(c.source == "case" for c in item.citations)
+
+    # Support spreads along the kept edges until nothing changes.
+    supported = {n for n, f in enumerate(checked.findings) if cited(f)}
+    grew = True
+    while grew:
+        grew = False
+        for n, f in enumerate(checked.findings):
+            if n not in supported and any(position[i] in supported for i in f.rests_on):
+                supported.add(n)
+                grew = True
+
+    def backed(item: Attack | Finding | TimelineEvent | RootCause | Factor) -> bool:
+        rests_on: tuple[str, ...] = getattr(item, "rests_on", ())
+        return cited(item) or any(position[i] in supported for i in rests_on)
+
+    unsupported = [
+        where
+        for where, item in [
+            ("attack", checked.attack),
+            *((f"findings[{i}]", f) for i, f in enumerate(checked.findings)),
+            *((f"timeline[{i}]", t) for i, t in enumerate(checked.timeline)),
+            ("root_cause", checked.root_cause),
+            *(
+                (f"contributing_factors[{i}]", f)
+                for i, f in enumerate(checked.contributing_factors)
+            ),
+        ]
+        if not backed(item)
+    ]
     return checked, Checks(tuple(rejected), tuple(unsupported))
 
 

@@ -4,7 +4,14 @@ import pytest
 
 from hindcast.cases import load_cases
 from hindcast.library import LibraryDocument
-from hindcast.search import LibraryLeak, allowed, library_filter, search_library
+from hindcast.search import (
+    LibraryLeak,
+    allowed,
+    case_chunks,
+    contents_digest,
+    library_filter,
+    search_library,
+)
 
 CASES = load_cases(Path("data/cases.yaml"))
 SCORED = CASES["cloudflare-2025-11-18"]
@@ -279,3 +286,29 @@ def test_the_search_request_gets_what_the_embedding_left() -> None:
     )
     [(_, kwargs)] = client.calls
     assert kwargs["read_timeout"] == 4.5
+
+
+def test_case_chunks_lists_what_the_filter_returns_in_id_order() -> None:
+    # What a case's searches can reach, recorded with each run (#47).
+    listed = [
+        {"id": "lib_later_s1_p0", "ref": "lib/later-pick/s1", "doc_id": "later-pick"}
+        | {"content": "B", "heading": "dropped"},
+        {"id": "lib_earlier_s1_p0", "ref": "lib/earlier-pick/s1", "doc_id": "earlier-pick"}
+        | {"content": "A"},
+    ]
+    client = FakeSearch(listed)
+    chunks = case_chunks(SCORED.case_id, cases=CASES, library=LIBRARY, client=client)
+    assert [c["id"] for c in chunks] == ["lib_earlier_s1_p0", "lib_later_s1_p0"]
+    assert set(chunks[0]) == {"id", "ref", "doc_id", "content"}
+    [(text, kwargs)] = client.calls
+    assert text == "*"
+    assert kwargs["filter"] == library_filter(SCORED, LIBRARY)
+
+
+def test_contents_digest_changes_with_any_chunk() -> None:
+    chunks = [{"id": "a", "ref": "lib/a/s1", "doc_id": "a", "content": "Body."}]
+    digest = contents_digest(chunks)
+    assert digest["chunks"] == 1
+    changed = contents_digest([chunks[0] | {"content": "Body!"}])
+    assert changed["sha256"] != digest["sha256"]
+    assert contents_digest(list(chunks)) == digest

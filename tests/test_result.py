@@ -1,5 +1,6 @@
 import copy
 import json
+from dataclasses import replace
 
 import pytest
 
@@ -157,10 +158,16 @@ def test_bad_citation_is_rejected_with_its_reason(citation: object, reason: str)
     assert [(r.where, r.ref, r.reason) for r in checks.rejected_citations] == [
         ("findings[0]", expected_ref, reason)
     ]
-    # The item survives without the citation, and with nothing left it is unsupported.
+    # The item survives without the citation, and with nothing left it is
+    # unsupported, as is everything that rests on it.
     assert checked.findings[0].claim == "Errors rose."
     assert checked.findings[0].citations == ()
-    assert checks.unsupported == ("findings[0]",)
+    assert checks.unsupported == (
+        "findings[0]",
+        "findings[1]",
+        "root_cause",
+        "contributing_factors[0]",
+    )
 
 
 def test_bad_citation_next_to_a_good_one_leaves_the_item_supported() -> None:
@@ -275,7 +282,12 @@ def test_library_only_finding_is_unsupported() -> None:
     checked, checks = check_citations(investigation, REFS, CASE, RETRIEVED)
     assert checked.findings[0].citations == (Citation("library", "lib/a/s1"),)
     assert checks.rejected_citations == ()
-    assert checks.unsupported == ("findings[0]",)
+    assert checks.unsupported == (
+        "findings[0]",
+        "findings[1]",
+        "root_cause",
+        "contributing_factors[0]",
+    )
 
 
 def test_library_only_attack_verdict_is_unsupported() -> None:
@@ -294,7 +306,12 @@ def test_rejected_case_citation_leaves_a_library_only_item_unsupported() -> None
     investigation = _with_first_finding_citations([LIB, {"source": "case", "ref": "dev/u99"}])
     _, checks = check_citations(investigation, REFS, CASE, RETRIEVED)
     assert [r.reason for r in checks.rejected_citations] == ["unknown"]
-    assert checks.unsupported == ("findings[0]",)
+    assert checks.unsupported == (
+        "findings[0]",
+        "findings[1]",
+        "root_cause",
+        "contributing_factors[0]",
+    )
 
 
 U2 = {"source": "case", "ref": "dev/u2"}
@@ -327,3 +344,119 @@ def test_shown_none_keeps_the_stored_file_check() -> None:
     investigation = _with_first_finding_citations([U1, {"source": "case", "ref": "dev/chart1"}])
     _, checks = check_citations(investigation, REFS, CASE)
     assert checks.rejected_citations == ()
+
+
+# Structural checks on rests_on (#25): each test names the exact rejection
+# and the items left unsupported.
+
+
+def finding(id: str, kind: str, rests_on: list[str], citations: list[dict]) -> dict:
+    return {"id": id, "kind": kind, "claim": "c", "rests_on": rests_on, "citations": citations}
+
+
+def structure(*findings: dict, root: list[str] | None = None) -> Investigation:
+    return parse(
+        doc(
+            findings=list(findings),
+            root_cause={"claim": "A change.", "rests_on": root or [], "citations": [U1]},
+            contributing_factors=[],
+        )
+    )
+
+
+def rejections(checks: Checks) -> list[tuple[str, str, str]]:
+    return [(r.where, r.ref, r.reason) for r in checks.rejected_citations]
+
+
+def test_observation_rests_on_rejected() -> None:
+    investigation = structure(
+        finding("f1", "observation", ["f2"], [U1]), finding("f2", "observation", [], [U1])
+    )
+    checked, checks = check_citations(investigation, REFS, CASE)
+    assert rejections(checks) == [("findings[0]", "f2", "observation-rests-on")]
+    assert checked.findings[0].rests_on == ()
+    assert checks.unsupported == ()
+
+
+def test_self_support_rejected() -> None:
+    investigation = structure(
+        finding("f1", "observation", [], [U1]), finding("f2", "inference", ["f2"], [])
+    )
+    checked, checks = check_citations(investigation, REFS, CASE)
+    assert rejections(checks) == [("findings[1]", "f2", "self-support")]
+    assert checked.findings[1].rests_on == ()
+    assert checks.unsupported == ("findings[1]",)
+
+
+def test_duplicate_id_reference_rejected_as_ambiguous() -> None:
+    investigation = structure(
+        finding("f1", "observation", [], [U1]),
+        finding("f1", "observation", [], [U1]),
+        finding("f2", "inference", ["f1"], []),
+    )
+    checked, checks = check_citations(investigation, REFS, CASE)
+    assert rejections(checks) == [("findings[2]", "f1", "ambiguous-finding")]
+    assert checked.findings[2].rests_on == ()
+    assert checks.unsupported == ("findings[2]",)
+
+
+def test_two_finding_cycle_rejected_both_edges() -> None:
+    investigation = structure(
+        finding("f1", "inference", ["f2"], []),
+        finding("f2", "inference", ["f1"], []),
+        root=["f1"],
+    )
+    checked, checks = check_citations(investigation, REFS, CASE)
+    assert rejections(checks) == [
+        ("findings[0]", "f2", "cycle"),
+        ("findings[1]", "f1", "cycle"),
+    ]
+    assert (checked.findings[0].rests_on, checked.findings[1].rests_on) == ((), ())
+    # The root cause keeps its own case citation.
+    assert checks.unsupported == ("findings[0]", "findings[1]")
+
+
+def test_three_finding_cycle_rejected() -> None:
+    investigation = structure(
+        finding("f1", "inference", ["f2"], []),
+        finding("f2", "inference", ["f3"], []),
+        finding("f3", "inference", ["f1", "f4"], []),
+        finding("f4", "observation", [], [U1]),
+    )
+    checked, checks = check_citations(investigation, REFS, CASE)
+    assert rejections(checks) == [
+        ("findings[0]", "f2", "cycle"),
+        ("findings[1]", "f3", "cycle"),
+        ("findings[2]", "f1", "cycle"),
+    ]
+    # The edge out of the cycle stays, so f3 rests on a cited observation.
+    assert checked.findings[2].rests_on == ("f4",)
+    assert checks.unsupported == ("findings[0]", "findings[1]")
+
+
+def test_inference_on_unsupported_finding_is_unsupported() -> None:
+    investigation = structure(
+        finding("f1", "inference", [], [LIB]),
+        finding("f2", "inference", ["f1"], []),
+        root=["f2"],
+    )
+    root_without_citation = replace(
+        investigation, root_cause=replace(investigation.root_cause, citations=())
+    )
+    _, checks = check_citations(root_without_citation, REFS, CASE, RETRIEVED)
+    assert checks.rejected_citations == ()
+    assert checks.unsupported == ("findings[0]", "findings[1]", "root_cause")
+
+
+def test_chain_resting_on_cited_observation_is_supported() -> None:
+    investigation = structure(
+        finding("f1", "observation", [], [U1]),
+        finding("f2", "inference", ["f1"], []),
+        finding("f3", "inference", ["f2"], []),
+        root=["f3"],
+    )
+    root_without_citation = replace(
+        investigation, root_cause=replace(investigation.root_cause, citations=())
+    )
+    _, checks = check_citations(root_without_citation, REFS, CASE)
+    assert checks == Checks()

@@ -88,6 +88,22 @@ def check_analyzer(analyzer_id: str, client: ContentUnderstandingClient, model_n
         )
 
 
+@functools.cache
+def check_defaults(client: ContentUnderstandingClient, model_name: str, deployment: str) -> None:
+    """Refuse when the resource's defaults run the model on another deployment (#41).
+
+    An analyzer names a model; the defaults map that name to the deployment
+    that runs it. Without this check the recorded model could name a
+    deployment that did not run. Cached: read once per process.
+    """
+    mapped = (client.get_defaults().model_deployments or {}).get(model_name)
+    if mapped != deployment:
+        raise AnalyzerDiffers(
+            f"the Content Understanding defaults map {model_name} to {mapped}, "
+            f"not to the extraction deployment {deployment}"
+        )
+
+
 def ensure_analyzers(client: ContentUnderstandingClient | None = None) -> list[str]:
     """Create the analyzers that do not exist yet; return the IDs created."""
     client = client or cu_client()
@@ -125,6 +141,7 @@ def analyze(
     """Run one checked analyzer on one file: the raw result, its usage, and the model."""
     client = client or cu_client()
     used = model()
+    check_defaults(client, used["name"], used["deployment"])
     check_analyzer(analyzer_id, client, used["name"])
     poller = client.begin_analyze_binary(analyzer_id, data, content_type=mime)
     result = poller.result()

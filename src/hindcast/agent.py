@@ -34,10 +34,13 @@ def _safe(deployment: str) -> str:
     return re.sub(r"[^A-Za-z0-9-]", "-", deployment)
 
 
-def agent_name(deployment: str) -> str:
+def agent_name(deployment: str, variant: str | None = None) -> str:
     # One agent per deployment: a run on the comparison model is a second agent
-    # with the same instructions, not a new version of this one.
-    return f"hindcast-investigator-{_safe(deployment)}"
+    # with the same instructions, not a new version of this one. An arm with
+    # other instructions or tools (hindcast.arms) is an agent of its own too,
+    # so the sealed agents' latest versions stay the ones the seals ran.
+    name = f"hindcast-investigator-{_safe(deployment)}"
+    return name if variant is None else f"{name}-{_safe(variant)}"
 
 
 def challenger_name(deployment: str) -> str:
@@ -48,6 +51,7 @@ def load_definition(
     deployment: str,
     prompt_path: Path = PROMPT_PATH,
     *,
+    tools: list[dict] = TOOL_DEFINITIONS,
     schema_name: str = "investigation",
     schema: dict = INVESTIGATION_SCHEMA,
 ) -> dict:
@@ -57,7 +61,7 @@ def load_definition(
         "model": deployment,
         "instructions": prompt_path.read_text(encoding="utf-8"),
         "reasoning": {"effort": EFFORT},
-        "tools": TOOL_DEFINITIONS,
+        "tools": tools,
         "text": {
             "format": {
                 "type": "json_schema",

@@ -19,6 +19,7 @@ The command prints refs, documents, dates, and scores, never the text.
 
 import argparse
 import functools
+import hashlib
 import json
 import time
 from collections.abc import Callable, Collection, Iterable, Mapping
@@ -204,3 +205,36 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+CHUNK_FIELDS = ("id", "ref", "doc_id", "content")
+
+
+def case_chunks(
+    case_id: str,
+    *,
+    cases: Mapping[str, Case] | None = None,
+    library: Mapping[str, LibraryDocument] | None = None,
+    client: SearchClientLike | None = None,
+) -> list[dict]:
+    """Every chunk the case's filter returns, in ID order: all its searches can reach.
+
+    The same filter as search_library, with no query, so a rebuild under the
+    same index name shows in what a run records (#47).
+    """
+    cases = cases if cases is not None else load_cases()
+    case = cases[case_id]
+    library = library if library is not None else load_library(Path("data/library.yaml"), cases)
+    if client is None:
+        from hindcast.config import SearchSettings, load_settings
+        from hindcast.index import clients
+
+        client = clients(load_settings(SearchSettings).search_index)[1]
+    found = client.search("*", filter=library_filter(case, library), select=list(CHUNK_FIELDS))
+    return sorted(({name: c[name] for name in CHUNK_FIELDS} for c in found), key=lambda c: c["id"])
+
+
+def contents_digest(chunks: list[dict]) -> dict:
+    """The count and SHA-256 of a chunk listing, for a result's provenance."""
+    data = json.dumps(chunks, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return {"chunks": len(chunks), "sha256": hashlib.sha256(data.encode()).hexdigest()}

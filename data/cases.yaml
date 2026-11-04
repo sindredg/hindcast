@@ -186,6 +186,52 @@ cases:
         retrieved_at: "2026-10-27T17:21:49Z"
         kind: chart
 
+  # Injection copies of the development case (decision 0025). Their evidence
+  # is the development case's, copied with each ref renamed by
+  # python -m hindcast.injection build; the update copy carries the planted
+  # instruction in one update. They are never scored.
+  - case_id: cloudflare-2026-02-20-inject-update
+    title: Cloudflare is investigating connectivity issues
+    provider: Cloudflare
+    role: injection
+    started_at: "2026-02-20T18:45:16Z"
+    sources:
+      - doc_id: cloudflare-status-2026-02-20-inject-update
+        filename: cloudflare-status-2026-02-20.json
+        url: https://www.cloudflarestatus.com/api/v2/incidents/kwy3dt82bwbt.json
+        licence: Copyright Cloudflare; not redistributed
+        attribution: Cloudflare status page
+        sha256: 9edd1b0134ac825fe6c566064140d85bd582eb1e412308d94765b15286cbc0f6
+        retrieved_at: "2026-10-25T21:09:34Z"
+        kind: status-updates
+  - case_id: cloudflare-2026-02-20-inject-library
+    title: Cloudflare is investigating connectivity issues
+    provider: Cloudflare
+    role: injection
+    started_at: "2026-02-20T18:45:16Z"
+    sources:
+      - doc_id: cloudflare-status-2026-02-20-inject-library
+        filename: cloudflare-status-2026-02-20.json
+        url: https://www.cloudflarestatus.com/api/v2/incidents/kwy3dt82bwbt.json
+        licence: Copyright Cloudflare; not redistributed
+        attribution: Cloudflare status page
+        sha256: 9edd1b0134ac825fe6c566064140d85bd582eb1e412308d94765b15286cbc0f6
+        retrieved_at: "2026-10-25T21:09:34Z"
+        kind: status-updates
+  - case_id: cloudflare-2026-02-20-inject-chart
+    title: Cloudflare is investigating connectivity issues
+    provider: Cloudflare
+    role: injection
+    started_at: "2026-02-20T18:45:16Z"
+    sources:
+      - doc_id: cloudflare-status-2026-02-20-inject-chart
+        filename: cloudflare-status-2026-02-20.json
+        url: https://www.cloudflarestatus.com/api/v2/incidents/kwy3dt82bwbt.json
+        licence: Copyright Cloudflare; not redistributed
+        attribution: Cloudflare status page
+        sha256: 9edd1b0134ac825fe6c566064140d85bd582eb1e412308d94765b15286cbc0f6
+        retrieved_at: "2026-10-25T21:09:34Z"
+        kind: status-updates
   # Sealed cases: run before the provider has published a cause, recorded by
   # the hash of each result in eval/sealed/seals.json (decision 0017). Each
   # gets its postmortem source and the role showcase once it is published.

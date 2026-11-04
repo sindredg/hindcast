@@ -1,9 +1,12 @@
 """The investigator: a tool loop over one case, with a call cap and a time cap.
 
-    python -m hindcast.investigate <case_id>
+    python -m hindcast.investigate <case_id> [--arm <arm>] [--deployment <name>]
+        [--screens on|off] [--out <dir>]
 
-writes build/investigations/<case_id>/<UTC time>-v<agent version>.json and
-prints the status, the counts, and the usage, never the investigation text.
+writes build/investigations/<case_id>/<UTC time>-v<agent version>.json (a
+single-search run, which has no agent version: <UTC time>-single-search.json)
+and prints the status, the counts, and the usage, never the investigation
+text. --screens off is refused for every case that is not an injection copy.
 
 Hindcast runs the loop, not the service: one model call, run every function
 call it returns, send the outputs back, repeat. The caps and the checks hold
@@ -13,7 +16,8 @@ too.
 The result file lists every tool call in order, with each search's query and
 the refs it returned, never the hit text: a library citation is kept only for
 a ref in that list (hindcast.result). The provenance names the library
-registry, the index, and the embedding model the searches ran on.
+registry, the index, the embedding model the searches ran on, and the count
+and hash of every chunk the case's filter returns.
 
 Prompt Shields screens every tool item before the model reads it, and PII
 detection checks the final answer before it is written (hindcast.tools,
@@ -38,13 +42,14 @@ from typing import Any, Literal, Protocol
 from hindcast import telemetry
 from hindcast.agent import (
     CHALLENGER_PROMPT,
+    EFFORT,
     agent_name,
     challenger_definition,
     challenger_name,
     ensure_agent_version,
-    load_definition,
     prompt_provenance,
 )
+from hindcast.arms import ARMS, Arm, agent_variant, arm_definition
 from hindcast.cases import Case, load_cases
 from hindcast.config import ModelSettings, SafetySettings, SearchSettings, load_settings
 from hindcast.costs import PriceTable, load_prices, run_cost
@@ -59,7 +64,7 @@ from hindcast.result import (
     parse_investigation,
 )
 from hindcast.safety import Pii, PiiError, ScreenError
-from hindcast.search import search_library
+from hindcast.search import case_chunks, contents_digest, search_library
 from hindcast.tools import CaseTools, load_evidence
 
 EVIDENCE_DIR = Path("build/evidence")
@@ -99,6 +104,8 @@ class Usage:
     # The price table holds short-context rates; the cost checks this against
     # the table's limit.
     max_call_input_tokens: int = 0
+    # Part of output_tokens, as the service reports it per response (#26).
+    reasoning_tokens: int = 0
 
 
 @dataclass(frozen=True)
@@ -110,6 +117,20 @@ class RunResult:
     checks: Checks
     usage: Usage
     tool_calls: tuple[dict, ...] = ()
+    # The reasoning effort each response says it applied, distinct, in order.
+    efforts: tuple[str, ...] = ()
+
+
+def no_result(result: RunResult) -> bool:
+    """True when an attempt produced nothing to keep, so another may follow.
+
+    A time cap on the first call writes a result with no model output, and a
+    failed model call ends the run with no investigation (decision 0017
+    rule 6; the evaluation batch uses the same rule).
+    """
+    return result.usage.output_tokens == 0 or (result.incomplete_reason or "").startswith(
+        "model-error"
+    )
 
 
 class Span(Protocol):
@@ -202,7 +223,8 @@ def _loop(
 ) -> RunResult:
     began = clock()
     model_calls = tool_calls = input_tokens = cached_tokens = output_tokens = 0
-    max_call_input = 0
+    max_call_input = reasoning_tokens = 0
+    efforts: list[str] = []
     record: list[dict] = []
     shield = tools.shield
     screens_before = (shield.calls, shield.records) if shield else (0, 0)
@@ -223,9 +245,10 @@ def _loop(
             pii_calls=checked[0] - pii_before[0],
             pii_records=checked[1] - pii_before[1],
             max_call_input_tokens=max_call_input,
+            reasoning_tokens=reasoning_tokens,
         )
         status = "complete" if reason is None else "incomplete"
-        return RunResult(status, reason, result, checks, usage, tuple(record))
+        return RunResult(status, reason, result, checks, usage, tuple(record), tuple(efforts))
 
     items: list[dict] = start
     previous: str | None = None
@@ -244,22 +267,36 @@ def _loop(
                 current.set_attribute("seconds", f"{clock() - called:.3f}")
                 current.set_attribute("timed_out", "true")
                 return end("time-cap")
+            except Exception as error:
+                # A 429, a refused request, a dropped connection: the run ends
+                # with a record and the usage so far (#23). Only the type is
+                # kept, since the message can carry the service's response.
+                current.set_attribute("seconds", f"{clock() - called:.3f}")
+                return end(f"model-error: {type(error).__name__}")
             current.set_attribute("seconds", f"{clock() - called:.3f}")
+            # The effort the agent definition asks for is a request; the
+            # response says what ran (#26).
+            effort = getattr(getattr(response, "reasoning", None), "effort", None)
+            if effort and effort not in efforts:
+                efforts.append(effort)
 
+            if response.usage is not None:
+                # Counted before the status check: a cut answer was billed too.
+                input_tokens += response.usage.input_tokens
+                max_call_input = max(max_call_input, response.usage.input_tokens)
+                details = response.usage.input_tokens_details
+                cached_tokens += details.cached_tokens if details else 0
+                output_tokens += response.usage.output_tokens
+                out_details = getattr(response.usage, "output_tokens_details", None)
+                reasoning_tokens += getattr(out_details, "reasoning_tokens", 0) or 0
+                current.set_attribute("input_tokens", str(response.usage.input_tokens))
+                current.set_attribute("output_tokens", str(response.usage.output_tokens))
             if response.status != "completed":
-                # A cut answer (output limit, content filter) is a failed call, as
-                # in hindcast.models: it propagates and nothing is written.
+                # A cut answer (output limit, content filter) is a failed call.
                 reason = getattr(response.incomplete_details, "reason", None)
-                raise RuntimeError(f"model response is {response.status}: {reason}")
+                return end(f"model-error: response {response.status}: {reason}")
             if response.usage is None:
-                raise RuntimeError("model response carries no token usage")
-            input_tokens += response.usage.input_tokens
-            max_call_input = max(max_call_input, response.usage.input_tokens)
-            details = response.usage.input_tokens_details
-            cached_tokens += details.cached_tokens if details else 0
-            output_tokens += response.usage.output_tokens
-            current.set_attribute("input_tokens", str(response.usage.input_tokens))
-            current.set_attribute("output_tokens", str(response.usage.output_tokens))
+                return end("model-error: no usage")
 
         calls = [item for item in response.output if item.type == "function_call"]
         if not calls:
@@ -372,7 +409,16 @@ def code_provenance(repo: Path = Path(".")) -> dict:
     status = _git(repo, "status", "--porcelain", "--", *CODE_PATHS)
     if commit.returncode != 0 or status.returncode != 0:
         raise RuntimeError("cannot read the Git state of the code")
-    return {"commit": commit.stdout.strip(), "dirty": bool(status.stdout.strip())}
+    # The tree's hash survives a rebase or a squash merge, which rewrite the
+    # commit (#39); it names the code only when dirty is false.
+    tree = _git(repo, "rev-parse", "--verify", "--quiet", "HEAD:src")
+    if tree.returncode != 0:
+        raise RuntimeError("cannot read the tree of src/")
+    return {
+        "commit": commit.stdout.strip(),
+        "dirty": bool(status.stdout.strip()),
+        "src_tree": tree.stdout.strip(),
+    }
 
 
 def write_result(
@@ -385,8 +431,12 @@ def write_result(
     out_dir: Path,
     now: datetime,
     cost: dict | None = None,
+    filename: str | None = None,
+    run_id: str | None = None,
 ) -> Path:
-    document = {
+    """Write the result once; filename defaults to <UTC time>-v<agent version>.json."""
+    document: dict[str, Any] = {} if run_id is None else {"run_id": run_id}
+    document |= {
         "case_id": case_id,
         "agent": agent,
         "model": model,
@@ -401,9 +451,10 @@ def write_result(
         },
         "tool_calls": list(result.tool_calls),
         "usage": asdict(result.usage),
+        "reasoning": {"requested": EFFORT, "applied": list(result.efforts)},
         "cost": cost,
     }
-    path = out_dir / case_id / f"{now:%Y%m%dT%H%M%SZ}-v{agent['version']}.json"
+    path = out_dir / case_id / (filename or f"{now:%Y%m%dT%H%M%SZ}-v{agent['version']}.json")
     path.parent.mkdir(parents=True, exist_ok=True)
     # "x" refuses to overwrite an earlier run.
     with path.open("x", encoding="utf-8") as file:
@@ -489,12 +540,24 @@ def prepare(
     *,
     deployment: str | None = None,
     challenger: bool = False,
+    arm: Arm = ARMS["hindcast"],
+    screens: bool = True,
 ) -> Setup:
     """Read the evidence, make the agent version, and record what the run rests on.
 
-    challenger=True makes the challenger agent instead (hindcast.challenge);
-    deployment defaults to the configured chat deployment.
+    challenger=True makes the challenger agent instead (hindcast.challenge).
+    The arm (hindcast.arms) sets the prompt, the tools, and the deployment,
+    which defaults to the configured chat or comparison deployment. A
+    single-search arm makes no agent: its turn calls the deployment itself.
+    screens=False runs without Prompt Shields, for an injection case only.
     """
+    if not screens and case.role != "injection":
+        # The second injection layer measures the model without the screens
+        # (decision 0025); every other run is screened, so this is refused
+        # before any cloud call.
+        raise PermissionError(
+            f"{case.case_id} is a {case.role} case: screens off is for injection cases only"
+        )
     evidence_path = (evidence_dir or EVIDENCE_DIR) / f"{case.case_id}.json"
     evidence = load_evidence(evidence_path)
     # Missing search or safety settings fail here, before the agent version is made.
@@ -506,45 +569,98 @@ def prepare(
 
     # One embedder and one search client for the run; the case is bound here
     # and the model supplies only the query. The search client makes no
-    # retries: a retry would run past the time left (issue #49).
-    embed = index.embedder(search_settings.embedding_dimensions)
-    search = functools.partial(
-        search_library,
-        case.case_id,
-        embed=embed,
-        client=index.clients(search_settings.search_index, retry_total=0)[1],
-    )
-    tools = CaseTools(evidence, search, safety.shield_client(safety_settings))
+    # retries: a retry would run past the time left (issue #49). The
+    # library-off arm binds none, so no search can run.
+    embed = search = contents = None
+    index_name = search_settings.search_index
+    if arm.library:
+        embed = index.embedder(search_settings.embedding_dimensions)
+        bound: dict[str, Any] = {}
+        if case.role == "injection":
+            # An injection case searches its own index, which holds the
+            # planted pages; the production index never does (decision 0025).
+            from hindcast import cases as registry
+            from hindcast import injection
+            from hindcast.library import load_library
+            from hindcast.search import extract_refs
 
-    deployment = deployment or load_settings(ModelSettings).chat_deployment
+            known = registry.load_cases()
+            index_name = injection.INDEX
+            bound = {
+                "cases": known,
+                "library": injection.injection_library(
+                    load_library(LIBRARY_REGISTRY, known), known
+                ),
+                "refs": extract_refs() | extract_refs(injection.EXTRACTS_DIR),
+            }
+        search_client = index.clients(index_name, retry_total=0)[1]
+        search = functools.partial(
+            search_library, case.case_id, embed=embed, client=search_client, **bound
+        )
+        # What the case's searches can reach in this index, recorded with the
+        # run: a rebuild under the same name changes the hash (#47).
+        listing = case_chunks(
+            case.case_id,
+            cases=bound.get("cases"),
+            library=bound.get("library"),
+            client=search_client,
+        )
+        if not listing:
+            raise ValueError(f"{case.case_id}: {index_name} returned no library chunks")
+        contents = contents_digest(listing)
+    shield = safety.shield_client(safety_settings) if screens else None
+    tools = CaseTools(evidence, search, shield)
+
+    model_settings = load_settings(ModelSettings)
+    deployment = deployment or (
+        model_settings.compare_deployment
+        if arm.deployment == "compare"
+        else model_settings.chat_deployment
+    )
     prices = load_prices()
     if deployment not in prices.models:
         # Before the agent version and the first model call: a run with no
         # price would be written without a cost.
         raise KeyError(f"{deployment} is not in price table version {prices.version}")
-    if challenger:
-        definition, name = challenger_definition(deployment), challenger_name(deployment)
+    if challenger or arm.kind == "agent":
+        if challenger:
+            definition, name = challenger_definition(deployment), challenger_name(deployment)
+        else:
+            definition = arm_definition(arm, deployment)
+            name = agent_name(deployment, agent_variant(arm))
+        version = ensure_agent_version(models.project_client().agents, name, definition)
+        turn = agent_turn(models.openai_client(), name, version)
+        agent: dict = {"name": name, "version": version}
     else:
-        definition, name = load_definition(deployment), agent_name(deployment)
-    version = ensure_agent_version(models.project_client().agents, name, definition)
+        from hindcast.single import direct_turn
+
+        instructions = arm.prompt.read_text(encoding="utf-8")
+        turn = direct_turn(models.openai_client(), deployment, instructions)
+        agent = {"name": None, "version": None}
     model_name, model_version = models.deployment_model(deployment)
     provenance = {
-        "prompt": prompt_provenance(CHALLENGER_PROMPT) if challenger else prompt_provenance(),
+        "prompt": prompt_provenance(CHALLENGER_PROMPT if challenger else arm.prompt),
         "code": code_provenance(),
         "evidence_sha256": hashlib.sha256(evidence_path.read_bytes()).hexdigest(),
         "library": {
             "registry": prompt_provenance(LIBRARY_REGISTRY),
-            "index": search_settings.search_index,
+            "index": index_name,
             "search_api_version": index.SEARCH_API_VERSION,
             "embedding": index.embedding_model()
             | {"dimensions": search_settings.embedding_dimensions},
-        },
+            "contents": contents,
+        }
+        if arm.library
+        else None,
     }
+    if not challenger:
+        provenance["arm"] = arm.name
+    provenance["screens"] = screens
     return Setup(
-        turn=agent_turn(models.openai_client(), name, version),
+        turn=turn,
         tools=tools,
         pii=safety.pii_client(safety_settings),
-        agent={"name": name, "version": version},
+        agent=agent,
         model={"deployment": deployment, "name": model_name, "version": model_version},
         provenance=provenance,
         prices=prices,
@@ -555,6 +671,11 @@ def prepare(
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="python -m hindcast.investigate")
     parser.add_argument("case_id")
+    parser.add_argument("--arm", choices=sorted(ARMS), default="hindcast")
+    parser.add_argument("--deployment", help="overrides the arm's configured deployment")
+    parser.add_argument(
+        "--screens", choices=("on", "off"), default="on", help="off: injection cases only"
+    )
     parser.add_argument("--out", type=Path, default=OUT_DIR)
     args = parser.parse_args(argv)
 
@@ -564,10 +685,17 @@ def main(argv: list[str] | None = None) -> None:
     case = cases[args.case_id]
     # Both refusals come before any cloud call.
     check_case_allowed(case, RUBRIC_LOCK)
+    arm = ARMS[args.arm]
     telemetry.configure(service=telemetry.INVESTIGATOR)
-    setup = prepare(case)
-    result = run_investigation(setup.turn, setup.tools, case_id=case.case_id, pii=setup.pii)
+    setup = prepare(case, deployment=args.deployment, arm=arm, screens=args.screens == "on")
+    if arm.kind == "single":
+        from hindcast.single import run_single
+
+        result = run_single(setup, case)
+    else:
+        result = run_investigation(setup.turn, setup.tools, case_id=case.case_id, pii=setup.pii)
     cost = setup.cost(result.usage)
+    now = datetime.now(UTC)
     path = write_result(
         result,
         case_id=case.case_id,
@@ -575,8 +703,10 @@ def main(argv: list[str] | None = None) -> None:
         model=setup.model,
         provenance=setup.provenance,
         out_dir=args.out,
-        now=datetime.now(UTC),
+        now=now,
         cost=cost,
+        # A single-search run has no agent version to name the file by.
+        filename=None if arm.kind == "agent" else f"{now:%Y%m%dT%H%M%SZ}-{arm.name}.json",
     )
     print(summary(result, path, cost))
 

@@ -1,0 +1,28 @@
+{
+  "snapshots": [
+    {
+      "case_id": "cloudflare-2026-10-20",
+      "index": "hindcast-library-1024",
+      "filter": "published_at lt 2026-10-20T00:00:00Z",
+      "chunks": 267,
+      "sha256": "541d103e6fb70287e1cef71a23e9f9654c3638ed8c9679110189d05b848f0911",
+      "taken_at": "2026-11-03T21:24:44Z"
+    },
+    {
+      "case_id": "github-2026-10-21",
+      "index": "hindcast-library-1024",
+      "filter": "published_at lt 2026-10-21T00:00:00Z",
+      "chunks": 267,
+      "sha256": "67885812c6f412781ce4218b577eb58005c4357436e50202798ef72d9a0495dd",
+      "taken_at": "2026-11-03T21:24:49Z"
+    },
+    {
+      "case_id": "github-2026-10-22",
+      "index": "hindcast-library-1024",
+      "filter": "published_at lt 2026-10-22T00:00:00Z",
+      "chunks": 267,
+      "sha256": "b51e9d08833f6dd7b0e9885e03999cd7a2392704cf30c36c103c0fb1c3f80040",
+      "taken_at": "2026-11-03T21:24:52Z"
+    }
+  ]
+}
