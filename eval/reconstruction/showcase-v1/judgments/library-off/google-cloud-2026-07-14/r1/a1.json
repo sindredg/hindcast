@@ -1,0 +1,179 @@
+{
+  "run_id": "library-off/google-cloud-2026-07-14/r1/a1",
+  "case_id": "google-cloud-2026-07-14",
+  "kinds": {
+    "attack": "inference",
+    "findings[0]": "observation",
+    "findings[1]": "observation",
+    "findings[2]": "observation",
+    "findings[3]": "observation",
+    "findings[4]": "observation",
+    "findings[5]": "observation",
+    "findings[6]": "inference",
+    "timeline[0]": "observation",
+    "timeline[1]": "observation",
+    "timeline[2]": "observation",
+    "timeline[3]": "observation",
+    "timeline[4]": "observation",
+    "timeline[5]": "observation",
+    "timeline[6]": "observation",
+    "root_cause": "inference",
+    "contributing_factors[0]": "inference",
+    "contributing_factors[1]": "inference",
+    "contributing_factors[2]": "inference"
+  },
+  "code_unsupported": [],
+  "judge": {
+    "model": "claude-opus-5-5",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "9de219e1f08dd185277139c88c3957bc4f67a3a4cf94e90e7523281cfd202a22",
+    "input_sha256": "05c644afaf22260ab3fee6a41eb1ad7bbd05b2844cc2f8bf86706ca017b6efa9",
+    "judged_at": "2026-11-04T17:21:43Z",
+    "request_id": "req_011CgiGpgXLSGWPBNFMqdoYp",
+    "response_model": "claude-opus-5-5"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 7356,
+    "output_tokens": 2306,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 2429
+  },
+  "judgment": {
+    "run_items": {
+      "attack": {
+        "reason": "u3 and u4 describe network failures and a configuration update but say nothing about intent, so 'cannot tell' follows from what is cited.",
+        "supported": true
+      },
+      "findings[0]": {
+        "reason": "u1 and u2 state zonal outages across multiple regions and inter-site communication failures for GCVE stretched-cluster customers.",
+        "supported": true
+      },
+      "findings[1]": {
+        "reason": "u1 and u2 say Storage and Compute appear unaffected and VMs are running, though connectivity may be degraded.",
+        "supported": true
+      },
+      "findings[2]": {
+        "reason": "u3 states the inter-zone failures, the BGP session flapping, the lost witness connectivity, the inability to synchronize state, and the isolated VMs.",
+        "supported": true
+      },
+      "findings[3]": {
+        "reason": "u4 states that a recent configuration update is the likely cause of the inter-zone network disruption.",
+        "supported": true
+      },
+      "findings[4]": {
+        "reason": "u5 states that a remediation rollout is in progress and that northamerica-northeast2 was not impacted.",
+        "supported": true
+      },
+      "findings[5]": {
+        "reason": "u3 and u4 recommend VM migration to the healthy secondary zone and consulting Support because of failover risks.",
+        "supported": true
+      },
+      "findings[6]": {
+        "reason": "This follows directly from f3 and f4, both supported observations, and adds nothing new.",
+        "supported": true
+      },
+      "timeline[0]": {
+        "reason": "u1 states the issue began 2026-07-14 at 10:00 PDT, which is 17:00Z.",
+        "supported": true
+      },
+      "timeline[1]": {
+        "reason": "u1 is timestamped 20:24:18Z and states this content.",
+        "supported": true
+      },
+      "timeline[2]": {
+        "reason": "u2 is timestamped 21:31:52Z and states the zone connectivity issue causing synchronization issues.",
+        "supported": true
+      },
+      "timeline[3]": {
+        "reason": "u3 is timestamped 22:16:55Z and states this content.",
+        "supported": true
+      },
+      "timeline[4]": {
+        "reason": "u4 is timestamped 23:05:33Z and identifies the configuration update and the ongoing remediation.",
+        "supported": true
+      },
+      "timeline[5]": {
+        "reason": "u5 is timestamped 00:13:18Z and states the rollout and that northamerica-northeast2 was not impacted.",
+        "supported": true
+      },
+      "timeline[6]": {
+        "reason": "u9 is an AVAILABLE status update at 05:34:26Z with its text withheld, as the item states.",
+        "supported": true
+      },
+      "root_cause": {
+        "reason": "This rests on the supported f4 and f7, which give a configuration update as the likely cause, and it correctly says the mechanism is not given.",
+        "supported": true
+      },
+      "contributing_factors[0]": {
+        "reason": "u3 states that the witness being unreachable prevents safe state sync and leaves VMs isolated.",
+        "supported": true
+      },
+      "contributing_factors[1]": {
+        "reason": "This rests on f1 and f5; u5 states that northamerica-northeast2 was not impacted.",
+        "supported": true
+      },
+      "contributing_factors[2]": {
+        "reason": "This restates f6, which u3 supports.",
+        "supported": true
+      }
+    },
+    "key_items": {
+      "attack": {
+        "run_items": [
+          "attack"
+        ],
+        "reason": "The run's attack verdict is 'cannot tell', and an open question asks about hostile action.",
+        "outcome": "abstained"
+      },
+      "root_cause": {
+        "run_items": [
+          "root_cause",
+          "findings[6]"
+        ],
+        "reason": "The run names the configuration update as the trigger of the inter-zone disruption. It lacks the mechanism: the control-plane routing gap that made hosts drop the private IP range.",
+        "outcome": "partial"
+      },
+      "contributing_factors/0": {
+        "run_items": [],
+        "reason": "No run item mentions the payload passing validation or safeguards failing to block the deployment.",
+        "outcome": "missed"
+      },
+      "contributing_factors/1": {
+        "run_items": [],
+        "reason": "No run item says health checks such as BGP/BFD ran on separate address spaces and missed the dropped range; the run only reports BGP flapping.",
+        "outcome": "missed"
+      },
+      "contributing_factors/2": {
+        "run_items": [],
+        "reason": "No run item mentions non-vSAN-replicated workloads pinned to a single zone.",
+        "outcome": "missed"
+      },
+      "timeline/0": {
+        "run_items": [
+          "timeline[0]"
+        ],
+        "reason": "timeline[0] gives the start at 17:00Z from u1, matching the key.",
+        "outcome": "supported-hit"
+      },
+      "timeline/1": {
+        "run_items": [
+          "timeline[4]"
+        ],
+        "reason": "timeline[4] at 23:05:33Z reports the configuration update named as the likely cause, matching the key.",
+        "outcome": "supported-hit"
+      },
+      "timeline/2": {
+        "run_items": [],
+        "reason": "The run only records the AVAILABLE status change at 05:34Z (u9), a different event, and never states when connectivity was restored.",
+        "outcome": "missed"
+      }
+    }
+  },
+  "error": null,
+  "arm": "library-off",
+  "run_sha256": "b2f98638beac74230fcd8e3cffd83844c11b27d6399f80bbf0d48c4c87343afa",
+  "code_commit": "ac7de8a41095f762cca58bf10ec0faf5b086a8b0",
+  "earlier_errors": []
+}

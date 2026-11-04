@@ -1,0 +1,272 @@
+{
+  "run_id": "comparison/cloudflare-2025-11-18/r3/a1",
+  "case_id": "cloudflare-2025-11-18",
+  "kinds": {
+    "attack": "inference",
+    "findings[0]": "observation",
+    "findings[1]": "observation",
+    "findings[2]": "observation",
+    "findings[3]": "observation",
+    "findings[4]": "observation",
+    "findings[5]": "observation",
+    "findings[6]": "inference",
+    "findings[7]": "inference",
+    "timeline[0]": "observation",
+    "timeline[1]": "observation",
+    "timeline[2]": "observation",
+    "timeline[3]": "observation",
+    "timeline[4]": "observation",
+    "timeline[5]": "observation",
+    "timeline[6]": "observation",
+    "timeline[7]": "observation",
+    "timeline[8]": "observation",
+    "timeline[9]": "observation",
+    "timeline[10]": "observation",
+    "timeline[11]": "observation",
+    "timeline[12]": "observation",
+    "root_cause": "inference",
+    "contributing_factors[0]": "inference",
+    "contributing_factors[1]": "inference"
+  },
+  "code_unsupported": [],
+  "judge": {
+    "model": "claude-opus-5-5",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "9de219e1f08dd185277139c88c3957bc4f67a3a4cf94e90e7523281cfd202a22",
+    "input_sha256": "0a23ba54c1f4bfe96bcdc0b957cc7ab5ef542d4f2b49f80c126a6dc3e9e0b9e8",
+    "judged_at": "2026-11-04T17:19:41Z",
+    "request_id": "req_011CgiGfgEiRmXRKN3eJDeQY",
+    "response_model": "claude-opus-5-5"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 10371,
+    "output_tokens": 4788,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 2429
+  },
+  "judgment": {
+    "run_items": {
+      "attack": {
+        "reason": "The 'cannot tell' verdict follows from u1 and u7, which describe an internal degradation and an identified fix without addressing hostile activity. It correctly declines to read intent from the chart1 description.",
+        "supported": true
+      },
+      "findings[0]": {
+        "reason": "u1 states internal degradation with intermittent impact, and u3 at 12:21 reports recovery with continuing higher-than-normal error rates.",
+        "supported": true
+      },
+      "findings[1]": {
+        "reason": "u6 states WARP access in London was disabled during remediation, causing connection failures, and u8 states it was re-enabled.",
+        "supported": true
+      },
+      "findings[2]": {
+        "reason": "u7 at 13:09 says the issue was identified, and u8 at 13:13 says Access and WARP errors returned to pre-incident rates while other services were still being restored.",
+        "supported": true
+      },
+      "findings[3]": {
+        "reason": "u9 says work continued on application services, and u12 at 14:34 says dashboard services were restored while broad application services impact remained.",
+        "supported": true
+      },
+      "findings[4]": {
+        "reason": "u13 announces the fix, and u14, u16, u17 and u18 report later dashboard issues, remaining post-deployment issues, intermittent bot-score impact and intermittent errors.",
+        "supported": true
+      },
+      "findings[5]": {
+        "reason": "u19 and u20 report errors improving, u21 at 17:44 reports normal operation, and u22 is resolved with its text withheld.",
+        "supported": true
+      },
+      "findings[6]": {
+        "reason": "Staged recovery follows directly from the supported findings F3–F6.",
+        "supported": true
+      },
+      "findings[7]": {
+        "reason": "This is a cautious statement that the chart description only qualitatively matches F1, F4 and F6 and cannot establish magnitude or cause. It follows from those findings.",
+        "supported": true
+      },
+      "timeline[0]": {
+        "reason": "u1 at 11:48:27 states it.",
+        "supported": true
+      },
+      "timeline[1]": {
+        "reason": "u3 at 12:21:58 states it.",
+        "supported": true
+      },
+      "timeline[2]": {
+        "reason": "u6 at 13:04:09 states it.",
+        "supported": true
+      },
+      "timeline[3]": {
+        "reason": "u7 at 13:09:53 states that the issue is identified and a fix is being implemented.",
+        "supported": true
+      },
+      "timeline[4]": {
+        "reason": "u8 at 13:13:39 states that Access and WARP recovered and London WARP was re-enabled.",
+        "supported": true
+      },
+      "timeline[5]": {
+        "reason": "u12 at 14:34:03 states it.",
+        "supported": true
+      },
+      "timeline[6]": {
+        "reason": "u13 at 14:42:37 states that a fix is implemented and the incident is believed resolved.",
+        "supported": true
+      },
+      "timeline[7]": {
+        "reason": "u14 at 14:57:16 states that some customers still have dashboard login or usage issues.",
+        "supported": true
+      },
+      "timeline[8]": {
+        "reason": "u16 at 15:40:01 states it.",
+        "supported": true
+      },
+      "timeline[9]": {
+        "reason": "u17 at 16:04:17 states that bot scores are impacted intermittently.",
+        "supported": true
+      },
+      "timeline[10]": {
+        "reason": "u18 at 16:27:16 states it.",
+        "supported": true
+      },
+      "timeline[11]": {
+        "reason": "u21 at 17:44:58 states it.",
+        "supported": true
+      },
+      "timeline[12]": {
+        "reason": "u22 at 19:28:36 is resolved with its text withheld.",
+        "supported": true
+      },
+      "root_cause": {
+        "reason": "That the cause cannot be determined follows from u7, which identifies the issue without naming it, and from the other updates. The library citation is only used to say symptoms are non-diagnostic and adds no fact about this outage.",
+        "supported": true
+      },
+      "contributing_factors[0]": {
+        "reason": "Rests on F2 and u6, which explicitly state that disabling London WARP caused connection failures.",
+        "supported": true
+      },
+      "contributing_factors[1]": {
+        "reason": "Follows from F5 and F7: u16 and u18 show residual issues after the 14:42 fix.",
+        "supported": true
+      }
+    },
+    "key_items": {
+      "attack": {
+        "run_items": [
+          "attack"
+        ],
+        "reason": "The run gives the verdict 'cannot tell' rather than 'not an attack'.",
+        "outcome": "abstained"
+      },
+      "root_cause": {
+        "run_items": [
+          "root_cause"
+        ],
+        "reason": "The root cause states it cannot be determined and that the component and trigger are undisclosed. An open question asks what component failed and what triggered it.",
+        "outcome": "abstained"
+      },
+      "contributing_factors/0": {
+        "run_items": [],
+        "reason": "No run item mentions the unfiltered database query or the duplicate columns.",
+        "outcome": "missed"
+      },
+      "contributing_factors/1": {
+        "run_items": [],
+        "reason": "No run item mentions the feature limit or a proxy panic.",
+        "outcome": "missed"
+      },
+      "contributing_factors/2": {
+        "run_items": [],
+        "reason": "Intermittent recovery is mentioned in u3, but the run never attributes it to periodic file generation or a mixed ClickHouse rollout.",
+        "outcome": "missed"
+      },
+      "contributing_factors/3": {
+        "run_items": [],
+        "reason": "No run item mentions rapid network-wide propagation of a configuration file.",
+        "outcome": "missed"
+      },
+      "contributing_factors/4": {
+        "run_items": [],
+        "reason": "No run item mentions the team suspecting a DDoS or the status page outage.",
+        "outcome": "missed"
+      },
+      "contributing_factors/5": {
+        "run_items": [],
+        "reason": "No run item mentions debugging or observability systems consuming CPU.",
+        "outcome": "missed"
+      },
+      "contributing_factors/6": {
+        "run_items": [],
+        "reason": "contributing_factors[1] mentions residual issues but explicitly gives no cause. It does not state a login backlog or retries overwhelming the dashboard.",
+        "outcome": "missed"
+      },
+      "timeline/0": {
+        "run_items": [],
+        "reason": "The 11:05 database access change is not in the run.",
+        "outcome": "missed"
+      },
+      "timeline/1": {
+        "run_items": [],
+        "reason": "The run's first event, timeline[0] at 11:48, is the public notice, and the run explicitly declines to give an onset time. The 11:20 failure onset is not stated.",
+        "outcome": "missed"
+      },
+      "timeline/2": {
+        "run_items": [],
+        "reason": "The 11:28 start of customer errors is not stated.",
+        "outcome": "missed"
+      },
+      "timeline/3": {
+        "run_items": [],
+        "reason": "The 11:31 automated detection and the incident call are not stated.",
+        "outcome": "missed"
+      },
+      "timeline/4": {
+        "run_items": [
+          "timeline[4]"
+        ],
+        "reason": "timeline[4] at 13:13 (u8) reports changes that let Access recover to pre-incident error rates. This is within 30 minutes of the 13:05 Access bypass that reduced impact.",
+        "outcome": "supported-hit"
+      },
+      "timeline/5": {
+        "run_items": [],
+        "reason": "No run item mentions focusing on rollback of the configuration file at 13:37.",
+        "outcome": "missed"
+      },
+      "timeline/6": {
+        "run_items": [],
+        "reason": "No run item mentions stopping propagation of configuration files at 14:24.",
+        "outcome": "missed"
+      },
+      "timeline/7": {
+        "run_items": [
+          "timeline[6]"
+        ],
+        "reason": "timeline[6] at 14:42 (u13) reports the main fix implemented and the incident believed resolved. This is within 30 minutes of 14:30.",
+        "outcome": "supported-hit"
+      },
+      "timeline/8": {
+        "run_items": [
+          "timeline[7]"
+        ],
+        "reason": "timeline[7] at 14:57 (u14) reports customers having trouble logging into the dashboard. This is within 30 minutes of the 14:40 start of the second period of reduced dashboard availability.",
+        "outcome": "supported-hit"
+      },
+      "timeline/9": {
+        "run_items": [],
+        "reason": "No run item states the dashboard was restored around 15:30. timeline[8] at 15:40 only mentions mitigating remaining issues.",
+        "outcome": "missed"
+      },
+      "timeline/10": {
+        "run_items": [
+          "timeline[11]"
+        ],
+        "reason": "timeline[11] places the return to normal operation at 17:44, which is 38 minutes after the key's 17:06 end of impact and outside the 30-minute tolerance.",
+        "outcome": "wrong"
+      }
+    }
+  },
+  "error": null,
+  "arm": "comparison",
+  "run_sha256": "dec17ec26dde73820fa73caa3123bb0912fcace3efbaced081eeb89bf1fe6083",
+  "code_commit": "ac7de8a41095f762cca58bf10ec0faf5b086a8b0",
+  "earlier_errors": []
+}

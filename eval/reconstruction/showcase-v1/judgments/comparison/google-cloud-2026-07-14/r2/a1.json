@@ -1,0 +1,185 @@
+{
+  "run_id": "comparison/google-cloud-2026-07-14/r2/a1",
+  "case_id": "google-cloud-2026-07-14",
+  "kinds": {
+    "attack": "inference",
+    "findings[0]": "observation",
+    "findings[1]": "observation",
+    "findings[2]": "observation",
+    "findings[3]": "observation",
+    "findings[4]": "observation",
+    "findings[5]": "observation",
+    "findings[6]": "inference",
+    "findings[7]": "inference",
+    "timeline[0]": "observation",
+    "timeline[1]": "observation",
+    "timeline[2]": "observation",
+    "timeline[3]": "observation",
+    "timeline[4]": "observation",
+    "timeline[5]": "observation",
+    "timeline[6]": "observation",
+    "timeline[7]": "observation",
+    "root_cause": "inference",
+    "contributing_factors[0]": "inference",
+    "contributing_factors[1]": "inference"
+  },
+  "code_unsupported": [],
+  "judge": {
+    "model": "claude-opus-5-5",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "9de219e1f08dd185277139c88c3957bc4f67a3a4cf94e90e7523281cfd202a22",
+    "input_sha256": "3f0083c5f0e64523de4296dad3f9d33b48fafa084cc13d606f344e520fb07dd2",
+    "judged_at": "2026-11-04T17:20:21Z",
+    "request_id": "req_011CgiGie462AEXQwip6bChn",
+    "response_model": "claude-opus-5-5"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 12001,
+    "output_tokens": 3369,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 2429
+  },
+  "judgment": {
+    "run_items": {
+      "attack": {
+        "reason": "u3 and u4 give a configuration update as the likely cause and say nothing about hostile action. 'Cannot tell' follows from that without adding facts.",
+        "supported": true
+      },
+      "findings[0]": {
+        "reason": "u1 states onset at 10:00 PDT (17:00 UTC) and inter-site communication failures, with multiple regions in the summary.",
+        "supported": true
+      },
+      "findings[1]": {
+        "reason": "u1 and u2 state that Storage and Compute appear unaffected and VMs run as expected while connectivity is degraded.",
+        "supported": true
+      },
+      "findings[2]": {
+        "reason": "u3 states the inter-zone failures, the BGP session flapping, lost witness connectivity, unsafe state synchronization and possible lack of writable data.",
+        "supported": true
+      },
+      "findings[3]": {
+        "reason": "u4 states that a recent configuration update is the likely cause and gives no defect details.",
+        "supported": true
+      },
+      "findings[4]": {
+        "reason": "u3, u5 and u8 state the migration workaround, the failover-risk caveats, and a remediation rollout in progress at 00:13 and 03:27.",
+        "supported": true
+      },
+      "findings[5]": {
+        "reason": "u5 states that northamerica-northeast2 was not impacted.",
+        "supported": true
+      },
+      "findings[6]": {
+        "reason": "This follows directly from f2 and f3: isolation impaired safe synchronization and writable data. The run explicitly declines to claim data loss.",
+        "supported": true
+      },
+      "findings[7]": {
+        "reason": "The interval is arithmetic from the f1 onset and the u9 AVAILABLE timestamp. It correctly notes that the withheld text prevents fixing the restoration time.",
+        "supported": true
+      },
+      "timeline[0]": {
+        "reason": "u1 states onset at 10:00 PDT.",
+        "supported": true
+      },
+      "timeline[1]": {
+        "reason": "u1 at 20:24:18Z states the connectivity issue, unaffected compute and storage, and no workaround.",
+        "supported": true
+      },
+      "timeline[2]": {
+        "reason": "u2 at 21:31:52Z states the zone-linking infrastructure issue and recommends migration.",
+        "supported": true
+      },
+      "timeline[3]": {
+        "reason": "u3 at 22:16:55Z states BGP flapping, witness loss and the writable-data risk.",
+        "supported": true
+      },
+      "timeline[4]": {
+        "reason": "u4 at 23:05:33Z names a configuration update as the likely cause and says remediation is underway.",
+        "supported": true
+      },
+      "timeline[5]": {
+        "reason": "u5 at 00:13:18Z states the rollout in progress and the northamerica-northeast2 exclusion.",
+        "supported": true
+      },
+      "timeline[6]": {
+        "reason": "u8 at 03:27:54Z states the rollout still in progress with no ETA.",
+        "supported": true
+      },
+      "timeline[7]": {
+        "reason": "The u9 title gives the AVAILABLE status at 05:34:26Z; its text is withheld, as the run says.",
+        "supported": true
+      },
+      "root_cause": {
+        "reason": "It rests on f3, f4 and f7 (u3, u4) and gives the configuration update as the provisional cause with the defect unknown. The library item is cited only as a disclaimer and adds no fact about this case.",
+        "supported": true
+      },
+      "contributing_factors[0]": {
+        "reason": "From f3 and f7 (u3): the dependence on witness reachability for safe synchronization turned network loss into a cluster-state problem. This follows.",
+        "supported": true
+      },
+      "contributing_factors[1]": {
+        "reason": "From f5 (u3, u8): the workaround depends on a healthy secondary zone and carries failover risks.",
+        "supported": true
+      }
+    },
+    "key_items": {
+      "attack": {
+        "run_items": [
+          "attack"
+        ],
+        "reason": "The run's attack verdict is 'cannot tell'.",
+        "outcome": "abstained"
+      },
+      "root_cause": {
+        "run_items": [
+          "root_cause"
+        ],
+        "reason": "The supported root cause names the trigger, a recent configuration update disrupting inter-zone networking. It lacks the mechanism: the control-plane routing logic gap that made hosts drop the private IP range used by Stretched Clusters.",
+        "outcome": "partial"
+      },
+      "contributing_factors/0": {
+        "run_items": [],
+        "reason": "No run item mentions the configuration passing payload validation or safeguards failing to block it.",
+        "outcome": "missed"
+      },
+      "contributing_factors/1": {
+        "run_items": [],
+        "reason": "No run item says health checks such as BGP/BFD ran on separate address spaces and missed the dropped private range.",
+        "outcome": "missed"
+      },
+      "contributing_factors/2": {
+        "run_items": [],
+        "reason": "No run item mentions non-vSAN-replicated workloads pinned to a single zone.",
+        "outcome": "missed"
+      },
+      "timeline/0": {
+        "run_items": [
+          "timeline[0]",
+          "findings[0]"
+        ],
+        "reason": "timeline[0] gives onset at 17:00Z, matching the key, and is supported by u1.",
+        "outcome": "supported-hit"
+      },
+      "timeline/1": {
+        "run_items": [
+          "timeline[4]",
+          "findings[3]"
+        ],
+        "reason": "timeline[4] at 23:05:33Z states that the configuration update was identified as the likely cause, and is supported by u4.",
+        "outcome": "supported-hit"
+      },
+      "timeline/2": {
+        "run_items": [],
+        "reason": "No run item gives a restoration time near 03:40Z. timeline[7] marks the 05:34 AVAILABLE status, and f8 explicitly says the restoration time cannot be determined.",
+        "outcome": "missed"
+      }
+    }
+  },
+  "error": null,
+  "arm": "comparison",
+  "run_sha256": "72e780523c544ecd9cad006453e7600ee4097f320db935e44a1832b1d951d403",
+  "code_commit": "ac7de8a41095f762cca58bf10ec0faf5b086a8b0",
+  "earlier_errors": []
+}

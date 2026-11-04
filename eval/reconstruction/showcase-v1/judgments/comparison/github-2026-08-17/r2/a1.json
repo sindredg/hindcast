@@ -1,0 +1,226 @@
+{
+  "run_id": "comparison/github-2026-08-17/r2/a1",
+  "case_id": "github-2026-08-17",
+  "kinds": {
+    "attack": "inference",
+    "findings[0]": "observation",
+    "findings[1]": "observation",
+    "findings[2]": "observation",
+    "findings[3]": "observation",
+    "findings[4]": "observation",
+    "findings[5]": "observation",
+    "findings[6]": "inference",
+    "findings[7]": "inference",
+    "timeline[0]": "observation",
+    "timeline[1]": "observation",
+    "timeline[2]": "observation",
+    "timeline[3]": "observation",
+    "timeline[4]": "observation",
+    "timeline[5]": "observation",
+    "timeline[6]": "observation",
+    "timeline[7]": "observation",
+    "timeline[8]": "observation",
+    "timeline[9]": "observation",
+    "timeline[10]": "observation",
+    "timeline[11]": "observation",
+    "timeline[12]": "observation",
+    "timeline[13]": "observation",
+    "timeline[14]": "observation",
+    "timeline[15]": "observation",
+    "root_cause": "inference",
+    "contributing_factors[0]": "inference",
+    "contributing_factors[1]": "inference"
+  },
+  "code_unsupported": [],
+  "judge": {
+    "model": "claude-opus-5-5",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "9de219e1f08dd185277139c88c3957bc4f67a3a4cf94e90e7523281cfd202a22",
+    "input_sha256": "9402800ed55bc4ed817470935a52a6496fcb20511dec62c0a8a5b5fcc98c75e7",
+    "judged_at": "2026-11-04T17:20:12Z",
+    "request_id": "req_011CgiGhy2a4HEQ66V64bgXF",
+    "response_model": "claude-opus-5-5"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 9021,
+    "output_tokens": 3365,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 2429
+  },
+  "judgment": {
+    "run_items": {
+      "attack": {
+        "reason": "No cited update (u23, u32) mentions hostile action or excludes it, so 'cannot tell' follows from the cited text.",
+        "supported": true
+      },
+      "findings[0]": {
+        "reason": "u8 states ~20% errors for web/API traffic and ~50% for archive and raw downloads.",
+        "supported": true
+      },
+      "findings[1]": {
+        "reason": "u9 lists SAML/OIDC, SCIM and Team Sync, u10 lists Copilot, and u24 lists the other named services.",
+        "supported": true
+      },
+      "findings[2]": {
+        "reason": "u15 reports mitigations underway at 14:58, and u22 at 16:16 reports the same rates with root cause still being identified.",
+        "supported": true
+      },
+      "findings[3]": {
+        "reason": "u23 reports the problematic component identified and strong recovery, and u24 names the seven mitigated services.",
+        "supported": true
+      },
+      "findings[4]": {
+        "reason": "u25 and u27 report the renewed degradations, u26 the residual impact, and u28 the sporadic authentication failures.",
+        "supported": true
+      },
+      "findings[5]": {
+        "reason": "u32 reports improvement after partially disabling token retries, and u33/u35 describe the Copilot authentication failures and the unaffected CLI/App.",
+        "supported": true
+      },
+      "findings[6]": {
+        "reason": "This is a hedged inference from F5/F6 and u32: improvement followed reducing retries, so retries likely contributed to the residual phase. It follows from those items.",
+        "supported": true
+      },
+      "findings[7]": {
+        "reason": "The hedged 'consistent with a shared dependency' conclusion follows from the broad cross-service impact in F1, F2 and F5 using general engineering knowledge. The library refs only add context about other outages.",
+        "supported": true
+      },
+      "timeline[0]": {
+        "reason": "u1 at 13:40:03 reports impacted performance.",
+        "supported": true
+      },
+      "timeline[1]": {
+        "reason": "u5 at 13:45:45 states a ~20% error rate including Pull Requests and Issues.",
+        "supported": true
+      },
+      "timeline[2]": {
+        "reason": "u8 at 14:04:45 states the 20% and 50% error rates.",
+        "supported": true
+      },
+      "timeline[3]": {
+        "reason": "u9 at 14:24:53 adds SAML, OIDC, SCIM and Team Sync impact.",
+        "supported": true
+      },
+      "timeline[4]": {
+        "reason": "u15 at 14:58:12 states mitigations underway and monitoring.",
+        "supported": true
+      },
+      "timeline[5]": {
+        "reason": "u22 at 16:16:13 states the same rates with the root cause still being identified.",
+        "supported": true
+      },
+      "timeline[6]": {
+        "reason": "u23 at 16:36:25 states the component was identified, with strong recovery signs.",
+        "supported": true
+      },
+      "timeline[7]": {
+        "reason": "u24 at 16:59:38 lists the seven mitigated services.",
+        "supported": true
+      },
+      "timeline[8]": {
+        "reason": "u26 at 17:34:22 states residual impact and additional mitigations.",
+        "supported": true
+      },
+      "timeline[9]": {
+        "reason": "u28 at 18:11:30 describes the residual impact as sporadic authentication failures.",
+        "supported": true
+      },
+      "timeline[10]": {
+        "reason": "u29 at 18:23:47 reports Git Operations mitigated.",
+        "supported": true
+      },
+      "timeline[11]": {
+        "reason": "u30 reports API Requests degraded at 18:48, and u31 at 19:01:45 reports it operating normally.",
+        "supported": true
+      },
+      "timeline[12]": {
+        "reason": "u32 at 19:13:20 states the partial disabling of token retries and the improvement.",
+        "supported": true
+      },
+      "timeline[13]": {
+        "reason": "u34 at 20:22:28 reports Issues operating normally.",
+        "supported": true
+      },
+      "timeline[14]": {
+        "reason": "u35 at 20:45:28 states recovery is expected within 30 minutes and that CLI/App usage is unaffected.",
+        "supported": true
+      },
+      "timeline[15]": {
+        "reason": "u36 is titled resolved at 21:15:46.",
+        "supported": true
+      },
+      "root_cause": {
+        "reason": "It rests on supported F3 to F7 and declines to name the component or trigger, which u23/u26 do not disclose. Its conclusion follows from those items.",
+        "supported": true
+      },
+      "contributing_factors[0]": {
+        "reason": "A hedged inference from F6/F7 and u32 that retries prolonged the residual failures, without adding a mechanism of its own.",
+        "supported": true
+      },
+      "contributing_factors[1]": {
+        "reason": "It offers a shared dependency as an explicit hypothesis from the broad impact in F2/F8 and u9/u24, which follows using general engineering knowledge.",
+        "supported": true
+      }
+    },
+    "key_items": {
+      "attack": {
+        "run_items": [
+          "attack"
+        ],
+        "reason": "The run's verdict is 'cannot tell'.",
+        "outcome": "abstained"
+      },
+      "root_cause": {
+        "run_items": [
+          "root_cause"
+        ],
+        "reason": "The run's root cause says the component, defect and trigger cannot be determined, and an open question asks what the component was and what triggered it.",
+        "outcome": "abstained"
+      },
+      "contributing_factors/0": {
+        "run_items": [
+          "findings[7]",
+          "contributing_factors[1]"
+        ],
+        "reason": "The run hypothesizes a shared dependency with authentication as a plausible path, matching the degraded shared auth path. It does not name the load-balancer network flow exhaustion.",
+        "outcome": "partial"
+      },
+      "contributing_factors/1": {
+        "run_items": [
+          "contributing_factors[0]",
+          "findings[6]"
+        ],
+        "reason": "The run says authentication token retries likely prolonged the residual failures. It does not identify a latent client retry bug amplifying traffic to an auth endpoint.",
+        "outcome": "partial"
+      },
+      "contributing_factors/2": {
+        "run_items": [
+          "contributing_factors[0]"
+        ],
+        "reason": "The run captures the retry behavior worsening the degradation. It misses the service-mesh sidecar failing to scale and the unbounded clients.",
+        "outcome": "partial"
+      },
+      "timeline/0": {
+        "run_items": [
+          "timeline[0]"
+        ],
+        "reason": "Timeline[0] gives the start at 13:40:03 from u1, matching the key's 13:40.",
+        "outcome": "supported-hit"
+      },
+      "timeline/1": {
+        "run_items": [
+          "timeline[15]"
+        ],
+        "reason": "Timeline[15] gives the resolution at 21:15:46 from u36, matching the key's 21:15.",
+        "outcome": "supported-hit"
+      }
+    }
+  },
+  "error": null,
+  "arm": "comparison",
+  "run_sha256": "f51e5d4b27dc961f82840bd7ad8d34962da82a7228d24ce93c5d4bf50d6c1aee",
+  "code_commit": "ac7de8a41095f762cca58bf10ec0faf5b086a8b0",
+  "earlier_errors": []
+}

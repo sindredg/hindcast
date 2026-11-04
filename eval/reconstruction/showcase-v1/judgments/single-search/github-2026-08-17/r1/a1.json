@@ -1,0 +1,188 @@
+{
+  "run_id": "single-search/github-2026-08-17/r1/a1",
+  "case_id": "github-2026-08-17",
+  "kinds": {
+    "attack": "inference",
+    "findings[0]": "observation",
+    "findings[1]": "observation",
+    "findings[2]": "observation",
+    "findings[3]": "observation",
+    "findings[4]": "inference",
+    "findings[5]": "inference",
+    "timeline[0]": "observation",
+    "timeline[1]": "observation",
+    "timeline[2]": "observation",
+    "timeline[3]": "observation",
+    "timeline[4]": "observation",
+    "timeline[5]": "observation",
+    "timeline[6]": "observation",
+    "timeline[7]": "observation",
+    "timeline[8]": "observation",
+    "timeline[9]": "observation",
+    "timeline[10]": "observation",
+    "root_cause": "inference",
+    "contributing_factors[0]": "inference",
+    "contributing_factors[1]": "inference"
+  },
+  "code_unsupported": [],
+  "judge": {
+    "model": "claude-opus-5-5",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "9de219e1f08dd185277139c88c3957bc4f67a3a4cf94e90e7523281cfd202a22",
+    "input_sha256": "342fa3f7800088bce3115882e51ebcc30d789a63b278fb1536c7f6abd6888fb8",
+    "judged_at": "2026-11-04T17:18:34Z",
+    "request_id": "req_011CgiGaim8yafxb4SpH6eD7",
+    "response_model": "claude-opus-5-5"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 6574,
+    "output_tokens": 2607,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 2429
+  },
+  "judgment": {
+    "run_items": {
+      "attack": {
+        "reason": "u22 and u23 describe errors and corrective action without characterizing the traffic or naming any hostile activity, so 'cannot tell' follows from what is cited.",
+        "supported": true
+      },
+      "findings[0]": {
+        "reason": "The cited updates name Actions (u3), web/API and downloads (u8), SAML/OIDC auth (u9), Copilot (u10), Pages (u18) and Git Operations (u19).",
+        "supported": true
+      },
+      "findings[1]": {
+        "reason": "u8 at 14:04:45 states about 20% web/API errors and about 50% archive/raw download errors.",
+        "supported": true
+      },
+      "findings[2]": {
+        "reason": "u23 and u26 say a problematic component was identified and corrected, and neither names it.",
+        "supported": true
+      },
+      "findings[3]": {
+        "reason": "u28 reports residual sporadic authentication failures. u32 reports that authentication token retries were partially disabled, with improvement.",
+        "supported": true
+      },
+      "findings[4]": {
+        "reason": "The hedged link between retries and residual failures follows from f4/u32, and the item explicitly limits itself to the residual failures.",
+        "supported": true
+      },
+      "findings[5]": {
+        "reason": "This follows from f1 and f3 (u22, u23): a component was corrected, but it is never identified.",
+        "supported": true
+      },
+      "timeline[0]": {
+        "reason": "u1 at 13:40:03 states that GitHub was investigating impacted performance.",
+        "supported": true
+      },
+      "timeline[1]": {
+        "reason": "u8 at 14:04:45 states the 20%/50% error rates.",
+        "supported": true
+      },
+      "timeline[2]": {
+        "reason": "u15 states that mitigations were being performed and monitored; its 14:58:12 title is within seconds of the item's time.",
+        "supported": true
+      },
+      "timeline[3]": {
+        "reason": "u22 at 16:16:13 says GitHub was still working to identify the root cause.",
+        "supported": true
+      },
+      "timeline[4]": {
+        "reason": "u23 at 16:36:25 states the component was identified, recovery signs were strong, and errors were slightly elevated.",
+        "supported": true
+      },
+      "timeline[5]": {
+        "reason": "u24 at 16:59:38 lists the mitigated services.",
+        "supported": true
+      },
+      "timeline[6]": {
+        "reason": "u26 at 17:34:22 reports residual impact across numerous services.",
+        "supported": true
+      },
+      "timeline[7]": {
+        "reason": "u28 at 18:11:30 describes sporadic authentication failures.",
+        "supported": true
+      },
+      "timeline[8]": {
+        "reason": "u32 at 19:13:20 states that partially disabling token retries brought improvement.",
+        "supported": true
+      },
+      "timeline[9]": {
+        "reason": "u35 at 20:45:28 states Copilot auth mitigation and expected recovery within 30 minutes.",
+        "supported": true
+      },
+      "timeline[10]": {
+        "reason": "u36 is titled resolved at 21:15:46, and its text is withheld as the item says.",
+        "supported": true
+      },
+      "root_cause": {
+        "reason": "The abstention rests on f3 and f6, which are supported, and on u22/u23. Those updates never name the component, so the conclusion follows.",
+        "supported": true
+      },
+      "contributing_factors[0]": {
+        "reason": "The hedged contribution of retries to residual auth failures follows from u32 and f4/f5.",
+        "supported": true
+      },
+      "contributing_factors[1]": {
+        "reason": "The cited updates show continued Git Operations degradation (u25), sporadic auth failures (u28) and Copilot auth failures (u33) after the u24 mitigation.",
+        "supported": true
+      }
+    },
+    "key_items": {
+      "attack": {
+        "run_items": [
+          "attack"
+        ],
+        "reason": "The run's verdict is 'cannot tell', which is an abstention on the key's 'not an attack'.",
+        "outcome": "abstained"
+      },
+      "root_cause": {
+        "run_items": [
+          "root_cause"
+        ],
+        "reason": "The root cause says the evidence does not identify the component or mechanism. An open question asks what the component was and how it failed.",
+        "outcome": "abstained"
+      },
+      "contributing_factors/0": {
+        "run_items": [],
+        "reason": "No run item mentions load-balancer network flow exhaustion or degradation of the gateway authentication path.",
+        "outcome": "missed"
+      },
+      "contributing_factors/1": {
+        "run_items": [
+          "contributing_factors[0]",
+          "findings[4]"
+        ],
+        "reason": "The run links authentication-token retries to the residual auth failures, which is the retry mechanism. It does not say a latent bug amplified traffic to an internal endpoint, slowing recovery for the Copilot Token Service.",
+        "outcome": "partial"
+      },
+      "contributing_factors/2": {
+        "run_items": [
+          "contributing_factors[0]"
+        ],
+        "reason": "The run names retry behavior as contributing, but not the sidecar failing to scale or unbounded clients amplifying a partial degradation into broad overload.",
+        "outcome": "partial"
+      },
+      "timeline/0": {
+        "run_items": [
+          "timeline[0]"
+        ],
+        "reason": "timeline[0] places the start at 13:40:03, matching the key's 13:40.",
+        "outcome": "supported-hit"
+      },
+      "timeline/1": {
+        "run_items": [
+          "timeline[10]"
+        ],
+        "reason": "timeline[10] places the resolution at 21:15:46, matching the key's 21:15 end.",
+        "outcome": "supported-hit"
+      }
+    }
+  },
+  "error": null,
+  "arm": "single-search",
+  "run_sha256": "73120f79015064f978967af6f22f41e8d452f3495d92fc3ed4476c19cc14770a",
+  "code_commit": "ac7de8a41095f762cca58bf10ec0faf5b086a8b0",
+  "earlier_errors": []
+}
