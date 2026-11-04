@@ -57,7 +57,7 @@ Findings about Entra ID roles, scopes, and keyless access. Hindcast uses no keys
 
 **Evidence:** tested live, 2026-10-26. Role assigned 17:12 UTC, runs at 18:11 and 18:13 UTC. In the [log excerpts](../../eval/model-selection/dev-outage-v1/README.md): 2 of 25 judge calls in luna's run, and 1 of 5 Responses API calls for sol's answers (the service then answered through chat completions). Tracked in [#7](https://github.com/sindredg/hindcast/issues/7).
 
-**For Hindcast:** a run that finishes as "completed" can still be missing scores. `summarise_runs.py` lists failed calls, and the model re-check was read with it; the evaluation in milestone 5 will check every result the same way before using it ([evaluation findings](evaluation.md)).
+**For Hindcast:** a run that finishes as "completed" can still be missing scores. `summarise_runs.py` lists failed calls, and the model re-check was read with it; milestone 5's Foundry cloud evaluation counts a row with no score, no verdict, or an error as errored, per row and next to the service's own counts (`hindcast.evaluation.foundry`; 0 errored rows in its two runs, [report](../../eval/reconstruction/showcase-v1/README.md#foundry-cloud-evaluation)). See also the [evaluation findings](evaluation.md).
 
 **Read more:** [Troubleshoot Azure RBAC](https://learn.microsoft.com/azure/role-based-access-control/troubleshooting).
 
