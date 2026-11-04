@@ -1,0 +1,18 @@
+{
+  "run_id": "prior-2026-11-01-gpt-6-luna/google-cloud-2026-07-14",
+  "judgment_sha256": "e614341d3377a195c148d5c502094c50aac39c595ce3bb9bbc4d0c921c08879e",
+  "decisions": [
+    {
+      "kind": "prior",
+      "item": "root_cause",
+      "proposal": "abstained",
+      "sampled": true,
+      "decision": "abstained",
+      "decided_at": "2026-11-04T19:17:50Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "eefed2b398b8edf30a13f49d73fd6e11987e3a0358158e4e3259d1ce7e9cd6bd"
+      }
+    }
+  ]
+}

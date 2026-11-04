@@ -1,0 +1,30 @@
+{
+  "run_id": "prior-2026-11-01-gpt-6.1-sol/cloudflare-2025-11-18",
+  "judgment_sha256": "5ed1d73c0270bfe3f90ba39e9a309bc68a2f4cf965e0dfa4bec6881e6e625464",
+  "decisions": [
+    {
+      "kind": "prior",
+      "item": "attack",
+      "proposal": "hit",
+      "sampled": false,
+      "decision": "hit",
+      "decided_at": "2026-11-04T19:17:50Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "8fec233f8252874344d38fd0f5f933a1a77c4873f4e77ac1cd415c7bf533fc12"
+      }
+    },
+    {
+      "kind": "prior",
+      "item": "root_cause",
+      "proposal": "hit",
+      "sampled": false,
+      "decision": "hit",
+      "decided_at": "2026-11-04T19:17:50Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "8fec233f8252874344d38fd0f5f933a1a77c4873f4e77ac1cd415c7bf533fc12"
+      }
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "run_id": "prior-2026-11-01-gpt-6.1-sol/google-cloud-2026-07-14",
+  "judgment_sha256": "8efdaf4955fe894711000414c5c9ce5221859d6e82c9f37dad47d109781973f0",
+  "decisions": [
+    {
+      "kind": "prior",
+      "item": "attack",
+      "proposal": "abstained",
+      "sampled": true,
+      "decision": "abstained",
+      "decided_at": "2026-11-04T19:17:50Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "fd6efcf2441bd4804a8b6e495cec4599d0d48419be4ee4a24ad9717d4fb6766e"
+      }
+    }
+  ]
+}
