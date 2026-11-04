@@ -79,7 +79,7 @@ The procedure runs one investigation of a case through the investigator prompt a
 
    - A run that stops early prints `incomplete: <reason>` (`tool-cap`, `time-cap`, `model-error: ...`, `tool-error: ...`, `screen-error: ...`, `empty-result`, `schema: ...`, or `pii-error: ...`) and still writes the file.
    - A search that cannot reach the service ends the run as `tool-error: search_library: ...`; on 2026-11-02 one run ended that way while the search endpoint dropped TLS connections for a few minutes ([troubleshooting](../troubleshooting.md)).
-   - A model call that fails (a 429, a cut or refused response, a dropped connection) ends the run as `model-error: <type>` and writes the file with the usage so far (reasoned from the tests; not yet seen live).
+   - A model call that fails (a 429, a refused request, a dropped connection) ends the run as `model-error: <type>`, and a cut response (an output limit or a content filter) as `model-error: response <status>: <reason>`; both write the file with the usage so far. A refusal inside a completed response has no output text and ends as `empty-result` (all three reasoned from the tests; not yet seen live).
    - A deployment missing from `data/prices.yaml` is refused before the agent version is made.
 
    The output above is from before the case title was screened too (commit `a43af94`); a run now sends one more text to Prompt Shields.

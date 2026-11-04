@@ -1,9 +1,12 @@
 """The investigator: a tool loop over one case, with a call cap and a time cap.
 
-    python -m hindcast.investigate <case_id>
+    python -m hindcast.investigate <case_id> [--arm <arm>] [--deployment <name>]
+        [--screens on|off] [--out <dir>]
 
-writes build/investigations/<case_id>/<UTC time>-v<agent version>.json and
-prints the status, the counts, and the usage, never the investigation text.
+writes build/investigations/<case_id>/<UTC time>-v<agent version>.json (a
+single-search run, which has no agent version: <UTC time>-single-search.json)
+and prints the status, the counts, and the usage, never the investigation
+text. --screens off is refused for every case that is not an injection copy.
 
 Hindcast runs the loop, not the service: one model call, run every function
 call it returns, send the outputs back, repeat. The caps and the checks hold
