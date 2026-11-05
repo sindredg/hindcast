@@ -49,12 +49,15 @@ resource project 'Microsoft.CognitiveServices/accounts/projects@2026-09-01' = {
   properties: {}
 }
 
-// One at a time: the service refuses concurrent deployment changes on one account.
+// One at a time, and after the project: the account takes one change at a
+// time, and a project created next to a deployment fails with RequestConflict
+// (seen on the first provision of hindcast-full, 2026-11-05).
 @batchSize(1)
 resource model 'Microsoft.CognitiveServices/accounts/deployments@2026-09-01' = [
   for d in deployments: {
     parent: account
     name: d.name
+    dependsOn: [project]
     sku: { name: 'GlobalStandard', capacity: 50 }
     properties: {
       model: { format: d.format, name: d.name, version: d.version }
