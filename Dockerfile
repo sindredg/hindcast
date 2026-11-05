@@ -40,12 +40,15 @@ COPY provenance.json ./provenance.json
 # the name, so the platform can resolve it without the image's passwd file.
 # /app stays owned by root, so the runtime user cannot change its own code or
 # the committed results. It owns build/, which takes the runtime files and the
-# page's runs, and the directories under eval/investigations, not their
-# files, so a challenge of a committed result can be written next to it.
+# page's runs, and each case's challenges/ directory under eval/investigations,
+# so a challenge of a committed result can be written next to it. The case
+# directories stay root's: the owner of a directory can remove or replace any
+# file in it, whoever owns the file.
 RUN useradd --create-home --uid 10001 app \
     && mkdir build \
     && chown 10001 build \
-    && find eval/investigations -type d -exec chown 10001 {} +
+    && find eval/investigations -mindepth 1 -maxdepth 1 -type d -exec mkdir -p {}/challenges \; \
+    && find eval/investigations -mindepth 2 -maxdepth 2 -type d -name challenges -exec chown 10001 {} +
 USER 10001
 
 ENV PATH=/app/.venv/bin:$PATH \

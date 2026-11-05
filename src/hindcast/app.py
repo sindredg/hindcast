@@ -49,6 +49,14 @@ class RunInProgress(RuntimeError):
     """Another investigation is running in this process."""
 
 
+class StoreFailed(RuntimeError):
+    """The run completed and was written under build/, but storing it in Blob failed."""
+
+    def __init__(self, path: Path, error: Exception) -> None:
+        super().__init__(f"{path.name} was written but not stored: {error}")
+        self.path = path
+
+
 def run_root() -> Path:
     return Path(os.environ.get(RUN_ROOT_VAR) or ROOT)
 
@@ -87,7 +95,12 @@ def start_run(case: Case, *, root: Path, client: storage.Blobs | None) -> Path:
             cost=setup.cost(result.usage),
         )
         if client is not None:
-            runtime.store_run(client, root, path)
+            try:
+                runtime.store_run(client, root, path)
+            except Exception as error:  # noqa: BLE001
+                # The paid run is on disk until the replica stops; the page
+                # shows it and says so, so it can be stored by hand.
+                raise StoreFailed(path, error) from error
         return path
     finally:
         RUN_LOCK.release()
@@ -278,6 +291,16 @@ def _investigate_panel(cases: Mapping[str, Case]) -> None:
                     path = start_run(cases[case_id], root=run_root(), client=_runs_client())
             except RunInProgress as error:
                 st.warning(str(error))
+                return
+            except StoreFailed as error:
+                # No rerun: the message stays, and the selectbox below picks
+                # the written result.
+                st.error(str(error))
+                st.session_state["picked"] = str(error.path)
+                return
+            except Exception as error:  # noqa: BLE001
+                # Shown, not raised: a traceback would print the endpoints.
+                st.error(f"The investigation failed: {error}")
                 return
             st.session_state["picked"] = str(path)
             st.rerun()

@@ -161,16 +161,21 @@ jobs:
         run: |
           test "$(docker run --rm hindcast:ci id -u)" = 10001
           # A run from the page names its code from the manifest, and the
-          # runtime user can write build/ and next to the committed results.
+          # runtime user can write build/ and a case's challenges/ directory.
           source=$(docker run --rm hindcast:ci python -c \
             "from hindcast import investigate; print(investigate.code_provenance()['source'])")
           test "$source" = image
           docker run --rm hindcast:ci sh -c \
-            "touch build/check && touch eval/investigations/cloudflare-2026-02-20/check"
-          # The committed results stay root's: appending to one has to fail.
+            "touch build/check && touch eval/investigations/cloudflare-2026-02-20/challenges/check"
+          # The committed results stay root's, in root's directories: appending
+          # to one and removing one both have to fail.
           if docker run --rm hindcast:ci sh -c \
             "echo x >> eval/investigations/cloudflare-2026-02-20/20261102T181721Z-v3.json"; then
             echo "a committed result is writable by the runtime user"; exit 1
+          fi
+          if docker run --rm hindcast:ci sh -c \
+            "rm eval/investigations/cloudflare-2026-02-20/20261102T181721Z-v3.json"; then
+            echo "a committed result is removable by the runtime user"; exit 1
           fi
           # The page's runtime download, as the runtime user into /app, from
           # a stub container: it has to stage and move inside build/.

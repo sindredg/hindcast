@@ -124,10 +124,10 @@ module roles 'modules/roles.bicep' = {
   }
 }
 
-// Outputs become azd environment values, which the post-provision hook's
-// load command and the operator's commands read. The CI identity's client ID
-// and the registry name go into the repository's environment secrets by hand
-// (deployment runbook).
+// Outputs become azd environment values, which the load command and the
+// operator's commands read through a settings file (deployment runbook). The
+// CI identity's client ID and the registry name go into the repository's
+// environment secrets by hand.
 output AZURE_RESOURCE_GROUP string = group.name
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = app.outputs.registryLoginServer
 output AZURE_CONTAINER_REGISTRY_NAME string = app.outputs.registryName

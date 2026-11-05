@@ -136,7 +136,7 @@ The procedure runs one investigation of a case through the investigator prompt a
 
    The first challenge on a deployment creates agent `hindcast-challenger-<deployment>` version 1. A question that Prompt Shields flags prints `refused: prompt-shields` and makes no model call.
 
-   To challenge from the page instead, start it with the live flag; each finding then has a question box. The deployed page has no such box.
+   To challenge from the page instead, start it with the live flag; each finding then has a question box. The deployed page has the same box and runs it with the app's identity ([deployment runbook](deployment.md)).
 
    ```bash
    HINDCAST_LIVE=1 PYTHONPATH=src uv run --frozen --env-file .env streamlit run src/hindcast/app.py

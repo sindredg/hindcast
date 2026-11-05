@@ -158,7 +158,7 @@ The procedure builds all of Hindcast in one resource group with one `azd up`, fi
     APP=$(az resource show -g rg-hindcast-full -n "$(azd env get-value APPLICATIONINSIGHTS_NAME)" --resource-type Microsoft.Insights/components --query properties.AppId -o tsv) && az monitor app-insights query --apps "$APP" --offset 2h --analytics-query "dependencies | where cloud_RoleName == 'hindcast-web' | summarize spans = count(), roots = countif(name in ('investigation', 'challenge')), models = countif(name == 'model_call') by operation_Id" --query "tables[0].rows" -o tsv
     ```
 
-    Expected: one row per investigation and challenge, each with `roots` 1 and `models` equal to the run file's `usage.model_calls`. The spans are in `dependencies`, as in the [investigator runbook](investigator.md). The spans are in `dependencies`, as in the [investigator runbook](investigator.md); the page opens its own `page_view` spans in other operations.
+    Expected: one row per investigation and challenge, each with `roots` 1 and `models` equal to the run file's `usage.model_calls`. The spans are in `dependencies`, as in the [investigator runbook](investigator.md); the page opens its own `page_view` spans in other operations.
 
 ## Foundry IQ
 

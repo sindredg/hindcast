@@ -405,3 +405,67 @@ def test_the_page_shares_the_run_lock_across_sessions(monkeypatch):
         app.RUN_LOCK.release()
     assert prepared == []
     assert any("already running" in w.value for w in at.warning)
+
+
+def _live_page_with_blob(tmp_path, monkeypatch):
+    """The page as deployed: live, Blob runtime, with the download stubbed out."""
+    import streamlit as st
+
+    from hindcast import runtime, storage
+
+    st.cache_resource.clear()
+    monkeypatch.setattr(runtime, "materialize", lambda client, root: 0)
+    monkeypatch.setattr(runtime, "fetch_runs", lambda client, root: [])
+    monkeypatch.setattr(storage, "container", lambda name: _Runs())
+    monkeypatch.setenv(app.LIVE_VAR, "1")
+    monkeypatch.setenv(app.BLOB_RUNTIME_VAR, "1")
+    monkeypatch.setenv(app.RUN_ROOT_VAR, str(tmp_path))
+
+
+def test_page_shows_a_store_failure_and_selects_the_written_run(tmp_path, monkeypatch):
+    # The paid run is on disk; the page says the store failed and shows the run.
+    import streamlit as st
+
+    from hindcast import investigate, runtime
+
+    _live_page_with_blob(tmp_path, monkeypatch)
+    monkeypatch.setattr(investigate, "prepare", lambda case: _setup())
+    monkeypatch.setattr(investigate, "run_investigation", lambda *a, **k: _incomplete())
+
+    def refuse(client, root, path):
+        raise runtime.RuntimeMismatch(f"{path.name}: outside the run paths")
+
+    monkeypatch.setattr(runtime, "store_run", refuse)
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+    next(b for b in at.button if b.key == "investigate").click().run()
+    st.cache_resource.clear()
+
+    assert not at.exception
+    assert any("was written but not stored" in e.value for e in at.error)
+    picked = next(s for s in at.selectbox if s.label == "Result").value
+    assert isinstance(picked, Path)
+    assert picked.parent == tmp_path / "build/investigations/cloudflare-2026-02-20"
+    assert picked.is_file()
+
+
+def test_page_shows_a_failed_investigation_without_a_traceback(tmp_path, monkeypatch):
+    import streamlit as st
+
+    from hindcast import investigate
+
+    _live_page_with_blob(tmp_path, monkeypatch)
+
+    def broken(case):
+        raise RuntimeError("Foundry refused the agent call")
+
+    monkeypatch.setattr(investigate, "prepare", broken)
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+    next(b for b in at.button if b.key == "investigate").click().run()
+    st.cache_resource.clear()
+
+    assert not at.exception
+    assert any("Foundry refused the agent call" in e.value for e in at.error)
+    assert not list((tmp_path / "build/investigations").rglob("*.json"))
+    # The lock is released after a failure.
+    assert app.RUN_LOCK.acquire(blocking=False)
+    app.RUN_LOCK.release()
