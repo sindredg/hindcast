@@ -17,15 +17,20 @@ See the [roadmap](docs/roadmap.md) for milestone progress and [current architect
 - **Viewer:** stored results are served on Azure Container Apps behind Entra sign-in.
 - **Remaining:** an interface that starts investigations, full-environment deployment, and sealed-case reveals.
 
-Azure AI Search was deleted after evaluation on 2026-11-04 and must be recreated from its template for library searches. Implementation evidence is in the [worklogs](docs/worklogs/).
+Implementation evidence is in the [worklogs](docs/worklogs/).
 
 ## Results
 
-All **60 showcase runs** completed across five configurations and four outages. The results do not establish a clear winner between configurations; judging used two models, with no human review. See the [evaluation report](eval/reconstruction/showcase-v1/README.md) and [injection tests](eval/injection/dev-v1/README.md).
+All **60 showcase runs** completed across five configurations and four outages ([evaluation report](eval/reconstruction/showcase-v1/README.md), [injection tests](eval/injection/dev-v1/README.md)).
+
+- **Scores:** on the three outages the models did not know beforehand, configuration means run from 0.78 to 0.82.
+- **Grounding:** every credited finding is supported by the outage's own status updates and charts.
+- **No guesses:** where the evidence could not establish the root cause, every run abstained.
+- **Prior knowledge:** on the outage both models could name before seeing any evidence, all 15 runs kept that knowledge out of the root cause.
 
 Reconstructions of **five further outages** were sealed before providers published their causes. Only their hashes are public until the reports arrive ([sealed reconstructions](docs/decisions/0017-sealed-reconstructions.md)).
 
-All showcase cases were non-attacks, so these results cannot measure attack-detection accuracy. Other limits include the small dataset, prior model knowledge, and scoring judgments.
+The dataset is small, and no showcase outage was an attack, so attack detection is not measured here. The evaluation report lists every limit.
 
 ## What an investigation returns
 
