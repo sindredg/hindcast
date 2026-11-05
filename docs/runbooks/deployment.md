@@ -39,8 +39,10 @@ The procedure builds all of Hindcast in one resource group with one `azd up`, fi
 3. Run the pre-provision hook by name, then preview. The hook creates the Entra app registration named after the environment, `hindcast-full`, and reads the repository's OIDC subject prefix from GitHub.
 
    ```bash
-   azd hooks run preprovision && az deployment sub what-if --location swedencentral --name hindcast-full-whatif --template-file infra/main.bicep --parameters infra/main.parameters.json
+   azd hooks run preprovision && az deployment sub what-if --location swedencentral --name hindcast-full-whatif --template-file infra/main.bicep -p environmentName=hindcast-full location=swedencentral principalId="$(az ad signed-in-user show --query id -o tsv)" authClientId="$(azd env get-value AUTH_CLIENT_ID)" allowedUserObjectId="$(azd env get-value AUTH_ALLOWED_USER_OBJECT_ID)" imageName="$(azd env get-value HINDCAST_IMAGE)" githubSubjectPrefix="$(azd env get-value GITHUB_SUBJECT_PREFIX)"
    ```
+
+   The parameters go inline: `infra/main.parameters.json` holds `${...}` placeholders that only azd fills in.
 
    Expected: `app registration: hindcast-full (created)`, then 17 `Create` lines, all in `rg-hindcast-full`: the group, the Foundry resource with its project and four deployments, the custom role, the storage account with its blob service and four containers, Log Analytics, Application Insights, and the search service. Nothing in `rg-hindcast` or `rg-hindcast-app`. What-if does not list the app's and the roles' resources, because their inputs are other modules' outputs. Observed with `az deployment sub what-if` on 2026-11-05 with placeholder sign-in values: 17 `Create`, all in `rg-hindcast-full`.
 
@@ -52,7 +54,7 @@ The procedure builds all of Hindcast in one resource group with one `azd up`, fi
    azd provision
    ```
 
-   Expected: `SUCCESS: Your application was provisioned in Azure`. The post-provision hook sets the registration's redirect URI and the app identity's federated credential.
+   Expected: `SUCCESS: Your application was provisioned in Azure`. The post-provision hook sets the registration's redirect URI and the app identity's federated credential. A failure that names `RoleDefinitionDoesNotExist` means the new custom role had not replicated when its assignments ran (the [investigator runbook](investigator.md) retries the same assignment by hand); run `azd provision` again.
 
 5. Read the resources back: one group, keys off, and the app identity's roles.
 
@@ -174,7 +176,15 @@ The procedure builds all of Hindcast in one resource group with one `azd up`, fi
 
 ## Remove
 
-16. Remove the environment, purging the soft-deleted Foundry resource, and check that nothing is left.
+16. Delete the custom role first: role definitions are not deleted with the resource group, and an assigned one cannot be deleted. Its assignments go, then the definition, while its scope still exists.
+
+    ```bash
+    ROLE="Hindcast Safety Caller (hindcast-full)" && az role assignment list --all --role "$ROLE" --query "[].id" -o tsv | xargs -r az role assignment delete --ids && az role definition delete --name "$ROLE" --custom-role-only true --scope "$(az group show -n rg-hindcast-full --query id -o tsv)" && az role definition list --custom-role-only true --query "[].roleName" -o tsv
+    ```
+
+    Expected: the list no longer shows `Hindcast Safety Caller (hindcast-full)`.
+
+17. Remove the environment, purging the soft-deleted Foundry resource, and check that nothing is left.
 
     ```bash
     azd down --purge --force && az group exists -n rg-hindcast-full && az cognitiveservices account list-deleted --query "[].name" -o tsv
@@ -182,7 +192,7 @@ The procedure builds all of Hindcast in one resource group with one `azd up`, fi
 
     Expected: `false`, and no Hindcast name among the deleted accounts.
 
-17. Delete the environment's app registration.
+18. Delete the environment's app registration.
 
     ```bash
     az ad app delete --id "$(azd env get-value AUTH_CLIENT_ID)" && az ad app list --display-name hindcast-full --query "[].displayName" -o tsv
