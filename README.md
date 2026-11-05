@@ -77,6 +77,7 @@ Cloud operations require endpoint configuration and Azure sign-in. See [local de
 |---|---|
 | [Roadmap](docs/roadmap.md) | Milestones and progress |
 | [Architecture](docs/architecture/) | Implementation and data flow |
+| [Glossary](docs/glossary.md) | Terms by category, also on the page |
 | [Decisions](docs/decisions/) | Design choices and tradeoffs |
 | [Evaluation](eval/reconstruction/showcase-v1/README.md) | Scores, method, and limitations |
 | [Answer keys](eval/keys/README.md) | Frozen provider accounts |
