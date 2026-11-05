@@ -2,6 +2,8 @@
 
 Status: Accepted (2026-10-30).
 
+[Decision 0028](0028-full-environment-and-live-page.md) answers the resource-group question for the full template.
+
 ## Context
 
 Decision [0009](0009-hosting-and-identity.md) chose Azure Container Apps with built-in Entra authentication and left two checks open: whether a managed identity can replace the client secret the documentation uses, and whether the ingress passes Streamlit's WebSocket. Decision [0010](0010-infrastructure-as-code.md) chose `azd` with Bicep. Writing the first template surfaced three facts, read on 2026-10-30:

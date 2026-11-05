@@ -41,6 +41,11 @@ class BlobContainer(Protocol):
     def upload_blob(self, name: str, data: bytes, overwrite: bool = ...) -> None: ...
 
 
+# A fake in tests, the SDK's client otherwise: ContainerClient's overloads do
+# not match the protocol for pyright, so code that takes either names both.
+type Blobs = BlobContainer | ContainerClient
+
+
 class SourceMismatch(ValueError):
     """A downloaded source does not match the SHA-256 pinned in the registry."""
 

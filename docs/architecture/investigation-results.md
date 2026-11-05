@@ -57,6 +57,8 @@ The shape `hindcast.result` and `hindcast.investigate` write, shortened: one ite
 }
 ```
 
+A run from the deployed page has no Git checkout. Its `code` adds `"source": "image"` and carries the commit and the `src/` tree that CI wrote into the image at build time; a prompt or registry is clean when its Git blob hash matches the one recorded then ([decision 0028](../../docs/decisions/0028-full-environment-and-live-page.md)).
+
 A finding is an observation the evidence states, or an inference that names the findings it `rests_on`. The checks on the answer:
 
 | Check | What happens |

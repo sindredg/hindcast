@@ -11,10 +11,8 @@ tests/
 docs/
 infra/
 analyzers/
-prompts/
 data/sources/
 data/charts/
-data/library.yaml
 eval/results/
 eval/model-selection/
 eval/keys/

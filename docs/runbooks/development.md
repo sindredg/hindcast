@@ -8,10 +8,10 @@ uv run --frozen ruff check .
 uv run --frozen ruff format --check .
 uv run --frozen pyright
 uv run --frozen pytest
-for f in infra/main.bicep infra/search.bicep; do az bicep build --file "$f" --stdout > /dev/null && az bicep lint --file "$f"; done
+for f in infra/main.bicep; do az bicep build --file "$f" --stdout > /dev/null && az bicep lint --file "$f"; done
 ```
 
-The page runs locally with `PYTHONPATH=src uv run --frozen streamlit run src/hindcast/app.py`; the code is not an installed package, so it needs the path. Without a connection string it sends no telemetry. With `HINDCAST_CHALLENGE_LIVE=1` and the `.env` settings, each finding of a screened result gets a box that challenges it with the developer's sign-in. The command `python -m hindcast.challenge <result file> <finding id> "<question>"` does the same.
+The page runs locally with `PYTHONPATH=src uv run --frozen streamlit run src/hindcast/app.py`; the code is not an installed package, so it needs the path. Without a connection string it sends no telemetry. With `HINDCAST_LIVE=1` and the `.env` settings, the page investigates the development case and its injection copies, and each finding of a screened result gets a box that challenges it, all with the developer's sign-in. The command `python -m hindcast.challenge <result file> <finding id> "<question>"` does the same.
 
 hadolint and shellcheck run in CI from their pinned releases; the Dockerfile builds there, since the image is pushed from `main` by the workflow, not from a workstation.
 

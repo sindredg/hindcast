@@ -9,6 +9,8 @@ __pycache__/
 htmlcov/
 *.egg-info/
 build/
+# Written in CI before the image build (hindcast.provenance).
+/provenance.json
 dist/
 
 # Azure Developer CLI environments (hold real resource names and IDs)
