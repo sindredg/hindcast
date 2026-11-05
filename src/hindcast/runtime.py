@@ -20,7 +20,9 @@ from collections.abc import Iterable
 from pathlib import Path, PurePosixPath
 from typing import Protocol
 
-from hindcast.storage import BlobContainer
+from azure.storage.blob import ContainerClient
+
+from hindcast.storage import BlobContainer, Blobs
 
 RUNTIME = "runtime"
 RUNS = "runs"
@@ -73,7 +75,7 @@ def write_manifest(root: Path) -> dict[str, str]:
     return {p.as_posix(): _sha256((root / p).read_bytes()) for p in runtime_files(root)}
 
 
-def materialize(client: BlobContainer, root: Path) -> int:
+def materialize(client: Blobs, root: Path) -> int:
     """Download every file the manifest lists into root, or nothing at all.
 
     Each file is checked against its SHA-256 in a staging directory first;
@@ -99,7 +101,7 @@ def materialize(client: BlobContainer, root: Path) -> int:
     return len(manifest)
 
 
-def store_run(client: BlobContainer, root: Path, path: Path) -> str:
+def store_run(client: Blobs, root: Path, path: Path) -> str:
     """Upload a result or challenge file under its path relative to root, never over another."""
     name = path.relative_to(root).as_posix()
     if not _under(name, RUN_PATHS):
@@ -108,7 +110,7 @@ def store_run(client: BlobContainer, root: Path, path: Path) -> str:
     return name
 
 
-def fetch_runs(client: ListingContainer, root: Path) -> list[Path]:
+def fetch_runs(client: ListingContainer | ContainerClient, root: Path) -> list[Path]:
     """Download every stored run into root; returns the files written.
 
     A file already there with the same bytes is skipped; one with other bytes

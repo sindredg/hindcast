@@ -1,23 +1,30 @@
-"""The web page: a stored investigation, rendered section by section, with its challenges.
+"""The web page: investigations, rendered section by section, with their challenges.
 
 Run with ``streamlit run src/hindcast/app.py``. The page lists the committed
-development-case results and shows one at a time, the newest gpt-6-luna run
-first. Under each finding it shows the challenges stored for that result.
+development-case results and the page's own runs, and shows one at a time,
+the newest gpt-6-luna run first. Under each finding it shows the challenges
+stored for that result.
 
-With HINDCAST_CHALLENGE_LIVE=1, set only on a developer's machine, each
-finding gets a question box that runs a challenge with the developer's
-sign-in (hindcast.challenge) and stores it. The deployed page has no such
-setting and no role to call a model, so it shows stored challenges only
-(decision 0021).
+With HINDCAST_LIVE=1 the page runs investigations of the development case
+and its injection copies, and each finding of a screened result gets a
+question box that runs a challenge (decision 0028). Scored and sealed cases
+are refused. On a developer's machine the calls use the developer's sign-in
+and the local build/; the deployed app also sets HINDCAST_BLOB_RUNTIME=1, so
+the page first downloads its runtime files from Blob Storage and stores every
+run and challenge there, with the app's managed identity.
 """
 
 import json
 import os
+import threading
+from collections.abc import Mapping
+from datetime import UTC, datetime
 from pathlib import Path
 
 import streamlit as st
 
-from hindcast import telemetry
+from hindcast import runtime, storage, telemetry
+from hindcast.cases import Case
 from hindcast.result import Citation, StoredResult, load_result
 
 # Anchored to the repository root, because Streamlit runs the script from its
@@ -27,7 +34,83 @@ RESULT_DIR = ROOT / "eval/investigations/cloudflare-2026-02-20"
 DEFAULT_DEPLOYMENT = "gpt-6-luna"
 # Test seam: points the page at one result file instead of the list.
 RESULT_FILE_VAR = "HINDCAST_RESULT_FILE"
-CHALLENGE_LIVE_VAR = "HINDCAST_CHALLENGE_LIVE"
+LIVE_VAR = "HINDCAST_LIVE"
+BLOB_RUNTIME_VAR = "HINDCAST_BLOB_RUNTIME"
+# Test seam: where build/ and the stored runs live. In the image it is /app,
+# the working directory the investigator's relative paths resolve against.
+RUN_ROOT_VAR = "HINDCAST_RUN_ROOT"
+# The only roles the page investigates: scored runs are evaluation runs, and
+# a sealed case is never run before its reveal.
+LIVE_ROLES = frozenset({"development", "injection"})
+# One investigation at a time per process: each is a paid run of up to 120
+# seconds, and the app runs one replica.
+RUN_LOCK = threading.Lock()
+
+
+class RunInProgress(RuntimeError):
+    """Another investigation is running in this process."""
+
+
+def run_root() -> Path:
+    return Path(os.environ.get(RUN_ROOT_VAR) or ROOT)
+
+
+def live_cases(cases: Mapping[str, Case]) -> list[str]:
+    """The cases the page may investigate, sorted."""
+    return sorted(c for c, case in cases.items() if case.role in LIVE_ROLES)
+
+
+def start_run(case: Case, *, root: Path, client: storage.Blobs | None) -> Path:
+    """Investigate one case, write the result under root, and store it when a client is given.
+
+    Refused before any cloud call when another run holds the lock or the
+    case is not a development or injection case.
+    """
+    if not RUN_LOCK.acquire(blocking=False):
+        raise RunInProgress("an investigation is already running; wait for it to finish")
+    try:
+        if case.role not in LIVE_ROLES:
+            raise PermissionError(f"{case.case_id} is a {case.role} case: the page does not run it")
+        from hindcast import investigate
+
+        investigate.check_case_allowed(case, investigate.RUBRIC_LOCK)
+        setup = investigate.prepare(case)
+        result = investigate.run_investigation(
+            setup.turn, setup.tools, case_id=case.case_id, pii=setup.pii
+        )
+        path = investigate.write_result(
+            result,
+            case_id=case.case_id,
+            agent=setup.agent,
+            model=setup.model,
+            provenance=setup.provenance,
+            out_dir=root / "build/investigations",
+            now=datetime.now(UTC),
+            cost=setup.cost(result.usage),
+        )
+        if client is not None:
+            runtime.store_run(client, root, path)
+        return path
+    finally:
+        RUN_LOCK.release()
+
+
+@st.cache_resource
+def _runtime_ready(root: str) -> bool:
+    """Download the runtime files and the stored runs once per process.
+
+    An exception is not cached, so a failed download is tried again on the
+    next render; materialize leaves nothing behind when it fails.
+    """
+    runtime.materialize(storage.container(runtime.RUNTIME), Path(root))
+    runtime.fetch_runs(storage.container(runtime.RUNS), Path(root))
+    return True
+
+
+def _runs_client() -> storage.Blobs | None:
+    if os.environ.get(BLOB_RUNTIME_VAR) != "1":
+        return None
+    return storage.container(runtime.RUNS)
 
 
 def results(directory: Path) -> list[Path]:
@@ -85,11 +168,14 @@ def _challenge(stored: dict) -> None:
 def _live_challenge(path: Path, finding_id: str) -> None:
     question = st.text_area("Challenge this finding", key=f"question-{finding_id}")
     if st.button("Run challenge", key=f"challenge-{finding_id}") and question.strip():
-        # Imported here: the deployed page never runs a challenge.
+        # Imported here: a page without the live flag never runs a challenge.
         from hindcast import challenge
 
         with st.spinner("Running the challenge"):
             result, written, cost = challenge.challenge_and_store(path, finding_id, question)
+        client = _runs_client()
+        if client is not None:
+            runtime.store_run(client, run_root(), written)
         if result.challenge is None:
             st.warning(f"No answer: {result.status} ({result.reason})")
             return
@@ -184,19 +270,61 @@ def _render(result: StoredResult, path: Path, live: bool) -> None:
     st.json(result.provenance)
 
 
+def _investigate_panel(cases: Mapping[str, Case]) -> None:
+    with st.sidebar:
+        st.header("Run an investigation")
+        case_id = st.selectbox("Case", live_cases(cases), key="case")
+        if st.button("Investigate", key="investigate") and case_id:
+            try:
+                with st.status(f"Investigating {case_id}", expanded=False):
+                    path = start_run(cases[case_id], root=run_root(), client=_runs_client())
+            except RunInProgress as error:
+                st.warning(str(error))
+                return
+            st.session_state["picked"] = str(path)
+            st.rerun()
+
+
+def _result_files(cases: Mapping[str, Case]) -> list[Path]:
+    """Committed development results, then the page's own runs, newest first in each."""
+    own = [
+        p
+        for case_id in live_cases(cases)
+        for p in results(run_root() / "build/investigations" / case_id)
+    ]
+    return results(RESULT_DIR) + sorted(own, key=lambda p: p.name, reverse=True)
+
+
 def main() -> None:
     st.set_page_config(page_title="Hindcast", layout="wide")
     telemetry.configure()
+    live = os.environ.get(LIVE_VAR) == "1"
+    cases: Mapping[str, Case] = {}
+    if live:
+        from hindcast.cases import load_cases
+
+        cases = load_cases()
+        ready = True
+        if os.environ.get(BLOB_RUNTIME_VAR) == "1":
+            try:
+                ready = _runtime_ready(str(run_root()))
+            except Exception as error:  # noqa: BLE001
+                # Shown, not raised: the stored results still render, and no
+                # run starts on a partial or unchecked build/.
+                st.error(f"The runtime files are not ready: {error}")
+                ready = False
+        if ready:
+            _investigate_panel(cases)
     override = os.environ.get(RESULT_FILE_VAR, "")
     if override:
         path = Path(override)
     else:
-        files = results(RESULT_DIR)
-        default = default_result(RESULT_DIR)
+        files = _result_files(cases)
+        picked = Path(st.session_state.get("picked", "")) if "picked" in st.session_state else None
+        default = picked if picked in files else default_result(RESULT_DIR)
         path = st.selectbox(
             "Result", files, index=files.index(default), format_func=lambda p: p.name
         )
-    live = os.environ.get(CHALLENGE_LIVE_VAR) == "1"
     result = load_result(path)
     with telemetry.span("page_view", case_id=result.case_id, result_file=path.name):
         _render(result, path, live)

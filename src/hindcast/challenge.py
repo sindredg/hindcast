@@ -315,7 +315,7 @@ def challenge_and_store(
     """Challenge one finding of a stored result and write the challenge next to it.
 
     Used by the command and by the page when it runs locally with
-    HINDCAST_CHALLENGE_LIVE=1. Every refusal comes before any cloud call.
+    HINDCAST_LIVE=1. Every refusal comes before any cloud call.
     """
     stored = load_result(result_path)
     validate(stored, finding_id, question)

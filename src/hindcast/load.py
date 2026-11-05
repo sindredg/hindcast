@@ -22,16 +22,13 @@ from collections.abc import Callable, Mapping
 from pathlib import Path
 
 from azure.core.exceptions import ResourceNotFoundError
-from azure.storage.blob import ContainerClient
 
 from hindcast import runtime
 from hindcast.cases import Case
 from hindcast.library import LibraryDocument
-from hindcast.storage import SOURCES, BlobContainer, SourceMismatch
+from hindcast.storage import SOURCES, BlobContainer, Blobs, SourceMismatch
 
 EXTRACTED = "extracted"
-# A fake in tests, the SDK's client otherwise.
-type Blobs = BlobContainer | ContainerClient
 EXTRACTS_DIR = Path("build/extracted/library")
 
 

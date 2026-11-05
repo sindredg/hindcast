@@ -139,7 +139,7 @@ The procedure runs one investigation of a case through the investigator prompt a
    To challenge from the page instead, start it with the live flag; each finding then has a question box. The deployed page has no such box.
 
    ```bash
-   HINDCAST_CHALLENGE_LIVE=1 PYTHONPATH=src uv run --frozen --env-file .env streamlit run src/hindcast/app.py
+   HINDCAST_LIVE=1 PYTHONPATH=src uv run --frozen --env-file .env streamlit run src/hindcast/app.py
    ```
 
    Expected (reasoned; not run in a browser on 2026-11-03): the page opens on the newest `gpt-6-luna` result, and "Run challenge" under a finding shows the verdict, the answer, and its citations, and writes the challenge file.
