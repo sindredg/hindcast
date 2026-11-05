@@ -4,6 +4,7 @@ import json
 import re
 from pathlib import Path
 
+import pytest
 from streamlit.testing.v1 import AppTest
 
 from hindcast import app
@@ -299,7 +300,7 @@ def test_second_run_is_refused_while_one_runs(tmp_path, monkeypatch):
     case = load_cases()["cloudflare-2026-02-20"]
     assert app.RUN_LOCK.acquire(blocking=False)
     try:
-        with __import__("pytest").raises(app.RunInProgress):
+        with pytest.raises(app.RunInProgress):
             app.start_run(case, root=tmp_path, client=None)
     finally:
         app.RUN_LOCK.release()
@@ -847,3 +848,24 @@ def test_a_challenge_waits_for_a_running_investigation(tmp_path, monkeypatch):
 
 def test_a_finding_id_with_a_separator_reads_no_challenge_files(tmp_path):
     assert app.challenges(tmp_path / "r.json", "../x") == []
+
+
+def test_the_page_refuses_a_sealed_case_by_its_role_alone(tmp_path, monkeypatch):
+    # The page's own role check, with the investigator's lock check out of the way.
+    from hindcast import investigate
+    from hindcast.cases import load_cases
+
+    monkeypatch.setattr(investigate, "check_case_allowed", lambda case, lock: None)
+    prepared: list[str] = []
+    monkeypatch.setattr(investigate, "prepare", lambda case: prepared.append(case.case_id))
+    with pytest.raises(PermissionError, match="sealed"):
+        app.start_run(load_cases()["github-2026-10-21"], root=tmp_path, client=None)
+    assert prepared == []
+
+
+def test_a_pre_screen_run_says_why_it_has_no_challenge_box(monkeypatch):
+    monkeypatch.setenv(app.RESULT_FILE_VAR, str(RESULT))
+    monkeypatch.setenv(app.LIVE_VAR, "1")
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+    assert not at.exception
+    assert any("No challenge box" in c.value for c in at.caption)

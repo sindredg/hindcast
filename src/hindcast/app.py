@@ -83,6 +83,7 @@ PAGE_TERMS = (
     "Rests on",
     "Citation",
     "Rejected citation",
+    "Rejection reason",
     "Unsupported item",
     "Withheld item",
     "PII check",
@@ -545,6 +546,7 @@ def _investigation_tab(view: View) -> None:
     left, right = st.columns(2)
     with left, st.container(border=True):
         st.subheader("Attack assessment", help=_help("Attack assessment"), anchor=False)
+        st.caption("Did deliberate hostile action cause the outage?")
         verdict = investigation.attack.verdict
         st.badge(plain(verdict), color=VERDICT_COLORS.get(verdict, "gray"))
         st.markdown(plain(investigation.attack.reasoning))
@@ -564,6 +566,11 @@ def _investigation_tab(view: View) -> None:
             _citations(event.citations, view)
 
     st.header("Findings", help=_help("Finding"))
+    if view.live and not (view.result.status == "complete" and view.screened):
+        st.caption(
+            "No challenge box: a challenge needs a complete run whose tool results Prompt"
+            " Shields screened, and this run predates the screen."
+        )
     for finding in investigation.findings:
         with st.container(border=True):
             with st.container(horizontal=True, vertical_alignment="center"):
@@ -669,6 +676,7 @@ def _evidence_tab(view: View) -> None:
 def _checks_tab(view: View) -> None:
     result = view.result
     st.header("Citations", help=_help("Rejected citation"))
+    reasons = _help("Rejection reason")
     rejected = result.checks.get("rejected_citations", [])
     unsupported = result.checks.get("unsupported", [])
     st.markdown(f"Rejected citations: {len(rejected)}. Unsupported items: {len(unsupported)}.")
@@ -684,6 +692,8 @@ def _checks_tab(view: View) -> None:
             for row in rejected
         ]
         st.dataframe(rows, hide_index=True)
+        if reasons:
+            st.caption(reasons)
     if unsupported:
         st.markdown("\n".join(f"- {code(view.where(item))}" for item in unsupported))
 
