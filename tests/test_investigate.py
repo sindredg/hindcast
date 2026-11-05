@@ -942,3 +942,37 @@ def test_a_case_whose_filter_returns_nothing_is_refused_before_the_agent(
         main(["dev", "--out", str(tmp_path / "out")])
     assert created == []
     assert client.calls == []
+
+
+# Review finding: an incomplete run kept its search queries unmasked.
+
+
+def test_search_queries_are_pii_masked_when_the_run_hits_the_tool_cap() -> None:
+    turn = ScriptedTurn(
+        response(search_call("errors Jane Doe saw")),
+        *[response(call(call_id=f"c{n}")) for n in range(12)],
+        final(),
+    )
+    result = run(turn, Tools(search=lambda q, timeout: []), pii=StubPii())
+    assert result.incomplete_reason == "tool-cap"
+    assert result.tool_calls[0]["query"] == "errors [Person] saw"
+    assert [f.path for f in result.checks.pii] == ["tool_calls[0].query"]
+
+
+def test_search_queries_are_pii_masked_when_the_answer_is_not_json() -> None:
+    turn = ScriptedTurn(response(search_call("errors Jane Doe saw")), response(text="not json"))
+    result = run(turn, Tools(search=lambda q, timeout: []), pii=StubPii())
+    assert result.status == "incomplete" and result.incomplete_reason.startswith("schema")
+    assert result.tool_calls[0]["query"] == "errors [Person] saw"
+
+
+def test_an_unchecked_query_is_replaced_when_pii_detection_fails() -> None:
+    turn = ScriptedTurn(
+        response(search_call("errors Jane Doe saw")),
+        *[response(call(call_id=f"c{n}")) for n in range(12)],
+        final(),
+    )
+    result = run(turn, Tools(search=lambda q, timeout: []), pii=StubPii(PiiError("HTTP 500")))
+    assert result.incomplete_reason == "tool-cap; pii-error: HTTP 500"
+    assert result.tool_calls[0]["query"] == investigate.QUERY_UNCHECKED
+    assert "Jane" not in json.dumps(result.tool_calls)
