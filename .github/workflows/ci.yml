@@ -167,6 +167,25 @@ jobs:
           test "$source" = image
           docker run --rm hindcast:ci sh -c \
             "touch build/check && touch eval/investigations/cloudflare-2026-02-20/check"
+          # The page's runtime download, as the runtime user into /app, from
+          # a stub container: it has to stage and move inside build/.
+          docker run --rm -i hindcast:ci python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          from hindcast import runtime
+          data = b"{}"
+          name = "build/evidence/check.json"
+          manifest = json.dumps({name: hashlib.sha256(data).hexdigest()}).encode()
+          blobs = {name: data, runtime.MANIFEST: manifest}
+          class Blob:
+              def __init__(self, data): self.data = data
+              def readall(self): return self.data
+          class Container:
+              def download_blob(self, name): return Blob(blobs[name])
+          assert runtime.materialize(Container(), Path("/app")) == 1
+          assert Path("/app", name).read_bytes() == data
+          print("runtime download: ok")
+          PY
           docker run --rm hindcast:ci python -c \
             "from hindcast import app; path = app.default_result(app.RESULT_DIR);"\
             " print(app.load_result(path).case_id)"

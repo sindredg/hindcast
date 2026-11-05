@@ -85,8 +85,11 @@ def materialize(client: Blobs, root: Path) -> int:
     for name in manifest:
         if not _under(name, RUNTIME_PATHS):
             raise RuntimeMismatch(f"{name}: outside the runtime paths")
-    root.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(dir=root, prefix=".runtime-") as staging:
+    # Staged inside build/: in the image the runtime user can write build/
+    # and not the root above it, and the same filesystem lets os.replace move.
+    build = root / "build"
+    build.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=build, prefix=".runtime-") as staging:
         for name, digest in sorted(manifest.items()):
             data = client.download_blob(name).readall()
             if _sha256(data) != digest:

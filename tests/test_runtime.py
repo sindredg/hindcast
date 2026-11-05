@@ -76,7 +76,7 @@ def test_materialize_refuses_a_changed_file(tmp_path):
     client.blobs["build/evidence/case-a.json"] = b'{"updates": ["planted"]}'
     with pytest.raises(runtime.RuntimeMismatch, match="build/evidence/case-a.json"):
         runtime.materialize(client, tmp_path)
-    assert not (tmp_path / "build").exists()
+    assert [p for p in tmp_path.rglob("*") if p.is_file()] == []
 
 
 def test_materialize_leaves_no_partial_tree(tmp_path):
@@ -85,8 +85,8 @@ def test_materialize_leaves_no_partial_tree(tmp_path):
     client.fail_on = 3
     with pytest.raises(ConnectionError):
         runtime.materialize(client, tmp_path)
-    assert not (tmp_path / "build").exists()
-    assert list(tmp_path.iterdir()) == []
+    # build/ may exist; no file in it does, staged or moved.
+    assert [p for p in tmp_path.rglob("*") if p.is_file()] == []
 
 
 def test_materialize_refuses_a_name_outside_the_runtime_paths(tmp_path):
@@ -139,3 +139,18 @@ def test_fetch_runs_refuses_different_bytes_under_an_existing_name(tmp_path):
 
 def test_runtime_paths_are_relative(tmp_path):
     assert all(not Path(p).is_absolute() for p in runtime.RUNTIME_PATHS)
+
+
+def test_materialize_writes_only_under_build(tmp_path):
+    # The image: /app is root's and read-only for the runtime user; only
+    # build/ is writable.
+    root = tmp_path / "app"
+    (root / "build").mkdir(parents=True)
+    root.chmod(0o555)
+    try:
+        assert runtime.materialize(_uploaded(), root) == len(FILES)
+    finally:
+        root.chmod(0o755)
+    for name, data in FILES.items():
+        assert (root / name).read_bytes() == data
+    assert sorted(p.name for p in root.iterdir()) == ["build"]
