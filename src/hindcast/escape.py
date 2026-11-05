@@ -8,11 +8,20 @@ planted instruction asked for. Both pages pass model text through here.
 import re
 
 _MARKDOWN = str.maketrans({c: f"\\{c}" for c in "\\`*_{}[]<>()#+-.!|~$"})
+# GitHub-flavoured Markdown also links a bare URL, a "www." host, and an
+# e-mail address, and a backslash escape does not stop it: rendered in
+# Streamlit 1.67.0, "https\://x", "ops\@x", and "www\.x" all became links.
+# An invisible WORD JOINER before each ":" and "@" and after "www" did not.
+WORD_JOINER = "\u2060"
+_LINK_MARKS = re.compile(r"(?=[:@])")
+_WWW = re.compile(r"(?i)(www)(?=\\\.)")
 
 
 def plain(text: object) -> str:
-    """Text shown as written: Markdown characters escaped, line breaks kept."""
-    return str(text).translate(_MARKDOWN).replace("\n", "  \n")
+    """Text shown as written: Markdown characters escaped, line breaks kept, no links."""
+    text = str(text).translate(_MARKDOWN)
+    text = _WWW.sub(lambda m: m.group(1) + WORD_JOINER, _LINK_MARKS.sub(WORD_JOINER, text))
+    return text.replace("\n", "  \n")
 
 
 def code(text: object) -> str:
