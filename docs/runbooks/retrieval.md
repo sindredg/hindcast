@@ -108,7 +108,7 @@ On a rebuild from scratch, the extraction runbook creates this deployment and ma
 
 ## Create the search service
 
-7. Deploy `infra/search.bicep` into the foundation's resource group. It is not part of the `azd` template.
+7. Deploy `infra/search.bicep` into the foundation's resource group. It is not part of the `azd` template. Since 2026-11-05 the search service is part of the full template instead ([deployment runbook](deployment.md), [decision 0028](../decisions/0028-full-environment-and-live-page.md)); this step's template is the version at commit `99a9723` (`git show 99a9723:infra/search.bicep > search.bicep`).
 
    ```bash
    az deployment group create -g "$RG" -n hindcast-search -f infra/search.bicep \

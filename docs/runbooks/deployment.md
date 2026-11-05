@@ -1,188 +1,191 @@
 # Deployment: operator procedure
 
-Status: Written on 2026-10-30 for [milestone 6, slice 1](../worklogs/06-deployment.md); steps 1 to 11 validated live on 2026-10-31. Steps marked "Expected, as observed" ran on the date given with the output shown; steps 12 to 14 are reasoned from the templates and not yet run.
+Status: Rewritten on 2026-11-05 for the full environment ([decision 0028](../decisions/0028-full-environment-and-live-page.md)); written, not run. Every "Expected" below is reasoned from the templates and the code, not observed. The procedure it replaces, which deployed the app's resource group only, ran on 2026-10-31 ([worklog 06](../worklogs/06-deployment.md)).
 
-The procedure deploys the Hindcast page to Azure Container Apps from one `azd up`, with Entra sign-in and telemetry, from an image CI builds. It creates nothing in the resource group that holds Foundry and the storage account; it reads two resources there by name ([decision 0016](../decisions/0016-sign-in-credential-image-build-and-resource-group.md)).
+The procedure builds all of Hindcast in one resource group with one `azd up`, fills it from the operator's local data tree, runs an investigation, a challenge, and an injection copy from the signed-in page, and removes it all with `azd down`. The data is the operator's: `data/sources/` and `build/` are not in the repository, so a clean clone also needs the [extraction runbook](extraction.md) first.
 
 ## Inputs and access
 
-- The [foundations runbook](foundations.md) completed: the Foundry resource with its Application Insights and Log Analytics resources, and the GitHub repository with its ruleset.
-- Azure Developer CLI 1.37.2, Bicep CLI 0.48.1 (through `az bicep`), Azure CLI, GitHub CLI.
-- Signed in as an Owner of the subscription who can create app registrations in the tenant, and as a GitHub user who can set repository secrets and the ruleset.
-- Placeholders: `<app-insights>` and `<log-analytics>` are the resource names from the foundations runbook; `<registry>` and `<sha>` come from steps 5 and 9.
-- Steps 1 and 2 ran on 2026-10-30 with the expected output (azd 1.37.2, Bicep 0.48.1, an empty `git status`).
+- Azure Developer CLI 1.37.2 and Bicep CLI 0.48.1 (through `az bicep`), the newest stable releases on 2026-11-05; Azure CLI 2.88.0; GitHub CLI; uv.
+- Signed in as an Owner of the subscription who can create app registrations in the tenant, and as a GitHub user who can set the repository's environment secrets.
+- Global Standard quota in Sweden Central of 50 thousand tokens per minute free for each of gpt-6-luna, gpt-6.1-sol, gpt-5.4-mini, and text-embedding-3-large (`az cognitiveservices usage list -l swedencentral`).
+- The local data tree: `data/sources/` with every source the registries pin, and `build/evidence/`, `build/extracted/library/`, and `build/injection/` from the extraction and injection runbooks.
+- The `azure` deployment environment on the repository, limited to `main` (created in the slice 1 procedure; [worklog 06](../worklogs/06-deployment.md)).
+- Placeholder: `<sha>` is the commit CI pushed in step 7.
 - Commands run from the repository root.
 
 ## Tools
 
-1. Install or update the two tools and read their versions back.
+1. Read the tool versions.
 
    ```bash
-   curl -fsSL https://aka.ms/install-azd.sh | bash && azd version
-   ```
-
-   ```bash
-   az bicep upgrade && az bicep version
+   azd version && az bicep version
    ```
 
    Expected: `azd version 1.37.2` and `Bicep CLI version 0.48.1`.
 
 ## Environment
 
-2. Create the azd environment. Its files live under `.azure/`, which is git-ignored because they hold real resource names. `HINDCAST_IMAGE` starts as a public placeholder image, because the registry does not exist before the first provision; step 10 points it at the app image.
+2. Create the azd environment `hindcast-full`. Not `hindcast` or `hindcast-app`: those names belong to resource groups built before this template, and `azd down` deletes `rg-<environment>`. `HINDCAST_IMAGE` starts as a public placeholder, because the registry does not exist before the first provision.
 
    ```bash
-   azd auth login && azd env new hindcast-app --no-prompt && azd env set AZURE_LOCATION swedencentral && azd env set APPLICATIONINSIGHTS_NAME <app-insights> && azd env set LOG_ANALYTICS_NAME <log-analytics> && azd env set HINDCAST_IMAGE mcr.microsoft.com/k8se/quickstart@sha256:3a4d93c34c6753f24765ab17a36f1754aee9b02082b7d9553d17697b9e8252c4 && git status --short
+   azd auth login && azd env new hindcast-full --no-prompt && azd env set AZURE_LOCATION swedencentral && azd env set HINDCAST_IMAGE mcr.microsoft.com/k8se/quickstart@sha256:3a4d93c34c6753f24765ab17a36f1754aee9b02082b7d9553d17697b9e8252c4 && git status --short
    ```
 
-   Expected: a browser sign-in, then `git status` prints nothing.
+   Expected: a browser sign-in, then `git status` prints nothing (`.azure/` is git-ignored).
 
 ## Preview
 
-3. Preview the deployment. The pre-provision hook creates the Entra app registration `hindcast-app` (single tenant, ID tokens on) and writes its IDs into the azd environment, then reads the repository's OIDC subject prefix from GitHub into `GITHUB_SUBJECT_PREFIX` (immutable subjects carry the owner and repository IDs). The what-if then lists what Bicep would create. The hook runs by name first, because `--preview` skips hooks and would prompt for the parameters the hook sets.
+3. Run the pre-provision hook by name, then preview. The hook creates the Entra app registration named after the environment, `hindcast-full`, and reads the repository's OIDC subject prefix from GitHub.
 
    ```bash
-   azd hooks run preprovision && azd provision --preview
+   azd hooks run preprovision && az deployment sub what-if --location swedencentral --name hindcast-full-whatif --template-file infra/main.bicep --parameters infra/main.parameters.json
    ```
 
-   Expected, as observed on 2026-10-31: `app registration: hindcast-app (created)` and `github subject prefix: repo:<owner>@...`, then `SUCCESS: Generated provisioning preview` with four `Create` lines: the resource group `rg-hindcast-app`, the container app `ca-hindcast`, the environment `cae-hindcast`, and the registry (`<registry>`).
-
-   azd's preview prints only these resource types. The identities, the federated credential, the role assignments, the diagnostic setting, and the auth config appear in a full what-if, with eleven `Create` and no change in the other resource group:
-
-   ```bash
-   az deployment sub what-if --location swedencentral --template-file infra/main.bicep --parameters infra/main.parameters.json
-   ```
+   Expected: `app registration: hindcast-full (created)`, then 17 `Create` lines, all in `rg-hindcast-full`: the group, the Foundry resource with its project and four deployments, the custom role, the storage account with its blob service and four containers, Log Analytics, Application Insights, and the search service. Nothing in `rg-hindcast` or `rg-hindcast-app`. What-if does not list the app's and the roles' resources, because their inputs are other modules' outputs. Observed with `az deployment sub what-if` on 2026-11-05 with placeholder sign-in values: 17 `Create`, all in `rg-hindcast-full`.
 
 ## Provision
 
-4. Create the resources. The container app runs the image in `HINDCAST_IMAGE`, the public placeholder until CI has pushed the app image (step 9); the template sets port 80 and no probes for the placeholder, and port 8501 with probes on `/_stcore/health` for any other image. The post-provision hook sets the app's redirect URI on the registration and creates the federated credential that lets the app's identity sign in without a client secret.
+4. Create everything. The deployments are created one at a time; the role assignments come last.
 
    ```bash
    azd provision
    ```
 
-   Expected, as observed on 2026-10-31: `SUCCESS: Your application was provisioned in Azure`. The hook prints `redirect uri: set` and `federated credential: created` in a terminal; when the output is piped, azd may not show hook output, so check the registration directly:
+   Expected: `SUCCESS: Your application was provisioned in Azure`. The post-provision hook sets the registration's redirect URI and the app identity's federated credential.
+
+5. Read the resources back: one group, keys off, and the app identity's roles.
 
    ```bash
-   APP=$(azd env get-value AUTH_CLIENT_ID) && az ad app show --id "$APP" --query "web.redirectUris" -o tsv && az ad app federated-credential list --id "$APP" --query "[].name" -o tsv
-   ```
-
-   Expected, as observed on 2026-10-31: `https://<app-host>/.auth/login/aad/callback`, then `container-app-identity`.
-
-5. Read the resources back and check that the one container secret is the override name, whose value is the identity's client ID, not a credential.
-
-   ```bash
-   az resource list -g rg-hindcast-app --query "[].type" -o tsv | sort | uniq -c
+   RG=rg-hindcast-full && az resource list -g "$RG" --query "[].type" -o tsv | sort | uniq -c
    ```
 
    ```bash
-   az containerapp secret list -n ca-hindcast -g rg-hindcast-app --query "[].name" -o tsv && azd env get-value AZURE_CONTAINER_REGISTRY_NAME
+   RG=rg-hindcast-full && az cognitiveservices account list -g "$RG" --query "[].properties.disableLocalAuth" -o tsv && az storage account list -g "$RG" --query "[].allowSharedKeyAccess" -o tsv && az search service list -g "$RG" --query "[].disableLocalAuth" -o tsv
    ```
-
-   Expected, as observed on 2026-10-31: one line per type (`Microsoft.App/containerApps`, `Microsoft.App/managedEnvironments`, `Microsoft.ContainerRegistry/registries`, two `Microsoft.ManagedIdentity/userAssignedIdentities`); then `override-use-mi-fic-assertion-client-id` and the registry name (`<registry>`).
-
-## Sign-in
-
-6. A browser request without a session is redirected to sign-in; the health path is not. The platform redirects only requests that look like a browser and answers `401` to other clients, so the first check sends a browser `User-Agent`.
 
    ```bash
-   URI=$(azd env get-value SERVICE_WEB_URI) && curl -s -o /dev/null -H 'User-Agent: Mozilla/5.0' -H 'Accept: text/html' -w '%{http_code} %{redirect_url}\n' "$URI/" | cut -c1-38 && curl -s -o /dev/null -w '%{http_code}\n' "$URI/" && curl -s -o /dev/null -w '%{http_code}\n' "$URI/_stcore/health"
+   az role assignment list --assignee "$(azd env get-value SERVICE_WEB_IDENTITY_PRINCIPAL_ID)" --all --query "[].roleDefinitionName" -o tsv | sort
    ```
 
-   Expected, as observed on 2026-10-31 on the placeholder image: `302 https://login.microsoftonline.com/`, then `401`, then `404` (the placeholder has no health path; `200` once the app image runs). Neither of the last two may be `302`.
-
-7. Open the URL in a browser and sign in with the deploying account. Another account from the tenant gets `403`.
-
-   Expected, as observed on 2026-10-31 on the placeholder image: the Microsoft sign-in page, then "Your container app is running with a Hello World image". No client secret was needed. Expected after step 10: the Hindcast page. The `403` for another account is reasoned from the auth config, not observed.
-
-   If the sign-in page returns an error that names an invalid client secret, the federated path did not work on this platform. Fall back to a client secret, which the template stores as the container secret `microsoft-provider-authentication-secret`:
-
-   ```bash
-   azd env set AUTH_CLIENT_SECRET "$(az ad app credential reset --id "$(azd env get-value AUTH_CLIENT_ID)" --years 0.1 --query password -o tsv)" && azd provision
-   ```
-
-   Then repeat step 6 and record the path that worked in the worklog.
+   Expected: one Foundry resource and project, one storage account, one search service, a container app, an environment, a registry, two identities, Log Analytics, and Application Insights; then `True`, `False`, `True`; then `AcrPull`, `Cognitive Services OpenAI User`, `Foundry User`, `Hindcast Safety Caller (hindcast-full)`, `Search Index Data Reader`, `Storage Blob Data Contributor`, `Storage Blob Data Reader`.
 
 ## Image
 
-8. Create the `azure` deployment environment on the repository, limited to `main`, and set its four secrets. The name matters: the CI identity's federated credential accepts the subject `<GITHUB_SUBJECT_PREFIX>:environment:azure`, and the branch policy is what keeps that environment to `main`. The secrets hold IDs and a resource name, not credentials; the push job signs in with the workflow's OIDC token.
+6. Point the `azure` environment's secrets at the new CI identity and registry. The tenant and subscription stay the same.
 
    ```bash
-   gh api -X PUT repos/sindredg/hindcast/environments/azure -F "deployment_branch_policy[protected_branches]=false" -F "deployment_branch_policy[custom_branch_policies]=true" --jq .name && gh api -X POST repos/sindredg/hindcast/environments/azure/deployment-branch-policies -f name=main -f type=branch --jq .name && gh secret set AZURE_CLIENT_ID --env azure --body "$(azd env get-value CI_IDENTITY_CLIENT_ID)" && gh secret set AZURE_TENANT_ID --env azure --body "$(az account show --query tenantId -o tsv)" && gh secret set AZURE_SUBSCRIPTION_ID --env azure --body "$(az account show --query id -o tsv)" && gh secret set AZURE_CONTAINER_REGISTRY_NAME --env azure --body "$(azd env get-value AZURE_CONTAINER_REGISTRY_NAME)" && gh secret list --env azure
+   gh secret set AZURE_CLIENT_ID --env azure --body "$(azd env get-value CI_IDENTITY_CLIENT_ID)" && gh secret set AZURE_CONTAINER_REGISTRY_NAME --env azure --body "$(azd env get-value AZURE_CONTAINER_REGISTRY_NAME)" && gh secret list --env azure
    ```
 
-   Expected, as observed on 2026-10-31: `azure`, then `main`, then four `Set Actions secret` lines and the four names in the list.
+   Expected: two `Set Actions secret` lines and four names in the list.
 
-9. Push the image: merge the pull request that carries this runbook, or run the workflow on `main` by hand. The `Push the image` job builds the image and pushes `hindcast:<sha>` and `hindcast:main`.
+7. Push the image from `main`. CI writes the provenance manifest, builds, checks the image, and pushes `hindcast:<sha>` and `hindcast:main`.
 
    ```bash
    gh workflow run CI --ref main && sleep 30 && gh run watch "$(gh run list --workflow CI --branch main --limit 1 --json databaseId --jq '.[0].databaseId')" --exit-status
    ```
 
+   Expected: the run ends green with `Push the image` as its last job.
+
+8. Point the app at the pushed image. A provision, not `azd deploy`: the template also moves the port to 8501 and adds the probes.
+
    ```bash
-   az acr repository show-tags -n <registry> --repository hindcast -o tsv
+   az acr repository show-tags -n "$(azd env get-value AZURE_CONTAINER_REGISTRY_NAME)" --repository hindcast -o tsv
    ```
 
-   Expected, as observed on 2026-10-31: the run ends green with `Push the image` as its last job, and the tag list holds `main` and a commit SHA (`<sha>`).
+   ```bash
+   azd env set HINDCAST_IMAGE "$(azd env get-value AZURE_CONTAINER_REGISTRY_ENDPOINT)/hindcast:<sha>" && azd provision
+   ```
 
-## Deploy
+   ```bash
+   curl -s "$(azd env get-value SERVICE_WEB_URI)/_stcore/health"
+   ```
 
-10. Point the container app at the pushed image. A provision, not `azd deploy`: deploy changes only the image, and the template also moves the port to 8501 and adds the probes when the image is not the placeholder.
+   Expected: `main` and `<sha>`; then `SUCCESS`; then `ok`.
+
+## Data
+
+9. Write the operator's settings for the new environment into a git-ignored file, then wait for the operator's roles to reach the data planes (a few minutes after the provision).
+
+   ```bash
+   azd env get-values | grep -E '^(HINDCAST_|AZURE_)' > .env.full && grep -c HINDCAST_ .env.full && git status --short
+   ```
+
+   Expected: `12` (the 11 settings the template outputs, and `HINDCAST_IMAGE`), and `git status` prints nothing (`.env.*` is ignored).
+
+10. Load the data: every source checked against its registry hash, the extracts, the runtime files with their manifest last, then the library index and the injection index.
 
     ```bash
-    azd env set HINDCAST_IMAGE "$(azd env get-value AZURE_CONTAINER_REGISTRY_ENDPOINT)/hindcast:<sha>" && azd provision
+    PYTHONPATH=src uv run --frozen --env-file .env.full python -m hindcast.load
+    ```
+
+    Expected: `hindcast-library-1024` with 267 chunks, the injection index line with its planted count, then `blobs uploaded: 106, already there: 0` (42 sources, 23 extracts, 40 runtime files, and the manifest, counted locally on 2026-11-05). A second run prints `already there: 106` with `--skip-index`.
+
+## The page
+
+11. A request without a session is redirected; the health path is not.
+
+    ```bash
+    URI=$(azd env get-value SERVICE_WEB_URI) && curl -s -o /dev/null -H 'User-Agent: Mozilla/5.0' -H 'Accept: text/html' -w '%{http_code} %{redirect_url}\n' "$URI/" | cut -c1-38 && curl -s -o /dev/null -w '%{http_code}\n' "$URI/" && curl -s -o /dev/null -w '%{http_code}\n' "$URI/_stcore/health"
+    ```
+
+    Expected: `302 https://login.microsoftonline.com/`, then `401`, then `200`.
+
+12. In a browser, sign in with the allowed account. The sidebar shows "Run an investigation" (the runtime files downloaded and passed their hashes). Run, in order, and take a screenshot of each result:
+
+    1. Investigate `cloudflare-2026-02-20`. Expected: a complete run with every section, no rejected citation, and a cost.
+    2. Open one finding and challenge it. Expected: a verdict with citations.
+    3. Investigate `cloudflare-2026-02-20-inject-update`. Expected: the checks show the planted update as a withheld item.
+
+    Another account from the tenant gets `403`.
+
+13. Download the runs the page stored, and check each one's status and the withheld item.
+
+    ```bash
+    mkdir -p build/page-runs && az storage blob download-batch --account-name "$(azd env get-value HINDCAST_STORAGE_URL | cut -d/ -f3 | cut -d. -f1)" --auth-mode login -s runs -d build/page-runs -o none && find build/page-runs -name '*.json' | sort
+    ```
+
+    Expected: two result files under `build/investigations/` and one challenge under `.../challenges/`, each named by its UTC time.
+
+## Traces
+
+14. Each run is one trace with its root span. Wait about three minutes after the runs, then count the spans per operation.
+
+    ```bash
+    APP=$(az resource show -g rg-hindcast-full -n "$(azd env get-value APPLICATIONINSIGHTS_NAME)" --resource-type Microsoft.Insights/components --query properties.AppId -o tsv) && az monitor app-insights query --apps "$APP" --offset 2h --analytics-query "dependencies | where cloud_RoleName == 'hindcast-web' | summarize spans = count(), roots = countif(name in ('investigation', 'challenge')), models = countif(name == 'model_call') by operation_Id" --query "tables[0].rows" -o tsv
+    ```
+
+    Expected: one row per investigation and challenge, each with `roots` 1 and `models` equal to the run file's `usage.model_calls`. The spans are in `dependencies`, as in the [investigator runbook](investigator.md). The spans are in `dependencies`, as in the [investigator runbook](investigator.md); the page opens its own `page_view` spans in other operations.
+
+## Foundry IQ
+
+15. Build the knowledge base's index, then set up and run each arm ([foundry-iq-v1](../../eval/retrieval/foundry-iq-v1/README.md)). The search service's roles on the Foundry resource can take a few minutes to apply.
+
+    ```bash
+    PYTHONPATH=src uv run --frozen --env-file .env.full python -m hindcast.foundry_iq index
     ```
 
     ```bash
-    az containerapp revision list -n ca-hindcast -g rg-hindcast-app --query "[?properties.active].properties.healthState" -o tsv && curl -s "$(azd env get-value SERVICE_WEB_URI)/_stcore/health"
+    for arm in minimal planning; do PYTHONPATH=src uv run --frozen --env-file .env.full python -m hindcast.foundry_iq setup --arm $arm && PYTHONPATH=src uv run --frozen --env-file .env.full python -m hindcast.foundry_iq quality --arm $arm; done
     ```
 
-    Expected, as observed on 2026-10-31: `SUCCESS: Your application was provisioned in Azure`, then `Healthy` and `ok`. The provision changes the app's target port to 8501 and adds liveness and readiness probes on `/_stcore/health:8501`. In the browser, after sign-in, the Hindcast page shows the development-case result and an expander opens (the WebSocket is through).
+    Expected: `hindcast-library-1024-kb: 267 chunks`; then per arm, `19 of 34 queries scored` with its recall@5 and MRR, and `results-<arm>.json` written.
 
-## Telemetry
+## Remove
 
-11. Load the page once, wait about three minutes, then look for the page-view span.
+16. Remove the environment, purging the soft-deleted Foundry resource, and check that nothing is left.
 
     ```bash
-    az monitor app-insights query -g rg-hindcast -a <app-insights> --analytics-query "union requests, dependencies, traces | where timestamp > ago(30m) | where name == 'page_view' or operation_Name == 'page_view' | project timestamp, itemType, name, cloud_RoleName | take 5" --query "tables[0].rows" -o tsv
+    azd down --purge --force && az group exists -n rg-hindcast-full && az cognitiveservices account list-deleted --query "[].name" -o tsv
     ```
 
-    Expected: at least one row with `page_view` and the role name `hindcast-web`. Observed on 2026-10-31: one `page_view` row, with the role name `unknown_service:python` from the image built before the service name was set; on the image from `b0f7f62`, one row with `hindcast-web`.
+    Expected: `false`, and no Hindcast name among the deleted accounts.
 
-## Remove and rebuild
-
-12. Remove everything azd created, confirm the other resource group is untouched, and build it again. The new registry is empty, so the rebuild starts on the placeholder again. The CI identity is new, so its client ID goes into the `azure` environment again; the registry's name is derived from the resource group's ID and stays the same.
+17. Delete the environment's app registration.
 
     ```bash
-    azd down --purge --force && az group exists -n rg-hindcast-app && az group show -n rg-hindcast --query properties.provisioningState -o tsv
+    az ad app delete --id "$(azd env get-value AUTH_CLIENT_ID)" && az ad app list --display-name hindcast-full --query "[].displayName" -o tsv
     ```
 
-    ```bash
-    azd env set HINDCAST_IMAGE mcr.microsoft.com/k8se/quickstart@sha256:3a4d93c34c6753f24765ab17a36f1754aee9b02082b7d9553d17697b9e8252c4 && azd up
-    ```
-
-    ```bash
-    gh secret set AZURE_CLIENT_ID --env azure --body "$(azd env get-value CI_IDENTITY_CLIENT_ID)"
-    ```
-
-    Expected: `false` and `Succeeded`; then the same resource names, with `app registration: hindcast-app (found)`, `redirect uri: set` (a new environment gets a new domain), and `federated credential: updated` (the new identity's principal ID). Then repeat steps 9 and 10. The hook lines and the unchanged registry name are reasoned, not observed.
-
-## Teardown
-
-13. At the end of the project: `azd down --purge --force`, then delete the app registration, and check that the agent-identity registrations Foundry created with the investigator agent go with the Foundry resource.
-
-    ```bash
-    az ad app delete --id "$(azd env get-value AUTH_CLIENT_ID)" && az ad app list --display-name hindcast --query "[].displayName" -o tsv
-    ```
-
-    Expected: no `hindcast-app` in the list.
-
-## Ruleset
-
-14. After this pull request's first green run of `Image and infrastructure`, make it the fourth required check: run the [foundations runbook](foundations.md) step 2 JSON with `PUT` against the existing ruleset instead of `POST` to create one.
-
-    ```bash
-    gh api -X PUT "repos/sindredg/hindcast/rulesets/<ruleset-id>" --input ruleset.json --jq '[.rules[] | select(.type=="required_status_checks") | .parameters.required_status_checks[].context] | join(", ")'
-    ```
-
-    Expected: `Python lint and tests, YAML and workflow lint, Dependency audit, Image and infrastructure`.
+    Expected: an empty list.
