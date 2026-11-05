@@ -14,6 +14,7 @@ shown, the refs withheld, and the library refs shown (`retrieved`); a citation
 is kept only for a ref the model read (hindcast.result).
 """
 
+import hashlib
 import json
 import time
 from collections.abc import Callable
@@ -116,8 +117,8 @@ class CaseTools:
         self.evidence = evidence
         self.clock = clock
         self.search = search
-        # None only in tests that do not test screening: prepare() always
-        # passes one.
+        # None in tests that do not test screening, and for an injection
+        # copy run with --screens off (decision 0025).
         self.shield = shield
         self.refs = frozenset(
             [u.update_id for u in evidence.updates] + [c.chart_id for c in evidence.charts]
@@ -127,7 +128,8 @@ class CaseTools:
         self.retrieved: set[str] = set()
         # One screen per ref per run: a second list_updates, or a hit that
         # comes back in a later search, is not sent again.
-        self._flags: dict[str, bool] = {}
+        self._flags: dict[tuple[str, str], bool] = {}
+        self._flagged_refs: set[str] = set()
         # What the last successful call asked, returned, and withheld, for the
         # result file's tool_calls.
         self.last_call: dict = {}
@@ -149,8 +151,17 @@ class CaseTools:
         return left
 
     def _screen(self, items: list[tuple[str, str]], timeout: float) -> tuple[set[str], int]:
-        """Screen (ref, text) pairs not seen before; return the flagged refs and the calls made."""
-        new = [(ref, text) for ref, text in items if ref not in self._flags]
+        """Screen (ref, text) pairs not seen before; return the flagged refs and the calls made.
+
+        The cache is keyed by the text as well as the ref: one library ref
+        can come back as several chunks, so a ref keyed alone would let a
+        later chunk reach the model unscreened, or let a clean chunk clear a
+        flagged one. A ref stays withheld once any text under it was flagged.
+        """
+        keyed = {
+            (ref, hashlib.sha256(text.encode("utf-8")).hexdigest()): text for ref, text in items
+        }
+        new = [(key, text) for key, text in keyed.items() if key not in self._flags]
         calls = 0
         if new and self.shield is not None:
             before = self.shield.calls
@@ -160,9 +171,11 @@ class CaseTools:
                 raise RuntimeError("the screen returned a different number of flags")
         else:
             flags = [False] * len(new)
-        for (ref, _), flag in zip(new, flags, strict=True):
-            self._flags[ref] = flag
-        return {ref for ref, _ in items if self._flags[ref]}, calls
+        for (key, _), flag in zip(new, flags, strict=True):
+            self._flags[key] = flag
+            if flag:
+                self._flagged_refs.add(key[0])
+        return {ref for ref, _ in items if ref in self._flagged_refs}, calls
 
     @staticmethod
     def _note(note: str, flagged: set[str]) -> str:
