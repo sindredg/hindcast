@@ -7,7 +7,7 @@ license = "MIT"
 requires-python = "==3.14.*"
 dependencies = [
     "azure-ai-contentunderstanding==1.1.0",
-    "azure-ai-projects==2.9.0",
+    "azure-ai-projects==2.10.0",
     # Imported directly for the Prompt Shields and PII calls (hindcast.safety):
     # no SDK covers Prompt Shields. Trade-off: the request shapes are written
     # by hand and tested with stubs. Already in the tree through azure-identity.
@@ -21,11 +21,11 @@ dependencies = [
     # alternative is hand-written REST calls on azure-core, which would
     # rebuild the request models this client already checks.
     "azure-search-documents==12.0.0",
-    "azure-storage-blob==12.31.0",
+    "azure-storage-blob==12.31.1",
     # Checks the model's output locally against the same schema dict the service
     # enforces, so a disagreement shows up as a schema error, not a crash later.
     "jsonschema==4.26.0",
-    "openai==3.40.0",
+    "openai==3.45.0",
     "ruamel-yaml==0.19.1",
 ]
 
@@ -50,10 +50,10 @@ dev = [
     # [nodejs] brings node as a locked, hashed wheel; without it pyright downloads
     # node at first run, outside the lock.
     "pyright[nodejs]==1.1.414",
-    "pytest==9.1.1",
+    "pytest==9.2.0",
     "ruff==0.17.3",
     "yamllint==1.38.0",
-    "zizmor==1.31.1",
+    "zizmor==1.32.0",
 ]
 
 [tool.uv]
