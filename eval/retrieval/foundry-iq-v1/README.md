@@ -36,10 +36,25 @@ Whether a Foundry IQ knowledge base over the same library finds the documents a 
 
 ## Status
 
-Written on 2026-11-05. Not run.
+Written on 2026-11-05, before the run. Run on 2026-11-05 in the full environment (runbook [step 15](../../../docs/runbooks/deployment.md#foundry-iq), [worklog](../../../docs/worklogs/06-deployment.md#slice-2-live-run)): `hindcast-library-1024-kb` held 267 chunks. Neither arm beats the baseline, so the rule opens no issue, and the investigator keeps its own search.
+
+| Arm | Run at (UTC) | Scored queries | Mean recall@5 | MRR | Against the baseline (0.640, 0.702) |
+|---|---|---|---|---|---|
+| `minimal` | 2026-11-05 20:12:16 | 19 of 34 | 0.586 | 0.689 | recall@5 0.054 lower, MRR 0.013 lower |
+| `planning` | 2026-11-05 20:14:27 | 19 of 34 | 0.536 | 0.640 | recall@5 0.104 lower, MRR 0.062 lower |
+
+Both runs: `queries.json` at SHA-256 `70ad097a...` and commit `48181dc`, `data/library.yaml` at `2431b67`, code at `1e56a8d`, embedding deployment `text-embedding-3-large` version 1. The planning arm's model is `gpt-5.4-mini` version 2026-03-17. The means are recomputed from each file's rows.
+
+Error analysis:
+
+- **Fewer than five documents.** A knowledge base returns only references above its reranker threshold, so a query can come back with fewer than five documents or none. `minimal` returned nothing for one unscored query; no scored query came back empty in either arm.
+- **Planning did not help.** Query planning on `low` effort found a relevant document in its top five for 15 scored queries, against 16 for `minimal`, and ranked the first one lower.
+- **The baseline ran elsewhere.** The baseline is the 2026-11-01 run on the deleted service, over the same chunks embedded once before. `minimal`'s gap to it is small enough that this comparison cannot tell a difference between the services from one between the two embeddings, which were not compared.
 
 ## Files
 
 | File | What it is |
 |---|---|
-| `README.md` | This page: the rule, the arms, and the results once run |
+| `README.md` | This page: the rule, the arms, and the results |
+| `results-minimal.json` | The `minimal` arm's run: what it names (the list above), the means, and per query the ranked documents, recall@5, and reciprocal rank |
+| `results-planning.json` | The same for the `planning` arm |

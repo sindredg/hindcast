@@ -1,0 +1,440 @@
+{
+  "arm": "minimal",
+  "api_version": "2026-04-01",
+  "preview": false,
+  "index": "hindcast-library-1024-kb",
+  "knowledge_source": "hindcast-library-ks",
+  "knowledge_base": "hindcast-library-kb",
+  "embedding": {
+    "deployment": "text-embedding-3-large",
+    "name": "text-embedding-3-large",
+    "version": "1"
+  },
+  "planner": {
+    "deployment": null
+  },
+  "queries_sha256": "70ad097a9f2464aae89f3290c294ae3d7fb068145ba05ce2f21cd49893915f43",
+  "queries_commit": "48181dcd724d66b67608c5839d43914c0fdfdbaf",
+  "library_commit": "2431b672fb7152f8a335f1ab86763bf446ae9409",
+  "code_commit": "1e56a8de393bf5208013d8ac2d2e362aefd2b166",
+  "run_at": "2026-11-05T20:12:16Z",
+  "queries": 34,
+  "scored": 19,
+  "mean_recall_at_5": 0.5859649122807017,
+  "mean_reciprocal_rank": 0.6885964912280702,
+  "rows": [
+    {
+      "query_id": "cloudflare-2025-11-18/q1",
+      "scored": false,
+      "top": [
+        "cloudflare-2025-07-14",
+        "cloudflare-2019-07-02",
+        "cloudflare-2024-06-20",
+        "cloudflare-2025-06-12",
+        "cloudflare-2025-08-21"
+      ],
+      "recall_at_5": 0.0,
+      "reciprocal_rank": 0.0
+    },
+    {
+      "query_id": "cloudflare-2025-11-18/q2",
+      "scored": true,
+      "top": [
+        "google-cloud-2025-06-12",
+        "cloudflare-2025-09-12",
+        "google-cloud-2020-12-14",
+        "cloudflare-2025-06-12",
+        "aws-2021-12-07"
+      ],
+      "recall_at_5": 0.25,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "query_id": "cloudflare-2025-11-18/q3",
+      "scored": true,
+      "top": [
+        "aws-2021-12-07",
+        "cloudflare-2024-06-20",
+        "cloudflare-2025-06-12",
+        "cloudflare-2025-08-21",
+        "cloudflare-2020-07-17"
+      ],
+      "recall_at_5": 1.0,
+      "reciprocal_rank": 0.5
+    },
+    {
+      "query_id": "cloudflare-2025-11-18/q4",
+      "scored": true,
+      "top": [
+        "google-cloud-2025-06-12",
+        "github-2018-10-21",
+        "cloudflare-2024-06-20",
+        "aws-2021-12-07",
+        "github-2016-01-28"
+      ],
+      "recall_at_5": 0.0,
+      "reciprocal_rank": 0.0
+    },
+    {
+      "query_id": "cloudflare-2025-11-18/q5",
+      "scored": false,
+      "top": [
+        "github-2016-01-28",
+        "cloudflare-2023-11-02",
+        "cloudflare-2025-09-12",
+        "google-cloud-2025-06-12",
+        "cloudflare-2025-06-12"
+      ],
+      "recall_at_5": 0.0,
+      "reciprocal_rank": 0.0
+    },
+    {
+      "query_id": "cloudflare-2025-11-18/q6",
+      "scored": false,
+      "top": [
+        "cloudflare-2025-06-12",
+        "cloudflare-2019-07-02",
+        "cloudflare-2020-07-17",
+        "cloudflare-2022-06-21"
+      ],
+      "recall_at_5": 0.0,
+      "reciprocal_rank": 0.0
+    },
+    {
+      "query_id": "cloudflare-2025-11-18/q7",
+      "scored": true,
+      "top": [
+        "cloudflare-2025-06-12"
+      ],
+      "recall_at_5": 1.0,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "query_id": "cloudflare-2025-11-18/q8",
+      "scored": true,
+      "top": [
+        "cloudflare-2025-06-12",
+        "cloudflare-2019-07-02",
+        "cloudflare-2025-09-12",
+        "cloudflare-2023-11-02"
+      ],
+      "recall_at_5": 0.8,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "query_id": "cloudflare-2025-11-18/q9",
+      "scored": false,
+      "top": [],
+      "recall_at_5": 0.0,
+      "reciprocal_rank": 0.0
+    },
+    {
+      "query_id": "cloudflare-2026-02-20/q1",
+      "scored": true,
+      "top": [
+        "cloudflare-2013-03-03",
+        "cloudflare-2025-07-14",
+        "cloudflare-2025-06-12",
+        "cloudflare-2020-07-17",
+        "cloudflare-2024-06-27"
+      ],
+      "recall_at_5": 0.6,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "query_id": "cloudflare-2026-02-20/q2",
+      "scored": true,
+      "top": [
+        "cloudflare-2022-06-21",
+        "cloudflare-2025-07-14",
+        "cloudflare-2025-08-21"
+      ],
+      "recall_at_5": 0.6666666666666666,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "query_id": "cloudflare-2026-02-20/q3",
+      "scored": false,
+      "top": [
+        "cloudflare-2022-06-21",
+        "cloudflare-2024-06-27",
+        "cloudflare-2025-07-14"
+      ],
+      "recall_at_5": 0.0,
+      "reciprocal_rank": 0.0
+    },
+    {
+      "query_id": "cloudflare-2026-02-20/q4",
+      "scored": false,
+      "top": [
+        "cloudflare-2023-11-02",
+        "cloudflare-2019-07-02",
+        "cloudflare-2025-06-12",
+        "cloudflare-2025-07-14",
+        "google-cloud-2016-04-11"
+      ],
+      "recall_at_5": 0.0,
+      "reciprocal_rank": 0.0
+    },
+    {
+      "query_id": "cloudflare-2026-02-20/q5",
+      "scored": false,
+      "top": [
+        "cloudflare-2022-06-21"
+      ],
+      "recall_at_5": 0.0,
+      "reciprocal_rank": 0.0
+    },
+    {
+      "query_id": "github-2026-08-17/q1",
+      "scored": true,
+      "top": [
+        "cloudflare-2025-06-12",
+        "github-availability-2026-06",
+        "cloudflare-2020-07-17",
+        "aws-2021-12-07",
+        "cloudflare-2024-06-20"
+      ],
+      "recall_at_5": 0.0,
+      "reciprocal_rank": 0.0
+    },
+    {
+      "query_id": "github-2026-08-17/q2",
+      "scored": false,
+      "top": [
+        "github-availability-2023-09",
+        "github-availability-2023-11",
+        "github-availability-2026-06",
+        "google-cloud-2020-12-14",
+        "google-cloud-2025-06-12"
+      ],
+      "recall_at_5": 0.0,
+      "reciprocal_rank": 0.0
+    },
+    {
+      "query_id": "github-2026-08-17/q3",
+      "scored": true,
+      "top": [
+        "cloudflare-2025-06-12",
+        "github-availability-2023-09"
+      ],
+      "recall_at_5": 1.0,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "query_id": "github-2026-08-17/q4",
+      "scored": true,
+      "top": [
+        "github-availability-2026-06",
+        "cloudflare-2025-06-12",
+        "google-cloud-2020-12-14",
+        "github-availability-2023-09"
+      ],
+      "recall_at_5": 0.6666666666666666,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "query_id": "github-2026-08-17/q5",
+      "scored": false,
+      "top": [
+        "github-availability-2026-06",
+        "github-availability-2023-09",
+        "github-2018-10-21",
+        "github-2016-01-28",
+        "github-availability-2023-11"
+      ],
+      "recall_at_5": 0.0,
+      "reciprocal_rank": 0.0
+    },
+    {
+      "query_id": "github-2026-08-17/q6",
+      "scored": true,
+      "top": [
+        "cloudflare-2025-06-12",
+        "google-cloud-2020-12-14",
+        "cloudflare-2024-06-20",
+        "google-cloud-2025-06-12",
+        "aws-2021-12-07"
+      ],
+      "recall_at_5": 1.0,
+      "reciprocal_rank": 0.25
+    },
+    {
+      "query_id": "github-2026-08-17/q7",
+      "scored": false,
+      "top": [
+        "github-availability-2026-06",
+        "github-availability-2023-11",
+        "google-cloud-2020-12-14",
+        "github-availability-2023-09",
+        "github-2016-01-28"
+      ],
+      "recall_at_5": 0.0,
+      "reciprocal_rank": 0.0
+    },
+    {
+      "query_id": "github-2026-10-07/q1",
+      "scored": false,
+      "top": [
+        "github-availability-2026-06",
+        "github-availability-2023-09",
+        "github-availability-2023-11",
+        "github-2018-10-21",
+        "github-2016-01-28"
+      ],
+      "recall_at_5": 0.0,
+      "reciprocal_rank": 0.0
+    },
+    {
+      "query_id": "github-2026-10-07/q2",
+      "scored": true,
+      "top": [
+        "github-availability-2026-06",
+        "github-availability-2023-09",
+        "github-availability-2023-11",
+        "github-2018-10-21",
+        "github-2016-01-28"
+      ],
+      "recall_at_5": 0.4,
+      "reciprocal_rank": 0.3333333333333333
+    },
+    {
+      "query_id": "github-2026-10-07/q3",
+      "scored": true,
+      "top": [
+        "cloudflare-2025-08-21",
+        "cloudflare-2025-07-14",
+        "cloudflare-2019-07-02",
+        "cloudflare-2024-06-20",
+        "cloudflare-2025-06-12"
+      ],
+      "recall_at_5": 0.0,
+      "reciprocal_rank": 0.0
+    },
+    {
+      "query_id": "github-2026-10-07/q4",
+      "scored": false,
+      "top": [
+        "google-cloud-2018-10-11",
+        "google-cloud-2016-04-11",
+        "cloudflare-2025-08-21",
+        "google-cloud-2020-12-14",
+        "cloudflare-2024-06-20"
+      ],
+      "recall_at_5": 0.0,
+      "reciprocal_rank": 0.0
+    },
+    {
+      "query_id": "github-2026-10-07/q5",
+      "scored": false,
+      "top": [
+        "github-availability-2026-06",
+        "github-availability-2023-09",
+        "github-availability-2023-11",
+        "github-2018-10-21",
+        "github-2016-01-28"
+      ],
+      "recall_at_5": 0.0,
+      "reciprocal_rank": 0.0
+    },
+    {
+      "query_id": "github-2026-10-07/q6",
+      "scored": true,
+      "top": [
+        "github-availability-2026-06",
+        "github-2018-10-21",
+        "github-availability-2023-09",
+        "github-availability-2023-11",
+        "cloudflare-2025-09-12"
+      ],
+      "recall_at_5": 1.0,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "query_id": "github-2026-10-07/q7",
+      "scored": false,
+      "top": [
+        "github-availability-2026-06",
+        "github-availability-2023-09",
+        "github-availability-2023-11",
+        "cloudflare-2025-09-12",
+        "cloudflare-2025-08-21"
+      ],
+      "recall_at_5": 0.0,
+      "reciprocal_rank": 0.0
+    },
+    {
+      "query_id": "google-cloud-2026-07-14/q1",
+      "scored": false,
+      "top": [
+        "google-cloud-2025-06-12",
+        "google-cloud-2018-10-11",
+        "google-cloud-2020-12-14",
+        "google-cloud-2016-04-11"
+      ],
+      "recall_at_5": 0.0,
+      "reciprocal_rank": 0.0
+    },
+    {
+      "query_id": "google-cloud-2026-07-14/q2",
+      "scored": true,
+      "top": [
+        "google-cloud-2016-04-11",
+        "google-cloud-2018-10-11",
+        "google-cloud-2020-12-14",
+        "google-cloud-2019-04-04"
+      ],
+      "recall_at_5": 0.5,
+      "reciprocal_rank": 0.5
+    },
+    {
+      "query_id": "google-cloud-2026-07-14/q3",
+      "scored": true,
+      "top": [
+        "google-cloud-2018-10-11",
+        "google-cloud-2019-04-04",
+        "cloudflare-2025-08-21",
+        "cloudflare-2024-06-27",
+        "cloudflare-2013-03-03"
+      ],
+      "recall_at_5": 0.75,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "query_id": "google-cloud-2026-07-14/q4",
+      "scored": true,
+      "top": [
+        "google-cloud-2018-10-11",
+        "github-2018-10-21",
+        "google-cloud-2016-04-11",
+        "cloudflare-2019-07-02"
+      ],
+      "recall_at_5": 0.5,
+      "reciprocal_rank": 0.5
+    },
+    {
+      "query_id": "google-cloud-2026-07-14/q5",
+      "scored": true,
+      "top": [
+        "google-cloud-2016-04-11",
+        "google-cloud-2025-06-12",
+        "aws-2021-12-07"
+      ],
+      "recall_at_5": 0.5,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "query_id": "google-cloud-2026-07-14/q6",
+      "scored": true,
+      "top": [
+        "aws-2021-12-07",
+        "google-cloud-2025-06-12",
+        "cloudflare-2025-06-12",
+        "github-2018-10-21",
+        "cloudflare-2023-11-02"
+      ],
+      "recall_at_5": 0.5,
+      "reciprocal_rank": 1.0
+    }
+  ]
+}
