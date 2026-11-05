@@ -32,7 +32,7 @@ dependencies = [
 [project.optional-dependencies]
 # The web page's runtime. An extra, not a core dependency: the capture,
 # ingest, keys, and investigate commands never import it.
-app = ["streamlit==1.66.1"]
+app = ["streamlit==1.67.0"]
 # The offline judge of the scored runs (hindcast.evaluation.judge), on the
 # Anthropic API: a model family that none of the scored arms uses. An extra,
 # so the page's image never installs it. Trade-off: a second provider, its
