@@ -1,4 +1,7 @@
-# Only what the Dockerfile copies reaches the build context.
+# Only what the Dockerfile copies reaches the build context, and never the
+# local environment files, which hold endpoints.
+.env
+.env.*
 .venv
 .git
 .github
