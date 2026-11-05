@@ -61,5 +61,5 @@ A, C, F, and I.
 - The rebuild needs the operator's local data tree. A clean clone without it also needs the capture, ingest, and extraction runbooks, and Content Understanding, which this template leaves out.
 - The manifest catches a partial or corrupted upload. It does not stop someone with write access to the storage account from replacing a file and its manifest together.
 - A click on Investigate is a paid model run. Sign-in admits one account, and the page runs one investigation at a time.
-- The search service's identity gets Cognitive Services OpenAI User on the Foundry resource, only for the Foundry IQ comparison that [decision 0004](0004-retrieval.md) planned. Hindcast's own search embeds its queries in code and does not need it.
+- The search service's identity gets Cognitive Services OpenAI User and Cognitive Services User on the Foundry resource, only for the Foundry IQ comparison that [decision 0004](0004-retrieval.md) planned: the first for its vectorizer, the second for its query planning. Hindcast's own search embeds its queries in code and does not need it.
 - After teardown nothing stays live. The proof is the worklog: the commands, the screenshots, the result files, and the trace queries.

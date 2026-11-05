@@ -19,6 +19,7 @@ param operatorPrincipalId string
 
 var foundryUser = '53ca6127-db72-4b80-b1b0-d745d6d5456d'
 var openAiUser = '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
+var cognitiveServicesUser = 'a97b65f3-24c7-4388-baec-2e87135dc908'
 var searchIndexDataReader = '1407120a-92aa-4202-b7e9-c0e197c71c8f'
 var searchIndexDataContributor = '8ebe5a00-799e-43f5-93ac-243d3dce84a7'
 var searchServiceContributor = '7ca78c08-252a-4471-8644-bb5ff32d4ba0'
@@ -119,14 +120,27 @@ resource appRuns 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   }
 }
 
-// The search service: the Foundry IQ comparison's vectorizer and query
-// planning call the embedding and chat deployments (decision 0028). Hindcast's
-// own search embeds its queries in code and does not use this.
+// The search service, for the Foundry IQ comparison only (decision 0028).
+// Hindcast's own search embeds its queries in code and needs neither role.
+// The knowledge base index's vectorizer embeds queries: the vectorizer page
+// asks for Cognitive Services OpenAI User.
 resource searchOpenAi 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(account.id, searchPrincipalId, openAiUser)
   scope: account
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', openAiUser)
+    principalId: searchPrincipalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+// The planning arm's knowledge base calls gpt-5.4-mini: the agentic retrieval
+// overview asks for Cognitive Services User on the Foundry resource.
+resource searchCognitiveUser 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(account.id, searchPrincipalId, cognitiveServicesUser)
+  scope: account
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', cognitiveServicesUser)
     principalId: searchPrincipalId
     principalType: 'ServicePrincipal'
   }

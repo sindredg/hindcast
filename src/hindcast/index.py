@@ -252,8 +252,13 @@ def build(
     index_client: IndexClient,
     search_client: DocumentClient,
     embed: Embed,
+    definition: SearchIndex | None = None,
 ) -> int:
-    """Create the index and push every chunk with its vector; the number pushed."""
+    """Create the index and push every chunk with its vector; the number pushed.
+
+    definition replaces the library index's definition (the Foundry IQ
+    comparison adds a vectorizer to it).
+    """
     try:
         index_client.get_index(name)
         exists = True
@@ -267,7 +272,7 @@ def build(
         raise ValueError(f"the embeddings do not give one {dimensions}-value vector per chunk")
     if exists:
         index_client.delete_index(name)
-    index_client.create_index(index_definition(name, dimensions))
+    index_client.create_index(definition or index_definition(name, dimensions))
     documents = [
         asdict(c) | {"serves": list(c.serves), "content_sha256": c.content_sha256, VECTOR_FIELD: v}
         for c, v in zip(chunk_list, vectors, strict=True)
