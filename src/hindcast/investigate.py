@@ -54,6 +54,7 @@ from hindcast.cases import Case, load_cases
 from hindcast.config import ModelSettings, SafetySettings, SearchSettings, load_settings
 from hindcast.costs import PriceTable, load_prices, run_cost
 from hindcast.evaluation.prior import _git
+from hindcast.provenance import image_manifest
 from hindcast.redact import redact_fields, redact_investigation
 from hindcast.result import (
     Checks,
@@ -405,10 +406,24 @@ def agent_turn(client: Any, name: str, version: str) -> Turn:
 
 
 def code_provenance(repo: Path = Path(".")) -> dict:
-    commit = _git(repo, "rev-parse", "--verify", "--quiet", "HEAD")
-    status = _git(repo, "status", "--porcelain", "--", *CODE_PATHS)
-    if commit.returncode != 0 or status.returncode != 0:
-        raise RuntimeError("cannot read the Git state of the code")
+    try:
+        commit = _git(repo, "rev-parse", "--verify", "--quiet", "HEAD")
+        status = _git(repo, "status", "--porcelain", "--", *CODE_PATHS)
+    except FileNotFoundError:
+        # No git executable, as in the deployed image.
+        commit = status = None
+    if commit is None or status is None or commit.returncode != 0 or status.returncode != 0:
+        # In the image the commit and tree come from CI (decision 0028); the
+        # files are the commit's files, so the code is not dirty.
+        manifest = image_manifest()
+        if manifest is None:
+            raise RuntimeError("cannot read the Git state of the code")
+        return {
+            "commit": manifest["commit"],
+            "dirty": False,
+            "src_tree": manifest["src_tree"],
+            "source": "image",
+        }
     # The tree's hash survives a rebase or a squash merge, which rewrite the
     # commit (#39); it names the code only when dirty is false.
     tree = _git(repo, "rev-parse", "--verify", "--quiet", "HEAD:src")

@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from hindcast.evaluation.prior import committed_blob_hash
+from hindcast.provenance import git_blob_hash, image_manifest
 from hindcast.result import CHALLENGE_SCHEMA, INVESTIGATION_SCHEMA
 from hindcast.tools import TOOL_DEFINITIONS
 
@@ -108,6 +109,12 @@ def prompt_provenance(path: Path = PROMPT_PATH, repo: Path = Path(".")) -> dict:
     # iterating on the prompt.
     try:
         return {"blob": committed_blob_hash(path, repo), "dirty": False}
-    except RuntimeError:
-        digest = hashlib.sha256((repo / path).read_bytes()).hexdigest()
-        return {"sha256": digest, "dirty": True}
+    except RuntimeError, FileNotFoundError:
+        data = (repo / path).read_bytes()
+        # In the image, with no Git, the prompt is clean when its blob hash
+        # matches the one CI recorded at build time (decision 0028).
+        manifest = image_manifest()
+        blob = git_blob_hash(data)
+        if manifest is not None and manifest.get("blobs", {}).get(path.as_posix()) == blob:
+            return {"blob": blob, "dirty": False}
+        return {"sha256": hashlib.sha256(data).hexdigest(), "dirty": True}
