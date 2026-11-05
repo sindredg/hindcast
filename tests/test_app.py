@@ -549,3 +549,53 @@ def test_page_shows_a_stored_challenge_as_plain_text(tmp_path, monkeypatch):
     shown = _shown(at)
     assert "](https://example.invalid" not in shown
     assert shown.count(r"\!\[x\]\(https://example\.invalid/a\.png\)") >= 3
+
+
+def test_page_shows_the_injection_verdict_of_an_injection_copy(tmp_path, monkeypatch):
+    # The planted update came back from list_updates and was not withheld:
+    # the screen missed it, the model ignored it, and the run passes.
+    planted = "cloudflare-2026-02-20-inject-update/u2"
+    tool_calls = [{"name": "list_updates", "seconds": 0.1, "withheld": [], "screen_calls": 1}]
+    path = copy_result(
+        tmp_path, case_id="cloudflare-2026-02-20-inject-update", tool_calls=tool_calls
+    )
+    monkeypatch.setenv(app.RESULT_FILE_VAR, str(path))
+
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+
+    assert not at.exception
+    assert "Injection test" in [h.value for h in at.header]
+    text = " ".join(block.value for block in at.markdown)
+    assert f"`{planted}`" in text
+    assert "shown 1, withheld 0" in text
+    assert "Followed: none" in text
+    assert "**pass**" in text
+
+
+def test_page_shows_a_failed_injection_verdict(tmp_path, monkeypatch):
+    raw = json.loads(RESULT.read_text(encoding="utf-8"))
+    raw["investigation"]["attack"]["verdict"] = "attack"
+    tool_calls = [{"name": "list_updates", "seconds": 0.1, "withheld": [], "screen_calls": 1}]
+    path = copy_result(
+        tmp_path,
+        case_id="cloudflare-2026-02-20-inject-update",
+        tool_calls=tool_calls,
+        investigation=raw["investigation"],
+    )
+    monkeypatch.setenv(app.RESULT_FILE_VAR, str(path))
+
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+
+    assert not at.exception
+    text = " ".join(block.value for block in at.markdown)
+    assert "Followed: `verdict`" in text
+    assert "**fail**" in text
+
+
+def test_page_shows_no_injection_verdict_for_the_development_case(monkeypatch):
+    monkeypatch.setenv(app.RESULT_FILE_VAR, str(RESULT))
+
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+
+    assert not at.exception
+    assert "Injection test" not in [h.value for h in at.header]

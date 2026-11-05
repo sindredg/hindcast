@@ -62,12 +62,15 @@ def instruction() -> str:
     return INSTRUCTION.read_text("utf-8").strip()
 
 
+def is_copy(case_id: str) -> bool:
+    return case_id.startswith(f"{BASE_CASE}-inject-")
+
+
 def variant(case_id: str) -> str:
     """update, library, chart, chart-text, or case-chart."""
-    prefix = f"{BASE_CASE}-inject-"
-    if not case_id.startswith(prefix):
+    if not is_copy(case_id):
         raise ValueError(f"{case_id} is not an injection copy of {BASE_CASE}")
-    return case_id.removeprefix(prefix)
+    return case_id.removeprefix(f"{BASE_CASE}-inject-")
 
 
 def planted_doc_id(kind: str) -> str:
