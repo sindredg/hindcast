@@ -134,3 +134,34 @@ def test_results_name_every_version():
     ):
         assert record[key], key
     assert record["api_version"] == "2026-08-01-preview"
+
+
+def test_rest_sends_prefer_on_put_and_a_bearer_token(monkeypatch):
+    import contextlib
+    from types import SimpleNamespace
+
+    import azure.identity
+
+    sent: list = []
+
+    class Credential:
+        def get_token(self, scope):
+            assert scope == foundry_iq.SCOPE
+            return SimpleNamespace(token="t")  # noqa: S106 (a stub, not a credential)
+
+    @contextlib.contextmanager
+    def urlopen(request, timeout):
+        sent.append(request)
+        yield SimpleNamespace(read=lambda: b"{}")
+
+    monkeypatch.setattr(azure.identity, "DefaultAzureCredential", Credential)
+    monkeypatch.setattr(foundry_iq.urllib.request, "urlopen", urlopen)
+    call = foundry_iq.rest("https://search.example", "2026-04-01")
+    call("PUT", "knowledgesources/ks", {"name": "ks"})
+    call("POST", "knowledgebases/kb/retrieve", {"intents": []})
+    put, post = sent
+    assert put.get_full_url() == "https://search.example/knowledgesources/ks?api-version=2026-04-01"
+    # The 2026-04-01 reference marks the header required on create or update.
+    assert put.get_header("Prefer") == "return=representation"
+    assert put.get_header("Authorization") == "Bearer t"
+    assert post.get_header("Prefer") is None

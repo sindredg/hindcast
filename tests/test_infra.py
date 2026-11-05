@@ -34,3 +34,13 @@ def test_no_service_takes_a_key():
     assert "features: { disableLocalAuth: true }" in sources["monitoring.bicep"]
     assert "allowSharedKeyAccess: false" in sources["storage.bicep"]
     assert "allowBlobPublicAccess: false" in sources["storage.bicep"]
+
+
+def test_the_custom_role_is_assigned_by_its_subscription_id():
+    # Role assignments take /subscriptions/<id>/providers/.../roleDefinitions/<guid>,
+    # the form built-in roles use, not the resource group-scoped resource ID.
+    text = FOUNDRY.read_text(encoding="utf-8")
+    assert (
+        "output safetyCallerRoleId string = subscriptionResourceId("
+        "'Microsoft.Authorization/roleDefinitions', safetyCaller.name)"
+    ) in text

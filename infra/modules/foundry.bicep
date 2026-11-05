@@ -87,7 +87,7 @@ resource safetyCaller 'Microsoft.Authorization/roleDefinitions@2022-04-01' = {
 
 output accountName string = account.name
 output projectName string = project.name
-output safetyCallerRoleId string = safetyCaller.id
+output safetyCallerRoleId string = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', safetyCaller.name)
 // The resource endpoint serves embeddings, Prompt Shields, and PII detection;
 // the project endpoint serves the agents and responses.
 output resourceEndpoint string = 'https://${account.properties.customSubDomainName}.services.ai.azure.com/'

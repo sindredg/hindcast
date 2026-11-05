@@ -228,11 +228,15 @@ def rest(endpoint: str, api_version: str) -> Callable[[str, str, dict | None], d
 
     def call(method: str, path: str, body: dict | None) -> dict:
         token = credential.get_token(SCOPE).token
+        headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+        if method == "PUT":
+            # The 2026-04-01 reference marks it required on create or update.
+            headers["Prefer"] = "return=representation"
         request = urllib.request.Request(  # noqa: S310 (the configured https endpoint)
             f"{endpoint.rstrip('/')}/{path}?api-version={api_version}",
             data=None if body is None else json.dumps(body).encode(),
             method=method,
-            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+            headers=headers,
         )
         try:
             with urllib.request.urlopen(request, timeout=120) as response:  # noqa: S310
