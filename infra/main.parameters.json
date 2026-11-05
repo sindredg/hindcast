@@ -8,11 +8,8 @@
     "location": {
       "value": "${AZURE_LOCATION}"
     },
-    "applicationInsightsName": {
-      "value": "${APPLICATIONINSIGHTS_NAME}"
-    },
-    "logAnalyticsName": {
-      "value": "${LOG_ANALYTICS_NAME}"
+    "principalId": {
+      "value": "${AZURE_PRINCIPAL_ID=}"
     },
     "authClientId": {
       "value": "${AUTH_CLIENT_ID}"

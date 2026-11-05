@@ -7,7 +7,9 @@
 # registration by display name and only fills in what is missing.
 set -euo pipefail
 
-APP_NAME="${HINDCAST_AUTH_APP_NAME:-hindcast-app}"
+# One registration per azd environment: a second environment must not take
+# over the first one's redirect URI and federated credential.
+APP_NAME="${HINDCAST_AUTH_APP_NAME:-hindcast-${AZURE_ENV_NAME:?azd sets AZURE_ENV_NAME}}"
 
 app_id="$(az ad app list --display-name "$APP_NAME" --query "[0].appId" -o tsv)"
 if [ -z "$app_id" ]; then

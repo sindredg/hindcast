@@ -131,7 +131,8 @@ jobs:
         run: |
           az bicep install --version "v${BICEP_VERSION}"
           az bicep version
-          for file in infra/main.bicep infra/search.bicep; do
+          # main.bicep builds every module under infra/modules/ with it.
+          for file in infra/main.bicep; do
             log="$RUNNER_TEMP/bicep-$(basename "$file").log"
             failed=0
             az bicep build --file "$file" --stdout 2> "$log" > /dev/null || failed=1

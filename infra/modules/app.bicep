@@ -6,9 +6,11 @@
 
 param location string
 param tags object
-param monitoringResourceGroup string
 param applicationInsightsName string
 param logAnalyticsName string
+
+@description('Endpoints and deployment names the page reads, as HINDCAST_* settings (hindcast.config). Names and URLs, never keys.')
+param settings object
 param authClientId string
 param authTenantId string
 param allowedUserObjectId string
@@ -44,18 +46,17 @@ var probes = placeholder ? [] : [
   { type: 'Readiness', httpGet: { path: '/_stcore/health', port: appPort }, initialDelaySeconds: 5, periodSeconds: 10 }
 ]
 
-// Existing resources in the other resource group: read, never changed.
+// Built by the monitoring module in the same resource group.
 resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing = {
   name: applicationInsightsName
-  scope: resourceGroup(monitoringResourceGroup)
 }
 
 resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2026-03-01' existing = {
   name: logAnalyticsName
-  scope: resourceGroup(monitoringResourceGroup)
 }
 
-// The app's identity: pulls the image, and later reaches Foundry and storage.
+// The app's identity: pulls the image and reaches Foundry, search, and
+// storage with the roles in roles.bicep.
 resource appIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
   name: 'id-hindcast-app'
   location: location
@@ -179,12 +180,21 @@ resource web 'Microsoft.App/containerApps@2026-01-01' = {
           name: 'web'
           image: imageName
           resources: { cpu: json('0.5'), memory: '1Gi' }
-          env: [
-            // Configuration, not a credential: it can write telemetry and read
-            // nothing (decision 0011).
-            { name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: applicationInsights.properties.ConnectionString }
-            { name: 'HINDCAST_ENV', value: 'production' }
-          ]
+          env: concat(
+            [
+              // Configuration, not a credential: it can write telemetry and
+              // read nothing (decision 0011).
+              { name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: applicationInsights.properties.ConnectionString }
+              { name: 'HINDCAST_ENV', value: 'production' }
+              // The page investigates and challenges, downloads its runtime
+              // files, and stores its runs in Blob (decision 0028).
+              { name: 'HINDCAST_LIVE', value: '1' }
+              { name: 'HINDCAST_BLOB_RUNTIME', value: '1' }
+              // DefaultAzureCredential picks the user-assigned identity by its client ID.
+              { name: 'AZURE_CLIENT_ID', value: appIdentity.properties.clientId }
+            ],
+            map(items(settings), s => { name: s.key, value: string(s.value) })
+          )
           probes: probes
         }
       ]
