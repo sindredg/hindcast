@@ -313,6 +313,8 @@ def main() -> None:
                 ready = False
         if ready:
             _investigate_panel(cases)
+        # Without the runtime files a challenge cannot run either.
+        live = ready
     override = os.environ.get(RESULT_FILE_VAR, "")
     if override:
         path = Path(override)

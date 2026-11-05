@@ -339,6 +339,8 @@ def test_page_shows_the_materialize_error(tmp_path, monkeypatch):
     assert not at.exception
     assert any("does not match the manifest" in e.value for e in at.error)
     assert not [b for b in at.button if b.key == "investigate"]
+    # No challenge box either: a challenge needs the runtime files too.
+    assert len(at.text_area) == 0
 
 
 def test_page_stores_a_challenge_of_a_committed_result_in_blob(tmp_path, monkeypatch):
