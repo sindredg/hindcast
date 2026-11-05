@@ -114,7 +114,7 @@ Failures that showed something about Hindcast, the platform, or a procedure: the
 
 **Fix:** none found. Check every run for failed calls before using it (`summarise_runs.py` lists them). If a missing score could change a result, run the evaluation again.
 
-**Verification:** open, [#7](https://github.com/sindredg/hindcast/issues/7). Behaviour: [identity and access](findings/identity-and-access.md), [evaluation runs](findings/evaluation.md).
+**Verification:** closed on 2026-11-04 with the Foundry cloud evaluation run of the showcase report, which recorded no errored row ([#7](https://github.com/sindredg/hindcast/issues/7)). Behaviour: [identity and access](findings/identity-and-access.md), [evaluation runs](findings/evaluation.md).
 
 ## Portal evaluation: every row fails with 401 `PermissionDenied` (2026-10-26)
 
