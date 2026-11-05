@@ -21,15 +21,30 @@ ENV UV_COMPILE_BYTECODE=1 \
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --extra app --no-install-project
 
-# The code and the one result the page shows.
+# The code and the committed results the page shows.
 COPY src ./src
 COPY eval/investigations ./eval/investigations
+# What a live run reads besides build/ (decision 0028): the prompts, the
+# registries, the price table, the injection inputs, and the rubric lock the
+# scored-case refusal checks.
+COPY prompts ./prompts
+COPY data/cases.yaml data/library.yaml data/prices.yaml ./data/
+COPY data/injection ./data/injection
+COPY eval/rubric ./eval/rubric
+# Written in CI by python -m hindcast.provenance before the build: the commit,
+# the src/ tree, and the prompts' and registries' blob hashes, since the image
+# has no .git. The build fails without it.
+COPY provenance.json ./provenance.json
 
 # A fixed UID so the container never runs as root. USER takes the number, not
 # the name, so the platform can resolve it without the image's passwd file.
-# /app stays owned by root: the page only reads it, and the runtime user
-# cannot change its own code.
-RUN useradd --create-home --uid 10001 app
+# /app stays owned by root, so the runtime user cannot change its own code,
+# except build/, which takes the runtime files and the page's runs, and
+# eval/investigations, which takes challenges of the committed results.
+RUN useradd --create-home --uid 10001 app \
+    && mkdir build \
+    && chown 10001 build \
+    && chown -R 10001 eval/investigations
 USER 10001
 
 ENV PATH=/app/.venv/bin:$PATH \

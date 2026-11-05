@@ -75,3 +75,71 @@ def test_prompt_provenance_marks_a_changed_prompt_dirty(tmp_path, monkeypatch):
     recorded = agent.prompt_provenance(Path("prompts/investigator.md"), tmp_path)
     assert recorded["dirty"] is True
     assert "blob" not in recorded
+
+
+def _repo(tmp_path: Path) -> Path:
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    for name, text in {
+        "src/hindcast/app.py": "print()\n",
+        "prompts/investigator.md": "Investigate.\n",
+        "data/library.yaml": "documents: []\n",
+        "data/cases.yaml": "cases: []\n",
+    }.items():
+        (tmp_path / name).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / name).write_text(text)
+    for args in (
+        ("init", "-q"),
+        ("add", "."),
+        (
+            "-c",
+            "user.name=t",
+            "-c",
+            "user.email=t@example.com",
+            "-c",
+            "commit.gpgsign=false",
+            "commit",
+            "-q",
+            "-m",
+            "init",
+        ),
+    ):
+        assert _git(tmp_path, *args).returncode == 0
+    return tmp_path
+
+
+def test_build_manifest_names_the_commit_tree_and_blobs(tmp_path):
+    repo = _repo(tmp_path)
+    manifest = provenance.build_manifest(repo)
+    assert manifest["commit"] == _git(repo, "rev-parse", "HEAD").stdout.strip()
+    assert manifest["src_tree"] == _git(repo, "rev-parse", "HEAD:src").stdout.strip()
+    assert manifest["blobs"] == {
+        path: _git(repo, "rev-parse", f"HEAD:{path}").stdout.strip()
+        for path in ("data/cases.yaml", "data/library.yaml", "prompts/investigator.md")
+    }
+
+
+def test_build_manifest_refuses_a_dirty_tree(tmp_path):
+    repo = _repo(tmp_path)
+    (repo / "prompts/investigator.md").write_text("Changed.\n")
+    with pytest.raises(RuntimeError, match="uncommitted"):
+        provenance.build_manifest(repo)
+
+
+def test_build_manifest_and_the_reader_agree(tmp_path, monkeypatch):
+    import shutil
+
+    repo = _repo(tmp_path / "repo")
+    # The image: the commit's files without .git.
+    image = tmp_path / "image"
+    shutil.copytree(repo, image, ignore=shutil.ignore_patterns(".git"))
+    path = tmp_path / "provenance.json"
+    path.write_text(json.dumps(provenance.build_manifest(repo)))
+    monkeypatch.setenv(provenance.MANIFEST_VAR, str(path))
+    blob = _git(repo, "rev-parse", "HEAD:prompts/investigator.md").stdout.strip()
+    assert agent.prompt_provenance(Path("prompts/investigator.md"), image) == {
+        "blob": blob,
+        "dirty": False,
+    }
+    assert investigate.code_provenance(image)["src_tree"] == (
+        _git(repo, "rev-parse", "HEAD:src").stdout.strip()
+    )
