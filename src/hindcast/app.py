@@ -24,6 +24,7 @@ import streamlit as st
 
 from hindcast import runtime, storage, telemetry
 from hindcast.cases import Case
+from hindcast.escape import code, plain
 from hindcast.result import Citation, StoredResult, load_result
 
 # Anchored to the repository root, because Streamlit runs the script from its
@@ -148,27 +149,29 @@ def challenges(result_path: Path, finding_id: str) -> list[dict]:
     return found
 
 
+# Every string the model wrote, and every ID it chose, goes through plain or
+# code before Streamlit renders it (issue #53; hindcast.escape says why).
 def _cites(citations: tuple[Citation, ...]) -> str:
     # Citations render as their IDs; resolving them to the source text comes
     # with the interface slice.
-    return " ".join(f"`{c.source}:{c.ref}`" for c in citations) or "no citation"
+    return " ".join(code(f"{c.source}:{c.ref}") for c in citations) or "no citation"
 
 
 def _rests_on(ids: tuple[str, ...]) -> str:
-    return ", ".join(f"`{i}`" for i in ids) or "nothing"
+    return ", ".join(code(i) for i in ids) or "nothing"
 
 
 def _challenge(stored: dict) -> None:
-    st.markdown(f"**Challenge:** {stored['question']}")
+    st.markdown(f"**Challenge:** {plain(stored['question'])}")
     answer = stored.get("challenge")
     if answer is None:
-        st.markdown(f"No answer: {stored['status']} ({stored.get('reason')})")
+        st.markdown(f"No answer: {plain(stored['status'])} ({plain(stored.get('reason'))})")
         return
-    st.markdown(f"**{answer['verdict']}**: {answer['answer']}")
+    st.markdown(f"**{plain(answer['verdict'])}**: {plain(answer['answer'])}")
     if answer.get("revised_claim"):
-        st.markdown(f"Revised claim: {answer['revised_claim']}")
+        st.markdown(f"Revised claim: {plain(answer['revised_claim'])}")
     st.markdown(
-        " ".join(f"`{c['source']}:{c['ref']}`" for c in answer["citations"]) or "no citation"
+        " ".join(code(f"{c['source']}:{c['ref']}") for c in answer["citations"]) or "no citation"
     )
     checks = stored.get("checks", {})
     rejected, pii = checks.get("rejected_citations", []), checks.get("pii", [])
@@ -188,11 +191,11 @@ def _live_challenge(path: Path, finding_id: str) -> None:
         if client is not None:
             runtime.store_run(client, run_root(), written)
         if result.challenge is None:
-            st.warning(f"No answer: {result.status} ({result.reason})")
+            st.warning(f"No answer: {plain(result.status)} ({plain(result.reason)})")
             return
-        st.markdown(f"**{result.challenge.verdict}**: {result.challenge.answer}")
+        st.markdown(f"**{plain(result.challenge.verdict)}**: {plain(result.challenge.answer)}")
         if result.challenge.revised_claim:
-            st.markdown(f"Revised claim: {result.challenge.revised_claim}")
+            st.markdown(f"Revised claim: {plain(result.challenge.revised_claim)}")
         st.markdown(_cites(result.challenge.citations))
         st.caption(f"Stored in {written.name}; cost {cost.get('currency')} {cost.get('total')}")
 
@@ -200,21 +203,23 @@ def _live_challenge(path: Path, finding_id: str) -> None:
 def _render(result: StoredResult, path: Path, live: bool) -> None:
     st.title("Hindcast")
     st.caption(
-        f"Case `{result.case_id}` · agent {result.agent.get('name')} v{result.agent.get('version')}"
-        f" · model {result.model.get('name')} {result.model.get('version')}"
+        f"Case {code(result.case_id)} · agent {plain(result.agent.get('name'))}"
+        f" v{plain(result.agent.get('version'))}"
+        f" · model {plain(result.model.get('name'))} {plain(result.model.get('version'))}"
     )
     if result.status != "complete":
-        st.warning(f"Incomplete run: {result.incomplete_reason}")
+        # The reason can carry a tool error's message (issue #48).
+        st.warning(f"Incomplete run: {plain(result.incomplete_reason)}")
 
     investigation = result.investigation
     if investigation is not None:
         st.header("Attack assessment")
-        st.markdown(f"**{investigation.attack.verdict}**")
-        st.markdown(investigation.attack.reasoning)
+        st.markdown(f"**{plain(investigation.attack.verdict)}**")
+        st.markdown(plain(investigation.attack.reasoning))
         st.markdown(_cites(investigation.attack.citations))
 
         st.header("Root cause")
-        st.markdown(investigation.root_cause.claim)
+        st.markdown(plain(investigation.root_cause.claim))
         st.markdown(f"Rests on {_rests_on(investigation.root_cause.rests_on)}")
         st.markdown(_cites(investigation.root_cause.citations))
 
@@ -222,10 +227,10 @@ def _render(result: StoredResult, path: Path, live: bool) -> None:
         st.table(
             [
                 {
-                    "time": t.time,
-                    "kind": t.time_kind,
-                    "event": t.event,
-                    "citations": " ".join(f"{c.source}:{c.ref}" for c in t.citations),
+                    "time": plain(t.time),
+                    "kind": plain(t.time_kind),
+                    "event": plain(t.event),
+                    "citations": plain(" ".join(f"{c.source}:{c.ref}" for c in t.citations)),
                 }
                 for t in investigation.timeline
             ]
@@ -233,8 +238,8 @@ def _render(result: StoredResult, path: Path, live: bool) -> None:
 
         st.header("Findings")
         for finding in investigation.findings:
-            with st.expander(f"{finding.id} ({finding.kind})"):
-                st.markdown(finding.claim)
+            with st.expander(f"{plain(finding.id)} ({plain(finding.kind)})"):
+                st.markdown(plain(finding.claim))
                 st.markdown(f"Rests on {_rests_on(finding.rests_on)}")
                 st.markdown(_cites(finding.citations))
                 for stored in challenges(path, finding.id):
@@ -245,27 +250,28 @@ def _render(result: StoredResult, path: Path, live: bool) -> None:
         st.header("Contributing factors")
         for factor in investigation.contributing_factors:
             st.markdown(
-                f"- {factor.claim} (rests on {_rests_on(factor.rests_on)};"
+                f"- {plain(factor.claim)} (rests on {_rests_on(factor.rests_on)};"
                 f" {_cites(factor.citations)})"
             )
 
         st.header("Open questions")
         for question in investigation.open_questions:
-            st.markdown(f"- {question.question} *{question.why_open}*")
+            st.markdown(f"- {plain(question.question)} *{plain(question.why_open)}*")
 
     st.header("Checks")
     rejected = result.checks.get("rejected_citations", [])
     unsupported = result.checks.get("unsupported", [])
     st.markdown(f"Rejected citations: {len(rejected)}. Unsupported items: {len(unsupported)}.")
     if rejected:
-        st.table(rejected)
+        st.table([{key: plain(value) for key, value in row.items()} for row in rejected])
     if unsupported:
-        st.markdown("\n".join(f"- `{item}`" for item in unsupported))
+        st.markdown("\n".join(f"- {code(item)}" for item in unsupported))
     withheld = [ref for call in result.tool_calls for ref in call.get("withheld", [])]
-    st.markdown(f"Withheld items: {len(withheld)}. " + " ".join(f"`{r}`" for r in withheld))
+    st.markdown(f"Withheld items: {len(withheld)}. " + " ".join(code(r) for r in withheld))
     pii = result.checks.get("pii", [])
     st.markdown(
-        f"PII hits: {len(pii)}. " + " ".join(f"`{hit['path']}` ({hit['category']})" for hit in pii)
+        f"PII hits: {len(pii)}. "
+        + " ".join(f"{code(hit['path'])} ({plain(hit['category'])})" for hit in pii)
     )
 
     st.header("Usage")
@@ -274,7 +280,7 @@ def _render(result: StoredResult, path: Path, live: bool) -> None:
             f"Cost: {result.cost.get('currency')} {result.cost['total']}"
             f" (price table v{result.cost.get('table_version')})"
             if "total" in result.cost
-            else f"Cost not priced: {result.cost.get('error')}"
+            else f"Cost not priced: {plain(result.cost.get('error'))}"
         )
     st.json(result.usage)
     st.markdown("Provenance")
@@ -295,12 +301,12 @@ def _investigate_panel(cases: Mapping[str, Case]) -> None:
             except StoreFailed as error:
                 # No rerun: the message stays, and the selectbox below picks
                 # the written result.
-                st.error(str(error))
+                st.error(plain(error))
                 st.session_state["picked"] = str(error.path)
                 return
             except Exception as error:  # noqa: BLE001
                 # Shown, not raised: a traceback would print the endpoints.
-                st.error(f"The investigation failed: {error}")
+                st.error(f"The investigation failed: {plain(error)}")
                 return
             st.session_state["picked"] = str(path)
             st.rerun()
@@ -332,7 +338,7 @@ def main() -> None:
             except Exception as error:  # noqa: BLE001
                 # Shown, not raised: the stored results still render, and no
                 # run starts on a partial or unchecked build/.
-                st.error(f"The runtime files are not ready: {error}")
+                st.error(f"The runtime files are not ready: {plain(error)}")
                 ready = False
         if ready:
             _investigate_panel(cases)

@@ -27,6 +27,7 @@ from typing import Any
 import streamlit as st
 
 from hindcast import excerpts
+from hindcast.escape import plain as _plain
 from hindcast.evaluation import judge
 from hindcast.evaluation.batch import FILLED, load_attempts, verified_run
 from hindcast.evaluation.review import (
@@ -51,7 +52,6 @@ DEFAULT_ROOT = Path("eval/reconstruction/showcase-v1")
 PRIOR_ROOT_VAR = "HINDCAST_REVIEW_PRIOR_ROOT"
 DEFAULT_PRIOR_ROOT = Path("eval/prior-knowledge/v1")
 MODES = ("Reconstructions", "Prior knowledge")
-_MARKDOWN = str.maketrans({c: f"\\{c}" for c in "\\`*_{}[]<>()#+-.!|~$"})
 
 
 @dataclass(frozen=True)
@@ -76,11 +76,6 @@ class Answer:
     question: str
     answer: str
     key: AnswerKey
-
-
-def _plain(text: str) -> str:
-    """Text shown as written: Markdown characters escaped, line breaks kept."""
-    return text.translate(_MARKDOWN).replace("\n", "  \n")
 
 
 def load_runs(root: Path) -> tuple[list[Run], int]:

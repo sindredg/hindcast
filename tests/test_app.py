@@ -1,11 +1,13 @@
 """The page renders the committed development-case result."""
 
 import json
+import re
 from pathlib import Path
 
 from streamlit.testing.v1 import AppTest
 
 from hindcast import app
+from hindcast.escape import plain
 
 ROOT = Path(__file__).resolve().parents[1]
 RESULT = ROOT / "eval/investigations/cloudflare-2026-02-20/20261102T181721Z-v3.json"
@@ -57,7 +59,7 @@ def test_render_incomplete_result(tmp_path, monkeypatch):
     at = AppTest.from_file(PAGE, default_timeout=60).run()
 
     assert not at.exception
-    assert any("time-cap" in warning.value for warning in at.warning)
+    assert any(plain("time-cap") in warning.value for warning in at.warning)
 
 
 def test_page_marks_a_library_citation(monkeypatch):
@@ -108,8 +110,8 @@ def test_page_shows_stored_challenges(tmp_path, monkeypatch):
     assert not at.exception
     text = " ".join(block.value for block in at.markdown)
     assert "Was it the cache?" in text
-    assert "The updates say the slowness began before any purge." in text
-    assert "**revised**" in text and "A narrower claim." in text
+    assert plain("The updates say the slowness began before any purge.") in text
+    assert "**revised**" in text and plain("A narrower claim.") in text
     assert "OTHER QUESTION" not in text
 
 
@@ -469,3 +471,81 @@ def test_page_shows_a_failed_investigation_without_a_traceback(tmp_path, monkeyp
     # The lock is released after a failure.
     assert app.RUN_LOCK.acquire(blocking=False)
     app.RUN_LOCK.release()
+
+
+# A planted instruction can make the model write Markdown that loads an image
+# or offers a link; the page shows it as text (issue #53).
+HOSTILE = "![x](https://example.invalid/a.png) [click](https://example.invalid)"
+
+
+def _shown(at) -> str:
+    """What the page renders as Markdown, with its code spans taken out."""
+    blocks = [*at.markdown, *at.caption, *at.warning, *at.error]
+    text = " ".join(block.value for block in blocks)
+    text += " ".join(expander.label for expander in at.expander)
+    cells = (
+        cell
+        for table in at.table
+        for column in table.value.to_dict().values()
+        for cell in column.values()
+    )
+    text += " ".join(str(cell) for cell in cells)
+    # Inside a code span Markdown is not rendered, so a link there is text.
+    return re.sub(r"(`+)(?!`).*?(?<!`)\1(?!`)", "<code>", text)
+
+
+def test_page_shows_model_text_as_plain_text(tmp_path, monkeypatch):
+    raw = json.loads(RESULT.read_text(encoding="utf-8"))
+    found = raw["investigation"]
+    found["attack"]["reasoning"] = HOSTILE
+    found["root_cause"]["claim"] = HOSTILE
+    found["timeline"][0]["event"] = HOSTILE
+    found["findings"][0]["claim"] = HOSTILE
+    found["findings"][0]["id"] = f"F1 {HOSTILE}"
+    found["open_questions"][0]["question"] = HOSTILE
+    found["open_questions"][0]["why_open"] = HOSTILE
+    found["contributing_factors"][0]["claim"] = HOSTILE
+    # A backtick in a ref would close the code span it is shown in.
+    found["attack"]["citations"][0]["ref"] = f"u2` {HOSTILE} `"
+    path = tmp_path / "hostile.json"
+    path.write_text(json.dumps(raw), encoding="utf-8")
+    monkeypatch.setenv(app.RESULT_FILE_VAR, str(path))
+
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+
+    assert not at.exception
+    shown = _shown(at)
+    assert "](https://example.invalid" not in shown
+    # Still shown, escaped: the text is not dropped.
+    assert shown.count(r"\!\[x\]\(https://example\.invalid/a\.png\)") >= 8
+
+
+def test_page_shows_a_stored_challenge_as_plain_text(tmp_path, monkeypatch):
+    raw = json.loads(RESULT.read_text(encoding="utf-8"))
+    path = tmp_path / "20261102T181721Z-v3.json"
+    path.write_text(json.dumps(raw), encoding="utf-8")
+    (tmp_path / "challenges").mkdir()
+    finding_id = raw["investigation"]["findings"][0]["id"]
+    stored = {
+        "result_file": path.name,
+        "finding_id": finding_id,
+        "question": HOSTILE,
+        "status": "complete",
+        "challenge": {
+            "verdict": "holds",
+            "answer": HOSTILE,
+            "revised_claim": HOSTILE,
+            "citations": [{"source": "case", "ref": f"u1` {HOSTILE} `"}],
+        },
+        "checks": {},
+    }
+    challenge = tmp_path / "challenges" / f"20261103T000000Z-{finding_id}.json"
+    challenge.write_text(json.dumps(stored), encoding="utf-8")
+    monkeypatch.setenv(app.RESULT_FILE_VAR, str(path))
+
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+
+    assert not at.exception
+    shown = _shown(at)
+    assert "](https://example.invalid" not in shown
+    assert shown.count(r"\!\[x\]\(https://example\.invalid/a\.png\)") >= 3
