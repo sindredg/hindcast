@@ -32,6 +32,7 @@ from hindcast import investigate, telemetry
 from hindcast.investigate import PII_TIMEOUT, Span, Turn, Usage, run_investigation
 from hindcast.redact import redact_fields
 from hindcast.result import (
+    FINDING_ID,
     Challenge,
     Checks,
     Finding,
@@ -78,6 +79,9 @@ def _findings(stored: StoredResult, finding_id: str) -> tuple[Finding, dict[str,
 
 def validate(stored: StoredResult, finding_id: str, question: str) -> None:
     """Every refusal that needs no cloud call."""
+    if not FINDING_ID.fullmatch(finding_id):
+        # The ID is model output and names the challenge file.
+        raise ValueError(f"finding ID {finding_id!r} is not a file-safe ID")
     _findings(stored, finding_id)
     if "screen_calls" not in stored.usage:
         # Results from before Prompt Shields: their library refs were never
@@ -277,8 +281,12 @@ def write_challenge(
         "usage": asdict(result.usage),
         "cost": cost,
     }
-    path = result_path.parent / CHALLENGES / f"{now:%Y%m%dT%H%M%SZ}-{finding_id}.json"
-    path.parent.mkdir(parents=True, exist_ok=True)
+    folder = result_path.parent / CHALLENGES
+    path = folder / f"{now:%Y%m%dT%H%M%SZ}-{finding_id}.json"
+    # validate() refuses such an ID before any call; this holds for every caller.
+    if not FINDING_ID.fullmatch(finding_id) or path.resolve().parent != folder.resolve():
+        raise ValueError(f"finding ID {finding_id!r} would name a file outside {folder}")
+    folder.mkdir(parents=True, exist_ok=True)
     # "x" refuses to overwrite an earlier challenge.
     with path.open("x", encoding="utf-8") as file:
         file.write(json.dumps(document, indent=2, ensure_ascii=False) + "\n")
