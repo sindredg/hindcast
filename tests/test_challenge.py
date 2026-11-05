@@ -393,3 +393,22 @@ def test_write_challenge_refuses_a_path_outside_the_challenges_folder(tmp_path: 
                 now=NOW,
             )
     assert sorted(p.name for p in tmp_path.rglob("*.json")) == [path.name]
+
+
+def test_a_screens_off_result_is_refused(tmp_path: Path) -> None:
+    # An injection run with --screens off has screen_calls 0 in its usage and
+    # provenance screens False: its library refs were never screened.
+    path = stored(tmp_path, provenance=MATCHING | {"screens": False})
+    setup = Setup(answer())
+    with pytest.raises(ValueError, match="without screens"):
+        challenge_run(setup, path)
+    assert setup.turn.inputs == []
+
+
+def test_a_finding_id_shared_by_two_findings_is_refused(tmp_path: Path) -> None:
+    document = json.loads(json.dumps(FINAL))
+    document["findings"].append(dict(document["findings"][0]))
+    setup = Setup(answer())
+    with pytest.raises(ValueError, match="more than one finding"):
+        challenge_run(setup, stored(tmp_path, document), "f1")
+    assert setup.turn.inputs == []
