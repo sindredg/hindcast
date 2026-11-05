@@ -384,3 +384,22 @@ def test_page_stores_a_challenge_of_a_committed_result_in_blob(tmp_path, monkeyp
     assert list(runs.blobs) == [
         "eval/investigations/cloudflare-2026-02-20/challenges/20261105T120000Z-F1.json"
     ]
+
+
+def test_the_page_shares_the_run_lock_across_sessions(monkeypatch):
+    # Streamlit runs the page as a fresh __main__ module on every run, so a
+    # lock defined in the page itself would be a new lock each time.
+    from hindcast import investigate
+
+    prepared: list[str] = []
+    monkeypatch.setattr(investigate, "prepare", lambda case: prepared.append(case.case_id))
+    monkeypatch.setenv(app.LIVE_VAR, "1")
+    monkeypatch.delenv(app.BLOB_RUNTIME_VAR, raising=False)
+    assert app.RUN_LOCK.acquire(blocking=False)
+    try:
+        at = AppTest.from_file(PAGE, default_timeout=60).run()
+        next(b for b in at.button if b.key == "investigate").click().run()
+    finally:
+        app.RUN_LOCK.release()
+    assert prepared == []
+    assert any("already running" in w.value for w in at.warning)

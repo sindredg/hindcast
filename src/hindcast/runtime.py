@@ -16,6 +16,7 @@ import hashlib
 import json
 import os
 import tempfile
+import threading
 from collections.abc import Iterable
 from pathlib import Path, PurePosixPath
 from typing import Protocol
@@ -37,6 +38,13 @@ RUNTIME_PATHS = (
 # Where results and challenges live: the page's own runs, and challenges next
 # to a committed result.
 RUN_PATHS = ("build/investigations", "eval/investigations")
+
+
+# One investigation at a time per process: each is a paid run of up to 120
+# seconds, and the app runs one replica. It lives here, not in the page:
+# Streamlit runs the page as a new __main__ module on every run, so a lock
+# defined there would be a new lock each time.
+RUN_LOCK = threading.Lock()
 
 
 class ListingContainer(BlobContainer, Protocol):

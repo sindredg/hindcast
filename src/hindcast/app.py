@@ -16,7 +16,6 @@ run and challenge there, with the app's managed identity.
 
 import json
 import os
-import threading
 from collections.abc import Mapping
 from datetime import UTC, datetime
 from pathlib import Path
@@ -42,9 +41,8 @@ RUN_ROOT_VAR = "HINDCAST_RUN_ROOT"
 # The only roles the page investigates: scored runs are evaluation runs, and
 # a sealed case is never run before its reveal.
 LIVE_ROLES = frozenset({"development", "injection"})
-# One investigation at a time per process: each is a paid run of up to 120
-# seconds, and the app runs one replica.
-RUN_LOCK = threading.Lock()
+# Shared by every session of the process (hindcast.runtime explains why).
+RUN_LOCK = runtime.RUN_LOCK
 
 
 class RunInProgress(RuntimeError):
