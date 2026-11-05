@@ -1,6 +1,6 @@
 # Screenshots
 
-Captures of the local page, taken on 2026-11-03 while it ran with `HINDCAST_CHALLENGE_LIVE=1` ([investigator runbook](../runbooks/investigator.md#challenge-a-finding)). They show finding F5 of the gpt-6-luna run [`20261103T171237Z-v3.json`](../../eval/investigations/cloudflare-2026-02-20/20261103T171237Z-v3.json) challenged from the page. The quoted words in the answers come from Cloudflare's public status updates for the development case.
+Captures of the local page, taken on 2026-11-03 while it ran with `HINDCAST_CHALLENGE_LIVE=1`, the flag of that day; since [decision 0028](../decisions/0028-full-environment-and-live-page.md) it is `HINDCAST_LIVE=1` ([investigator runbook](../runbooks/investigator.md#challenge-a-finding)). They show finding F5 of the gpt-6-luna run [`20261103T171237Z-v3.json`](../../eval/investigations/cloudflare-2026-02-20/20261103T171237Z-v3.json) challenged from the page. The quoted words in the answers come from Cloudflare's public status updates for the development case.
 
 | File | Shows |
 |---|---|

@@ -29,7 +29,7 @@ Findings about the deployed models, [gpt-6-luna](../decisions/0012-models.md) 20
 
 **Evidence:** tested live, 2026-11-01, between 12:01 and 12:20 UTC, with the developer's Entra token. With Foundry User on the project only, the resource endpoint answered 401 `PermissionDenied`, naming the data action `Microsoft.CognitiveServices/accounts/OpenAI/deployments/embeddings/action`. Cognitive Services OpenAI User was assigned on the resource at 12:45:56 UTC; a build at 12:51:06 still got 401, a one-text call at 12:51:19 succeeded, and both index builds then embedded all 267 chunks ([worklog](../worklogs/03-retrieval.md#live-run)).
 
-**For Hindcast:** embeddings go to the resource endpoint (`HINDCAST_EMBEDDING_ENDPOINT`), and the developer holds Cognitive Services OpenAI User on the resource until teardown ([decision 0019](../decisions/0019-library-index.md)). The app's identity will need the same role when the app searches the library.
+**For Hindcast:** embeddings go to the resource endpoint (`HINDCAST_EMBEDDING_ENDPOINT`), and the developer holds Cognitive Services OpenAI User on the resource until teardown ([decision 0019](../decisions/0019-library-index.md)). The app's identity holds the same role on the resource for the page's searches (`appOpenAi` in `infra/modules/roles.bicep`).
 
 ## The smaller model reasoned longer, so its price advantage shrank (2026-10-25)
 
@@ -97,6 +97,6 @@ Findings about the deployed models, [gpt-6-luna](../decisions/0012-models.md) 20
 
 **Evidence:** tested live, 2026-10-30, with a throwaway agent (one `echo` tool, a one-field schema), created as version 1 and deleted after the run. Usage: 83 input and 17 output tokens on the first call, 117 and 14 on the second. The same call shape then ran the investigator on the development case with the full schema and two tools ([worklog](../worklogs/04-investigator.md#live-run)). Whether the effort set in the agent definition is applied is not shown: the spike's task was too small to need reasoning, and the investigation's usage does not separate reasoning tokens.
 
-**For Hindcast:** [decision 0002](../decisions/0002-agent-approach.md) option A works as decided, with no fallback to the Responses API without an agent and no extra role. Each result now records the effort each response says it applied, next to the one the definition requests, and the reasoning tokens ([#26](https://github.com/sindredg/hindcast/issues/26)); the first live read is pending. The prior-knowledge results keep the requested effort only ([#4](https://github.com/sindredg/hindcast/issues/4)).
+**For Hindcast:** [decision 0002](../decisions/0002-agent-approach.md) option A works as decided, with no fallback to the Responses API without an agent and no extra role. Each result now records the effort each response says it applied, next to the one the definition requests, and the reasoning tokens ([#26](https://github.com/sindredg/hindcast/issues/26)); the milestone 5 runs of 2026-11-04 were the first live read: every response applied the requested `medium` ([showcase report](../../eval/reconstruction/showcase-v1/README.md)). The prior-knowledge results keep the requested effort only ([#4](https://github.com/sindredg/hindcast/issues/4)).
 
 **Read more:** [Agents in Microsoft Foundry](https://learn.microsoft.com/azure/foundry/agents/overview).
