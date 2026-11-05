@@ -2,6 +2,26 @@
 
 Failures that showed something about Hindcast, the platform, or a procedure: the symptom, the cause, the fix, and how the fix was verified. Newest first. A cause that was not confirmed is labelled as a hypothesis. The behaviour behind an entry is recorded once, in [findings](findings/), and linked from here.
 
+## Deployment: the second provision fails with `MaxNumberOfRegionalEnvironmentsInSubExceeded` (2026-11-05)
+
+**Symptom:** the second `azd provision` of the full environment created the Foundry resources and stopped at the Container Apps environment with `MaxNumberOfRegionalEnvironmentsInSubExceeded`.
+
+**Cause:** confirmed by the error and the subscription's resources: the subscription allows one Container Apps environment per region, and the slice 1 app's environment still ran in Sweden Central in its own resource group. The template does not check for one, and `az deployment sub what-if` does not either, because the limit is a quota, not a template error.
+
+**Fix:** the slice 1 app's resource group was deleted with `az group delete`, which removes that group and nothing else; its app registration and custom role are left for the teardown. The [deployment runbook](runbooks/deployment.md#inputs-and-access) now lists "no other Container Apps environment in the region" as a precondition, with the command that lists them.
+
+**Verification:** tested live, 2026-11-05: the third `azd provision` ended `SUCCESS` in 3 minutes 51 seconds ([worklog](worklogs/06-deployment.md#slice-2-live-run)).
+
+## Deployment: the first provision fails with `RequestConflict` on the Foundry project (2026-11-05)
+
+**Symptom:** the first `azd provision` of the full environment failed on the Foundry project with `RequestConflict`, and the project was not created.
+
+**Cause:** confirmed in the template at `ea3851c`: the deployments ran one at a time (`@batchSize(1)`), but nothing ordered them after the project, so ARM created the first deployment and the project on the same account at once. The account takes one change at a time.
+
+**Fix:** in `infra/modules/foundry.bicep` every deployment `dependsOn` the project (commit `1e56a8d`, [#78](https://github.com/sindredg/hindcast/pull/78)). `az bicep build` and `az bicep lint` pass on it in CI.
+
+**Verification:** tested live, 2026-11-05: the next provision created the project and the four deployments, then stopped at the Container Apps environment (the entry above), and the one after it succeeded ([worklog](worklogs/06-deployment.md#slice-2-live-run)).
+
 ## Judge: the API refuses the reply schema as too large (2026-11-04)
 
 **Symptom:** the first judge test call on the development run returned HTTP 400, "The compiled grammar is too large, which would cause performance issues", and wrote no judgment. Dropping the enum of run-item names from the reply schema did not change the answer.
