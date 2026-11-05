@@ -167,6 +167,11 @@ jobs:
           test "$source" = image
           docker run --rm hindcast:ci sh -c \
             "touch build/check && touch eval/investigations/cloudflare-2026-02-20/check"
+          # The committed results stay root's: appending to one has to fail.
+          if docker run --rm hindcast:ci sh -c \
+            "echo x >> eval/investigations/cloudflare-2026-02-20/20261102T181721Z-v3.json"; then
+            echo "a committed result is writable by the runtime user"; exit 1
+          fi
           # The page's runtime download, as the runtime user into /app, from
           # a stub container: it has to stage and move inside build/.
           docker run --rm -i hindcast:ci python - <<'PY'

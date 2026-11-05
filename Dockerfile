@@ -38,13 +38,14 @@ COPY provenance.json ./provenance.json
 
 # A fixed UID so the container never runs as root. USER takes the number, not
 # the name, so the platform can resolve it without the image's passwd file.
-# /app stays owned by root, so the runtime user cannot change its own code,
-# except build/, which takes the runtime files and the page's runs, and
-# eval/investigations, which takes challenges of the committed results.
+# /app stays owned by root, so the runtime user cannot change its own code or
+# the committed results. It owns build/, which takes the runtime files and the
+# page's runs, and the directories under eval/investigations, not their
+# files, so a challenge of a committed result can be written next to it.
 RUN useradd --create-home --uid 10001 app \
     && mkdir build \
     && chown 10001 build \
-    && chown -R 10001 eval/investigations
+    && find eval/investigations -type d -exec chown 10001 {} +
 USER 10001
 
 ENV PATH=/app/.venv/bin:$PATH \
