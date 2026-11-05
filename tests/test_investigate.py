@@ -976,3 +976,11 @@ def test_an_unchecked_query_is_replaced_when_pii_detection_fails() -> None:
     assert result.incomplete_reason == "tool-cap; pii-error: HTTP 500"
     assert result.tool_calls[0]["query"] == investigate.QUERY_UNCHECKED
     assert "Jane" not in json.dumps(result.tool_calls)
+
+
+def test_summary_counts_a_withheld_item_once(tmp_path: Path) -> None:
+    # A second list_updates returns the same withheld ref again.
+    turn = ScriptedTurn(response(call()), response(call(call_id="c2")), final())
+    result = run(turn, Tools(shield=StubShield("Looking into")))
+    assert [c["withheld"] for c in result.tool_calls] == [["dev/u1"], ["dev/u1"]]
+    assert "withheld items 1," in investigate.summary(result, tmp_path / "r.json")

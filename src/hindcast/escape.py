@@ -7,7 +7,8 @@ planted instruction asked for. Both pages pass model text through here.
 
 import re
 
-_MARKDOWN = str.maketrans({c: f"\\{c}" for c in "\\`*_{}[]<>()#+-.!|~$"})
+# "=" would make a setext heading of the line above, and "&" starts an entity.
+_MARKDOWN = str.maketrans({c: f"\\{c}" for c in "\\`*_{}[]<>()#+-.!|~$=&"})
 # GitHub-flavoured Markdown also links a bare URL, a "www." host, and an
 # e-mail address, and a backslash escape does not stop it: rendered in
 # Streamlit 1.67.0, "https\://x", "ops\@x", and "www\.x" all became links.

@@ -154,3 +154,31 @@ def test_materialize_writes_only_under_build(tmp_path):
     for name, data in FILES.items():
         assert (root / name).read_bytes() == data
     assert sorted(p.name for p in root.iterdir()) == ["build"]
+
+
+# Review finding: the path guards had no test that reached them.
+
+
+def test_store_run_refuses_a_path_outside_the_run_paths(tmp_path):
+    path = tmp_path / "build/evidence/x.json"
+    path.parent.mkdir(parents=True)
+    path.write_bytes(b"{}")
+    client = Container()
+    with pytest.raises(runtime.RuntimeMismatch, match="outside the run paths"):
+        runtime.store_run(client, tmp_path, path)
+    assert client.blobs == {}
+
+
+@pytest.mark.parametrize("name", ["build/investigations/../../src/x.py", "/etc/x"])
+def test_fetch_runs_refuses_a_name_that_leaves_the_run_paths(tmp_path, name):
+    with pytest.raises(runtime.RuntimeMismatch):
+        runtime.fetch_runs(Container({name: b"print()"}), tmp_path)
+    assert not (tmp_path / "src").exists() and not list(tmp_path.rglob("x.py"))
+
+
+@pytest.mark.parametrize("name", ["build/evidence/../../src/x.py", "/etc/x"])
+def test_materialize_refuses_a_name_that_leaves_the_runtime_paths(tmp_path, name):
+    client = _uploaded({name: b"{}"})
+    with pytest.raises(runtime.RuntimeMismatch):
+        runtime.materialize(client, tmp_path)
+    assert not (tmp_path / "src").exists() and not list(tmp_path.rglob("x.py"))

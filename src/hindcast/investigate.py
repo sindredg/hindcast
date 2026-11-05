@@ -509,7 +509,8 @@ def summary(result: RunResult, path: Path, cost: dict | None = None) -> str:
         )
     searches = sum(1 for c in result.tool_calls if c["name"] == "search_library")
     library_kept = 0 if i is None else sum(1 for c in _all_citations(i) if c.source == "library")
-    withheld = sum(len(c.get("withheld", [])) for c in result.tool_calls)
+    # Distinct refs: a second listing, or a hit in a later search, returns the same ref again.
+    withheld = len({r for c in result.tool_calls for r in c.get("withheld", [])})
     lines.append(
         f"rejected citations {len(result.checks.rejected_citations)}, "
         f"unsupported {len(result.checks.unsupported)}, "

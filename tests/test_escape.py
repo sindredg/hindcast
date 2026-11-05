@@ -47,3 +47,8 @@ def test_plain_breaks_bare_urls_hosts_and_email_addresses():
     assert shown.replace(WORD_JOINER, "") == text.translate(
         str.maketrans({c: f"\\{c}" for c in "\\`*_{}[]<>()#+-.!|~$"})
     )
+
+
+def test_plain_escapes_a_setext_underline_and_an_entity():
+    assert plain("Cause\n===") == "Cause  \n\\=\\=\\="
+    assert plain("&lt;b&gt;") == "\\&lt;b\\&gt;"
