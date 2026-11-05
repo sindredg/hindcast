@@ -24,6 +24,11 @@ RUN uv sync --frozen --no-dev --extra app --no-install-project
 # The code and the committed results the page shows.
 COPY src ./src
 COPY eval/investigations ./eval/investigations
+# The page's theme (read from the working directory), its glossary view, and
+# the case charts a cited chart shows, under CC BY 4.0 (data/charts/README.md).
+COPY .streamlit/config.toml ./.streamlit/config.toml
+COPY docs/glossary.md ./docs/glossary.md
+COPY data/charts ./data/charts
 # What a live run reads besides build/ (decision 0028): the prompts, the
 # registries, the price table, the injection inputs, and the rubric lock the
 # scored-case refusal checks.
