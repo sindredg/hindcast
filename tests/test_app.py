@@ -421,6 +421,41 @@ def test_the_page_shares_the_run_lock_across_sessions(monkeypatch):
 
     prepared: list[str] = []
     monkeypatch.setattr(investigate, "prepare", lambda case: prepared.append(case.case_id))
+def test_page_lists_a_blob_challenge_under_its_committed_result(tmp_path, monkeypatch):
+    # A challenge stored in Blob Storage for a committed result is downloaded
+    # at start and listed under its finding (#96); only the runtime download
+    # is stubbed, the stored runs go through the real fetch_runs.
+    import streamlit as st
+
+    from hindcast import runtime, storage
+    from test_runtime import Container
+
+    folder = tmp_path / "eval/investigations/cloudflare-2026-02-20"
+    folder.mkdir(parents=True)
+    usage = json.loads(RESULT.read_text(encoding="utf-8"))["usage"] | {"screen_calls": 5}
+    path = copy_result(folder, usage=usage)
+    name = "eval/investigations/cloudflare-2026-02-20/challenges/20261105T120000Z-F1.json"
+    stored = json.dumps(CHALLENGE | {"result_file": path.name, "question": "FROM BLOB?"})
+    runs = Container({name: stored.encode()})
+
+    st.cache_resource.clear()
+    monkeypatch.setattr(runtime, "materialize", lambda client, root: 0)
+    monkeypatch.setattr(storage, "container", lambda container: runs)
+    monkeypatch.setenv(app.RESULT_FILE_VAR, str(path))
+    monkeypatch.setenv(app.LIVE_VAR, "1")
+    monkeypatch.setenv(app.BLOB_RUNTIME_VAR, "1")
+    monkeypatch.setenv(app.RUN_ROOT_VAR, str(tmp_path))
+
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+    st.cache_resource.clear()
+
+    assert not at.exception
+    assert (tmp_path / name).is_file()
+    text = " ".join(block.value for block in at.markdown)
+    assert plain("FROM BLOB?") in text
+    assert "Finding revised" in text
+
+
     monkeypatch.setenv(app.LIVE_VAR, "1")
     monkeypatch.delenv(app.BLOB_RUNTIME_VAR, raising=False)
     assert app.RUN_LOCK.acquire(blocking=False)
