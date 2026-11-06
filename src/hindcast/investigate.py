@@ -32,6 +32,8 @@ import argparse
 import functools
 import hashlib
 import json
+import os
+import tempfile
 import time
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, replace
@@ -485,9 +487,17 @@ def write_result(
     }
     path = out_dir / case_id / (filename or f"{now:%Y%m%dT%H%M%SZ}-v{agent['version']}.json")
     path.parent.mkdir(parents=True, exist_ok=True)
-    # "x" refuses to overwrite an earlier run.
-    with path.open("x", encoding="utf-8") as file:
-        file.write(json.dumps(document, indent=2, ensure_ascii=False) + "\n")
+    # Written to a hidden temporary file, then hard-linked into place: the link
+    # refuses to overwrite an earlier run, as mode "x" did, and a process killed
+    # mid-write leaves no partial file under the result's name for the batch's
+    # reconcile to fail on (#61).
+    handle, temporary = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.", suffix=".tmp")
+    try:
+        with os.fdopen(handle, "w", encoding="utf-8") as file:
+            file.write(json.dumps(document, indent=2, ensure_ascii=False) + "\n")
+        os.link(temporary, path)
+    finally:
+        os.unlink(temporary)
     return path
 
 
