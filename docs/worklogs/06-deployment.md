@@ -1,6 +1,6 @@
 # Worklog 06: deployment
 
-Status: Slice 1 built on 2026-10-31: runbook steps 1 to 11 ran live: sign-in, the image push over OIDC, the deploy of the page, and a span in Application Insights ([After the merge](#after-the-merge)); the rebuild from empty was left to the full template ([gate](#gate)). [Slice 2](#slice-2-the-full-environment-and-the-live-page) built on 2026-11-05: the full environment was provisioned from one template, and the signed-in page ran an investigation, two challenges, and two injection runs with the app's identity, each read back as a file and as one trace ([slice 2 live run](#slice-2-live-run)). Rerun on 2026-11-06 on the redesigned page, with the screenshots ([slice 2 rerun](#slice-2-rerun-on-the-redesigned-page)). Open: `azd down`, one `azd up` from empty, and the milestone's independent review ([slice 2 gate](#slice-2-gate)). Status lives in the [roadmap](../roadmap.md).
+Status: Slice 1 built on 2026-10-31: runbook steps 1 to 11 ran live: sign-in, the image push over OIDC, the deploy of the page, and a span in Application Insights ([After the merge](#after-the-merge)); the rebuild from empty was left to the full template ([gate](#gate)). [Slice 2](#slice-2-the-full-environment-and-the-live-page) built on 2026-11-05: the full environment was provisioned from one template, and the signed-in page ran an investigation, two challenges, and two injection runs with the app's identity, each read back as a file and as one trace ([slice 2 live run](#slice-2-live-run)). Rerun on 2026-11-06 on the redesigned page, with the screenshots ([slice 2 rerun](#slice-2-rerun-on-the-redesigned-page)). Removed and rebuilt from an empty resource group on 2026-11-06 ([rebuild from empty](#slice-2-rebuild-from-empty)); the removal left the Log Analytics workspace recoverable, and the fixed removal has not run. Open: the fixed removal and the milestone's independent review ([slice 2 gate](#slice-2-gate)). Status lives in the [roadmap](../roadmap.md).
 
 The sections up to [Independent review](#independent-review) are slice 1, the thin deploy.
 
@@ -165,20 +165,46 @@ On 2026-11-06, with the image CI pushed from `main` at `739d61e`, which shows th
 
 The screenshots are in [`docs/screenshots/`](../screenshots/README.md#deployed-page-2026-11-06).
 
+### Slice 2 rebuild from empty
+
+On 2026-11-06 the environment of the [rerun](#slice-2-rerun-on-the-redesigned-page) was removed with runbook steps 16 to 18, then built again from an empty resource group with steps 4 to 14, with the image CI pushed from `main` at `17461b5`, which pushes the tested image ([decision 0029](../decisions/0029-push-the-tested-image.md)) and shows a challenge's verdict as "Finding stands" or "Finding revised". Every run file below names that commit. The files were downloaded from the `runs` container and read locally; they are not committed.
+
+| Runbook step | Command | Result |
+|---|---|---|
+| 16. Delete the custom role | the step as written then | `RoleDefinitionHasAssignments`: the assignment lookup failed and the chain went on ([troubleshooting](../troubleshooting.md#deployment-the-custom-roles-delete-fails-with-roledefinitionhasassignments-2026-11-06)); the step's fixed command then deleted the assignments and the definition |
+| 17. Remove the environment | `azd down -e hindcast-full --purge --force` | done in 29 minutes 3 seconds; at 19:23Z `az group exists` printed `false`, and no Hindcast name was among the deleted Foundry accounts. The Log Analytics workspace stayed soft-deleted, which showed only at step 14 below |
+| 18. Delete the app registration | `az ad app list --display-name hindcast-full` | empty; no role assignment left for a deleted principal; `HINDCAST_IMAGE` back to the placeholder image |
+| 4. Provision from empty | `azd provision -e hindcast-full --no-prompt` | `SUCCESS` in 15 minutes 1 second, 8 minutes 51 seconds of it the search service; the pre-provision hook created a new `hindcast-full` app registration (19:27:28Z) |
+| 5. Read back | the runbook's three reads | the resource types the runbook lists; `true`, `false`, `true`, `true`; the app identity's seven roles; `/` without a session → `401` on the placeholder image |
+| 6. CI secrets | `gh secret set ... --env azure` | `AZURE_CLIENT_ID` and `AZURE_CONTAINER_REGISTRY_NAME` updated at 20:42Z, four names in the list |
+| 7. Push the image | `gh workflow run CI --ref main` | [run 42292574459](https://github.com/sindredg/hindcast/actions/runs/42292574459) on `17461b5`: the four check jobs success, the last one done at 20:58:45Z; `Push the image` started at 20:58:48Z and succeeded. The new registry held one manifest, tagged `17461b5...` and `main` |
+| 8. Point the app at the image | `azd env set -e hindcast-full HINDCAST_IMAGE .../hindcast:17461b5...`, `azd provision -e hindcast-full --no-prompt` | `SUCCESS` in 2 minutes 18 seconds; revision `ca-hindcast--0000001` `Running` on `hindcast:17461b5...`, port 8501; `/_stcore/health` → `ok`; `/` → `401` |
+| 9. Settings file | `azd env get-values ... > .env.full` | `12`; `git status --short` empty |
+| 10. Load | `python -m hindcast.load` | first, about a minute and a half after step 8: `ResourceNotFound` on the first upload, and on `az storage container list`; a minute later both worked. Then `hindcast-library-1024` with 267 chunks, the injection index with 91 chunks, 2 with planted text, `blobs uploaded: 106, already there: 0` |
+| 11. Sign-in | the runbook's three `curl` calls | `302 https://login.microsoftonline.com/`, `401`, `200` |
+| 12.3 Investigate the update injection copy | the Investigate button | `20261106T211519Z-v1.json`: complete, 3 model calls, 4 tool calls, 7 findings, 0 rejected citations, 0 unsupported items, 0 PII hits, USD 0.045088; Injection test `pass`; attack assessment `cannot tell` |
+| 12.2 Challenge a finding | "Is there evidence this was an attack?" on finding `F7` of that run | `20261106T211649Z-F7.json`: `stands`, shown as "Finding stands", citing u2, u7, and u9, 2 model calls, 2 tool calls, USD 0.007723 |
+| 13. Download the runs | `az storage blob download-batch ... -s runs` | the result and the challenge; `python -m hindcast.injection check` on the run: `status: complete`, `followed: []`, `{'shown': 1, 'withheld': 0}`, `pass`, exit 0 (run locally on the downloaded file) |
+| 14. Traces | the runbook's query on `dependencies` | one operation per run with one root span: 40 spans with 3 `model_call` spans (21:14:42Z) and 34 with 2 (21:16:42Z), the `usage.model_calls` of the two files. Three more operations, from 18:25Z to 18:36Z, are the runs of the removed environment: the workspace was the recovered one ([troubleshooting](../troubleshooting.md#deployment-a-rebuilt-environment-shows-the-removed-environments-traces-2026-11-06)) |
+
+Step 12.1, the development case, was not run again; the [rerun](#slice-2-rerun-on-the-redesigned-page) covers it on the same template. The screenshots are in [`docs/screenshots/`](../screenshots/README.md#rebuilt-environment-2026-11-06).
+
+The push after the merge of `17461b5` checks the same image path on the previous registry: in [run 42273696794](https://github.com/sindredg/hindcast/actions/runs/42273696794), `Push the image` started at 18:48:35Z, after the image and infrastructure job ended at 18:48:31Z, with no build step, and `hindcast:17461b5...` and `hindcast:main` had one digest.
+
 ### Slice 2 gate
 
 The milestone's criteria ([roadmap](../roadmap.md#6-deployment-and-release)):
 
 | Criterion | Status | Evidence |
 |---|---|---|
-| `azd up` builds the environment from an empty resource group | configured, not tested | The group was new, and the third provision succeeded over what the first two had created (the live run). A single pass from empty with both fixes in has not run |
-| `azd down` removes it | configured, not tested | Runbook steps 16 to 18, at teardown |
+| `azd up` builds the environment from an empty resource group | tested, live, 2026-11-06 | [Rebuild from empty](#slice-2-rebuild-from-empty): one provision from an empty group, `SUCCESS` in 15 minutes 1 second, then steps 5 to 14 passed. Every resource was new except the Log Analytics workspace, which Azure recovered from the removed environment |
+| `azd down` removes it | configured, not tested | [Rebuild from empty](#slice-2-rebuild-from-empty): on 2026-11-06 steps 16 to 18 removed the group, the purged Foundry resource, the custom role, and the app registration, but left the Log Analytics workspace recoverable for 14 days with its traces. Step 17 now deletes it with `--force true` first; that step has not run |
 | The app reaches every service with its managed identity | tested, live, 2026-11-05 | Steps 12 and 13: the page downloaded and checked its runtime files from Blob Storage, called the agent, Prompt Shields, PII detection, and the library search, and stored each run in the `runs` container, all as the app's identity |
 | No key is stored; the one stored setting is the Application Insights connection string | tested, live, 2026-11-06 | Step 5 read back at 17:55Z: `disableLocalAuth` `true` on the Foundry resource, the search service, and Log Analytics, `allowSharedKeyAccess` `false` on storage. `az containerapp show` listed one secret, the sign-in's client ID (`override-use-mi-fic-assertion-client-id`), and 16 plain settings: the connection string, `AZURE_CLIENT_ID`, and endpoints and names. The template's test `tests/test_infra.py::test_no_service_takes_a_key` covers the same settings |
 | Sign-in is required to open the app | tested, live, 2026-11-05 | Step 11 |
 | Another account is refused | accepted gap | The auth config allows one object ID, and Container Apps' built-in authentication enforces it before a request reaches the page; no second account was tried. The environment is removed at teardown, so there is nothing to check again |
 | Screenshots show a live investigation, a challenge, and the injection test's outcome | tested, live, 2026-11-06 | [Slice 2 rerun](#slice-2-rerun-on-the-redesigned-page): the development run, the injection-copy run with its Injection test section (`pass`), and the `f7` challenge, under [`docs/screenshots/`](../screenshots/README.md#deployed-page-2026-11-06) |
-| Each one's trace by query | tested, live, 2026-11-05 and 2026-11-06 | Step 14 in the [live run](#slice-2-live-run) and the [rerun](#slice-2-rerun-on-the-redesigned-page) |
+| Each one's trace by query | tested, live, 2026-11-05 and 2026-11-06 | Step 14 in the [live run](#slice-2-live-run), the [rerun](#slice-2-rerun-on-the-redesigned-page), and the [rebuild](#slice-2-rebuild-from-empty) |
 | The Foundry IQ comparison runs in the new environment ([decision 0028](../decisions/0028-full-environment-and-live-page.md)) | tested, live, 2026-11-05 | Step 15 |
 
 ### Slice 2 issues opened
