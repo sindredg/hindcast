@@ -1,11 +1,13 @@
 import json
+from dataclasses import replace
 from typing import Any
 
 from hindcast.agent import EFFORT
 from hindcast.arms import ARMS
 from hindcast.cases import Case
-from hindcast.investigate import Setup
+from hindcast.investigate import NO_CHECKS, Setup
 from hindcast.result import INVESTIGATION_SCHEMA
+from hindcast.safety import PiiError, PiiHit
 from hindcast.single import direct_turn, run_single, search_query
 from test_investigate import (
     EVIDENCE,
@@ -18,6 +20,7 @@ from test_investigate import (
     final,
     hit,
 )
+from test_redact import StubPii
 
 CASE = Case("dev", "Slow pages", "Cloudflare", "development", "2026-02-20T18:45:16Z", (SOURCE,))
 PROMPT = ARMS["single-search"].prompt.read_text("utf-8")
@@ -105,3 +108,24 @@ def test_search_query_uses_only_shown_text() -> None:
     assert search_query(updates) == "B"
     assert search_query({"title": "T", "updates": []}) == "T"
     assert EVIDENCE.title == "Slow pages"
+
+
+class QueryFailsPii(StubPii):
+    """Checks the answer, then fails on the search query the run sent first."""
+
+    def __call__(self, texts: list[str], *, timeout: float) -> list[tuple[PiiHit, ...]]:
+        if "Slow pages. Looking into it." in texts:
+            raise PiiError("HTTP 500 q")
+        return super().__call__(texts, timeout=timeout)
+
+
+def test_single_search_pii_error_keeps_no_checks_like_the_agent() -> None:
+    # The model call's checks would list a rejected citation; a pii-error run
+    # keeps none, as the agent arms' pii-error does (#64).
+    document = json.loads(json.dumps(FINAL))
+    document["findings"][0]["citations"].append({"source": "case", "ref": "dev/u99"})
+    run_setup = replace(setup(FakeClient(final(document)), Search()), pii=QueryFailsPii())
+    result = run_single(run_setup, CASE, clock=Clock())
+    assert (result.status, result.incomplete_reason) == ("incomplete", "pii-error: HTTP 500 q")
+    assert result.investigation is None
+    assert result.checks == NO_CHECKS
