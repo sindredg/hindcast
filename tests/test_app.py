@@ -123,7 +123,10 @@ def test_page_shows_stored_challenges(tmp_path, monkeypatch):
     text = " ".join(block.value for block in at.markdown)
     assert "Was it the cache?" in text
     assert plain("The updates say the slowness began before any purge.") in text
-    assert "**revised**" in text and plain("A narrower claim.") in text
+    # The verdict names the finding, so "revised" does not read as an answer
+    # to the question.
+    assert "Finding revised" in text and plain("A narrower claim.") in text
+    assert "**revised**" not in text
     assert "OTHER QUESTION" not in text
 
 
@@ -166,6 +169,8 @@ def test_challenge_box_with_live_flag(tmp_path, monkeypatch):
     assert not at.exception
     assert asked == [(path, "F1", "Was it the cache?")]
     assert any("LIVE ANSWER" in block.value for block in at.markdown)
+    text = " ".join(block.value for block in at.markdown)
+    assert "Finding stands" in text and "**stands**" not in text
 
 
 def test_page_shows_cost_and_pii(tmp_path, monkeypatch):

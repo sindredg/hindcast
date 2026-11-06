@@ -370,15 +370,20 @@ class View:
         return f"{path} ({investigation.findings[n].id})"
 
 
+def _challenge_verdict(verdict: str, answer: str) -> None:
+    # The verdict is about the finding, not a yes or no to the question:
+    # "stands" under "Was it an attack?" would read as "yes".
+    st.badge(f"Finding {plain(verdict)}", color=CHALLENGE_COLORS.get(verdict, "gray"))
+    st.markdown(plain(answer))
+
+
 def _challenge(stored: dict, view: View) -> None:
     st.markdown(f"**Question:** {plain(stored['question'])}")
     answer = stored.get("challenge")
     if answer is None:
         st.markdown(f"No answer: {plain(stored['status'])} ({plain(stored.get('reason'))})")
         return
-    verdict = str(answer["verdict"])
-    st.badge(plain(verdict), color=CHALLENGE_COLORS.get(verdict, "gray"))
-    st.markdown(f"**{plain(verdict)}**: {plain(answer['answer'])}")
+    _challenge_verdict(str(answer["verdict"]), str(answer["answer"]))
     if answer.get("revised_claim"):
         st.markdown(f"Revised claim: {plain(answer['revised_claim'])}")
     _citations(
@@ -437,8 +442,7 @@ def _live_challenge(view: View, finding_id: str) -> None:
     if result.challenge is None:
         st.warning(f"No answer: {plain(result.status)} ({plain(result.reason)})")
         return
-    verdict = result.challenge.verdict
-    st.markdown(f"**{plain(verdict)}**: {plain(result.challenge.answer)}")
+    _challenge_verdict(result.challenge.verdict, result.challenge.answer)
     if result.challenge.revised_claim:
         st.markdown(f"Revised claim: {plain(result.challenge.revised_claim)}")
     _citations(result.challenge.citations, view)

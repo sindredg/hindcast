@@ -210,6 +210,22 @@ jobs:
           done
           docker logs page
           exit 1
+      # The push job pushes this image, the one the checks above ran, instead
+      # of building again. From main only: a pull request uploads nothing.
+      - name: Save the tested image
+        if: >-
+          (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+          && github.ref == 'refs/heads/main'
+        run: docker save hindcast:ci | gzip > "$RUNNER_TEMP/hindcast-image.tar.gz"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        if: >-
+          (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+          && github.ref == 'refs/heads/main'
+        with:
+          name: hindcast-image
+          path: ${{ runner.temp }}/hindcast-image.tar.gz
+          retention-days: 1
+          if-no-files-found: error
 
   image:
     name: Push the image
@@ -218,25 +234,23 @@ jobs:
     # environment: its branch policy admits only main, its name is the subject
     # the federated credential accepts, and its secrets hold the identity and
     # registry IDs: resource names and IDs, not keys, kept out of public logs.
-    needs: infra
+    # Every check has to pass first: the ruleset's required checks guard a
+    # merge, not a push or a manual run from main.
+    needs: [python, yaml, audit, infra]
     if: >-
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
       && github.ref == 'refs/heads/main'
     runs-on: ubuntu-26.04
     environment: azure
     permissions:
-      contents: read  # the build context
       id-token: write  # the OIDC token azure/login exchanges for the CI identity
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
         with:
-          persist-credentials: false
-      # The image has no .git: the commit, the src/ tree, and the prompts' and
-      # registries' blob hashes go in as a file (hindcast.provenance), which
-      # the Dockerfile copies. Standard library only, so the runner's Python.
-      - name: Write the provenance manifest
-        run: python3 src/hindcast/provenance.py provenance.json
-      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069  # v4.4.1
+          name: hindcast-image
+          path: ${{ runner.temp }}
+      - name: Load the tested image
+        run: gunzip -c "$RUNNER_TEMP/hindcast-image.tar.gz" | docker load
       - uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906  # v3.1.0
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
@@ -246,11 +260,12 @@ jobs:
         env:
           REGISTRY: ${{ secrets.AZURE_CONTAINER_REGISTRY_NAME }}
         run: az acr login --name "$REGISTRY"
-      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc  # v7.4.0
-        with:
-          context: .
-          platforms: linux/amd64
-          push: true
-          tags: |
-            ${{ secrets.AZURE_CONTAINER_REGISTRY_NAME }}.azurecr.io/hindcast:${{ github.sha }}
-            ${{ secrets.AZURE_CONTAINER_REGISTRY_NAME }}.azurecr.io/hindcast:main
+      - name: Push the tested image
+        env:
+          IMAGE: ${{ secrets.AZURE_CONTAINER_REGISTRY_NAME }}.azurecr.io/hindcast
+          SHA: ${{ github.sha }}
+        run: |
+          for tag in "$SHA" main; do
+            docker tag hindcast:ci "$IMAGE:$tag"
+            docker push "$IMAGE:$tag"
+          done

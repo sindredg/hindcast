@@ -65,14 +65,14 @@ The procedure builds all of Hindcast in one resource group with one `azd up`, fi
    ```
 
    ```bash
-   RG=rg-hindcast-full && az cognitiveservices account list -g "$RG" --query "[].properties.disableLocalAuth" -o tsv && az storage account list -g "$RG" --query "[].allowSharedKeyAccess" -o tsv && az search service list -g "$RG" --query "[].disableLocalAuth" -o tsv
+   RG=rg-hindcast-full && az cognitiveservices account list -g "$RG" --query "[].properties.disableLocalAuth" -o tsv && az storage account list -g "$RG" --query "[].allowSharedKeyAccess" -o tsv && az search service list -g "$RG" --query "[].disableLocalAuth" -o tsv && az monitor log-analytics workspace list -g "$RG" --query "[].features.disableLocalAuth" -o tsv
    ```
 
    ```bash
    az role assignment list --assignee "$(azd env get-value SERVICE_WEB_IDENTITY_PRINCIPAL_ID)" --all --query "[].roleDefinitionName" -o tsv | sort
    ```
 
-   Expected: one Foundry resource and project, one storage account, one search service, a container app, an environment, a registry, two identities, Log Analytics, and Application Insights; then `True`, `False`, `True`; then `AcrPull`, `Cognitive Services OpenAI User`, `Foundry User`, `Hindcast Safety Caller (hindcast-full)`, `Search Index Data Reader`, `Storage Blob Data Contributor`, `Storage Blob Data Reader`.
+   Expected: one Foundry resource and project, one storage account, one search service, a container app, an environment, a registry, two identities, Log Analytics, and Application Insights; then `true`, `false`, `true`, `true` (Foundry, storage, search, and Log Analytics refuse keys); then `AcrPull`, `Cognitive Services OpenAI User`, `Foundry User`, `Hindcast Safety Caller (hindcast-full)`, `Search Index Data Reader`, `Storage Blob Data Contributor`, `Storage Blob Data Reader`.
 
 ## Image
 
@@ -84,7 +84,7 @@ The procedure builds all of Hindcast in one resource group with one `azd up`, fi
 
    Expected: two `Set Actions secret` lines and four names in the list.
 
-7. Push the image from `main`. CI writes the provenance manifest, builds, checks the image, and pushes `hindcast:<sha>` and `hindcast:main`.
+7. Push the image from `main`. CI writes the provenance manifest, builds and checks the image, and, once every check job has passed, pushes that same image as `hindcast:<sha>` and `hindcast:main` ([decision 0029](../decisions/0029-push-the-tested-image.md)).
 
    ```bash
    gh workflow run CI --ref main && sleep 30 && gh run watch "$(gh run list --workflow CI --branch main --limit 1 --json databaseId --jq '.[0].databaseId')" --exit-status
