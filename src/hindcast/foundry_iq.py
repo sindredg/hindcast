@@ -35,7 +35,7 @@ from azure.search.documents.indexes.models import (
 from hindcast import index
 from hindcast.cases import Case
 from hindcast.library import LibraryDocument
-from hindcast.search import library_filter
+from hindcast.search import LibraryLeak, allowed, library_filter
 
 type Arm = Literal["minimal", "planning"]
 
@@ -172,9 +172,23 @@ def compare(
 ) -> dict:
     """Recall at 5 and reciprocal rank per scored query, scored as the baseline was."""
     rows = []
+    empty = 0
     for q in queries:
-        query_filter = library_filter(cases[q["case_id"]], library, picks_only=False)
-        ranked = ranked_docs(call(retrieve_body(arm, q["query"], query_filter)))
+        case = cases[q["case_id"]]
+        query_filter = library_filter(case, library, picks_only=False)
+        response = call(retrieve_body(arm, q["query"], query_filter))
+        ranked = ranked_docs(response)
+        # The baseline raises on a hit outside the case's filter
+        # (hindcast.search._check); a knowledge base that ignored the filter
+        # would otherwise score as if it had kept it (#85).
+        for doc_id in ranked:
+            doc = library.get(doc_id)
+            if doc is None:
+                raise LibraryLeak(f"{case.case_id}: reference to {doc_id}, not in the library")
+            if not allowed(case, doc, picks_only=False):
+                raise LibraryLeak(f"{case.case_id}: reference to {doc_id}, which it may not read")
+        # Counted, so a run of empty answers is visible next to the scores.
+        empty += not ranked
         rows.append(
             {
                 "query_id": q["query_id"],
@@ -188,6 +202,7 @@ def compare(
     return {
         "queries": len(rows),
         "scored": len(scored),
+        "empty_responses": empty,
         "mean_recall_at_5": sum(r["recall_at_5"] for r in scored) / len(scored) if scored else 0.0,
         "mean_reciprocal_rank": (
             sum(r["reciprocal_rank"] for r in scored) / len(scored) if scored else 0.0
@@ -322,7 +337,8 @@ def main(argv: list[str] | None = None) -> int:
     print(
         f"{arm}: {result['scored']} of {result['queries']} queries scored, "
         f"mean recall@5 {result['mean_recall_at_5']:.3f}, "
-        f"MRR {result['mean_reciprocal_rank']:.3f}; written to {out}"
+        f"MRR {result['mean_reciprocal_rank']:.3f}, {result['empty_responses']} with no reference; "
+        f"written to {out}"
     )
     return 0
 

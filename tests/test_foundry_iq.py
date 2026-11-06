@@ -8,7 +8,8 @@ from azure.search.documents.indexes.models import AzureOpenAIVectorizer
 
 from hindcast import foundry_iq, index
 from hindcast.cases import load_cases
-from hindcast.search import library_filter
+from hindcast.search import LibraryLeak, library_filter
+from test_search import doc
 
 ROOT = Path(__file__).resolve().parents[1]
 QUERIES = ROOT / "eval/retrieval/library-v1/queries.json"
@@ -102,12 +103,45 @@ def test_compare_scores_like_the_library_check():
             ]
         }
 
-    result = foundry_iq.compare(queries, arm="minimal", cases=cases, library={}, call=call)
+    library = {d: doc(d, "2024-01-01", ()) for d in ("a", "b")}
+    result = foundry_iq.compare(queries, arm="minimal", cases=cases, library=library, call=call)
     assert len(seen) == 2
     assert result["scored"] == 1
     assert result["mean_recall_at_5"] == 1.0
     assert result["mean_reciprocal_rank"] == 0.5
     assert result["rows"][0]["top"] == ["b", "a"]
+    assert result["empty_responses"] == 0
+
+
+@pytest.mark.parametrize(
+    ("library", "match"),
+    [
+        # Published on the case's start day: the date filter excludes it.
+        ({"a": doc("a", "2026-02-20", ())}, "may not read"),
+        ({}, "not in the library"),
+    ],
+)
+def test_compare_refuses_a_document_the_case_filter_excludes(library: dict, match: str) -> None:
+    # The baseline raises on such a hit; a knowledge base that ignored the
+    # filter would otherwise go unnoticed (#85).
+    queries = [{"query_id": "q1", "case_id": "cloudflare-2026-02-20", "query": "x", "relevant": []}]
+
+    def call(body: dict) -> dict:
+        return {"references": [{"type": "searchIndex", "sourceData": {"doc_id": "a"}}]}
+
+    with pytest.raises(LibraryLeak, match=match):
+        foundry_iq.compare(queries, arm="minimal", cases=load_cases(), library=library, call=call)
+
+
+def test_compare_counts_responses_with_no_references() -> None:
+    queries = [
+        {"query_id": "q1", "case_id": "cloudflare-2026-02-20", "query": "x", "relevant": ["a"]}
+    ]
+    result = foundry_iq.compare(
+        queries, arm="minimal", cases=load_cases(), library={}, call=lambda body: {}
+    )
+    assert result["empty_responses"] == 1
+    assert result["mean_recall_at_5"] == 0.0
 
 
 def test_results_name_every_version():
