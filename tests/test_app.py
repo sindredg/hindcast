@@ -163,10 +163,17 @@ def test_challenge_box_with_live_flag(tmp_path, monkeypatch):
 
     at = AppTest.from_file(PAGE, default_timeout=60).run()
     assert not at.exception
+    # The box has a section named for what it does, not one that counts zero
+    # challenges (#94).
+    labels = [expander.label for expander in at.expander]
+    assert "Challenge this finding" in labels
+    assert not any(label.startswith("Challenges (") for label in labels)
     at.text_area(key="question-F1").input("Was it the cache?")
     at.button(key="challenge-F1").click().run()
 
     assert not at.exception
+    # No count read before the challenge ran sits above its verdict.
+    assert not any(expander.label.startswith("Challenges (") for expander in at.expander)
     assert asked == [(path, "F1", "Was it the cache?")]
     assert any("LIVE ANSWER" in block.value for block in at.markdown)
     text = " ".join(block.value for block in at.markdown)
@@ -414,13 +421,6 @@ def test_page_stores_a_challenge_of_a_committed_result_in_blob(tmp_path, monkeyp
     ]
 
 
-def test_the_page_shares_the_run_lock_across_sessions(monkeypatch):
-    # Streamlit runs the page as a fresh __main__ module on every run, so a
-    # lock defined in the page itself would be a new lock each time.
-    from hindcast import investigate
-
-    prepared: list[str] = []
-    monkeypatch.setattr(investigate, "prepare", lambda case: prepared.append(case.case_id))
 def test_page_lists_a_blob_challenge_under_its_committed_result(tmp_path, monkeypatch):
     # A challenge stored in Blob Storage for a committed result is downloaded
     # at start and listed under its finding (#96); only the runtime download
@@ -456,6 +456,13 @@ def test_page_lists_a_blob_challenge_under_its_committed_result(tmp_path, monkey
     assert "Finding revised" in text
 
 
+def test_the_page_shares_the_run_lock_across_sessions(monkeypatch):
+    # Streamlit runs the page as a fresh __main__ module on every run, so a
+    # lock defined in the page itself would be a new lock each time.
+    from hindcast import investigate
+
+    prepared: list[str] = []
+    monkeypatch.setattr(investigate, "prepare", lambda case: prepared.append(case.case_id))
     monkeypatch.setenv(app.LIVE_VAR, "1")
     monkeypatch.delenv(app.BLOB_RUNTIME_VAR, raising=False)
     assert app.RUN_LOCK.acquire(blocking=False)
