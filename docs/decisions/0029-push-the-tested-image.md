@@ -4,6 +4,8 @@ Status: Accepted (2026-11-06).
 
 Replaces the image-build trade-off in [decision 0016](0016-sign-in-credential-image-build-and-resource-group.md) that the image is built twice per push to `main`.
 
+The artifact named in the trade-offs is `hindcast-image` in `.github/workflows/ci.yml`, the same name on every run; `actions/download-artifact` reads the current run's artifacts only, which is what keeps the push job on the image its own run tested.
+
 ## Context
 
 Until this change, the push job in `.github/workflows/ci.yml` waited for the image and infrastructure job only, and it built the image a second time before pushing it ([#87](https://github.com/sindredg/hindcast/issues/87)). Two gaps follow:

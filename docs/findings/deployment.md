@@ -2,6 +2,14 @@
 
 Findings about the Azure Developer CLI, Bicep, and Azure Container Apps. The deployment is described in the [architecture](../architecture/README.md#the-deployment), and the procedure in the [deployment runbook](../runbooks/deployment.md).
 
+## `azd down --purge` leaves the Log Analytics workspace recoverable (2026-11-06)
+
+**Seen:** `azd down --purge --force` purged the Foundry resource but left the Log Analytics workspace soft-deleted. The next `azd up` under the same names did not create a new workspace: it recovered the old one, and the old spans came back with it. Nothing in either command's output says so.
+
+**Evidence:** tested live, 2026-11-06, azd 1.37.2. After the removal at 19:23Z, `az group exists` printed `false` and no Foundry resource was left among the deleted accounts. After the rebuild, `az monitor log-analytics workspace show` reported `createdDate` 19:28:45Z, and the runbook's trace query on the new Application Insights resource returned the three runs made from 18:25Z to 18:36Z on the removed environment. Microsoft's documentation states the mechanism ([delete and recover a workspace](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/delete-workspace)): a deleted workspace is recoverable for 14 days, re-creating one with the same subscription, resource group, name, and region recovers it with its data, and only a delete with `--force` is permanent.
+
+**For Hindcast:** the traces outlive `azd down`. The [runbook](../runbooks/deployment.md#remove) deletes the workspace with `--force true` before `azd down` and lists the deleted workspaces afterwards. A rebuild from empty means a new workspace only after that step. The forced delete ran at the final removal on 2026-11-06 and left no deleted workspace ([worklog](../worklogs/06-deployment.md#slice-2-final-removal)).
+
 ## A Bicep compiler warning exits 0 (2026-11-01)
 
 **Seen:** `az bicep build` reports a property of the wrong type (`BCP036`) as a warning and exits 0. `infra/bicepconfig.json` raises the linter's rules to errors, but compiler diagnostics are not linter rules, so a check on the exit code passes a template the resource provider may reject.

@@ -2,6 +2,26 @@
 
 Failures that showed something about Hindcast, the platform, or a procedure: the symptom, the cause, the fix, and how the fix was verified. Newest first. A cause that was not confirmed is labelled as a hypothesis. The behaviour behind an entry is recorded once, in [findings](findings/), and linked from here.
 
+## Deployment: a rebuilt environment shows the removed environment's traces (2026-11-06)
+
+**Symptom:** after `azd down` removed the environment and `azd up` built it again under the same names, the runbook's trace query (step 14), over its two-hour window, returned five operations with a root span: the two runs made on the new page, and three from 18:25Z to 18:36Z, made on the removed environment's page before the removal. Over 48 hours the same workspace returned every operation since 2026-11-05, ten in all (read during the [independent review](worklogs/06-deployment.md#slice-2-independent-review)).
+
+**Cause:** confirmed by the workspace and the documentation ([finding](findings/deployment.md#azd-down---purge-leaves-the-log-analytics-workspace-recoverable-2026-11-06)). `azd down --purge` deleted the Log Analytics workspace without `--force`, so it stayed soft-deleted. A workspace created within 14 days with the same subscription, resource group, name, and region is the recovered workspace, with its data. ARM reported the workspace as created at 19:28:45Z, after the removal, while it returned spans from 18:25Z.
+
+**Fix:** step 17 of the [deployment runbook](runbooks/deployment.md#remove) deletes the workspace with `--force true` before `azd down`, and checks that no deleted workspace is left.
+
+**Verification:** tested live, 2026-11-06: the forced delete returned in 35 seconds with the Application Insights component still in place, `azd down --purge --force` then removed the group in 26 minutes 35 seconds, and `list-deleted-workspaces` held no Hindcast workspace ([worklog](worklogs/06-deployment.md#slice-2-final-removal)). Whether a later `azd up` under the same names gets a new, empty workspace was not observed: nothing was rebuilt after this removal.
+
+## Deployment: the custom role's delete fails with `RoleDefinitionHasAssignments` (2026-11-06)
+
+**Symptom:** step 16 of the deployment runbook ended with `RoleDefinitionHasAssignments` on `az role definition delete`. The command before it in the same line printed `ERROR: The command failed with an unexpected error` and `No value for given attribute`.
+
+**Cause:** confirmed by running the lookup again, read only, against the rebuilt environment on 2026-11-06 with Azure CLI 2.88.0. `az role assignment list --all --role "Hindcast Safety Caller (hindcast-full)"` fails with that traceback. Its empty output went into `xargs -r`, which deleted nothing and exited 0, so the `&&` chain went on to the definition, which still had its assignments. With `--scope` set to the resource group instead of `--all`, the same lookup returns 0 assignments; filtering all assignments by the definition's ID returns the 2 that exist. Why the CLI fails on the name is not established.
+
+**Fix:** step 16 of the [deployment runbook](runbooks/deployment.md#remove) looks the definition up at the resource group's scope and selects the assignments whose `roleDefinitionId` ends with its ID. If the lookup fails again, the definition's delete still stops on the assignments, so the step cannot pass with the role left behind.
+
+**Verification:** tested live, 2026-11-06: the fixed command deleted the role's assignments and its definition, and `az role definition list --custom-role-only true` no longer listed `Hindcast Safety Caller (hindcast-full)` ([worklog](worklogs/06-deployment.md#slice-2-rebuild-from-empty)). At the final removal the same day, the lookup found the 2 assignments by the definition's ID and the deletes went through ([final removal](worklogs/06-deployment.md#slice-2-final-removal)).
+
 ## Deployment: the second provision fails with `MaxNumberOfRegionalEnvironmentsInSubExceeded` (2026-11-05)
 
 **Symptom:** the second `azd provision` of the full environment created the Foundry resources and stopped at the Container Apps environment with `MaxNumberOfRegionalEnvironmentsInSubExceeded`.

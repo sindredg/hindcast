@@ -14,8 +14,8 @@ See the [roadmap](docs/roadmap.md) for milestone progress and [current architect
 
 - **Investigations:** captured evidence, searches of earlier postmortems, cited reconstructions, and follow-up challenges work.
 - **Safeguards:** citation checks, Prompt Shields, personal-data masking, traces, and per-run costs are implemented.
-- **Deployment:** one template builds the whole environment, and the page on Azure Container Apps, behind Entra sign-in, runs investigations and challenges with its managed identity ([live run](docs/worklogs/06-deployment.md#slice-2-live-run)).
-- **Remaining:** the deployment's rebuild from empty and independent review, teardown, and sealed-case reveals.
+- **Deployment:** one template builds the whole environment, and the page on Azure Container Apps, behind Entra sign-in, runs investigations and challenges with its managed identity ([live run](docs/worklogs/06-deployment.md#slice-2-live-run)); the environment was rebuilt from empty and removed again with nothing left ([removal](docs/worklogs/06-deployment.md#slice-2-final-removal)).
+- **Remaining:** the teardown of the resources built by hand, and the sealed-case reveals.
 
 Implementation evidence is in the [worklogs](docs/worklogs/).
 

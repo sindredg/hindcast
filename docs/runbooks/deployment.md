@@ -1,6 +1,6 @@
 # Deployment: operator procedure
 
-Status: Rewritten on 2026-11-05 for the full environment ([decision 0028](../decisions/0028-full-environment-and-live-page.md)). Validated on 2026-11-05: steps 3 to 15 ran live, with the results in [worklog 06](../worklogs/06-deployment.md#slice-2-live-run); step 2 ran without the subscription value it now sets, and steps 4 and 8 needed the fixes below before they passed. The 403 for a second account in step 12 is an accepted gap ([gate](../worklogs/06-deployment.md#slice-2-gate)). Steps 16 to 18 have not run. The procedure it replaces, which deployed the app's resource group only, ran on 2026-10-31 ([worklog 06](../worklogs/06-deployment.md)).
+Status: Rewritten on 2026-11-05 for the full environment ([decision 0028](../decisions/0028-full-environment-and-live-page.md)). Validated on 2026-11-05: steps 3 to 15 ran live, with the results in [worklog 06](../worklogs/06-deployment.md#slice-2-live-run); step 2 ran without the subscription value it now sets, and steps 4 and 8 needed the fixes below before they passed. The 403 for a second account in step 12 is an accepted gap ([gate](../worklogs/06-deployment.md#slice-2-gate)). On 2026-11-06 steps 16 to 18 removed that environment, and steps 4 to 14 rebuilt it from an empty resource group ([rebuild from empty](../worklogs/06-deployment.md#slice-2-rebuild-from-empty)). That removal failed at step 16 and left the Log Analytics workspace recoverable; steps 16 and 17 below are the fixed versions, which ran later that day and removed the rebuilt environment with nothing left ([final removal](../worklogs/06-deployment.md#slice-2-final-removal)); step 16 ran as separate commands with the assignment IDs its lookup printed, not as the one line below. The procedure it replaces, which deployed the app's resource group only, ran on 2026-10-31 ([worklog 06](../worklogs/06-deployment.md)).
 
 The procedure builds all of Hindcast in one resource group with one `azd up`, fills it from the operator's local data tree, runs an investigation, a challenge, and an injection copy from the signed-in page, and removes it all with `azd down`. The data is the operator's: `data/sources/` and `build/` are not in the repository, so a clean clone also needs the [extraction runbook](extraction.md) first.
 
@@ -56,7 +56,7 @@ The procedure builds all of Hindcast in one resource group with one `azd up`, fi
    azd provision
    ```
 
-   Expected: `SUCCESS: Your application was provisioned in Azure`. The post-provision hook sets the registration's redirect URI and the app identity's federated credential. Observed on 2026-11-05: `SUCCESS` in 3 minutes 51 seconds, on the third provision, after the two fixes in [troubleshooting](../troubleshooting.md#deployment-the-first-provision-fails-with-requestconflict-on-the-foundry-project-2026-11-05). A failure that names `RoleDefinitionDoesNotExist` means the new custom role had not replicated when its assignments ran (the [investigator runbook](investigator.md) retries the same assignment by hand); run `azd provision` again.
+   Expected: `SUCCESS: Your application was provisioned in Azure`. The post-provision hook sets the registration's redirect URI and the app identity's federated credential. Observed on 2026-11-05: `SUCCESS` in 3 minutes 51 seconds, on the third provision, after the two fixes in [troubleshooting](../troubleshooting.md#deployment-the-first-provision-fails-with-requestconflict-on-the-foundry-project-2026-11-05). Observed on 2026-11-06, from an empty resource group: `SUCCESS` in 15 minutes 1 second, 8 minutes 51 seconds of it the search service. A failure that names `RoleDefinitionDoesNotExist` means the new custom role had not replicated when its assignments ran (the [investigator runbook](investigator.md) retries the same assignment by hand); run `azd provision` again.
 
 5. Read the resources back: one group, keys off, and the app identity's roles.
 
@@ -106,7 +106,7 @@ The procedure builds all of Hindcast in one resource group with one `azd up`, fi
    curl -s "$(azd env get-value -e hindcast-full SERVICE_WEB_URI)/_stcore/health"
    ```
 
-   Expected: `main` and `<sha>`; then `SUCCESS`; then `ok`. Observed on 2026-11-05: `SUCCESS` in 6 minutes 28 seconds.
+   Expected: `main` and `<sha>`; then `SUCCESS`; then `ok`. Observed: `SUCCESS` in 6 minutes 28 seconds on 2026-11-05, and in 2 minutes 18 seconds on 2026-11-06.
 
 ## Data
 
@@ -124,7 +124,7 @@ The procedure builds all of Hindcast in one resource group with one `azd up`, fi
     PYTHONPATH=src uv run --frozen --env-file .env.full python -m hindcast.load
     ```
 
-    Expected: `hindcast-library-1024` with 267 chunks, the injection index line with its planted count, then `blobs uploaded: 106, already there: 0` (42 sources, 23 extracts, 40 runtime files, and the manifest, counted locally on 2026-11-05). A second run prints `already there: 106` with `--skip-index`.
+    Expected: `hindcast-library-1024` with 267 chunks, the injection index line with its planted count, then `blobs uploaded: 106, already there: 0` (42 sources, 23 extracts, 40 runtime files, and the manifest, counted locally on 2026-11-05). A second run prints `already there: 106` with `--skip-index`. Run too soon after step 8, the first upload can fail with `ResourceNotFound`, not a `403`: wait a minute and run it again (observed once on 2026-11-06, about a minute and a half after the provision).
 
 ## The page
 
@@ -184,21 +184,21 @@ The procedure builds all of Hindcast in one resource group with one `azd up`, fi
 
 ## Remove
 
-16. Delete the custom role first: role definitions are not deleted with the resource group, and an assigned one cannot be deleted. Its assignments go, then the definition, while its scope still exists.
+16. Delete the custom role first: role definitions are not deleted with the resource group, and an assigned one cannot be deleted. Its assignments go, then the definition, while its scope still exists. The assignments are found by the definition's ID: `az role assignment list --all --role` with this role's name fails ([troubleshooting](../troubleshooting.md#deployment-the-custom-roles-delete-fails-with-roledefinitionhasassignments-2026-11-06)).
 
     ```bash
-    ROLE="Hindcast Safety Caller (hindcast-full)" && az role assignment list --all --role "$ROLE" --query "[].id" -o tsv | xargs -r az role assignment delete --ids && az role definition delete --name "$ROLE" --custom-role-only true --scope "$(az group show -n rg-hindcast-full --query id -o tsv)" && az role definition list --custom-role-only true --query "[].roleName" -o tsv
+    ROLE="Hindcast Safety Caller (hindcast-full)" && RGID=$(az group show -n rg-hindcast-full --query id -o tsv) && RID=$(az role definition list --custom-role-only true --name "$ROLE" --scope "$RGID" --query "[0].name" -o tsv) && az role assignment list --all --query "[?ends_with(roleDefinitionId, '$RID')].id" -o tsv | xargs -r az role assignment delete --ids && az role definition delete --name "$ROLE" --custom-role-only true --scope "$RGID" && az role definition list --custom-role-only true --query "[].roleName" -o tsv
     ```
 
     Expected: the list no longer shows `Hindcast Safety Caller (hindcast-full)`.
 
-17. Remove the environment, purging the soft-deleted Foundry resource, and check that nothing is left.
+17. Delete the Log Analytics workspace for good, then remove the environment, purging the soft-deleted Foundry resource, and check that nothing is left. `azd down --purge` leaves the workspace soft-deleted for 14 days, and the next `azd up` under the same names recovers it with its traces ([troubleshooting](../troubleshooting.md#deployment-a-rebuilt-environment-shows-the-removed-environments-traces-2026-11-06)).
 
     ```bash
-    azd down -e hindcast-full --purge --force && az group exists -n rg-hindcast-full && az cognitiveservices account list-deleted --query "[].name" -o tsv
+    az monitor log-analytics workspace delete -g rg-hindcast-full -n log-hindcast --force true --yes && azd down -e hindcast-full --purge --force && az group exists -n rg-hindcast-full && az cognitiveservices account list-deleted --query "[].name" -o tsv && az monitor log-analytics workspace list-deleted-workspaces --query "[].name" -o tsv
     ```
 
-    Expected: `false`, and no Hindcast name among the deleted accounts.
+    Expected: `false`, and no Hindcast name among the deleted accounts or the deleted workspaces.
 
 18. Delete the environment's app registration.
 
