@@ -84,7 +84,7 @@ The procedure builds all of Hindcast in one resource group with one `azd up`, fi
 
    Expected: two `Set Actions secret` lines and four names in the list.
 
-7. Push the image from `main`. CI writes the provenance manifest, builds, checks the image, and pushes `hindcast:<sha>` and `hindcast:main`.
+7. Push the image from `main`. CI writes the provenance manifest, builds and checks the image, and, once every check job has passed, pushes that same image as `hindcast:<sha>` and `hindcast:main` ([decision 0029](../decisions/0029-push-the-tested-image.md)).
 
    ```bash
    gh workflow run CI --ref main && sleep 30 && gh run watch "$(gh run list --workflow CI --branch main --limit 1 --json databaseId --jq '.[0].databaseId')" --exit-status
