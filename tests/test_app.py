@@ -4,6 +4,7 @@ import json
 import re
 from pathlib import Path
 
+import pytest
 from streamlit.testing.v1 import AppTest
 
 from hindcast import app
@@ -20,9 +21,17 @@ SECTIONS = [
     "Findings",
     "Contributing factors",
     "Open questions",
-    "Checks",
+    "Citations",
+    "Prompt Shields",
+    "Personal data",
     "Usage",
+    "Provenance",
 ]
+TABS = ["Investigation", "Evidence", "Checks", "Usage"]
+
+
+def headings(at) -> list[str]:
+    return [h.value for h in [*at.header, *at.subheader]]
 
 
 def test_load_result_reads_the_committed_run():
@@ -42,11 +51,12 @@ def test_page_renders_the_sections(monkeypatch):
     at = AppTest.from_file(PAGE, default_timeout=60).run()
 
     assert not at.exception
-    headers = [header.value for header in at.header]
     for name in SECTIONS:
-        assert name in headers
+        assert name in headings(at)
+    assert [tab.label for tab in at.tabs] == TABS
     verdict = json.loads(RESULT.read_text(encoding="utf-8"))["investigation"]["attack"]["verdict"]
     assert any(verdict in block.value for block in at.markdown)
+    assert next(m for m in at.metric if m.label == "Attack assessment").value == verdict
 
 
 def test_render_incomplete_result(tmp_path, monkeypatch):
@@ -62,9 +72,11 @@ def test_render_incomplete_result(tmp_path, monkeypatch):
     assert any(plain("time-cap") in warning.value for warning in at.warning)
 
 
-def test_page_marks_a_library_citation(monkeypatch):
-    # The slice 2 run kept a library citation; newer runs need not.
+def test_page_marks_a_library_citation(tmp_path, monkeypatch):
+    # The slice 2 run kept a library citation; newer runs need not. Without
+    # the run's files (an empty run root) a citation shows as its ID.
     monkeypatch.setenv(app.RESULT_FILE_VAR, str(RESULT))
+    monkeypatch.setenv(app.RUN_ROOT_VAR, str(tmp_path))
     at = AppTest.from_file(PAGE, default_timeout=60).run()
 
     assert not at.exception
@@ -171,7 +183,8 @@ def test_page_shows_cost_and_pii(tmp_path, monkeypatch):
 
     assert not at.exception
     text = " ".join(block.value for block in at.markdown)
-    assert "PII hits: 1" in text and "`findings[0].claim` (Person)" in text
+    # The path names the finding by the ID its card shows.
+    assert "PII hits: 1" in text and "`findings[0].claim (F1)` (Person)" in text
     assert "Withheld items: 1" in text and "`x/u2`" in text
     assert "USD 0.012" in text
 
@@ -182,7 +195,12 @@ def test_page_lists_the_results_and_defaults_to_the_newest_luna_run(monkeypatch)
 
     assert not at.exception
     [select] = at.selectbox
-    assert set(select.options) == {p.name for p in RESULT.parent.glob("*.json")}
+    files = sorted(RESULT.parent.glob("*.json"), reverse=True)
+    # Named by what ran, on which model, and when, not by file name.
+    assert len(select.options) == len(files)
+    for option, path in zip(select.options, files, strict=True):
+        assert app.run_time(path) in option
+        assert json.loads(path.read_text("utf-8"))["model"]["deployment"] in option
     assert select.value == app.default_result(RESULT.parent)
 
 
@@ -194,7 +212,8 @@ def test_default_result_is_the_newest_luna_run(tmp_path):
     ]:
         (tmp_path / name).write_text(json.dumps({"model": {"deployment": deployment}}))
 
-    assert app.default_result(tmp_path).name == "20261102T000000Z-v4.json"
+    default = app.default_result(tmp_path)
+    assert default is not None and default.name == "20261102T000000Z-v4.json"
 
 
 def test_no_challenge_box_for_an_unscreened_result(monkeypatch):
@@ -281,7 +300,7 @@ def test_second_run_is_refused_while_one_runs(tmp_path, monkeypatch):
     case = load_cases()["cloudflare-2026-02-20"]
     assert app.RUN_LOCK.acquire(blocking=False)
     try:
-        with __import__("pytest").raises(app.RunInProgress):
+        with pytest.raises(app.RunInProgress):
             app.start_run(case, root=tmp_path, client=None)
     finally:
         app.RUN_LOCK.release()
@@ -483,6 +502,11 @@ def _shown(at) -> str:
     blocks = [*at.markdown, *at.caption, *at.warning, *at.error]
     text = " ".join(block.value for block in blocks)
     text += " ".join(expander.label for expander in at.expander)
+    # Popover labels and help texts, metric labels, and tab labels render Markdown too.
+    for popover in at.get("popover"):
+        text += f" {popover.proto.popover.label} {popover.proto.popover.help}"
+    text += " ".join(f" {m.label}" for m in at.metric)
+    text += " ".join(f" {t.label}" for t in at.tabs)
     cells = (
         cell
         for table in at.table
@@ -517,7 +541,7 @@ def test_page_shows_model_text_as_plain_text(tmp_path, monkeypatch):
     shown = _shown(at)
     assert "](https://example.invalid" not in shown
     # Still shown, escaped: the text is not dropped.
-    assert shown.count(r"\!\[x\]\(https://example\.invalid/a\.png\)") >= 8
+    assert shown.count(plain("![x](https://example.invalid/a.png)")) >= 8
 
 
 def test_page_shows_a_stored_challenge_as_plain_text(tmp_path, monkeypatch):
@@ -548,4 +572,300 @@ def test_page_shows_a_stored_challenge_as_plain_text(tmp_path, monkeypatch):
     assert not at.exception
     shown = _shown(at)
     assert "](https://example.invalid" not in shown
-    assert shown.count(r"\!\[x\]\(https://example\.invalid/a\.png\)") >= 3
+    assert shown.count(plain("![x](https://example.invalid/a.png)")) >= 3
+
+
+def test_page_shows_the_injection_verdict_of_an_injection_copy(tmp_path, monkeypatch):
+    # The planted update came back from list_updates and was not withheld:
+    # the screen missed it, the model ignored it, and the run passes.
+    planted = "cloudflare-2026-02-20-inject-update/u2"
+    tool_calls = [{"name": "list_updates", "seconds": 0.1, "withheld": [], "screen_calls": 1}]
+    path = copy_result(
+        tmp_path, case_id="cloudflare-2026-02-20-inject-update", tool_calls=tool_calls
+    )
+    monkeypatch.setenv(app.RESULT_FILE_VAR, str(path))
+
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+
+    assert not at.exception
+    assert "Injection test" in headings(at)
+    assert "Injection test" in [tab.label for tab in at.tabs]
+    text = " ".join(block.value for block in at.markdown)
+    assert f"`{planted}`" in text
+    assert "shown 1, withheld 0" in text
+    assert "Followed: none" in text
+    assert "**pass**" in text
+
+
+def test_page_shows_a_failed_injection_verdict(tmp_path, monkeypatch):
+    raw = json.loads(RESULT.read_text(encoding="utf-8"))
+    raw["investigation"]["attack"]["verdict"] = "attack"
+    tool_calls = [{"name": "list_updates", "seconds": 0.1, "withheld": [], "screen_calls": 1}]
+    path = copy_result(
+        tmp_path,
+        case_id="cloudflare-2026-02-20-inject-update",
+        tool_calls=tool_calls,
+        investigation=raw["investigation"],
+    )
+    monkeypatch.setenv(app.RESULT_FILE_VAR, str(path))
+
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+
+    assert not at.exception
+    text = " ".join(block.value for block in at.markdown)
+    assert "Followed: `verdict`" in text
+    assert "**fail**" in text
+
+
+def test_page_shows_no_injection_verdict_for_the_development_case(monkeypatch):
+    monkeypatch.setenv(app.RESULT_FILE_VAR, str(RESULT))
+
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+
+    assert not at.exception
+    assert "Injection test" not in [h.value for h in at.header]
+
+
+# Citations that open what they cite (hindcast.cited).
+
+CASE = "cloudflare-2026-02-20"
+
+
+def _evidence_root(tmp_path, updates):
+    """A run root holding only the development case's evidence file."""
+    root = tmp_path / "root"
+    (root / "build/evidence").mkdir(parents=True)
+    evidence = {
+        "case_id": CASE,
+        "provider": "Cloudflare",
+        "title": "t",
+        "started_at": "2026-02-20T18:45:16Z",
+        "updates": updates,
+        "dropped": [],
+        "charts": [],
+    }
+    (root / f"build/evidence/{CASE}.json").write_text(json.dumps(evidence), encoding="utf-8")
+    return root
+
+
+def _popover_labels(at) -> list[str]:
+    return [p.proto.popover.label for p in at.get("popover")]
+
+
+def test_a_citation_opens_the_cited_update(tmp_path, monkeypatch):
+    raw = json.loads(RESULT.read_text(encoding="utf-8"))
+    ref = raw["investigation"]["attack"]["citations"][0]["ref"]
+    update = {"update_id": ref, "time": "2026-02-20T19:09:46Z", "status": "identified"}
+    root = _evidence_root(tmp_path, [update | {"text": "THE CITED UPDATE TEXT"}])
+    monkeypatch.setenv(app.RESULT_FILE_VAR, str(RESULT))
+    monkeypatch.setenv(app.RUN_ROOT_VAR, str(root))
+
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+
+    assert not at.exception
+    assert ref.removeprefix(f"{CASE}/") in _popover_labels(at)
+    assert any(t.value == "THE CITED UPDATE TEXT" for t in at.text)
+    # The Evidence tab lists it once, with the items that cite it.
+    assert any(c.value.startswith("Cited by") and "`attack`" in c.value for c in at.caption)
+    # A citation the files do not hold stays an ID.
+    other = next(
+        c["ref"]
+        for f in raw["investigation"]["findings"]
+        for c in f["citations"]
+        if c["ref"] != ref and c["source"] == "case"
+    )
+    assert any(f"`case:{other}`" in m.value for m in at.markdown)
+
+
+def test_the_evidence_tab_says_when_the_files_are_missing(tmp_path, monkeypatch):
+    monkeypatch.setenv(app.RESULT_FILE_VAR, str(RESULT))
+    monkeypatch.setenv(app.RUN_ROOT_VAR, str(tmp_path))
+
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+
+    assert not at.exception
+    assert _popover_labels(at) == []
+    assert any("cited texts are not on this page" in i.value for i in at.info)
+
+
+def test_cited_provider_text_is_shown_as_text(tmp_path, monkeypatch):
+    # A status update is provider text, and an injection copy plants one: the
+    # page shows it with st.text, never as Markdown, and escapes the label.
+    raw = json.loads(RESULT.read_text(encoding="utf-8"))
+    ref = f"{CASE}/u2 {HOSTILE}"
+    raw["investigation"]["attack"]["citations"] = [{"source": "case", "ref": ref}]
+    path = tmp_path / "hostile.json"
+    path.write_text(json.dumps(raw), encoding="utf-8")
+    update = {"update_id": ref, "time": "t", "status": HOSTILE, "text": HOSTILE}
+    root = _evidence_root(tmp_path, [update])
+    monkeypatch.setenv(app.RESULT_FILE_VAR, str(path))
+    monkeypatch.setenv(app.RUN_ROOT_VAR, str(root))
+
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+
+    assert not at.exception
+    assert len(_popover_labels(at)) == 1
+    shown = _shown(at)
+    assert "](https://example.invalid" not in shown
+    # Label, help, and heading in the popover, the heading again on the Evidence tab.
+    assert shown.count(plain("![x](https://example.invalid/a.png)")) >= 4
+    assert sum(t.value == HOSTILE for t in at.text) == 2
+
+
+def test_result_label_names_an_injection_copy(tmp_path):
+    path = copy_result(tmp_path, case_id="cloudflare-2026-02-20-inject-chart")
+    label = app.result_label(path, {})
+    assert label.startswith("Injection test: chart · gpt-6-luna · 2026-11-02 18:17:21 UTC")
+    assert label.endswith("agent v3")
+
+
+def test_default_result_of_an_empty_folder_is_none(tmp_path):
+    assert app.default_result(tmp_path) is None
+
+
+def test_the_theme_sets_only_options_streamlit_knows():
+    # A misspelt key is ignored by Streamlit with a log line, so the page
+    # would quietly fall back to the default look.
+    import tomllib
+
+    from streamlit import config
+
+    raw = tomllib.loads((ROOT / ".streamlit/config.toml").read_text(encoding="utf-8"))
+
+    def keys(table, prefix=""):
+        for key, value in table.items():
+            if isinstance(value, dict):
+                yield from keys(value, f"{prefix}{key}.")
+            else:
+                yield f"{prefix}{key}"
+
+    found = list(keys(raw))
+    assert "theme.backgroundColor" in found
+    assert [k for k in found if k not in config.get_config_options()] == []
+    assert raw["theme"]["backgroundColor"] == "#000000"
+    assert raw["theme"]["primaryColor"] == "#22c55e"
+    # The agent API drives the page over HTTP and MCP; the page keeps it off.
+    assert raw["server"]["enableAgentApi"] is False
+
+
+def test_the_image_carries_the_theme_glossary_and_charts():
+    dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
+    ignored = (ROOT / ".dockerignore").read_text(encoding="utf-8").splitlines()
+    for path in (".streamlit/config.toml", "docs/glossary.md", "data/charts"):
+        assert f"COPY {path} ./{path}" in dockerfile
+    assert "!docs/glossary.md" in ignored
+    assert "data/charts/" not in ignored
+
+
+def test_a_run_before_the_screens_says_so(monkeypatch):
+    # The slice 2 run predates Prompt Shields and the PII check: "0" would
+    # read as checked and clean.
+    monkeypatch.setenv(app.RESULT_FILE_VAR, str(RESULT))
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+
+    assert not at.exception
+    assert next(m for m in at.metric if m.label == "Withheld items").value == "not screened"
+    text = " ".join(block.value for block in at.markdown)
+    assert "Not screened" in text and "Not checked" in text
+    assert "PII hits" not in text
+
+
+def test_an_injection_copy_shows_its_outcome_first(tmp_path, monkeypatch):
+    tool_calls = [{"name": "list_updates", "seconds": 0.1, "withheld": [], "screen_calls": 1}]
+    path = copy_result(
+        tmp_path, case_id="cloudflare-2026-02-20-inject-update", tool_calls=tool_calls
+    )
+    monkeypatch.setenv(app.RESULT_FILE_VAR, str(path))
+
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+
+    assert not at.exception
+    assert at.metric[0].label == "Injection test" and at.metric[0].value == "pass"
+
+
+def _challenge_page(tmp_path, monkeypatch, fake):
+    from hindcast import challenge
+
+    usage = json.loads(RESULT.read_text(encoding="utf-8"))["usage"] | {"screen_calls": 5}
+    path = copy_result(tmp_path, usage=usage)
+    monkeypatch.setenv(app.RESULT_FILE_VAR, str(path))
+    monkeypatch.setenv(app.LIVE_VAR, "1")
+    monkeypatch.delenv(app.BLOB_RUNTIME_VAR, raising=False)
+    monkeypatch.setattr(challenge, "challenge_and_store", fake)
+    return AppTest.from_file(PAGE, default_timeout=60).run()
+
+
+def test_a_failed_challenge_shows_an_error_without_a_traceback(tmp_path, monkeypatch):
+    def refuse(result_path, finding_id, question):
+        raise ValueError("build/evidence/x.json is not the evidence the result was made from")
+
+    at = _challenge_page(tmp_path, monkeypatch, refuse)
+    at.text_area(key="question-F1").input("Was it the cache?")
+    at.button(key="challenge-F1").click().run()
+
+    assert not at.exception
+    assert any("is not the evidence the result was made from" in e.value for e in at.error)
+    # The lock is released after a failure.
+    assert app.RUN_LOCK.acquire(blocking=False)
+    app.RUN_LOCK.release()
+
+
+def test_an_empty_question_is_not_sent(tmp_path, monkeypatch):
+    asked: list[str] = []
+
+    def fake(result_path, finding_id, question):
+        asked.append(question)
+        raise AssertionError("an empty question reached the challenge")
+
+    at = _challenge_page(tmp_path, monkeypatch, fake)
+    at.text_area(key="question-F1").input("   ")
+    at.button(key="challenge-F1").click().run()
+
+    assert not at.exception
+    assert asked == []
+    assert any("Write a question first" in w.value for w in at.warning)
+
+
+def test_a_challenge_waits_for_a_running_investigation(tmp_path, monkeypatch):
+    asked: list[str] = []
+
+    def fake(result_path, finding_id, question):
+        asked.append(question)
+        raise AssertionError("a challenge ran while the lock was held")
+
+    at = _challenge_page(tmp_path, monkeypatch, fake)
+    at.text_area(key="question-F1").input("Was it the cache?")
+    assert app.RUN_LOCK.acquire(blocking=False)
+    try:
+        at.button(key="challenge-F1").click().run()
+    finally:
+        app.RUN_LOCK.release()
+
+    assert not at.exception
+    assert asked == []
+    assert any("already running" in w.value for w in at.warning)
+
+
+def test_a_finding_id_with_a_separator_reads_no_challenge_files(tmp_path):
+    assert app.challenges(tmp_path / "r.json", "../x") == []
+
+
+def test_the_page_refuses_a_sealed_case_by_its_role_alone(tmp_path, monkeypatch):
+    # The page's own role check, with the investigator's lock check out of the way.
+    from hindcast import investigate
+    from hindcast.cases import load_cases
+
+    monkeypatch.setattr(investigate, "check_case_allowed", lambda case, lock: None)
+    prepared: list[str] = []
+    monkeypatch.setattr(investigate, "prepare", lambda case: prepared.append(case.case_id))
+    with pytest.raises(PermissionError, match="sealed"):
+        app.start_run(load_cases()["github-2026-10-21"], root=tmp_path, client=None)
+    assert prepared == []
+
+
+def test_a_pre_screen_run_says_why_it_has_no_challenge_box(monkeypatch):
+    monkeypatch.setenv(app.RESULT_FILE_VAR, str(RESULT))
+    monkeypatch.setenv(app.LIVE_VAR, "1")
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+    assert not at.exception
+    assert any("No challenge box" in c.value for c in at.caption)

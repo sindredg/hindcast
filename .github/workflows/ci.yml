@@ -30,7 +30,8 @@ jobs:
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2  # v10.3.3
         with:
           version: "0.13.5"
-      - run: uv sync --frozen --all-extras
+      # --locked, not --frozen: a pin edited in pyproject.toml without a relock fails here.
+      - run: uv sync --locked --all-extras
       - run: uv run --frozen ruff check .
       - run: uv run --frozen ruff format --check .
       - run: uv run --frozen pyright
@@ -51,7 +52,7 @@ jobs:
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2  # v10.3.3
         with:
           version: "0.13.5"
-      - run: uv sync --frozen
+      - run: uv sync --locked
       - run: uv run --frozen yamllint --strict .
       - name: zizmor
         # The token lets zizmor check pinned SHAs and known-vulnerable actions
@@ -78,7 +79,7 @@ jobs:
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2  # v10.3.3
         with:
           version: "0.13.5"
-      - run: uv sync --frozen
+      - run: uv sync --locked
       # Audits every locked package, development tools included. Any finding
       # fails the job. An ignore needs --ignore-vuln with a comment that holds
       # the reachability evidence, its limits, and when to check again.

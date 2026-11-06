@@ -144,9 +144,8 @@ resource environmentLogs 'Microsoft.Insights/diagnosticSettings@2021-05-01-previ
   }
 }
 
-// azd updates the image at deploy time. On a later provision the app already
-// exists, and this reference keeps its image instead of resetting it to the
-// imageName parameter (azd's "exists" pattern).
+// The image comes from the imageName parameter on every provision (the
+// comment on that parameter says why); azd deploys no image itself.
 resource web 'Microsoft.App/containerApps@2026-01-01' = {
   name: 'ca-hindcast'
   location: location

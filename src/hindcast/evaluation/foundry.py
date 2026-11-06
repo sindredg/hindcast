@@ -154,10 +154,9 @@ def replay(document: Mapping[str, Any], tools: CaseTools, hits: Mapping[str, Lib
         return [hits[ref] for ref in [*call.get("refs", []), *call.get("withheld", [])]]
 
     tools.search = search
-    # The screen ran during the run. Its recorded flags are set up front, so
+    # The screen ran during the run. Its withheld refs are set up front, so
     # the replay withholds the same items and screens nothing again.
-    known = [f"{tools.evidence.case_id}/title", *tools.refs, *hits]
-    tools._flags = {ref: ref in withheld for ref in known}
+    tools._flagged_refs = set(withheld)
     out = []
     for call in calls:
         arguments = {"query": call["query"]} if call["name"] == "search_library" else {}

@@ -142,7 +142,7 @@ The procedure runs one investigation of a case through the investigator prompt a
    HINDCAST_LIVE=1 PYTHONPATH=src uv run --frozen --env-file .env streamlit run src/hindcast/app.py
    ```
 
-   Expected (reasoned; not run in a browser on 2026-11-03): the page opens on the newest `gpt-6-luna` result, and "Run challenge" under a finding shows the verdict, the answer, and its citations, and writes the challenge file.
+   Expected (observed in a browser on 2026-11-03, [screenshots](../screenshots/README.md)): the page opens on the newest `gpt-6-luna` result, and "Run challenge" under a finding shows the verdict, the answer, and its citations, and writes the challenge file.
 
 ## Find the trace
 

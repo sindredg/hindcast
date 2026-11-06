@@ -12,6 +12,7 @@ from hindcast.tools import (
     LIBRARY_NOTE,
     TOOL_DEFINITIONS,
     UPDATES_NOTE,
+    WITHHELD,
     CaseTools,
     ToolError,
     load_evidence,
@@ -436,3 +437,44 @@ def test_a_tool_call_with_no_time_left_for_its_screen_times_out() -> None:
     case_tools = CaseTools(EVIDENCE, search=slow_search, shield=TimedShield(), clock=lambda: now[0])
     with pytest.raises(TimeoutError):
         case_tools.call("search_library", '{"query": "x"}', timeout=10.0)
+
+
+# Review finding: the screen cache was keyed by ref alone, and one library ref
+# can come back as several chunks.
+
+
+def _hit_text(ref: str, content: str) -> LibraryHit:
+    return LibraryHit(ref, ref.split("/")[1], "Title", "Heading", "2025-01-01", content, 1.5, 2.5)
+
+
+def test_a_flagged_chunk_withholds_its_ref_even_next_to_a_clean_chunk_of_the_same_ref() -> None:
+    hits = [_hit_text("lib/doc/s4", "PLANTED instruction"), _hit_text("lib/doc/s4", "clean part")]
+    shield = StubShield("PLANTED")
+    case_tools = CaseTools(EVIDENCE, search=lambda q, timeout: hits, shield=shield)
+    result = json.loads(case_tools.call("search_library", '{"query": "x"}', timeout=10.0))
+    assert [h.get("withheld") for h in result["hits"]] == [WITHHELD, WITHHELD]
+    assert "PLANTED" not in json.dumps(result)
+    assert case_tools.withheld == {"lib/doc/s4"} and case_tools.retrieved == set()
+
+
+def test_a_later_chunk_under_a_screened_ref_is_screened_too() -> None:
+    calls = [
+        [_hit_text("lib/doc/s4", "clean part")],
+        [_hit_text("lib/doc/s4", "PLANTED instruction")],
+    ]
+    shield = StubShield("PLANTED")
+    case_tools = CaseTools(EVIDENCE, search=lambda q, timeout: calls.pop(0), shield=shield)
+    first = json.loads(case_tools.call("search_library", '{"query": "x"}', timeout=10.0))
+    second = json.loads(case_tools.call("search_library", '{"query": "y"}', timeout=10.0))
+    assert first["hits"][0]["content"] == "clean part"
+    assert second["hits"][0] == {"ref": "lib/doc/s4", "withheld": WITHHELD}
+    assert shield.sent == [["Title\nHeading\nclean part"], ["Title\nHeading\nPLANTED instruction"]]
+
+
+def test_the_same_text_under_a_ref_is_screened_once() -> None:
+    hits = [_hit_text("lib/doc/s1", "same")]
+    shield = StubShield("PLANTED")
+    case_tools = CaseTools(EVIDENCE, search=lambda q, timeout: hits, shield=shield)
+    case_tools.call("search_library", '{"query": "x"}', timeout=10.0)
+    case_tools.call("search_library", '{"query": "y"}', timeout=10.0)
+    assert shield.calls == 1

@@ -25,3 +25,6 @@ dist/
 
 # Case source files (downloaded per data/cases.yaml, never committed)
 data/sources/
+
+# Streamlit secrets: never committed
+.streamlit/secrets.toml

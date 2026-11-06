@@ -83,6 +83,8 @@ TIME_CAP = 120.0
 # bounds the investigation, and an answer at the cap still gets checked.
 PII_TIMEOUT = 30.0
 NO_CHECKS = Checks()
+# What a search query is replaced by when PII detection could not check it.
+QUERY_UNCHECKED = "[unchecked: PII detection failed]"
 START = {
     "role": "user",
     "content": "Investigate this outage. Read the evidence with the tools before you answer.",
@@ -232,6 +234,20 @@ def _loop(
     pii_before = (pii.calls, pii.records) if pii else (0, 0)
 
     def end(reason: str | None, result: Any = None, checks: Checks = NO_CHECKS) -> RunResult:
+        if pii is not None and any("query" in c for c in record):
+            # Every query the result keeps is checked, whatever ended the run
+            # (decision 0021), so an incomplete run's queries are masked too.
+            try:
+                checks = replace(checks, pii=checks.pii + _mask_queries(record, pii, span))
+            except (PiiError, TimeoutError) as error:
+                # An unchecked query is never written: each is replaced, and
+                # the run ends incomplete with the error on its reason.
+                for c in record:
+                    if "query" in c:
+                        c["query"] = QUERY_UNCHECKED
+                result, checks = None, NO_CHECKS
+                failed = f"pii-error: {error}"
+                reason = failed if reason is None else f"{reason}; {failed}"
         screens = (shield.calls, shield.records) if shield else (0, 0)
         checked = (pii.calls, pii.records) if pii else (0, 0)
         usage = Usage(
@@ -307,8 +323,6 @@ def _loop(
                 result, checks = finish(
                     response.output_text or "", tools, case_id=case_id, pii=pii, span=span
                 )
-                if pii is not None:
-                    checks = replace(checks, pii=checks.pii + _mask_queries(record, pii, span))
             except ResultError as error:
                 return end(str(error))
             except PiiError as error:
@@ -495,7 +509,8 @@ def summary(result: RunResult, path: Path, cost: dict | None = None) -> str:
         )
     searches = sum(1 for c in result.tool_calls if c["name"] == "search_library")
     library_kept = 0 if i is None else sum(1 for c in _all_citations(i) if c.source == "library")
-    withheld = sum(len(c.get("withheld", [])) for c in result.tool_calls)
+    # Distinct refs: a second listing, or a hit in a later search, returns the same ref again.
+    withheld = len({r for c in result.tool_calls for r in c.get("withheld", [])})
     lines.append(
         f"rejected citations {len(result.checks.rejected_citations)}, "
         f"unsupported {len(result.checks.unsupported)}, "

@@ -16,7 +16,7 @@ Findings about the Azure Developer CLI, Bicep, and Azure Container Apps. The dep
 
 **Evidence:** tested live, 2026-10-31, against `ca-hindcast`. With `User-Agent: Mozilla/5.0`: `302` to `https://login.microsoftonline.com/<tenant>/oauth2/v2.0/authorize`. Without it: `401`. `/_stcore/health`, an excluded path: `404` from the placeholder image, never `302`.
 
-**For Hindcast:** a check of the sign-in redirect sends a browser user agent; a `401` without one is not a fault ([runbook](../runbooks/deployment.md#sign-in), step 6).
+**For Hindcast:** a check of the sign-in redirect sends a browser user agent; a `401` without one is not a fault ([runbook](../runbooks/deployment.md#the-page), step 11).
 
 ## Reading the container app that the same template deploys is a circular dependency (2026-10-31)
 

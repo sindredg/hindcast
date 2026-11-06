@@ -47,6 +47,19 @@ RECORD_CHARACTERS = 1_000
 # outage investigation: roles ("the on-call engineer"), companies and
 # products, times, service hostnames and URLs, and public service addresses.
 NOT_PERSONAL = frozenset({"PersonType", "Organization", "DateTime", "URL", "IPAddress"})
+# The detector tags a provider's name as a Person in some sentences
+# ("Cloudflare began investigating", issue #79), so a hit whose text is a
+# provider name is dropped like an Organization hit: a company's name is not
+# personal data. Exact names only, compared without case, with or without a
+# possessive "'s".
+PROVIDER_NAMES = frozenset({"Cloudflare", "GitHub", "AWS", "Azure", "Google Cloud", "Google"})
+
+
+def _name(found: str) -> str:
+    found = found.strip().casefold()
+    for suffix in ("'s", "\u2019s"):
+        found = found.removesuffix(suffix)
+    return found
 
 
 class ServiceError(RuntimeError):
@@ -286,11 +299,17 @@ class Pii(Protocol):
 class PiiDetector:
     """Text PII detection: the hits in each text, offsets counted from the text's start."""
 
-    def __init__(self, post: Post, clock: Callable[[], float] = time.monotonic) -> None:
+    def __init__(
+        self,
+        post: Post,
+        clock: Callable[[], float] = time.monotonic,
+        public_names: frozenset[str] = PROVIDER_NAMES,
+    ) -> None:
         self.post = post
         self.clock = clock
         self.calls = 0
         self.records = 0
+        self.public = frozenset(name.casefold() for name in public_names)
 
     def _call(self, documents: list[str], timeout: float) -> list[list[dict]]:
         body = {
@@ -363,6 +382,8 @@ class PiiDetector:
                     ):
                         raise PiiError("PII detection answered a hit outside its text")
                     if category in NOT_PERSONAL:
+                        continue
+                    if _name(piece[start : start + length]) in self.public:
                         continue
                     hits[index].append(PiiHit(category, offset + start, length, confidence))
         return [tuple(h) for h in hits]

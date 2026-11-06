@@ -16,6 +16,7 @@ this one that rests only on it is unsupported (decision 0006).
 """
 
 import json
+import re
 from collections.abc import Collection
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -38,6 +39,9 @@ _STRING = {"type": "string"}
 _IDS = {"type": "array", "items": _STRING}
 _CITATION = _object(source={"type": "string", "enum": ["case", "library"]}, ref=_STRING)
 LIBRARY_PREFIX = "lib/"
+# A finding ID the model chose, as far as a file name or a widget key may
+# carry it: one path segment, no separators, and not "." or "..".
+FINDING_ID = re.compile(r"(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}")
 
 
 def _schema(citation: dict) -> dict:

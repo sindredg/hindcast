@@ -403,3 +403,49 @@ def test_screen_limits_count_utf16_units():
         batches([EMOJI * 5_001])
     with pytest.raises(ScreenError):
         PromptShield(FakePost(shield_answer(lambda d: False))).prompt(EMOJI * 5_001, timeout=5)
+
+
+def _person_hits(names):
+    """An answer that tags each of the given strings, where it occurs, as a Person."""
+
+    def answer(text):
+        return [
+            {
+                "text": name,
+                "category": "Person",
+                "offset": text.index(name),
+                "length": len(name),
+                "confidenceScore": 0.98,
+            }
+            for name in names
+            if name in text
+        ]
+
+    return pii_answer(answer)
+
+
+def test_a_provider_name_tagged_as_a_person_is_not_masked():
+    # Issue #79: the live detector tagged "Cloudflare" as a Person in this sentence.
+    text = "Cloudflare began investigating; Jane Doe was paged."
+    [hits] = PiiDetector(FakePost(_person_hits(["Cloudflare", "Jane Doe"])))([text], timeout=5)
+    assert hits == (PiiHit("Person", text.index("Jane"), 8, 0.98),)
+
+
+def test_provider_names_match_whole_and_without_case():
+    text = "GITHUB said; Cloudflare's team; Cloudflare\u2019s team; Cloudflarexyz; Jane Cloudflare"
+    names = ["GITHUB", "Cloudflare's", "Cloudflare\u2019s", "Cloudflarexyz", "Jane Cloudflare"]
+    [hits] = PiiDetector(FakePost(_person_hits(names)))([text], timeout=5)
+    # A longer word or a name with the provider in it is not the provider's name.
+    assert [text[h.offset : h.offset + h.length] for h in hits] == names[3:]
+
+
+def test_every_provider_of_a_case_or_a_library_document_is_a_public_name():
+    from typing import get_args
+
+    from hindcast import safety
+    from hindcast.cases import load_cases
+    from hindcast.library import LibraryDocument
+
+    library = set(get_args(LibraryDocument.__annotations__["provider"]))
+    cases = {case.provider for case in load_cases().values()}
+    assert library | cases <= safety.PROVIDER_NAMES

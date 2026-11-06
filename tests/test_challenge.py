@@ -360,3 +360,55 @@ class PromptError(StubShield):
 
     def prompt(self, text: str, *, timeout: float) -> bool:
         raise self.prompt_error
+
+
+# Review finding: the finding ID is model output and names the challenge file.
+
+
+@pytest.mark.parametrize("finding_id", ["../../outside", "f1/x", "..", ".", "a" * 65, ""])
+def test_a_finding_id_that_is_not_file_safe_is_refused_before_any_call(
+    tmp_path: Path, finding_id: str
+) -> None:
+    document = json.loads(json.dumps(FINAL))
+    document["findings"][0]["id"] = finding_id
+    setup = Setup(answer())
+    with pytest.raises(ValueError, match="file-safe"):
+        challenge_run(setup, stored(tmp_path, document), finding_id)
+    assert setup.turn.inputs == [] and setup.shield.sent == []
+
+
+def test_write_challenge_refuses_a_path_outside_the_challenges_folder(tmp_path: Path) -> None:
+    path = stored(tmp_path)
+    result = challenge_run(Setup(response(call()), answer()), path)
+    for finding_id in ("../../outside", "f1/x"):
+        with pytest.raises(ValueError, match="outside"):
+            write_challenge(
+                result,
+                result_path=path,
+                finding_id=finding_id,
+                agent={},
+                model=MODEL,
+                provenance=PROVENANCE,
+                cost=None,
+                now=NOW,
+            )
+    assert sorted(p.name for p in tmp_path.rglob("*.json")) == [path.name]
+
+
+def test_a_screens_off_result_is_refused(tmp_path: Path) -> None:
+    # An injection run with --screens off has screen_calls 0 in its usage and
+    # provenance screens False: its library refs were never screened.
+    path = stored(tmp_path, provenance=MATCHING | {"screens": False})
+    setup = Setup(answer())
+    with pytest.raises(ValueError, match="without screens"):
+        challenge_run(setup, path)
+    assert setup.turn.inputs == []
+
+
+def test_a_finding_id_shared_by_two_findings_is_refused(tmp_path: Path) -> None:
+    document = json.loads(json.dumps(FINAL))
+    document["findings"].append(dict(document["findings"][0]))
+    setup = Setup(answer())
+    with pytest.raises(ValueError, match="more than one finding"):
+        challenge_run(setup, stored(tmp_path, document), "f1")
+    assert setup.turn.inputs == []

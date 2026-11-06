@@ -32,6 +32,7 @@ from hindcast import investigate, telemetry
 from hindcast.investigate import PII_TIMEOUT, Span, Turn, Usage, run_investigation
 from hindcast.redact import redact_fields
 from hindcast.result import (
+    FINDING_ID,
     Challenge,
     Checks,
     Finding,
@@ -70,6 +71,11 @@ def _findings(stored: StoredResult, finding_id: str) -> tuple[Finding, dict[str,
     """The challenged finding and every finding by ID."""
     if stored.status != "complete" or stored.investigation is None:
         raise ValueError("the result is incomplete; only a complete result can be challenged")
+    ids = [f.id for f in stored.investigation.findings]
+    if ids.count(finding_id) > 1:
+        # The citation check leaves such an ID unresolved (ambiguous-finding);
+        # a challenge of "the last one" would check a finding the reader did not pick.
+        raise ValueError(f"finding ID {finding_id!r} names more than one finding")
     by_id = {f.id: f for f in stored.investigation.findings}
     if finding_id not in by_id:
         raise ValueError(f"the result has no finding {finding_id!r}")
@@ -78,10 +84,14 @@ def _findings(stored: StoredResult, finding_id: str) -> tuple[Finding, dict[str,
 
 def validate(stored: StoredResult, finding_id: str, question: str) -> None:
     """Every refusal that needs no cloud call."""
+    if not FINDING_ID.fullmatch(finding_id):
+        # The ID is model output and names the challenge file.
+        raise ValueError(f"finding ID {finding_id!r} is not a file-safe ID")
     _findings(stored, finding_id)
-    if "screen_calls" not in stored.usage:
-        # Results from before Prompt Shields: their library refs were never
-        # screened, and a challenge may cite them.
+    if "screen_calls" not in stored.usage or stored.provenance.get("screens") is False:
+        # Results from before Prompt Shields, and injection runs made with
+        # --screens off: their library refs were never screened, and a
+        # challenge may cite them.
         raise ValueError("the result ran without screens; only a screened result can be challenged")
     if not question.strip() or len(question) > MAX_QUESTION:
         raise ValueError(f"the question must be 1 to {MAX_QUESTION} characters")
@@ -277,8 +287,12 @@ def write_challenge(
         "usage": asdict(result.usage),
         "cost": cost,
     }
-    path = result_path.parent / CHALLENGES / f"{now:%Y%m%dT%H%M%SZ}-{finding_id}.json"
-    path.parent.mkdir(parents=True, exist_ok=True)
+    folder = result_path.parent / CHALLENGES
+    path = folder / f"{now:%Y%m%dT%H%M%SZ}-{finding_id}.json"
+    # validate() refuses such an ID before any call; this holds for every caller.
+    if not FINDING_ID.fullmatch(finding_id) or path.resolve().parent != folder.resolve():
+        raise ValueError(f"finding ID {finding_id!r} would name a file outside {folder}")
+    folder.mkdir(parents=True, exist_ok=True)
     # "x" refuses to overwrite an earlier challenge.
     with path.open("x", encoding="utf-8") as file:
         file.write(json.dumps(document, indent=2, ensure_ascii=False) + "\n")

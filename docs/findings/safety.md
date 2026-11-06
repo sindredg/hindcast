@@ -8,7 +8,7 @@ Findings about Prompt Shields and PII detection on the Foundry resource. The des
 
 **Evidence:** tested live, 2026-11-03: Prompt Shields named `Microsoft.CognitiveServices/accounts/ContentSafety/text:shieldprompt/action`, PII detection `Microsoft.CognitiveServices/accounts/Language/analyze-text/action`. Built-in roles read with `az role definition list`. A custom role with only those two data actions, assigned on the resource at 17:05:54Z, let Prompt Shields answer at 17:08:28Z.
 
-**For Hindcast:** the developer holds the custom role "Hindcast Safety Caller" on the Foundry resource until teardown. The [investigator runbook](../runbooks/investigator.md) creates it.
+**For Hindcast:** the developer holds the custom role "Hindcast Safety Caller" on the hand-built Foundry resource until teardown; the [investigator runbook](../runbooks/investigator.md) created it. The full template defines `Hindcast Safety Caller (<environment>)` in `infra/modules/foundry.bicep` and assigns it to the app identity and the operator (`infra/modules/roles.bicep`).
 
 ## Prompt Shields leaves out the prompt analysis when the prompt is empty (2026-11-03)
 
@@ -24,4 +24,4 @@ Findings about Prompt Shields and PII detection on the Foundry resource. The des
 
 **Evidence:** tested live, 2026-11-03, API version 2026-05-01, model version 2026-05-01, `stringIndexType` `UnicodeCodePoint`.
 
-**For Hindcast:** `PersonType`, `Organization`, `DateTime`, `URL`, and `IPAddress` are dropped before masking; in an outage report they name roles, providers, times, and service addresses. Both slice 3 development runs and their five challenges had no hit left after that.
+**For Hindcast:** `PersonType`, `Organization`, `DateTime`, `URL`, and `IPAddress` are dropped before masking; in an outage report they name roles, providers, times, and service addresses. Both slice 3 development runs and their five challenges had no hit left after that. Since 2026-11-05 a hit whose text is a provider's name is dropped too, whatever its category: a live run on 2026-11-05 tagged "Cloudflare" as a `Person` in "Cloudflare began investigating; ..." ([#79](https://github.com/sindredg/hindcast/issues/79)).

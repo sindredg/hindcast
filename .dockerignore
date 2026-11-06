@@ -1,4 +1,7 @@
-# Only what the Dockerfile copies reaches the build context.
+# Only what the Dockerfile copies reaches the build context, and never the
+# local environment files, which hold endpoints.
+.env
+.env.*
 .venv
 .git
 .github
@@ -9,10 +12,11 @@ __pycache__
 build/
 tests/
 docs/
+# The page's glossary view reads this one page (hindcast.glossary).
+!docs/glossary.md
 infra/
 analyzers/
 data/sources/
-data/charts/
 eval/results/
 eval/model-selection/
 eval/keys/
