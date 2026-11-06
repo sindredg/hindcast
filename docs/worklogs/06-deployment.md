@@ -1,6 +1,6 @@
 # Worklog 06: deployment
 
-Status: Slice 1 built on 2026-10-31: runbook steps 1 to 11 ran live: sign-in, the image push over OIDC, the deploy of the page, and a span in Application Insights ([After the merge](#after-the-merge)); the rebuild from empty was left to the full template ([gate](#gate)). [Slice 2](#slice-2-the-full-environment-and-the-live-page) built on 2026-11-05: the full environment was provisioned from one template, and the signed-in page ran an investigation, two challenges, and two injection runs with the app's identity, each read back as a file and as one trace ([slice 2 live run](#slice-2-live-run)). Rerun on 2026-11-06 on the redesigned page, with the screenshots ([slice 2 rerun](#slice-2-rerun-on-the-redesigned-page)). Removed and rebuilt from an empty resource group on 2026-11-06 ([rebuild from empty](#slice-2-rebuild-from-empty)); the removal left the Log Analytics workspace recoverable, and the fixed removal has not run. The milestone's [independent review](#slice-2-independent-review) ran on 2026-11-06 with its fixes in. Open: the fixed removal ([slice 2 gate](#slice-2-gate)). Status lives in the [roadmap](../roadmap.md).
+Status: Slice 1 built on 2026-10-31: runbook steps 1 to 11 ran live: sign-in, the image push over OIDC, the deploy of the page, and a span in Application Insights ([After the merge](#after-the-merge)); the rebuild from empty was left to the full template ([gate](#gate)). [Slice 2](#slice-2-the-full-environment-and-the-live-page) built on 2026-11-05: the full environment was provisioned from one template, and the signed-in page ran an investigation, two challenges, and two injection runs with the app's identity, each read back as a file and as one trace ([slice 2 live run](#slice-2-live-run)). Rerun on 2026-11-06 on the redesigned page, with the screenshots ([slice 2 rerun](#slice-2-rerun-on-the-redesigned-page)). Removed and rebuilt from an empty resource group on 2026-11-06 ([rebuild from empty](#slice-2-rebuild-from-empty)); the removal left the Log Analytics workspace recoverable. The milestone's [independent review](#slice-2-independent-review) ran on 2026-11-06 with its fixes in, and the fixed removal then took the environment down with nothing left ([final removal](#slice-2-final-removal)). Every criterion has a tested row or an accepted gap ([slice 2 gate](#slice-2-gate)). Status lives in the [roadmap](../roadmap.md).
 
 The sections up to [Independent review](#independent-review) are slice 1, the thin deploy.
 
@@ -191,6 +191,20 @@ Step 12.1, the development case, was not run again; the [rerun](#slice-2-rerun-o
 
 The push after the merge of `17461b5` checks the same image path on the previous registry: in [run 42273696794](https://github.com/sindredg/hindcast/actions/runs/42273696794), `Push the image` started at 18:48:35Z, after the image and infrastructure job ended at 18:48:31Z, with no build step, and `hindcast:17461b5...` and `hindcast:main` had one digest.
 
+### Slice 2 final removal
+
+On 2026-11-06, after the independent review, runbook steps 16 to 18 as fixed removed the rebuilt environment. The times are from `date -u` around each command.
+
+| Runbook step | Command | Result |
+|---|---|---|
+| Before | `az group show`, `az resource list`, `az role definition list` | `rg-hindcast-full` `Succeeded` with 11 resources; two custom roles, the hand-built one and `(hindcast-full)` |
+| 16. Delete the custom role | the step's lookup, then the deletes as separate commands with the two assignment IDs the lookup printed, then the definition's delete | the lookup returned the definition's ID and 2 assignments (the operator's and the app identity's); both deleted; `az role definition list --custom-role-only true` → `Hindcast Safety Caller` only |
+| 17. Remove the environment | `az monitor log-analytics workspace delete ... --force true --yes` at 22:35:32Z, then `azd down -e hindcast-full --purge --force` | the forced delete returned at 22:36:07Z, with the Application Insights component still in place; `azd down` deleted the group and purged the Foundry resource, `SUCCESS` in 26 minutes 35 seconds, at 23:02:44Z; `az group exists` → `false`; `az cognitiveservices account list-deleted` → empty; `list-deleted-workspaces` → two workspaces of other resource groups, none of Hindcast |
+| 18. Delete the app registration | `az ad app delete --id <client id>` at 23:05:00Z | `az ad app list --display-name hindcast-full` → empty |
+| After | `az role assignment list --all` filtered on `principalType == 'Unknown'` | empty: no assignment left for a deleted principal |
+
+Left behind on purpose: the azd environment `hindcast-full` under `.azure/`, with `HINDCAST_IMAGE` still naming the removed registry's image; the next provision resets it as runbook step 2 says.
+
 ### Slice 2 gate
 
 The milestone's criteria ([roadmap](../roadmap.md#6-deployment-and-release)):
@@ -198,7 +212,7 @@ The milestone's criteria ([roadmap](../roadmap.md#6-deployment-and-release)):
 | Criterion | Status | Evidence |
 |---|---|---|
 | `azd up` builds the environment from an empty resource group | tested, live, 2026-11-06 | [Rebuild from empty](#slice-2-rebuild-from-empty): one provision from an empty group, `SUCCESS` in 15 minutes 1 second, then steps 5 to 14 passed. Every resource was new except the Log Analytics workspace, which Azure recovered from the removed environment |
-| `azd down` removes it | configured, not tested | [Rebuild from empty](#slice-2-rebuild-from-empty): on 2026-11-06 steps 16 to 18 removed the group, the purged Foundry resource, the custom role, and the app registration, but left the Log Analytics workspace recoverable for 14 days with its traces. Step 17 now deletes it with `--force true` first; that step has not run |
+| `azd down` removes it | tested, live, 2026-11-06 | [Final removal](#slice-2-final-removal): steps 16 to 18 as fixed removed the group, purged the Foundry resource, deleted the workspace for good, the custom role, and the app registration, and left no deleted workspace, no deleted account, and no orphaned assignment. The first removal that day ([rebuild](#slice-2-rebuild-from-empty)) had left the workspace recoverable |
 | The app reaches every service with its managed identity | tested, live, 2026-11-05 | Steps 12 and 13: the page downloaded and checked its runtime files from Blob Storage, called the agent, Prompt Shields, PII detection, and the library search, and stored each run in the `runs` container, all as the app's identity |
 | No key is stored; the one stored setting is the Application Insights connection string | tested, live, 2026-11-06 | Step 5 read back on the rebuilt environment: `disableLocalAuth` `true` on the Foundry resource, the search service, and Log Analytics, `allowSharedKeyAccess` `false` on storage ([rebuild](#slice-2-rebuild-from-empty)). `az containerapp show` on the rebuilt app, read during the [independent review](#slice-2-independent-review): one secret, the sign-in's client ID (`override-use-mi-fic-assertion-client-id`), and 16 plain settings: the connection string, `AZURE_CLIENT_ID`, and endpoints and names. The same four flags were read at 17:55Z on the environment removed that day. `tests/test_infra.py::test_no_service_takes_a_key` checks the four keys-off settings in the Bicep modules; the app's secrets and settings are checked live only |
 | Sign-in is required to open the app | tested, live, 2026-11-05 | Step 11 |
@@ -223,7 +237,7 @@ A read-only review from a fresh context on 2026-11-06 checked the docs branch at
 | Registry and resource-group API versions, Bicep, azd, az, and uv behind their newest stable; nothing deprecated | `az provider show`, the releases | A comment on [#91](https://github.com/sindredg/hindcast/issues/91), the next pin batch |
 | The README's as-built alt text is a one-sentence summary, not the architecture page's copy | `README.md` since `99a9723` | Accepted: the README keeps the summary and links the page |
 | `.env.example` carries an `ANTHROPIC_API_KEY` placeholder | the file's comment: the offline judge only, never the page | Accepted: the comment says so |
-| Step 17 force-deletes the workspace while Application Insights still references it; untested | the runbook | Open until the final removal, which records it |
+| Step 17 force-deletes the workspace while Application Insights still references it; untested | the runbook | Closed: the forced delete succeeded with the component in place ([final removal](#slice-2-final-removal)) |
 
 Verified without a finding: the gate's links, commits, runs, and issues; the template against the live resources, the keys-off flags, the custom role's two data actions, and the deployments at their pinned versions; every Azure client in the code takes a token credential; the auth config (one allowed identity, the health path excluded) and the `302`, `401`, and `200` responses; the page's run lock, case filter, injection outcome, and verdict text, with four of the five planned tests; every figure in the rerun and rebuild tables; the traces (40 spans with 3 model calls, 34 with 2); the runbook's commands and steps 16 to 18's syntax; the troubleshooting entries; the CI job order and SHA pins; the diagrams; the screenshots; the public-text rules; and [#94](https://github.com/sindredg/hindcast/issues/94).
 

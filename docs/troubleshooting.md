@@ -10,7 +10,7 @@ Failures that showed something about Hindcast, the platform, or a procedure: the
 
 **Fix:** step 17 of the [deployment runbook](runbooks/deployment.md#remove) deletes the workspace with `--force true` before `azd down`, and checks that no deleted workspace is left.
 
-**Verification:** configured, not tested. The fixed step runs at the final removal.
+**Verification:** tested live, 2026-11-06: the forced delete returned in 35 seconds with the Application Insights component still in place, `azd down --purge --force` then removed the group in 26 minutes 35 seconds, and `list-deleted-workspaces` held no Hindcast workspace ([worklog](worklogs/06-deployment.md#slice-2-final-removal)). Whether a later `azd up` under the same names gets a new, empty workspace was not observed: nothing was rebuilt after this removal.
 
 ## Deployment: the custom role's delete fails with `RoleDefinitionHasAssignments` (2026-11-06)
 
@@ -20,7 +20,7 @@ Failures that showed something about Hindcast, the platform, or a procedure: the
 
 **Fix:** step 16 of the [deployment runbook](runbooks/deployment.md#remove) looks the definition up at the resource group's scope and selects the assignments whose `roleDefinitionId` ends with its ID. If the lookup fails again, the definition's delete still stops on the assignments, so the step cannot pass with the role left behind.
 
-**Verification:** tested live, 2026-11-06: the fixed command deleted the role's assignments and its definition, and `az role definition list --custom-role-only true` no longer listed `Hindcast Safety Caller (hindcast-full)` ([worklog](worklogs/06-deployment.md#slice-2-rebuild-from-empty)).
+**Verification:** tested live, 2026-11-06: the fixed command deleted the role's assignments and its definition, and `az role definition list --custom-role-only true` no longer listed `Hindcast Safety Caller (hindcast-full)` ([worklog](worklogs/06-deployment.md#slice-2-rebuild-from-empty)). At the final removal the same day, the lookup found the 2 assignments by the definition's ID and the deletes went through ([final removal](worklogs/06-deployment.md#slice-2-final-removal)).
 
 ## Deployment: the second provision fails with `MaxNumberOfRegionalEnvironmentsInSubExceeded` (2026-11-05)
 
