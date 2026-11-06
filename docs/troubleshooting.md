@@ -4,7 +4,7 @@ Failures that showed something about Hindcast, the platform, or a procedure: the
 
 ## Deployment: a rebuilt environment shows the removed environment's traces (2026-11-06)
 
-**Symptom:** after `azd down` removed the environment and `azd up` built it again under the same names, the runbook's trace query (step 14) returned five operations with a root span: the two runs made on the new page, and three from 18:25Z to 18:36Z, made on the removed environment's page before the removal.
+**Symptom:** after `azd down` removed the environment and `azd up` built it again under the same names, the runbook's trace query (step 14), over its two-hour window, returned five operations with a root span: the two runs made on the new page, and three from 18:25Z to 18:36Z, made on the removed environment's page before the removal. Over 48 hours the same workspace returned every operation since 2026-11-05, ten in all (read during the [independent review](worklogs/06-deployment.md#slice-2-independent-review)).
 
 **Cause:** confirmed by the workspace and the documentation ([finding](findings/deployment.md#azd-down---purge-leaves-the-log-analytics-workspace-recoverable-2026-11-06)). `azd down --purge` deleted the Log Analytics workspace without `--force`, so it stayed soft-deleted. A workspace created within 14 days with the same subscription, resource group, name, and region is the recovered workspace, with its data. ARM reported the workspace as created at 19:28:45Z, after the removal, while it returned spans from 18:25Z.
 

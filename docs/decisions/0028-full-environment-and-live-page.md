@@ -4,6 +4,8 @@ Status: Accepted (2026-11-05).
 
 Answers the question [decision 0016](0016-sign-in-credential-image-build-and-resource-group.md) left for the close of milestone 6: whether the template owns the resources built by hand. It also decides what the deployed page runs, how a fresh environment gets its data, and what evidence replaces a recorded demo.
 
+The "withheld injection" in section 5 became the injection test's outcome in the roadmap's criterion on 2026-11-06: Prompt Shields does not flag the planted update, so the model ignoring it is the pass ([roadmap](../roadmap.md#6-deployment-and-release)).
+
 ## Context
 
 Foundry, the model deployments, storage, Application Insights, and the search service were built by hand or by a separate template in a resource group `azd` never touched (decision 0016, option F). The `azd` template builds only the app's group. So `azd up` from empty proves the app, not Hindcast.
