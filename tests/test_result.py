@@ -434,6 +434,29 @@ def test_three_finding_cycle_rejected() -> None:
     assert checks.unsupported == ("findings[0]", "findings[1]")
 
 
+LONG_CHAIN = 5000
+
+
+def test_long_chain_of_findings_is_checked_without_recursion() -> None:
+    # Each finding rests on the next; only the last cites the case (#60).
+    chain = [finding(f"f{n}", "inference", [f"f{n + 1}"], []) for n in range(LONG_CHAIN - 1)]
+    chain.append(finding(f"f{LONG_CHAIN - 1}", "observation", [], [U1]))
+    checked, checks = check_citations(structure(*chain, root=["f0"]), REFS, CASE)
+    assert checks.rejected_citations == ()
+    assert checks.unsupported == ()
+    assert checked.findings[0].rests_on == ("f1",)
+
+
+def test_long_cycle_of_findings_is_rejected_without_recursion() -> None:
+    cycle = [
+        finding(f"f{n}", "inference", [f"f{(n + 1) % LONG_CHAIN}"], []) for n in range(LONG_CHAIN)
+    ]
+    _, checks = check_citations(structure(*cycle), REFS, CASE)
+    assert {r.reason for r in checks.rejected_citations} == {"cycle"}
+    assert len(checks.rejected_citations) == LONG_CHAIN
+    assert len(checks.unsupported) == LONG_CHAIN
+
+
 def test_inference_on_unsupported_finding_is_unsupported() -> None:
     investigation = structure(
         finding("f1", "inference", [], [LIB]),
