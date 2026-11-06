@@ -1,10 +1,12 @@
 import hashlib
 import json
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
 import pytest
 
+from hindcast import investigate
 from hindcast.challenge import (
     CHALLENGE_TIME_CAP,
     CHALLENGE_TOOL_CAP,
@@ -15,10 +17,11 @@ from hindcast.challenge import (
     write_challenge,
 )
 from hindcast.evidence import evidence_json
-from hindcast.investigate import write_result
+from hindcast.investigate import ScoredCaseLocked, write_result
 from hindcast.result import CHALLENGE_SCHEMA, ResultError, load_result, parse_challenge
 from test_investigate import (
     AGENT,
+    CASES,
     EVIDENCE,
     FINAL,
     MODEL,
@@ -295,6 +298,34 @@ def test_challenge_runs_only_against_the_evidence_it_was_made_from(
     with pytest.raises(ValueError, match="evidence"):
         main([str(path), "f1", QUESTION])
     assert created == []
+
+
+@pytest.mark.parametrize(
+    ("role", "error", "match"),
+    [
+        ("sealed", ScoredCaseLocked, "sealed case"),
+        # stub_command points the rubric lock at a file that does not exist.
+        ("showcase", ScoredCaseLocked, "once the rubric is frozen"),
+        (None, ValueError, "unknown case"),
+    ],
+)
+def test_a_challenge_refuses_a_case_the_command_may_not_run(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    role: str | None,
+    error: type[Exception],
+    match: str,
+) -> None:
+    # The same case rules as the investigation, before any cloud call (#89).
+    path = stored(tmp_path)
+    client = FakeClient(answer())
+    created = stub_command(monkeypatch, tmp_path, client)
+    cases = {} if role is None else {"dev": replace(CASES["dev"], role=role)}
+    monkeypatch.setattr(investigate, "load_cases", lambda: cases)
+    with pytest.raises(error, match=match):
+        main([str(path), "f1", QUESTION])
+    assert created == []
+    assert client.calls == []
 
 
 def test_a_challenge_is_one_trace(tmp_path: Path) -> None:
