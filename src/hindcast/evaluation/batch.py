@@ -34,6 +34,7 @@ from pathlib import Path
 from typing import Any
 
 from hindcast import investigate, telemetry
+from hindcast.agent import VersionRefused
 from hindcast.arms import ARMS
 from hindcast.cases import load_cases
 from hindcast.evaluation.prior import _git
@@ -217,14 +218,13 @@ def run(arm_name: str, case_ids: list[str], repeats: int) -> int:
     no_results = 0
     for case_id, repeat, attempt in slots:
         case = cases[case_id]
-        setup = prepare(case, arm=arm)
-        name, version = setup.agent["name"], setup.agent["version"]
-        if name in sealed and sealed[name] != version:
+        try:
             # The agent arms that keep prompt v3 must be the agents the sealed
-            # cases ran, or the two sets of scores do not compare.
-            raise BatchRefused(
-                f"{name} is at version {version}; the sealed series ran version {sealed[name]}"
-            )
+            # cases ran, or the two sets of scores do not compare. prepare
+            # refuses before it would make a new version of a sealed name.
+            setup = prepare(case, arm=arm, pinned=sealed)
+        except VersionRefused as error:
+            raise BatchRefused(str(error)) from error
         # The library-off arm binds no search.
         if setup.tools.search is not None:
             preflight_search(setup.tools, refused=BatchRefused)

@@ -35,7 +35,7 @@ import json
 import os
 import tempfile
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime
 from pathlib import Path
@@ -582,6 +582,7 @@ def prepare(
     challenger: bool = False,
     arm: Arm = ARMS["hindcast"],
     screens: bool = True,
+    pinned: Mapping[str, str] | None = None,
 ) -> Setup:
     """Read the evidence, make the agent version, and record what the run rests on.
 
@@ -590,6 +591,8 @@ def prepare(
     which defaults to the configured chat or comparison deployment. A
     single-search arm makes no agent: its turn calls the deployment itself.
     screens=False runs without Prompt Shields, for an injection case only.
+    pinned maps an agent name to the version the run must use
+    (hindcast.agent.ensure_agent_version); the batch pins the sealed agents.
     """
     if not screens and case.role != "injection":
         # The second injection layer measures the model without the screens
@@ -668,7 +671,9 @@ def prepare(
         else:
             definition = arm_definition(arm, deployment)
             name = agent_name(deployment, agent_variant(arm))
-        version = ensure_agent_version(models.project_client().agents, name, definition)
+        version = ensure_agent_version(
+            models.project_client().agents, name, definition, pinned=(pinned or {}).get(name)
+        )
         turn = agent_turn(models.openai_client(), name, version)
         agent: dict = {"name": name, "version": version}
     else:
