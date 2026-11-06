@@ -1,8 +1,6 @@
 // Everything inside the app's resource group. API versions are the newest
-// stable ones listed by `az provider show` on 2026-10-30, except where a
-// comment says otherwise. Microsoft.App uses 2026-01-01, the newest version
-// Bicep 0.47/0.48 has types for: with 2026-07-01 it cannot check property
-// names before deployment (BCP081).
+// stable ones listed by `az provider show` on 2026-11-07, except where a
+// comment says otherwise.
 
 param location string
 param tags object
@@ -86,6 +84,8 @@ resource ciIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30
 
 // Basic has no private endpoints, and GitHub's runners push over the
 // internet, so public network access stays on. Pulls and pushes need a role.
+// 2025-11-01: the newest stable version Bicep 0.49.2 has types for (2026-11-01
+// is listed by `az provider show` on 2026-11-07, BCP081 without types).
 resource registry 'Microsoft.ContainerRegistry/registries@2025-11-01' = {
   name: 'crhindcast${take(uniqueString(resourceGroup().id), 6)}'
   location: location
@@ -119,7 +119,7 @@ resource acrPush 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
 }
 
 // Console logs go through a diagnostic setting (below), not a workspace key.
-resource environment 'Microsoft.App/managedEnvironments@2026-01-01' = {
+resource environment 'Microsoft.App/managedEnvironments@2026-07-01' = {
   name: 'cae-hindcast'
   location: location
   tags: tags
@@ -146,7 +146,7 @@ resource environmentLogs 'Microsoft.Insights/diagnosticSettings@2021-05-01-previ
 
 // The image comes from the imageName parameter on every provision (the
 // comment on that parameter says why); azd deploys no image itself.
-resource web 'Microsoft.App/containerApps@2026-01-01' = {
+resource web 'Microsoft.App/containerApps@2026-07-01' = {
   name: 'ca-hindcast'
   location: location
   tags: union(tags, { 'azd-service-name': 'web' })
@@ -207,7 +207,7 @@ resource web 'Microsoft.App/containerApps@2026-01-01' = {
 
 // Built-in authentication: every request without a session is redirected to
 // Entra sign-in, except the platform's health probes. Only one user may enter.
-resource auth 'Microsoft.App/containerApps/authConfigs@2026-01-01' = {
+resource auth 'Microsoft.App/containerApps/authConfigs@2026-07-01' = {
   parent: web
   name: 'current'
   properties: {
