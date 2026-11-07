@@ -2,7 +2,17 @@
 
 The revealed sealed reconstructions: made before the provider published a cause, committed by hash, opened after the cause was published and the key and labels were frozen ([decisions 0017](../../../docs/decisions/0017-sealed-reconstructions.md), [0022](../../../docs/decisions/0022-sealed-drop-date-and-offline-reveal.md), and [0030](../../../docs/decisions/0030-close-evaluation-with-sealed-addenda.md)). Scored by the same judge, reviewer, and [rubric](../../rubric/rubric.md), version 3, as the [showcase runs](../showcase-v1/README.md), and reported apart.
 
-On this page: [Status](#status) · [Results](#results) · [Error analysis](#error-analysis) · [Cost and spend](#cost-and-spend) · [Dataset](#dataset) · [Pending cases](#pending-cases) · [Limits](#limits) · [Files](#files)
+On this page: [How to read this result](#how-to-read-this-result) · [Status](#status) · [Results](#results) · [Error analysis](#error-analysis) · [Cost and spend](#cost-and-spend) · [Dataset](#dataset) · [Pending cases](#pending-cases) · [Limits](#limits) · [Files](#files)
+
+## How to read this result
+
+**Both runs scored 1.00 because they used the available evidence and appropriately left the hidden cause unresolved. They did not discover the provider's later explanation.**
+
+A sealed reconstruction is an investigation whose hash was committed before the provider published its cause. Revealing the file later and checking its hash shows that the answer was not changed after publication. Here, one outage has been revealed, with one run per model.
+
+Each run earned full credit on four scorable answer-key items: two supported matches and two justified abstentions. Seven other items were excluded because they were not inferable from the available evidence and the runs did not state them. The timeline matching also has a known limitation, explained in [error analysis](#error-analysis).
+
+This tests whether the models can stay within the evidence before the official answer exists. It does not establish which model is better, and it cannot compare the agent with the simpler workflow because no single-search baseline was run for this case. See the [showcase explanation](../showcase-v1/README.md#what-the-score-means) for how credit and exclusions work.
 
 ## Status
 
