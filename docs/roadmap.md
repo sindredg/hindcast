@@ -7,7 +7,7 @@ Each milestone has completion criteria: things shown to work, not things built. 
 
 An independent review is a read-only pass from a fresh context, with no part in the milestone's work. Each of its findings is checked again before it is acted on. Decisions behind the design are in [decisions](decisions/).
 
-On this page: [Status](#status) · [Target architecture](#target-architecture) · [1. Foundations](#1-foundations) · [2. Extraction](#2-extraction) · [3. Retrieval](#3-retrieval) · [4. Investigator](#4-investigator) · [5. Evaluation](#5-evaluation) · [6. Deployment and release](#6-deployment-and-release) · [7. Close](#7-close)
+On this page: [Status](#status) · [Architecture as built](#architecture-as-built) · [1. Foundations](#1-foundations) · [2. Extraction](#2-extraction) · [3. Retrieval](#3-retrieval) · [4. Investigator](#4-investigator) · [5. Evaluation](#5-evaluation) · [6. Deployment and release](#6-deployment-and-release) · [7. Close](#7-close)
 
 ## Status
 
@@ -25,11 +25,11 @@ Milestone 4's first slice, the investigator on case tools only, ran before miles
 
 Milestone 6 also starts with a slice: a page that renders one stored result, deployed behind Entra sign-in in a resource group of its own, proves the sign-in, the image path, and the telemetry before the app calls a model. The full-environment template came with the milestone's second slice, on 2026-11-05 ([decision 0016](decisions/0016-sign-in-credential-image-build-and-resource-group.md)).
 
-## Target architecture
+## Architecture as built
 
-The design the project was built to. Milestone 6 built it in full on 2026-11-05 and removed it on 2026-11-06 ([worklog 06](worklogs/06-deployment.md#slice-2-final-removal)); the hand-built foundation followed on 2026-11-07 ([worklog 07](worklogs/07-close.md)). How it was built: [architecture](architecture/).
+The environment milestone 6 built in full on 2026-11-05 and removed on 2026-11-06 ([worklog 06](worklogs/06-deployment.md#slice-2-final-removal)); the hand-built foundation followed on 2026-11-07 ([worklog 07](worklogs/07-close.md)). How it was built: [architecture](architecture/).
 
-![Target architecture: a reader signs in with Entra ID to the Hindcast app on Azure Container Apps. The app runs the Foundry prompt agent, checks every tool result with Prompt Shields and every output for personal data, reads the case evidence from Blob Storage, searches the postmortem library in Azure AI Search in Switzerland North, and sends traces to Application Insights. Operator commands capture status updates and postmortems, analyze library pages, charts, and answer keys with Content Understanding, store sources, evidence, and extracts in Blob Storage, and the index build embeds the library chunks with the embedding deployment and indexes only library documents, so answer keys never reach the index. Service calls use Entra tokens, no keys; traces use the Application Insights connection string](diagrams/target-architecture.svg)
+![Architecture as built: a reader signs in with Entra ID to the Hindcast app on Azure Container Apps. The app runs the Foundry prompt agent, checks every tool result with Prompt Shields and every output for personal data, reads the case evidence from Blob Storage, searches the postmortem library in Azure AI Search in Switzerland North, and sends traces to Application Insights. Operator commands capture status updates and postmortems, analyze library pages, charts, and answer keys with Content Understanding, store sources, evidence, and extracts in Blob Storage, and the index build embeds the library chunks with the embedding deployment and indexes only library documents, so answer keys never reach the index. Service calls use Entra tokens, no keys; traces use the Application Insights connection string](diagrams/target-architecture.svg)
 
 ## 1. Foundations
 

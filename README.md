@@ -31,7 +31,7 @@ Each step has a diagram on the [architecture page](docs/architecture/README.md).
 
 An Entra-protected page on Azure Container Apps runs the Foundry agent with its managed identity. Blob Storage holds the sources and evidence, Azure AI Search the postmortem library, and Application Insights the traces. Answer keys stay outside the index. One Bicep template builds all of it, and all of it has since been removed; the code, the data, and the results stay. The [architecture page](docs/architecture/README.md) describes each part, and [reproduce](docs/reproduce.md) orders the runbooks for a second build.
 
-**Target architecture**
+**The deployed environment**
 
 ![Architecture: an Entra-protected app on Azure Container Apps runs a Foundry agent with screened evidence, Blob Storage, Azure AI Search, and Application Insights; answer keys stay outside the search index.](docs/diagrams/target-architecture.svg)
 

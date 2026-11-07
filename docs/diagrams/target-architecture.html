@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hindcast target architecture</title>
+  <title>Hindcast deployed environment</title>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -56,10 +56,10 @@
 <body>
   <div class="frame">
     <p class="eyebrow">Architecture · planned</p>
-    <h1>Hindcast target architecture</h1>
+    <h1>Hindcast deployed environment</h1>
     <div class="diagram-container">
       <svg viewBox="0 0 1000 640" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="target-architecture-title target-architecture-desc">
-        <title id="target-architecture-title">Hindcast target architecture</title>
+        <title id="target-architecture-title">Hindcast deployed environment</title>
         <desc id="target-architecture-desc">A signed-in reader uses the Hindcast app on Container Apps, which runs the Foundry prompt agent, checks tool results and outputs with Content Safety and Language, reads the case evidence from Blob Storage, searches the postmortem library in AI Search, and sends traces to Application Insights; operator commands capture status updates and postmortems, analyze library pages, charts, and answer keys with Content Understanding, store sources, evidence, and extracts in Blob Storage, and the index build embeds the library chunks with the embedding deployment and indexes only library documents, so answer keys never reach the index.</desc>
         <defs>
           <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#b4b4b4"/></marker>

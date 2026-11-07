@@ -1,6 +1,6 @@
 # Architecture
 
-How Hindcast is built. Every Azure resource was removed by 2026-11-07 ([worklog 07](../worklogs/07-close.md)); the code, the data, and the results stay, and the resource and caller tables describe the environment as it ran. Target architecture and milestone states: [roadmap](../roadmap.md); the reasons: [decisions](../decisions/). Last compared:
+How Hindcast is built. Every Azure resource was removed by 2026-11-07 ([worklog 07](../worklogs/07-close.md)); the code, the data, and the results stay, and the resource and caller tables describe the environment as it ran. The deployed environment's diagram and the milestone states: [roadmap](../roadmap.md); the reasons: [decisions](../decisions/). Last compared:
 
 | Date | Parts | Against |
 |---|---|---|
