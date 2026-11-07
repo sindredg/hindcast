@@ -70,7 +70,7 @@ A read-only pass compared each state-carrying sentence in every tracked page wit
 | --- | --- | --- |
 | The retrieval diagram's label and alt text name both whole-library roles | `docs/diagrams/retrieval.html` against `hindcast.search.WHOLE_LIBRARY_ROLES`; `self_check.py`, `verify-geometry.py`, the rendered PNG | Tested: `OK`, 0 findings, the label fits its box |
 | The workflow still lints after the gate | `yamllint .github/workflows/ci.yml`; `zizmor .github/workflows/ci.yml` | Tested: no findings |
-| The push job is skipped without the variable | The next push to `main` | Configured, not tested: the variable is unset, so the job's `if` is false |
+| The push job is skipped without the variable | The next push to `main` | Tested: run [42373765178](https://github.com/sindredg/hindcast/actions/runs/42373765178) on `fa09dcb`, 2026-11-07, shows `Push the image: skipped` |
 
 ## Gate
 

@@ -94,6 +94,7 @@ uv run --frozen ruff check .
 uv run --frozen ruff format --check .
 uv run --frozen pyright
 uv run --frozen pytest
+uv run --frozen python scripts/check_links.py .
 ```
 
 Start the local viewer:
