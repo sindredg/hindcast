@@ -1,3 +1,4 @@
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -93,6 +94,13 @@ def test_filter_for_a_scored_case():
 
 def test_sealed_case_has_no_serves_clause():
     assert library_filter(SEALED, LIBRARY) == f"published_at lt {start_day(SEALED)}T00:00:00Z"
+
+
+def test_revealed_case_keeps_the_whole_library():
+    # The same case after its cause is published: still no picks (decision 0030).
+    revealed = replace(SEALED, role="revealed")
+    assert library_filter(revealed, LIBRARY) == f"published_at lt {start_day(SEALED)}T00:00:00Z"
+    assert allowed(revealed, LIBRARY["earlier-other"])
 
 
 def test_date_only_filter_for_the_quality_check():

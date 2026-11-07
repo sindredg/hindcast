@@ -1,0 +1,138 @@
+{
+  "run_id": "sealed/github-2026-11-04-actions/gpt-6-luna/a1",
+  "judgment_sha256": "9259ab44a2fb59400a8634eb42c6a3bc0880c1e8275a23347d5bb1dacab1e3e9",
+  "decisions": [
+    {
+      "kind": "match",
+      "item": "timeline/1",
+      "proposal": "supported-hit",
+      "sampled": false,
+      "decision": "supported-hit",
+      "decided_at": "2026-11-07T10:42:01Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "fe842127ad8cca252a5a36a12a4a17fa47f1f7cb65124bbe677759fce8280f4e"
+      }
+    },
+    {
+      "kind": "match",
+      "item": "timeline/2",
+      "proposal": "supported-hit",
+      "sampled": false,
+      "decision": "supported-hit",
+      "decided_at": "2026-11-07T10:42:01Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "fe842127ad8cca252a5a36a12a4a17fa47f1f7cb65124bbe677759fce8280f4e"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "attack",
+      "proposal": true,
+      "sampled": false,
+      "decision": true,
+      "decided_at": "2026-11-07T10:42:01Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "fe842127ad8cca252a5a36a12a4a17fa47f1f7cb65124bbe677759fce8280f4e"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "findings[4]",
+      "proposal": true,
+      "sampled": false,
+      "decision": true,
+      "decided_at": "2026-11-07T10:42:01Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "fe842127ad8cca252a5a36a12a4a17fa47f1f7cb65124bbe677759fce8280f4e"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "root_cause",
+      "proposal": true,
+      "sampled": false,
+      "decision": true,
+      "decided_at": "2026-11-07T10:42:01Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "fe842127ad8cca252a5a36a12a4a17fa47f1f7cb65124bbe677759fce8280f4e"
+      }
+    },
+    {
+      "kind": "match",
+      "item": "root_cause",
+      "proposal": "abstained",
+      "sampled": true,
+      "decision": "abstained",
+      "decided_at": "2026-11-07T10:42:01Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "fe842127ad8cca252a5a36a12a4a17fa47f1f7cb65124bbe677759fce8280f4e"
+      }
+    },
+    {
+      "kind": "match",
+      "item": "contributing_factors/2",
+      "proposal": "missed",
+      "sampled": true,
+      "decision": "missed",
+      "decided_at": "2026-11-07T10:42:01Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "fe842127ad8cca252a5a36a12a4a17fa47f1f7cb65124bbe677759fce8280f4e"
+      }
+    },
+    {
+      "kind": "match",
+      "item": "timeline/3",
+      "proposal": "missed",
+      "sampled": true,
+      "decision": "missed",
+      "decided_at": "2026-11-07T10:42:01Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "fe842127ad8cca252a5a36a12a4a17fa47f1f7cb65124bbe677759fce8280f4e"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "timeline[2]",
+      "proposal": true,
+      "sampled": true,
+      "decision": true,
+      "decided_at": "2026-11-07T10:42:01Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "fe842127ad8cca252a5a36a12a4a17fa47f1f7cb65124bbe677759fce8280f4e"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "timeline[3]",
+      "proposal": true,
+      "sampled": true,
+      "decision": true,
+      "decided_at": "2026-11-07T10:42:01Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "fe842127ad8cca252a5a36a12a4a17fa47f1f7cb65124bbe677759fce8280f4e"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "timeline[4]",
+      "proposal": true,
+      "sampled": true,
+      "decision": true,
+      "decided_at": "2026-11-07T10:42:01Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "fe842127ad8cca252a5a36a12a4a17fa47f1f7cb65124bbe677759fce8280f4e"
+      }
+    }
+  ]
+}

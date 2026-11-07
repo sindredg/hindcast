@@ -2,8 +2,8 @@
 
     PYTHONPATH=src uv run --frozen python -m hindcast.evaluation.reviewer freeze
     PYTHONPATH=src uv run --frozen --env-file .env python -m hindcast.evaluation.reviewer \
-        run [--limit N]
-    PYTHONPATH=src uv run --frozen python -m hindcast.evaluation.reviewer apply
+        run [--limit N] [--root DIR]
+    PYTHONPATH=src uv run --frozen python -m hindcast.evaluation.reviewer apply [--root DIR]
 
 Rubric version 3, Review (decision 0027): claude-fable-5-1 judges every judged
 run and every prior answer again, without the judge's proposals. It gets the
@@ -31,7 +31,7 @@ from pathlib import Path
 from typing import Any
 
 from hindcast.evaluation import judge, judge_prior
-from hindcast.evaluation.batch import ATTEMPTS, FILLED, ROOT, load_attempts, verified_run
+from hindcast.evaluation.batch import FILLED, ROOT, load_attempts, run_loader
 from hindcast.evaluation.review import (
     ReviewItem,
     load_review,
@@ -169,7 +169,13 @@ def main(argv: list[str] | None = None) -> int:
     run = commands.add_parser("run", help="judge every judged run and prior answer again")
     run.add_argument("--limit", type=int, help="only the first N runs, no prior answers")
     run.add_argument("--workers", type=int, default=4)
-    commands.add_parser("apply", help="write the second judgments' verdicts as review decisions")
+    apply = commands.add_parser("apply", help="write the second judgments' verdicts as decisions")
+    # Another tree (the revealed seals) has runs only: no prior answers are
+    # judged or applied with it.
+    for command in (run, apply):
+        command.add_argument(
+            "--root", type=Path, default=ROOT, help=f"the scoring tree (default {ROOT})"
+        )
     args = parser.parse_args(argv)
     if args.command == "freeze":
         for prompt, frozen, compose in (
@@ -180,8 +186,11 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{frozen}: system sha256 {record['system_sha256']}")
         return 0
     if args.command == "apply":
-        runs, prior = apply_runs(), apply_prior()
+        runs = apply_runs(args.root, args.root / "reviewer" / "judgments")
         print(f"runs {runs['runs']}, decisions {runs['decisions']}, missing {runs['missing']}")
+        if args.root != ROOT:
+            return 0
+        prior = apply_prior()
         print(
             f"prior answers {prior['answers']}, decisions {prior['decisions']}, "
             f"missing {prior['missing']}"
@@ -195,22 +204,23 @@ def main(argv: list[str] | None = None) -> int:
 
     stamp = {"code_commit": clean_head_commit([Path(p) for p in judge.CLEAN_PATHS])}
     client = anthropic.Anthropic()
-    entries = [e for e in load_attempts(ATTEMPTS) if e["status"] in FILLED]
+    out_dir = args.root / "reviewer" / "judgments"
+    entries = [e for e in load_attempts(args.root / "attempts.json") if e["status"] in FILLED]
     counts = judge.judge_all(
         entries[: args.limit] if args.limit else entries,
-        load_run=verified_run,
+        load_run=run_loader(args.root),
         load_case=judge.load_case,
         library=load_library_items(),
         client=client,
-        out_dir=OUT_DIR,
+        out_dir=out_dir,
         paths=(PROMPT, judge.RUBRIC, FROZEN),
         workers=args.workers,
         stamp=stamp,
         model=REVIEWER_MODEL,
     )
     print(f"runs: judged {counts['judged']}, errors {counts['errors']}, kept {counts['kept']}")
-    records = [json.loads(p.read_text("utf-8")) for p in sorted(OUT_DIR.rglob("*.json"))]
-    if not args.limit:
+    records = [json.loads(p.read_text("utf-8")) for p in sorted(out_dir.rglob("*.json"))]
+    if not args.limit and args.root == ROOT:
         prior = judge_prior.judge_all(
             sorted(judge_prior.RESULTS_DIR.glob("prior-*.json")),
             load_key=lambda case_id: judge.load_case(case_id)[0],

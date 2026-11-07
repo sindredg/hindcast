@@ -18,10 +18,13 @@ def symptoms() -> dict[str, list[dict]]:
 
 def test_every_case_has_tagged_symptoms():
     # A sealed case has no picks, so no tags: it searches the whole library
-    # within its date bound (decision 0017). An injection case searches its
-    # own index with the development case's picks (decision 0025).
+    # within its date bound (decision 0017), and keeps none once revealed. An
+    # injection case searches its own index with the development case's picks
+    # (decision 0025).
     cases = {
-        c: case for c, case in load_cases().items() if case.role not in ("sealed", "injection")
+        c: case
+        for c, case in load_cases().items()
+        if case.role not in ("sealed", "revealed", "injection")
     }
     tagged = symptoms()
 
@@ -40,7 +43,7 @@ def test_symptom_quotes_appear_in_their_update():
     # cut evidence word for word, never the postmortem.
     checked = 0
     for case in load_cases().values():
-        if case.role == "sealed":
+        if case.role in ("sealed", "revealed"):
             continue
         paths = [
             Path("data/sources") / case.case_id / s.filename

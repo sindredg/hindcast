@@ -450,3 +450,21 @@ def test_locked_system_outlives_a_rubric_version_but_not_a_prompt_change(tmp_pat
     prompt.write_text("Judge, leniently.\n", encoding="utf-8")
     with pytest.raises(NotFrozen):
         locked_system(prompt, frozen)
+
+
+def test_the_locked_system_prompt_is_rebuilt_from_the_locked_rubric(tmp_path: Path) -> None:
+    # The rubric moved to version 3 after the judge ran; a later judgment uses
+    # the system prompt the lock pins, rebuilt from the rubric in the history.
+    from hindcast.evaluation.judge import FROZEN, check_frozen_or_locked
+
+    record = json.loads(FROZEN.read_text(encoding="utf-8"))
+    system = check_frozen_or_locked()
+    assert hashlib.sha256(system.encode()).hexdigest() == record["system_sha256"]
+
+    wrong = tmp_path / "frozen.json"
+    wrong.write_text(json.dumps(record | {"system_sha256": "0" * 64}))
+    with pytest.raises(NotFrozen):
+        check_frozen_or_locked(frozen=wrong)
+    wrong.write_text(json.dumps(record | {"rubric_sha256": "0" * 64}))
+    with pytest.raises(NotFrozen, match="no committed version"):
+        check_frozen_or_locked(frozen=wrong)

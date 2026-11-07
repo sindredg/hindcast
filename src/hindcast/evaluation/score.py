@@ -1,6 +1,6 @@
 """Scores from the judgments, the review, and the frozen labels (rubric version 3).
 
-    PYTHONPATH=src uv run --frozen python -m hindcast.evaluation.score [--draft]
+    PYTHONPATH=src uv run --frozen python -m hindcast.evaluation.score [--draft] [--root DIR]
 
 A reviewed decision replaces the judge's proposal: a match decision sets the
 key item's outcome, a support decision sets the run item's support. A match
@@ -13,8 +13,9 @@ minimum, and maximum of the primary score, summed outcome counts, failures,
 seconds, and cost. A model's runs on a case whose root cause its prior answer
 already named go to a separate known-before-evidence table.
 
-Writes eval/reconstruction/showcase-v1/scores.json. Refuses while a review
-item is open, unless --draft, which writes nothing and prints the counts.
+Writes eval/reconstruction/showcase-v1/scores.json, or <DIR>/scores.json with
+--root (the revealed seals: eval/reconstruction/sealed-v1). Refuses while a
+review item is open, unless --draft, which writes nothing and prints the counts.
 """
 
 import argparse
@@ -463,11 +464,17 @@ def main(argv: list[str] | None = None) -> int:
 
     parser = argparse.ArgumentParser(prog="python -m hindcast.evaluation.score")
     parser.add_argument("--draft", action="store_true", help="print counts, write nothing")
+    parser.add_argument(
+        "--root", type=Path, default=ROOT, help=f"the scoring tree (default {ROOT})"
+    )
     args = parser.parse_args(argv)
+    root = args.root
+    # The prior answers feed the known-before-evidence table of any tree, but
+    # their own scores file is written with the default tree only.
     prior, prior_open = prior_scores()
     print(f"prior answers {len(prior['answers'])}, open review items {prior_open}")
-    attempts, records, reviews = _load(ROOT)
-    seconds = load_second_judgments(ROOT, reviews)
+    attempts, records, reviews = _load(root)
+    seconds = load_second_judgments(root, reviews)
     frozen_labels = json.loads(LABELS_FROZEN.read_text("utf-8"))
     labels: dict[str, dict] = {}
     scores = []
@@ -516,9 +523,10 @@ def main(argv: list[str] | None = None) -> int:
         print("second opinion left out: not every run has a reviewer decision")
     else:
         out["second_opinion"] = opinion
-    (ROOT / "scores.json").write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8")
-    (PRIOR_ROOT / "scores.json").write_text(json.dumps(prior, indent=2) + "\n", encoding="utf-8")
-    print(f"{ROOT / 'scores.json'}: {len(scores)} runs")
+    (root / "scores.json").write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8")
+    if root == ROOT:
+        (PRIOR_ROOT / "scores.json").write_text(json.dumps(prior, indent=2) + "\n", "utf-8")
+    print(f"{root / 'scores.json'}: {len(scores)} runs")
     return 0
 
 

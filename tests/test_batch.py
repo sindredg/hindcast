@@ -14,9 +14,11 @@ from hindcast.evaluation.batch import (
     BatchRefused,
     check_clean,
     closed_slots,
+    load_attempts,
     main,
     next_slots,
     reconcile,
+    verified_run,
 )
 from hindcast.investigate import ScoredCaseLocked
 from hindcast.safety import ScreenError
@@ -374,3 +376,19 @@ def test_preflight_runs_before_each_run_and_not_for_library_off(
     # The library-off arm binds no search, so there is nothing to check.
     assert main(["run", "--arm", "library-off", "--case", "dev", "--repeats", "1"]) == 0
     assert len(searched) == 2
+
+
+def test_the_sealed_tree_reads_revealed_files_by_hash_alone() -> None:
+    # A revealed seal has no run ID in its file; the ledger's hash ties it.
+    from hindcast.evaluation.batch import SEALED_ROOT, run_loader
+
+    entries = load_attempts(SEALED_ROOT / "attempts.json")
+    assert entries, "no revealed run in the sealed ledger"
+    load = run_loader(SEALED_ROOT)
+    for entry in entries:
+        assert load(entry)["run_id"] == entry["run_id"]
+    with pytest.raises(ValueError, match="differs from its recorded hash"):
+        load(entries[0] | {"sha256": "0" * 64})
+    # The showcase tree still needs the run ID in the file.
+    with pytest.raises(ValueError, match="names another run"):
+        verified_run(entries[0], Path("eval/investigations"))

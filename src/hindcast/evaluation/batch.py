@@ -27,7 +27,7 @@ import argparse
 import hashlib
 import json
 import os
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import asdict, replace
 from datetime import UTC, datetime
 from pathlib import Path
@@ -44,6 +44,11 @@ from hindcast.seal import preflight_search
 ROOT = Path("eval/reconstruction/showcase-v1")
 RUNS_DIR = ROOT / "runs"
 ATTEMPTS = ROOT / "attempts.json"
+# The revealed seals' scoring tree (decision 0030). Their files stay where the
+# reveal copies them, eval/investigations/<case_id>/, and carry no run ID: a
+# seal is run before any ledger names it.
+SEALED_ROOT = Path("eval/reconstruction/sealed-v1")
+REVEALED_DIR = Path("eval/investigations")
 SEALS = Path("eval/sealed/seals.json")
 # What shapes a run or scores it: the code, the prompts, the registries, the
 # frozen rubric, and the frozen keys and labels.
@@ -164,15 +169,30 @@ def load_attempts(path: Path) -> list[dict]:
     return json.loads(path.read_text("utf-8"))["attempts"] if path.is_file() else []
 
 
-def verified_run(entry: Mapping[str, Any], runs_dir: Path = RUNS_DIR) -> dict:
-    """A filled attempt's result file, refused when it differs from the hash in the ledger."""
+def verified_run(
+    entry: Mapping[str, Any], runs_dir: Path = RUNS_DIR, *, named: bool = True
+) -> dict:
+    """A filled attempt's result file, refused when it differs from the hash in the ledger.
+
+    named=False is for a revealed seal, whose file has no run ID: the hash
+    alone ties it to the ledger, and the ID is set in memory, never in the file.
+    """
     data = (runs_dir / entry["file"]).read_bytes()
     if hashlib.sha256(data).hexdigest() != entry["sha256"]:
         raise ValueError(f"{entry['run_id']}: the result file differs from its recorded hash")
     document = json.loads(data)
+    if not named and "run_id" not in document:
+        document["run_id"] = entry["run_id"]
     if document.get("run_id") != entry["run_id"]:
         raise ValueError(f"{entry['run_id']}: the result file names another run")
     return document
+
+
+def run_loader(root: Path) -> Callable[[Mapping[str, Any]], dict]:
+    """How the judge and the reviewer read a scoring tree's result files."""
+    if root == SEALED_ROOT:
+        return lambda entry: verified_run(entry, REVEALED_DIR, named=False)
+    return lambda entry: verified_run(entry, root / "runs")
 
 
 def write_attempts(path: Path, attempts: list[dict]) -> None:

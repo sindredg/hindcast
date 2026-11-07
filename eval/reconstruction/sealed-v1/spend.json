@@ -1,0 +1,38 @@
+{
+  "table": {
+    "version": 1,
+    "retrieved": "2026-11-04",
+    "currency": "USD",
+    "source": "https://platform.claude.com/docs/en/about-claude/pricing"
+  },
+  "stages": [
+    {
+      "stage": "judge, revealed seals",
+      "model": "claude-opus-5-5",
+      "calls": 2,
+      "unpriced_calls": 0,
+      "usage": {
+        "input_tokens": 9738,
+        "cache_creation_input_tokens": 4858,
+        "cache_read_input_tokens": 0,
+        "output_tokens": 5496
+      },
+      "cost": 0.173162
+    },
+    {
+      "stage": "reviewer, revealed seals",
+      "model": "claude-fable-5-1",
+      "calls": 2,
+      "unpriced_calls": 0,
+      "usage": {
+        "input_tokens": 9738,
+        "cache_creation_input_tokens": 4836,
+        "cache_read_input_tokens": 0,
+        "output_tokens": 8016
+      },
+      "cost": 0.55863
+    }
+  ],
+  "unpriced_calls": 0,
+  "total": 0.731792
+}

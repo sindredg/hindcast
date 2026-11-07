@@ -308,10 +308,13 @@ cases:
         sha256: 48fd9c5e77700273d5c0cc20b75c94fe874099ae6ae4e276b60d9c2821fe85a5
         retrieved_at: "2026-11-04T17:18:11Z"
         kind: status-updates
+  # Revealed on 2026-11-07 (decision 0030): GitHub wrote its summary of the
+  # cause into the resolved update at 2026-11-07T01:04:38Z, captured again as
+  # the postmortem. The status-updates source stays the snapshot the seal used.
   - case_id: github-2026-11-04-actions
     title: Incident with Actions and Pages
     provider: GitHub
-    role: sealed
+    role: revealed
     started_at: "2026-11-04T16:05:31Z"
     sources:
       - doc_id: github-status-2026-11-04-actions
@@ -322,3 +325,11 @@ cases:
         sha256: 230c5a9944ccb03fd8041d8042f6e8025fba1f1e49aca717621e549f6d45f8f4
         retrieved_at: "2026-11-04T17:18:12Z"
         kind: status-updates
+      - doc_id: github-summary-2026-11-04-actions
+        filename: github-summary-2026-11-04-actions.json
+        url: https://www.githubstatus.com/api/v2/incidents/xr3myzj7ms51.json
+        licence: Copyright GitHub; not redistributed
+        attribution: GitHub status page, resolved update of incident xr3myzj7ms51
+        sha256: 76af861710f9273af2066f7dcd4081ee10cfb39e205daed2b6be8884a5bb8cc9
+        retrieved_at: "2026-11-07T10:22:42Z"
+        kind: postmortem
