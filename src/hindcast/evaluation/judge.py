@@ -31,6 +31,7 @@ eval/judge/frozen.json, and prints counts and token usage only.
 import argparse
 import hashlib
 import json
+import tempfile
 from collections.abc import Callable, Iterable, Mapping
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
@@ -173,6 +174,54 @@ def check_frozen(
     if record != _frozen_record(prompt, rubric, compose, model):
         raise NotFrozen(f"the judge prompt, the rubric, or the settings differ from {frozen}")
     return compose(prompt, rubric)
+
+
+def locked_rubric(rubric: Path, rubric_sha256: str, repo: Path = Path(".")) -> bytes:
+    """The committed version of the rubric whose SHA-256 the lock records."""
+    from hindcast.evaluation.prior import _git
+
+    listing = _git(repo, "log", "--format=%H", "--", rubric.as_posix())
+    if listing.returncode != 0:
+        raise NotFrozen(f"cannot read the history of {rubric}")
+    for commit in listing.stdout.split():
+        shown = _git(repo, "show", f"{commit}:{rubric.as_posix()}")
+        if shown.returncode == 0 and _sha256(shown.stdout.encode()) == rubric_sha256:
+            return shown.stdout.encode()
+    raise NotFrozen(f"no committed version of {rubric} has the locked hash {rubric_sha256[:12]}")
+
+
+def check_frozen_or_locked(
+    prompt: Path = PROMPT,
+    rubric: Path = RUBRIC,
+    frozen: Path = FROZEN,
+    compose: Compose = system_prompt,
+    model: str = JUDGE_MODEL,
+) -> str:
+    """check_frozen, or the locked system prompt rebuilt from the rubric version it names.
+
+    The judge was frozen under rubric version 2; version 3 changed only the
+    title and the Review section, after the judge ran. A later run, such as a
+    revealed seal, is judged with exactly the system prompt the showcase runs
+    were: rebuilt from the locked rubric in the history and accepted only when
+    its hash, the prompt's hash, and the settings match the lock.
+    """
+    try:
+        return check_frozen(prompt, rubric, frozen, compose, model)
+    except NotFrozen:
+        # No lock at all: nothing to rebuild from.
+        if not frozen.is_file():
+            raise
+    record = json.loads(frozen.read_text(encoding="utf-8"))
+    with tempfile.TemporaryDirectory() as folder:
+        old = Path(folder) / rubric.name
+        old.write_bytes(locked_rubric(rubric, record["rubric_sha256"]))
+        system = compose(prompt, old)
+        # The record holds the system prompt's hash, so equal records mean the same prompt.
+        rebuilt = _frozen_record(prompt, old, compose, model) | {"rubric": rubric.as_posix()}
+    record.pop("frozen_at", None)
+    if rebuilt != record:
+        raise NotFrozen(f"the judge prompt or the settings differ from {frozen}")
+    return system
 
 
 def locked_system(prompt: Path = PROMPT, frozen: Path = FROZEN) -> tuple[str, str]:
@@ -546,7 +595,7 @@ def judge_all(
     model: str = JUDGE_MODEL,
 ) -> dict[str, int]:
     """Judge every filled attempt that has no judgment yet; no-result attempts are never judged."""
-    system = check_frozen(*paths, model=model)
+    system = check_frozen_or_locked(*paths, model=model)
     counts = {"judged": 0, "errors": 0, "kept": 0}
     todo: list[tuple[Mapping[str, Any], list[str]]] = []
     for entry in entries:
@@ -628,7 +677,7 @@ def main(argv: list[str] | None = None) -> int:
     client = anthropic.Anthropic()
     library = load_library_items()
     if args.command == "one":
-        system = check_frozen()
+        system = check_frozen_or_locked()
         document = json.loads(args.result.read_text(encoding="utf-8"))
         document.setdefault("run_id", args.result.stem)
         key, evidence = load_case(document["case_id"])
