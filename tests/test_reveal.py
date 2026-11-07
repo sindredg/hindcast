@@ -4,6 +4,7 @@ import hashlib
 import json
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Literal
 
 import pytest
 
@@ -40,7 +41,12 @@ def source(filename: str, data: bytes) -> SourceFile:
     )
 
 
-def make_tree(tmp_path: Path, *, published: str = "2026-11-07T01:04:38Z", role: str = "revealed"):
+def make_tree(
+    tmp_path: Path,
+    *,
+    published: str = "2026-11-07T01:04:38Z",
+    role: Literal["sealed", "revealed"] = "revealed",
+):
     """A case with a frozen key and labels, evidence, a snapshot, and one sealed file."""
     key = load_key(KEY)
     key_data = key_json(type(key)(**{**key.__dict__, "case_id": CASE_ID}))
