@@ -35,9 +35,21 @@ def snapshot_file(resolved_updated_at: str) -> bytes:
     ).encode()
 
 
-def source(filename: str, data: bytes) -> SourceFile:
+def source(
+    filename: str,
+    data: bytes,
+    kind: Literal["status-updates", "postmortem"] = "postmortem",
+    retrieved: str = "t",
+) -> SourceFile:
     return SourceFile(
-        "pm", filename, "https://example.test/x.json", "l", "a", sha(data), "t", "postmortem"
+        "pm" if kind == "postmortem" else "st",
+        filename,
+        "https://example.test/x.json",
+        "l",
+        "a",
+        sha(data),
+        retrieved,
+        kind,
     )
 
 
@@ -46,8 +58,15 @@ def make_tree(
     *,
     published: str = "2026-11-07T01:04:38Z",
     role: Literal["sealed", "revealed"] = "revealed",
+    status_body: str | None = "placeholder",
+    status_retrieved: str = "2026-11-04T17:18:12Z",
+    result: bytes | None = None,
 ):
-    """A case with a frozen key and labels, evidence, a snapshot, and one sealed file."""
+    """A case with a frozen key and labels, evidence, a snapshot, and one sealed file.
+
+    The status-updates capture, taken before the seal, holds a placeholder
+    resolved update; the postmortem capture holds the edited summary.
+    """
     key = load_key(KEY)
     key_data = key_json(type(key)(**{**key.__dict__, "case_id": CASE_ID}))
     keys = tmp_path / "keys"
@@ -81,12 +100,17 @@ def make_tree(
     postmortem = snapshot_file(published)
     (tmp_path / "sources" / CASE_ID).mkdir(parents=True)
     (tmp_path / "sources" / CASE_ID / "pm.json").write_bytes(postmortem)
+    sources = [source("pm.json", postmortem)]
+    if status_body is not None:
+        status = snapshot_file("2026-11-04T17:01:11Z").replace(b"summary", status_body.encode())
+        (tmp_path / "sources" / CASE_ID / "status.json").write_bytes(status)
+        sources.append(source("status.json", status, "status-updates", status_retrieved))
     chunks = json.dumps({"chunks": [{"id": "lib/c1", "content": "An unrelated page."}]}).encode()
     (tmp_path / "snap.json").write_bytes(chunks)
     (tmp_path / "snaps.json").write_text(
         json.dumps({"snapshots": [{"case_id": CASE_ID, "sha256": sha(chunks)}]})
     )
-    result = json.dumps({"status": "complete", "usage": {"seconds": 1.0}}).encode()
+    result = result or json.dumps({"status": "complete", "usage": {"seconds": 1.0}}).encode()
     (tmp_path / "sealed" / CASE_ID).mkdir(parents=True)
     (tmp_path / "sealed" / CASE_ID / "r.json").write_bytes(result)
     seal = {
@@ -107,9 +131,7 @@ def make_tree(
         "status": "complete",
     }
     (tmp_path / "seals.json").write_text(json.dumps({"seals": [seal]}))
-    case = Case(
-        CASE_ID, "t", "GitHub", role, "2026-11-04T16:05:31Z", (source("pm.json", postmortem),)
-    )
+    case = Case(CASE_ID, "t", "GitHub", role, "2026-11-04T16:05:31Z", tuple(sources))
     paths = {
         "keys": (keys / f"{CASE_ID}.json", keys / "frozen.json"),
         "labels": (labels / f"{CASE_ID}.json", labels / "frozen.json"),
@@ -170,6 +192,11 @@ def test_a_ready_case_is_revealed_and_recorded(tmp_path: Path) -> None:
         ("target", "a revealed file is never replaced"),
         ("unparsed", "not a result file"),
         ("dirty", "uncommitted"),
+        ("status-missing", "no status-updates source"),
+        ("status-late", "not before the first seal"),
+        ("status-cause", "already held the resolved text"),
+        ("status-long", "above the placeholder floor"),
+        ("tool-error", "names a host, an address, or an ID"),
     ],
 )
 def test_each_broken_step_refuses_before_anything_is_written(
@@ -178,8 +205,25 @@ def test_each_broken_step_refuses_before_anything_is_written(
     published = {"early": "2026-11-04T17:00:00Z", "boundary": "2026-11-04T17:20:23Z"}.get(
         breakage, "2026-11-07T01:04:38Z"
     )
+    tree: dict = {
+        "status-missing": {"status_body": None},
+        "status-late": {"status_retrieved": "2026-11-04T17:20:23Z"},
+        "status-cause": {"status_body": "summary"},
+        "status-long": {"status_body": " ".join(["word"] * 60)},
+        "tool-error": {
+            "result": json.dumps(
+                {
+                    "status": "incomplete",
+                    "incomplete_reason": (
+                        "tool-error: search_library: https://srch-x.search.windows.net refused"
+                    ),
+                    "usage": {"seconds": 1.0},
+                }
+            ).encode()
+        },
+    }.get(breakage, {})
     case, seal, paths = make_tree(
-        tmp_path, published=published, role="sealed" if breakage == "role" else "revealed"
+        tmp_path, published=published, role="sealed" if breakage == "role" else "revealed", **tree
     )
     if breakage == "key":
         paths["keys"][0].write_bytes(paths["keys"][0].read_bytes().replace(b"event", b"evenT"))
@@ -215,7 +259,7 @@ def test_each_broken_step_refuses_before_anything_is_written(
         (tmp_path / "seals.json").write_text(json.dumps(seals))
     # A check before the sealed files must refuse without reading them: the
     # file is moved away, so a read would raise FileNotFoundError instead.
-    if breakage not in ("sealed", "target", "unparsed"):
+    if breakage not in ("sealed", "target", "unparsed", "tool-error"):
         sealed_file.rename(tmp_path / "moved.json")
     seals_before = (tmp_path / "seals.json").read_bytes()
     revealed_before = sorted((tmp_path / "revealed").rglob("*")) if breakage == "target" else []
@@ -253,3 +297,40 @@ def test_check_ready_needs_a_sealed_file(tmp_path: Path) -> None:
 
     with pytest.raises(RevealRefused, match="no sealed file"):
         check_ready(case, [seal | {"file": None}], **paths)
+
+
+def test_a_tool_error_without_a_host_is_revealed_with_its_kind_in_the_ledger(
+    tmp_path: Path,
+) -> None:
+    result = json.dumps(
+        {
+            "status": "incomplete",
+            "incomplete_reason": "tool-error: search_library: ServiceRequestError",
+            "usage": {"seconds": 1.0},
+        }
+    ).encode()
+    case, seal, paths = make_tree(tmp_path, result=result)
+
+    record = do_reveal(tmp_path, case, paths)
+
+    assert record["files"] == ["r.json"]
+    ledger = json.loads((tmp_path / "ledger" / "attempts.json").read_text())["attempts"]
+    # The file is published as sealed; the ledger carries the kind of reason only.
+    assert ledger[0]["reason"] == "tool-error"
+
+
+@pytest.mark.parametrize(
+    "reason",
+    [
+        "tool-error: search_library: https://srch-x.search.windows.net refused",
+        "tool-error: list_updates: host srch-x.search.windows.net unreachable",
+        "tool-error: list_updates: 10.0.0.4 refused the connection",
+        "tool-error: search_library: request 0f8fad5b-d9cb-469f-a165-70867728950e failed",
+    ],
+)
+def test_a_reason_that_names_a_host_or_id_is_unsafe(reason: str) -> None:
+    from hindcast.reveal import unsafe_reason
+
+    assert unsafe_reason(reason)
+    assert not unsafe_reason("tool-error: search_library: ServiceRequestError")
+    assert not unsafe_reason(None)
