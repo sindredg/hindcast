@@ -42,7 +42,8 @@ param githubSubjectPrefix string
 var tags = { 'azd-env-name': environmentName }
 var libraryIndex = 'hindcast-library-1024'
 
-// Newest version the Bicep linter accepts on 2026-10-30.
+// 2025-04-01: the newest stable version Bicep 0.49.2 has types for (2026-06-01
+// is listed by `az provider show` on 2026-11-07, BCP081 without types).
 resource group 'Microsoft.Resources/resourceGroups@2025-04-01' = {
   name: 'rg-${environmentName}'
   location: location

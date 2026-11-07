@@ -16,7 +16,13 @@ dependencies = [
     # Traces to Application Insights from the investigate, seal, and challenge
     # commands as well as the page. Trade-off: a heavier install for the
     # commands that never trace (capture, ingest, keys).
-    "azure-monitor-opentelemetry==1.8.11",
+    # It pulls pre-releases into the lock: azure-monitor-opentelemetry-exporter
+    # 1.0.0b59, azure-core-tracing-opentelemetry 1.0.0b13, and the
+    # opentelemetry-instrumentation and semantic-conventions 0.66b2 packages.
+    # None of them has a stable release on PyPI (read 2026-11-07), and this
+    # package, the stable Azure Monitor distro, requires them. Check again when
+    # the exporter publishes 1.0.0.
+    "azure-monitor-opentelemetry==1.8.12",
     # Creates the library index and queries it with an Entra token. The
     # alternative is hand-written REST calls on azure-core, which would
     # rebuild the request models this client already checks.
@@ -25,7 +31,7 @@ dependencies = [
     # Checks the model's output locally against the same schema dict the service
     # enforces, so a disagreement shows up as a schema error, not a crash later.
     "jsonschema==4.26.0",
-    "openai==3.45.0",
+    "openai==3.46.0",
     "ruamel-yaml==0.19.1",
 ]
 
@@ -37,7 +43,7 @@ app = ["streamlit==1.67.0"]
 # Anthropic API: a model family that none of the scored arms uses. An extra,
 # so the page's image never installs it. Trade-off: a second provider, its
 # key in the local .env, and run text sent outside Azure for judging.
-judge = ["anthropic==2.4.0"]
+judge = ["anthropic==2.6.0"]
 
 # Exact pins. uv.lock records the full tree with hashes. Dependabot proposes
 # the updates (.github/dependabot.yml).
@@ -51,13 +57,13 @@ dev = [
     # node at first run, outside the lock.
     "pyright[nodejs]==1.1.414",
     "pytest==9.2.0",
-    "ruff==0.17.3",
+    "ruff==0.17.4",
     "yamllint==1.38.0",
     "zizmor==1.32.0",
 ]
 
 [tool.uv]
-required-version = "==0.13.5"
+required-version = "==0.13.7"
 # Not built or installed as a package yet: tests import from src/ directly.
 # The container image in the deployment phase decides how the app is packaged.
 package = false

@@ -7,9 +7,8 @@ param tags object
 
 var containers = ['sources', 'extracted', 'runtime', 'runs']
 
-// 2026-06-01: the newest stable version Bicep 0.48.1 has types for (2026-09-01
-// is listed by `az provider show` on 2026-11-05, BCP081 without types).
-resource account 'Microsoft.Storage/storageAccounts@2026-06-01' = {
+// 2026-09-01 is the newest stable version `az provider show` listed on 2026-11-07.
+resource account 'Microsoft.Storage/storageAccounts@2026-09-01' = {
   name: 'sthindcast${take(uniqueString(resourceGroup().id), 8)}'
   location: location
   tags: tags
@@ -25,12 +24,12 @@ resource account 'Microsoft.Storage/storageAccounts@2026-06-01' = {
   }
 }
 
-resource blobs 'Microsoft.Storage/storageAccounts/blobServices@2026-06-01' = {
+resource blobs 'Microsoft.Storage/storageAccounts/blobServices@2026-09-01' = {
   parent: account
   name: 'default'
 }
 
-resource container 'Microsoft.Storage/storageAccounts/blobServices/containers@2026-06-01' = [
+resource container 'Microsoft.Storage/storageAccounts/blobServices/containers@2026-09-01' = [
   for name in containers: {
     parent: blobs
     name: name
