@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from hindcast.keys import AnswerKey, KeyItem, TimelineEvent
@@ -185,3 +187,72 @@ def test_leak_snapshot_without_a_record_or_chunks_is_refused(tmp_path):
         snapshot_sources(path, "github-2026-10-21", record)
     with pytest.raises(ValueError, match="no snapshot record"):
         snapshot_sources(path, "github-2026-10-22", record)
+
+
+def test_a_key_item_shorter_than_a_run_is_matched_whole():
+    short = KeyItem("The cache was purged early.", "purged the cache early")
+    k = key(fixes=(short,))
+    sources = {"case-a/u2": "Update: we purged the cache early and recovered."}
+
+    assert LeakHit("fixes/0", "case-a/u2", 1) in hits(k, sources)
+    # Four of the five words are not the item.
+    again = hits(k, {"case-a/u2": "We purged the cache again."})
+    assert not [h for h in again if h.item == "fixes/0"]
+
+
+def test_another_cases_snapshot_is_filtered_by_this_cases_rule(tmp_path):
+    import hashlib
+
+    from hindcast.cases import Case
+    from hindcast.leak import snapshot_sources
+    from hindcast.library import LibraryDocument
+
+    chunks = [
+        {"id": "lib_old_s1", "doc_id": "old", "ref": "r", "content": "An old page."},
+        {"id": "lib_new_s1", "doc_id": "new", "ref": "r", "content": "A page after the outage."},
+        {"id": "lib_other_s1", "doc_id": "other", "ref": "r", "content": "Not picked."},
+    ]
+    data = json.dumps({"case_id": "sealed-1", "chunks": chunks}).encode()
+    (tmp_path / "snap.json").write_bytes(data)
+    (tmp_path / "snaps.json").write_text(
+        json.dumps(
+            {"snapshots": [{"case_id": "sealed-1", "sha256": hashlib.sha256(data).hexdigest()}]}
+        )
+    )
+    case = Case("case-a", "t", "Cloudflare", "showcase", "2026-02-20T18:45:16Z", ())
+    cases = {"case-a": case}
+
+    def doc(doc_id: str, published_at: str, serves: tuple[str, ...]) -> LibraryDocument:
+        return LibraryDocument(
+            doc_id,
+            "AWS",
+            "t",
+            "u",
+            published_at,
+            "f",
+            "h",
+            "r",
+            "l",
+            "a",
+            "other-provider",
+            serves,
+            "why",
+        )
+
+    library = {
+        "old": doc("old", "2025-01-01", ("case-a",)),
+        "new": doc("new", "2026-03-01", ("case-a",)),
+        "other": doc("other", "2025-01-01", ()),
+    }
+
+    found = snapshot_sources(
+        tmp_path / "snap.json", "case-a", tmp_path / "snaps.json", cases=cases, library=library
+    )
+
+    assert found == {"lib_old_s1": "An old page."}
+    # The snapshot's own case reads every chunk.
+    own = snapshot_sources(tmp_path / "snap.json", "sealed-1", tmp_path / "snaps.json")
+    assert len(own) == 3
+    # Without the registries the snapshot has to be the case's own.
+    with pytest.raises(ValueError, match="no snapshot record"):
+        snapshot_sources(tmp_path / "snap.json", "case-a", tmp_path / "snaps.json")

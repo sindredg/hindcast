@@ -45,6 +45,20 @@ def runs(text: str, n: int = RUN_WORDS) -> set[tuple[str, ...]]:
     return {tuple(words[i : i + n]) for i in range(len(words) - n + 1)}
 
 
+def item_runs(texts: list[str], n: int = RUN_WORDS) -> set[tuple[str, ...]]:
+    """A key item's runs of n words; a text shorter than n is one run, whole.
+
+    Without this an item below n words had no run and was checked against
+    nothing (issue #83).
+    """
+    out: set[tuple[str, ...]] = set()
+    for text in texts:
+        words = WORD.findall(text.lower())
+        if k := min(n, len(words)):
+            out |= {tuple(words[i : i + k]) for i in range(len(words) - k + 1)}
+    return out
+
+
 def unstated_items(key: AnswerKey) -> Iterator[tuple[str, list[str]]]:
     """(item ID, its texts) for every item the key does not mark as stated during the incident."""
     if not key.root_cause.stated_during_incident:
@@ -60,18 +74,21 @@ def unstated_items(key: AnswerKey) -> Iterator[tuple[str, list[str]]]:
 
 def hits(key: AnswerKey, sources: Mapping[str, str], n: int = RUN_WORDS) -> list[LeakHit]:
     """One hit per key item and source that share at least one run of n words."""
-    items = [
-        (item, set().union(*(runs(t, n) for t in texts))) for item, texts in unstated_items(key)
-    ]
+    items = [(item, item_runs(texts, n)) for item, texts in unstated_items(key)]
     if not items or not sources:
         raise ValueError(
             f"{key.case_id}: no unstated key item or no source; the check could not fail"
         )
-    source_runs = {source_id: runs(text, n) for source_id, text in sources.items()}
+    # A short item's whole-text run is compared with source runs of its own length.
+    lengths = sorted({len(run) for _, item_set in items for run in item_set})
+    source_runs = {
+        source_id: set().union(*(runs(text, k) for k in lengths)) if lengths else set()
+        for source_id, text in sources.items()
+    }
     out = []
-    for item, item_runs in items:
+    for item, item_set in items:
         for source_id, shared in source_runs.items():
-            if common := item_runs & shared:
+            if common := item_set & shared:
                 out.append(LeakHit(item, source_id, len(common)))
     return out
 
@@ -109,25 +126,48 @@ def library_sources(
     return found
 
 
-def snapshot_sources(path: Path, case_id: str, record_path: Path) -> dict[str, str]:
-    """A sealed case's chunks from its snapshot, once the file matches its recorded hash.
+def snapshot_sources(
+    path: Path,
+    case_id: str,
+    record_path: Path,
+    *,
+    cases: Mapping[str, Case] | None = None,
+    library: Mapping[str, LibraryDocument] | None = None,
+) -> dict[str, str]:
+    """A case's chunks from a sealed snapshot, once the file matches its recorded hash.
 
     After teardown there is no index to query; the snapshot taken before it
-    stands in for the filtered library (decision 0022).
+    stands in for the filtered library (decision 0022). A snapshot of another
+    case holds every document that case could read, so for a case that is
+    not the snapshot's own, the chunks are filtered by this case's rule in
+    code (`hindcast.search.allowed`): the sealed snapshots hold the whole
+    library, so every keyed case can be checked offline.
     """
     import hashlib
 
-    record = json.loads(record_path.read_text("utf-8"))["snapshots"]
-    entries = [s for s in record if s["case_id"] == case_id]
-    if not entries:
-        raise ValueError(f"{case_id}: no snapshot record in {record_path}")
+    from hindcast.search import allowed
+
     data = path.read_bytes()
+    document = json.loads(data)
+    # Without the registries the snapshot has to be the case's own.
+    snapshot_case = document.get("case_id", case_id) if cases and library else case_id
+    record = json.loads(record_path.read_text("utf-8"))["snapshots"]
+    entries = [s for s in record if s["case_id"] == snapshot_case]
+    if not entries:
+        raise ValueError(f"{snapshot_case}: no snapshot record in {record_path}")
     if hashlib.sha256(data).hexdigest() != entries[-1]["sha256"]:
-        raise ValueError(f"{path} does not match the hash recorded for {case_id}")
-    found = {c["id"]: c["content"] for c in json.loads(data)["chunks"]}
+        raise ValueError(f"{path} does not match the hash recorded for {snapshot_case}")
+    chunks = document["chunks"]
+    if snapshot_case != case_id and cases and library:
+        chunks = [
+            c
+            for c in chunks
+            if c["doc_id"] in library and allowed(cases[case_id], library[c["doc_id"]])
+        ]
+    found = {c["id"]: c["content"] for c in chunks}
     if not found:
         raise ValueError(
-            f"{case_id}: the snapshot holds no library chunks; the check could not fail"
+            f"{case_id}: the snapshot holds no library chunks for it; the check could not fail"
         )
     return found
 
@@ -137,7 +177,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("case_id", nargs="?", help="one case; every keyed case when left out")
     parser.add_argument("--plant", action="store_true", help="add one planted chunk per case")
     parser.add_argument(
-        "--snapshot", type=Path, help="read the library from a sealed case's snapshot file"
+        "--snapshot",
+        type=Path,
+        help="read the library from a sealed case's snapshot file, filtered by this case's rule",
     )
     args = parser.parse_args(argv)
     if args.snapshot is not None and args.case_id is None:
@@ -162,7 +204,9 @@ def main(argv: list[str] | None = None) -> int:
         if args.snapshot is not None:
             from hindcast.seal import SNAPSHOTS
 
-            chunks = snapshot_sources(args.snapshot, case_id, SNAPSHOTS)
+            chunks = snapshot_sources(
+                args.snapshot, case_id, SNAPSHOTS, cases=cases, library=library
+            )
         else:
             chunks = library_sources(case_id, client, library, cases)
         sources = evidence | chunks
@@ -179,7 +223,7 @@ def main(argv: list[str] | None = None) -> int:
             f"{len(chunks)} library chunks, {len(found)} hits"
         )
         for h in found:
-            print(f"  {h.item} in {h.source_id}: {h.runs} shared {RUN_WORDS}-word runs")
+            print(f"  {h.item} in {h.source_id}: {h.runs} shared runs")
         # Another item may share the planted quote; the planted item must be among the hits.
         if args.plant and (planted, PLANTED) not in [(h.item, h.source_id) for h in found]:
             print(f"  the planted chunk was not reported for {planted}")
