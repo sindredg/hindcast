@@ -32,8 +32,10 @@ import argparse
 import functools
 import hashlib
 import json
+import os
+import tempfile
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime
 from pathlib import Path
@@ -485,9 +487,17 @@ def write_result(
     }
     path = out_dir / case_id / (filename or f"{now:%Y%m%dT%H%M%SZ}-v{agent['version']}.json")
     path.parent.mkdir(parents=True, exist_ok=True)
-    # "x" refuses to overwrite an earlier run.
-    with path.open("x", encoding="utf-8") as file:
-        file.write(json.dumps(document, indent=2, ensure_ascii=False) + "\n")
+    # Written to a hidden temporary file, then hard-linked into place: the link
+    # refuses to overwrite an earlier run, as mode "x" did, and a process killed
+    # mid-write leaves no partial file under the result's name for the batch's
+    # reconcile to fail on (#61).
+    handle, temporary = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.", suffix=".tmp")
+    try:
+        with os.fdopen(handle, "w", encoding="utf-8") as file:
+            file.write(json.dumps(document, indent=2, ensure_ascii=False) + "\n")
+        os.link(temporary, path)
+    finally:
+        os.unlink(temporary)
     return path
 
 
@@ -572,6 +582,7 @@ def prepare(
     challenger: bool = False,
     arm: Arm = ARMS["hindcast"],
     screens: bool = True,
+    pinned: Mapping[str, str] | None = None,
 ) -> Setup:
     """Read the evidence, make the agent version, and record what the run rests on.
 
@@ -580,6 +591,8 @@ def prepare(
     which defaults to the configured chat or comparison deployment. A
     single-search arm makes no agent: its turn calls the deployment itself.
     screens=False runs without Prompt Shields, for an injection case only.
+    pinned maps an agent name to the version the run must use
+    (hindcast.agent.ensure_agent_version); the batch pins the sealed agents.
     """
     if not screens and case.role != "injection":
         # The second injection layer measures the model without the screens
@@ -658,7 +671,9 @@ def prepare(
         else:
             definition = arm_definition(arm, deployment)
             name = agent_name(deployment, agent_variant(arm))
-        version = ensure_agent_version(models.project_client().agents, name, definition)
+        version = ensure_agent_version(
+            models.project_client().agents, name, definition, pinned=(pinned or {}).get(name)
+        )
         turn = agent_turn(models.openai_client(), name, version)
         agent: dict = {"name": name, "version": version}
     else:

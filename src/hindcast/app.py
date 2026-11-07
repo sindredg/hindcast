@@ -405,7 +405,7 @@ def _challenge(stored: dict, view: View) -> None:
 
 def _live_challenge(view: View, finding_id: str) -> None:
     question = st.text_area(
-        "Challenge this finding",
+        "Your question",
         key=f"question-{finding_id}",
         placeholder="For example: which update states this directly, and which part is assumed?",
         help=_help("Challenge"),
@@ -589,12 +589,17 @@ def _investigation_tab(view: View) -> None:
                 and view.result.status == "complete"
                 and "screen_calls" in view.result.usage
             )
-            if stored or can_ask:
-                with st.expander(f"Challenges ({len(stored)})", expanded=bool(stored)):
+            # Two sections: the stored challenges under their count, and the
+            # box under its own name. A box inside "Challenges (0)" was hidden
+            # behind a label that says the section is empty, and a new verdict
+            # showed under the count read before it ran (#94).
+            if stored:
+                with st.expander(f"Challenges ({len(stored)})", expanded=True):
                     for one in stored:
                         _challenge(one, view)
-                    if can_ask:
-                        _live_challenge(view, finding.id)
+            if can_ask:
+                with st.expander("Challenge this finding"):
+                    _live_challenge(view, finding.id)
 
     st.header("Contributing factors", help=_help("Contributing factor"))
     if not investigation.contributing_factors:

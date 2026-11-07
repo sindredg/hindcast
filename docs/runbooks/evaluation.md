@@ -124,7 +124,7 @@ The procedure scores Hindcast's reconstructions of the showcase cases against th
     PYTHONPATH=src uv run --frozen --env-file .env python -m hindcast.evaluation.foundry results
     ```
 
-    Expected: per arm and evaluator, rows passed, failed, and errored, and the mean score, in `foundry/results.json`. A row with no score, no verdict, or an error counts as errored. Observed on 2026-11-04 at 04:28:33Z: both `completed`, 0 errored rows; the numbers are in the [evaluation report](../../eval/reconstruction/showcase-v1/README.md).
+    Expected: per arm and evaluator, rows passed, failed, and errored, and the mean score, in `foundry/results.json`. A row with no score, no verdict, or an error counts as errored, and so does a dataset row the service returned no item for; the printed line per dataset ends with the count of missing rows (from the code, not yet observed). Observed on 2026-11-04 at 04:28:33Z: both `completed`, 0 errored rows; the numbers are in the [evaluation report](../../eval/reconstruction/showcase-v1/README.md).
 
 ## Judge
 

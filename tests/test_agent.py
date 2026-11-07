@@ -10,6 +10,7 @@ from azure.core.exceptions import ResourceNotFoundError
 
 from hindcast.agent import (
     EFFORT,
+    VersionRefused,
     agent_name,
     definition_fingerprint,
     ensure_agent_version,
@@ -125,6 +126,28 @@ def test_ensure_creates_a_new_version_when_the_fingerprint_differs(metadata: Any
     agents = FakeAgents([SimpleNamespace(version="3", metadata=metadata)])
     assert ensure_agent_version(agents, "a", DEFINITION) == "7"
     assert len(agents.created) == 1
+
+
+@pytest.mark.parametrize(
+    ("versions", "match"),
+    [
+        ([], "has no version"),
+        ([SimpleNamespace(version="3", metadata={"fingerprint": "old"})], "does not carry"),
+        ([SimpleNamespace(version="4", metadata={"fingerprint": FINGERPRINT})], "is at version 4"),
+    ],
+)
+def test_a_pinned_name_never_gets_a_new_version(versions: list[Any], match: str) -> None:
+    # A sealed agent's name keeps the version its seals ran (#62).
+    agents = FakeAgents(versions)
+    with pytest.raises(VersionRefused, match=match):
+        ensure_agent_version(agents, "a", DEFINITION, pinned="3")
+    assert agents.created == []
+
+
+def test_a_pinned_name_reuses_its_version() -> None:
+    agents = FakeAgents([SimpleNamespace(version="3", metadata={"fingerprint": FINGERPRINT})])
+    assert ensure_agent_version(agents, "a", DEFINITION, pinned="3") == "3"
+    assert agents.created == []
 
 
 def test_no_prior_knowledge_key_fact_in_the_instructions() -> None:

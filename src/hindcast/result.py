@@ -277,27 +277,42 @@ def _cycle_edges(edges: dict[int, list[int]]) -> set[tuple[int, int]]:
     on_stack: set[int] = set()
     component: dict[int, int] = {}
 
-    def visit(node: int) -> None:
-        index[node] = low[node] = len(index)
-        stack.append(node)
-        on_stack.add(node)
-        for target in edges.get(node, []):
-            if target not in index:
-                visit(target)
-                low[node] = min(low[node], low[target])
-            elif target in on_stack:
-                low[node] = min(low[node], index[target])
-        if low[node] == index[node]:
-            while True:
-                member = stack.pop()
-                on_stack.discard(member)
-                component[member] = node
-                if member == node:
-                    break
+    # Iterative, with an explicit stack of (node, next edge position): a recursive
+    # visit fails with RecursionError on a chain of about 1,000 findings, and the
+    # output schema does not cap the number of findings.
+    for start in edges:
+        if start in index:
+            continue
+        index[start] = low[start] = len(index)
+        stack.append(start)
+        on_stack.add(start)
+        work: list[tuple[int, int]] = [(start, 0)]
+        while work:
+            node, at = work[-1]
+            targets = edges.get(node, [])
+            if at < len(targets):
+                work[-1] = (node, at + 1)
+                target = targets[at]
+                if target not in index:
+                    index[target] = low[target] = len(index)
+                    stack.append(target)
+                    on_stack.add(target)
+                    work.append((target, 0))
+                elif target in on_stack:
+                    low[node] = min(low[node], index[target])
+                continue
+            work.pop()
+            if work:
+                parent = work[-1][0]
+                low[parent] = min(low[parent], low[node])
+            if low[node] == index[node]:
+                while True:
+                    member = stack.pop()
+                    on_stack.discard(member)
+                    component[member] = node
+                    if member == node:
+                        break
 
-    for node in edges:
-        if node not in index:
-            visit(node)
     sizes: dict[int, int] = {}
     for root in component.values():
         sizes[root] = sizes.get(root, 0) + 1
@@ -395,15 +410,19 @@ def check_citations(
     def cited(item: Attack | Finding | TimelineEvent | RootCause | Factor) -> bool:
         return any(c.source == "case" for c in item.citations)
 
-    # Support spreads along the kept edges until nothing changes.
+    # Support spreads backwards along the kept edges, from each cited finding to
+    # the findings that rest on it. One pass over the edges, not one per chain link.
+    resting_on: dict[int, list[int]] = {}
+    for n, f in enumerate(checked.findings):
+        for i in f.rests_on:
+            resting_on.setdefault(position[i], []).append(n)
     supported = {n for n, f in enumerate(checked.findings) if cited(f)}
-    grew = True
-    while grew:
-        grew = False
-        for n, f in enumerate(checked.findings):
-            if n not in supported and any(position[i] in supported for i in f.rests_on):
+    reach = list(supported)
+    while reach:
+        for n in resting_on.get(reach.pop(), []):
+            if n not in supported:
                 supported.add(n)
-                grew = True
+                reach.append(n)
 
     def backed(item: Attack | Finding | TimelineEvent | RootCause | Factor) -> bool:
         rests_on: tuple[str, ...] = getattr(item, "rests_on", ())

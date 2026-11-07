@@ -85,8 +85,20 @@ def definition_fingerprint(definition: dict) -> str:
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
-def ensure_agent_version(agents: Any, name: str, definition: dict) -> str:
-    """The latest version when it carries this definition's fingerprint, else a new one."""
+class VersionRefused(RuntimeError):
+    """A pinned agent name whose latest version is not the pinned one with this definition."""
+
+
+def ensure_agent_version(
+    agents: Any, name: str, definition: dict, *, pinned: str | None = None
+) -> str:
+    """The latest version when it carries this definition's fingerprint, else a new one.
+
+    pinned names the version a run must use (a sealed agent's): it is refused,
+    and no version is created, unless the latest version is that one and
+    carries this definition. Creating first and refusing after would leave the
+    sealed agent's name on a version its seals never ran (#62).
+    """
     from azure.ai.projects.models import PromptAgentDefinition
     from azure.core.exceptions import ResourceNotFoundError
 
@@ -95,7 +107,20 @@ def ensure_agent_version(agents: Any, name: str, definition: dict) -> str:
         latest = next(iter(agents.list_versions(name, limit=1, order="desc")), None)
     except ResourceNotFoundError:
         latest = None
-    if latest is not None and (latest.metadata or {}).get("fingerprint") == fingerprint:
+    current = None if latest is None else (latest.metadata or {}).get("fingerprint")
+    if pinned is not None:
+        if latest is None:
+            raise VersionRefused(f"{name} has no version; the sealed series ran version {pinned}")
+        if current != fingerprint:
+            raise VersionRefused(
+                f"{name} version {latest.version} does not carry this definition; "
+                f"the sealed series ran version {pinned}"
+            )
+        if latest.version != pinned:
+            raise VersionRefused(
+                f"{name} is at version {latest.version}; the sealed series ran version {pinned}"
+            )
+    if latest is not None and current == fingerprint:
         return latest.version
     created = agents.create_version(
         name, definition=PromptAgentDefinition(definition), metadata={"fingerprint": fingerprint}

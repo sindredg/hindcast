@@ -536,6 +536,27 @@ def test_result_file_is_never_overwritten(tmp_path: Path) -> None:
         write_result(complete_result(), **kwargs)
 
 
+def test_result_file_is_whole_or_absent(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    # A process that dies before the file is in place leaves nothing under the
+    # result's name and no temporary file behind (#61).
+    def die(*_: object) -> None:
+        raise OSError("killed")
+
+    monkeypatch.setattr("hindcast.investigate.os.link", die)
+    with pytest.raises(OSError, match="killed"):
+        write_result(
+            complete_result(),
+            case_id="dev",
+            agent=AGENT,
+            model=MODEL,
+            provenance=PROVENANCE,
+            out_dir=tmp_path,
+            now=NOW,
+            filename="r1-a1-x.json",
+        )
+    assert list((tmp_path / "dev").iterdir()) == []
+
+
 def test_incomplete_result_has_null_investigation_and_the_reason(tmp_path: Path) -> None:
     result = run(ScriptedTurn(response(text="")))
     path = write_result(

@@ -24,7 +24,7 @@ import argparse
 import hashlib
 import json
 import time
-from collections import defaultdict
+from collections import Counter, defaultdict
 from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -298,6 +298,12 @@ def build(out_dir: Path = OUT_DIR) -> list[str]:
     return lines
 
 
+def arm_rows(data: bytes) -> dict[str, int]:
+    """A JSONL dataset's rows per arm, recorded at submit so results() can count
+    a row the service dropped against its arm (#86)."""
+    return dict(sorted(Counter(json.loads(line)["arm"] for line in data.splitlines()).items()))
+
+
 def submit(out_dir: Path = OUT_DIR, record_dir: Path = RECORD_DIR) -> list[str]:
     from openai.types.eval_create_params import DataSourceConfigCustom
     from openai.types.evals.create_eval_jsonl_run_data_source_param import (
@@ -347,6 +353,7 @@ def submit(out_dir: Path = OUT_DIR, record_dir: Path = RECORD_DIR) -> list[str]:
                     "name": dataset.name,
                     "version": DATASET_VERSION,
                     "rows": data.count(b"\n"),
+                    "arms": arm_rows(data),
                     "sha256": hashlib.sha256(data).hexdigest(),
                 },
                 "eval_id": evaluation.id,
@@ -364,16 +371,26 @@ def _as_dict(value: Any) -> dict:
     return value.to_dict() if hasattr(value, "to_dict") else dict(value)
 
 
-def aggregate(items: Iterable[Any], criteria: Iterable[str]) -> dict[str, dict[str, dict]]:
+def aggregate(
+    items: Iterable[Any], criteria: Iterable[str], expected: Mapping[str, int] | None = None
+) -> dict[str, dict[str, dict]]:
     """Per arm and evaluator: rows, passed, failed, errored, and the mean score.
 
     A row whose result for an evaluator is missing, has no score or no
     verdict, or carries an error counts as errored, not as a fail: the
     service's own counts once reported no errors while two judge calls had
-    failed (#7).
+    failed (#7). expected is the dataset's rows per arm: a row the service
+    returned no item for counts as errored too, so rows always add up to the
+    dataset (#86).
     """
     table: dict[str, dict[str, dict]] = defaultdict(dict)
     names = tuple(criteria)
+    items = list(items)
+    if expected is not None and len(items) > sum(expected.values()):
+        raise ValueError(f"{len(items)} items for {sum(expected.values())} dataset rows")
+    for arm in expected or {}:
+        for name in names:
+            table[arm][name] = {"rows": 0, "passed": 0, "failed": 0, "errored": 0, "scores": []}
     for raw in items:
         item = _as_dict(raw)
         arm = (item.get("datasource_item") or {}).get("arm", "unknown")
@@ -390,6 +407,13 @@ def aggregate(items: Iterable[Any], criteria: Iterable[str]) -> dict[str, dict[s
                 continue
             cell["passed" if passed else "failed"] += 1
             cell["scores"].append(float(score))
+    for arm, count in (expected or {}).items():
+        for cell in table[arm].values():
+            dropped = count - cell["rows"]
+            if dropped < 0:
+                raise ValueError(f"{arm}: {cell['rows']} items for {count} dataset rows")
+            cell["rows"] += dropped
+            cell["errored"] += dropped
     for cells in table.values():
         for cell in cells.values():
             scores = cell.pop("scores")
@@ -415,7 +439,9 @@ def results(record_dir: Path = RECORD_DIR, poll_seconds: float = 30.0) -> list[s
         )
         run_data = _as_dict(run)
         criteria = [c["name"] for c in evaluation["criteria"]]
-        table = aggregate(items, criteria)
+        # A record from before #86 holds only the total; the per-arm count
+        # check then falls back to the total, reported as missing_rows.
+        table = aggregate(items, criteria, evaluation["dataset"].get("arms"))
         out["evaluations"].append(
             {
                 "dataset": evaluation["dataset"],
@@ -426,10 +452,14 @@ def results(record_dir: Path = RECORD_DIR, poll_seconds: float = 30.0) -> list[s
                 "result_counts": run_data.get("result_counts"),
                 "per_testing_criteria_results": run_data.get("per_testing_criteria_results"),
                 "output_items": len(items),
+                "missing_rows": evaluation["dataset"]["rows"] - len(items),
                 "by_arm": table,
             }
         )
-        lines.append(f"{evaluation['dataset']['name']}: {run.status}, {len(items)} rows")
+        lines.append(
+            f"{evaluation['dataset']['name']}: {run.status}, {len(items)} rows, "
+            f"{evaluation['dataset']['rows'] - len(items)} missing"
+        )
         for arm, cells in table.items():
             for name, cell in cells.items():
                 lines.append(

@@ -139,6 +139,38 @@ def test_aggregate_counts_errors_apart_from_fails() -> None:
     assert table["comparison"]["relevance"]["errored"] == 1
 
 
+def test_aggregate_counts_a_dropped_row_as_errored() -> None:
+    # The dataset held two hindcast rows and one abstention row; the service
+    # returned one hindcast item and nothing for abstention (#86).
+    items = [item("hindcast", {"name": "relevance", "score": 5.0, "passed": True})]
+    table = aggregate(items, ["relevance"], expected={"hindcast": 2, "abstention": 1})
+    assert table["hindcast"]["relevance"] == {
+        "rows": 2,
+        "passed": 1,
+        "failed": 0,
+        "errored": 1,
+        "mean_score": 5.0,
+    }
+    assert table["abstention"]["relevance"] == {
+        "rows": 1,
+        "passed": 0,
+        "failed": 0,
+        "errored": 1,
+        "mean_score": None,
+    }
+
+
+def test_aggregate_refuses_more_items_than_the_dataset_held() -> None:
+    items = [item("hindcast", {"name": "relevance", "score": 5.0, "passed": True})] * 2
+    with pytest.raises(ValueError, match="2 items for 1 dataset rows"):
+        aggregate(items, ["relevance"], expected={"hindcast": 1})
+
+
+def test_arm_rows_counts_the_dataset_per_arm() -> None:
+    data = b"".join(json.dumps({"arm": a}).encode() + b"\n" for a in ("b", "a", "b"))
+    assert foundry.arm_rows(data) == {"a": 1, "b": 2}
+
+
 def test_a_changed_result_file_is_refused(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(foundry, "RUNS_DIR", tmp_path)
     (tmp_path / "r.json").write_text(json.dumps(document()), "utf-8")

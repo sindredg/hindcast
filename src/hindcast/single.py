@@ -149,6 +149,8 @@ def run_single(
                     status="incomplete",
                     incomplete_reason=f"pii-error: {error}",
                     investigation=None,
+                    # As the agent arms' pii-error: no investigation, no checks (#64).
+                    checks=NO_CHECKS,
                     usage=usage(result.usage),
                     tool_calls=tuple(record),
                 )

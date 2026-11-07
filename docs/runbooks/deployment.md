@@ -180,7 +180,7 @@ The procedure builds all of Hindcast in one resource group with one `azd up`, fi
     for arm in minimal planning; do PYTHONPATH=src uv run --frozen --env-file .env.full python -m hindcast.foundry_iq setup --arm $arm && PYTHONPATH=src uv run --frozen --env-file .env.full python -m hindcast.foundry_iq quality --arm $arm; done
     ```
 
-    Expected: `hindcast-library-1024-kb: 267 chunks`; then per arm, `19 of 34 queries scored` with its recall@5 and MRR, and `results-<arm>.json` written.
+    Expected: `hindcast-library-1024-kb: 267 chunks`; then per arm, `19 of 34 queries scored` with its recall@5 and MRR, the count of queries with no reference, and `results-<arm>.json` written. A returned document outside a case's filter stops the run with `LibraryLeak`. The count and the refusal are from the code, not yet observed.
 
 ## Remove
 

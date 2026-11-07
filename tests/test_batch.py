@@ -1,10 +1,13 @@
 import json
 import subprocess
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
-from hindcast import investigate, safety
+from hindcast import investigate, models, safety
+from hindcast.agent import definition_fingerprint
+from hindcast.arms import ARMS, arm_definition
 from hindcast.cases import Case
 from hindcast.evaluation import batch
 from hindcast.evaluation.batch import (
@@ -28,6 +31,9 @@ from test_investigate import (
     stub_command,
 )
 from test_tools import StubShield
+
+# The agent names the stubbed Foundry project was asked to make a version of.
+CREATED: list[str] = []
 
 # A scored case on the stub evidence file (dev.json).
 SHOW = Case("dev", "Slow pages", "Cloudflare", "showcase", "2026-02-20T18:45:16Z", (SOURCE,))
@@ -104,6 +110,21 @@ def stub_batch(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, client: FakeClient, *, locked: bool = False
 ) -> Path:
     stub_command(monkeypatch, tmp_path, client)
+    CREATED.clear()
+    # Foundry holds the sealed agent at version 3 with the current definition;
+    # any other agent name has no version yet.
+    sealed_name = "hindcast-investigator-gpt-6-luna"
+    latest = SimpleNamespace(
+        version="3",
+        metadata={
+            "fingerprint": definition_fingerprint(arm_definition(ARMS["hindcast"], "gpt-6-luna"))
+        },
+    )
+    agents = SimpleNamespace(
+        list_versions=lambda name, **_: [latest] if name == sealed_name else [],
+        create_version=lambda name, **kw: CREATED.append(name) or SimpleNamespace(version="1"),
+    )
+    monkeypatch.setattr(models, "project_client", lambda: SimpleNamespace(agents=agents))
     monkeypatch.setattr(batch, "load_cases", lambda: {"dev": SHOW})
     monkeypatch.setattr(batch, "RUNS_DIR", tmp_path / "runs")
     attempts = tmp_path / "attempts.json"
@@ -258,6 +279,21 @@ def test_refuses_an_agent_version_the_seals_did_not_run(
     with pytest.raises(BatchRefused, match="version 3"):
         main(["run", "--arm", "hindcast", "--case", "dev", "--repeats", "1"])
     assert client.calls == []
+    # Refused before Foundry gets a new version of the sealed agent's name (#62).
+    assert CREATED == []
+
+
+def test_refuses_a_changed_definition_before_creating_a_version(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    client = FakeClient(final())
+    stub_batch(monkeypatch, tmp_path, client)
+    # The investigator's definition no longer matches the sealed version's.
+    monkeypatch.setattr(investigate, "arm_definition", lambda arm, deployment: {"changed": True})
+    with pytest.raises(BatchRefused, match="does not carry"):
+        main(["run", "--arm", "hindcast", "--case", "dev", "--repeats", "1"])
+    assert client.calls == []
+    assert CREATED == []
 
 
 @pytest.mark.parametrize(
