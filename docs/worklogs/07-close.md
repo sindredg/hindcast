@@ -1,6 +1,6 @@
 # Worklog 07: Close
 
-Status: Verified on 2026-11-07. The checks before the teardown ran with the output below, the [teardown](#teardown) left nothing in Azure, every open issue has a verdict, the staleness pass is in, and the [independent review](#independent-review) ran with its fixes in. One step waits on the repository owner: the GitHub environment's secrets (teardown runbook step 10). Milestone state: [roadmap](../roadmap.md#status).
+Status: Verified on 2026-11-07. The checks before the teardown ran with the output below, the [teardown](#teardown) left nothing in Azure, every open issue has a verdict, the staleness pass is in, and the [independent review](#independent-review) ran with its fixes in. Milestone state: [roadmap](../roadmap.md#status).
 
 Scope: [milestone 7](../roadmap.md#7-close). The procedure is the [teardown runbook](../runbooks/teardown.md); the order of every runbook is the [reproduce page](../reproduce.md).
 
@@ -24,7 +24,7 @@ The [teardown runbook](../runbooks/teardown.md) ran on 2026-11-07, steps 4 to 9,
 | 7. Purge | 12:34:51 | The soft-deleted Foundry resource purged; `list-deleted` printed no account, and no workspace of the project's (two from other subscriptions' projects were listed) |
 | 8. Registrations | 12:35:04 to 12:35:39 | `hindcast-app` deleted; six `AgentIdentityBlueprint` registrations remained after the purge (the project-level one and three others went with it), listed, and deleted by ID; the final list printed nothing |
 | 9. Final check | 12:35:50 | No resource named after the project, no custom role, no assignment to an unknown principal; the only group left is the subscription's `NetworkWatcherRG` |
-| 10. GitHub secrets | Pending | The `azure` environment's four secrets (IDs of removed resources) wait for the repository owner |
+| 10. GitHub secrets | 2026-11-07 | The `azure` environment's four secrets (IDs of removed resources) deleted; `gh secret list --env azure` printed `no secrets found` |
 
 The checks can fail: the same queries at 11:40 that day, before the run, listed the group, the custom role, four assignments, and eleven registrations.
 
@@ -52,7 +52,7 @@ Every open issue on 2026-11-07, with its verdict. Fixed items are in this milest
 | [#82](https://github.com/sindredg/hindcast/issues/82) injection check misses a canary in a rejected citation | Open, limit | A wider match changes what a pass means; it goes with new injection runs |
 | [#83](https://github.com/sindredg/hindcast/issues/83) leak check misses items under 8 words | Fixed | A short item is matched whole; every key was checked again offline (above) |
 | [#84](https://github.com/sindredg/hindcast/issues/84) per-arm failure count double counts | Open, limit | No scored result changes (no failed attempt in the ledger); the fix belongs with a regenerated report |
-| [#88](https://github.com/sindredg/hindcast/issues/88) require SHA-pinned actions in the settings | Open, portal | A repository setting for the owner; zizmor checks the pins in CI meanwhile |
+| [#88](https://github.com/sindredg/hindcast/issues/88) require SHA-pinned actions in the settings | Fixed | `sha_pinning_required` set to `true` on 2026-11-07 through `PUT /repos/{owner}/{repo}/actions/permissions`; the read back printed `true` |
 | [#90](https://github.com/sindredg/hindcast/issues/90) root cause names finding IDs first | Closed | A page-order question with no further page change planned |
 | [#91](https://github.com/sindredg/hindcast/issues/91) redo the November pin batch | Closed | Landed in [#97](https://github.com/sindredg/hindcast/pull/97); the deployment runbook's expected tool versions now name the run they came from |
 | [#99](https://github.com/sindredg/hindcast/issues/99) timeline tolerance credits an announcement | Open, limit | A rubric change is a new version; the sealed report states it |
@@ -76,7 +76,7 @@ A read-only pass over every tracked page compared each state-carrying sentence w
 | --- | --- | --- |
 | Everything built by hand is removed and nothing is left | Tested | [Teardown](#teardown): step 9 printed three empty results at 12:35:50Z, and the same queries listed the resources before the run |
 | The sealed copies and every blob were checked before the storage went | Tested | [Before the teardown](#before-the-teardown) |
-| Every open issue has a verdict | Tested | [Issues](#issues): `gh issue list --state open` listed 25 on 2026-11-07 and each has a row. The nine closes land with the merge and the eight reasoned closes after it; the list is read again then |
+| Every open issue has a verdict | Tested | [Issues](#issues): `gh issue list --state open` listed 25 on 2026-11-07 and each has a row. The nine closes land with the merge and the eight reasoned closes after it; the list is read again then. #88 closed by the setting |
 | A reproduce page orders the runbooks | Written | [reproduce](../reproduce.md); not tested from a fork, and the page says so |
 | Every state-carrying page matches the code and the close | Tested | [Staleness pass](#staleness-pass) |
 | An independent review of the close ran with its fixes in | Tested | [Independent review](#independent-review): eleven fix-now items, each fixed in this pull request |
