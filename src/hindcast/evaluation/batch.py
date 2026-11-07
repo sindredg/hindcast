@@ -188,9 +188,14 @@ def verified_run(
     return document
 
 
+def is_root(root: Path, which: Path) -> bool:
+    """Whether root names the tree which, however it is written: absolute or relative."""
+    return root.resolve() == which.resolve()
+
+
 def run_loader(root: Path) -> Callable[[Mapping[str, Any]], dict]:
     """How the judge and the reviewer read a scoring tree's result files."""
-    if root == SEALED_ROOT:
+    if is_root(root, SEALED_ROOT):
         return lambda entry: verified_run(entry, REVEALED_DIR, named=False)
     return lambda entry: verified_run(entry, root / "runs")
 

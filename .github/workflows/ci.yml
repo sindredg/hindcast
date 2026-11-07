@@ -241,11 +241,15 @@ jobs:
     # the federated credential accepts, and its secrets hold the identity and
     # registry IDs: resource names and IDs, not keys, kept out of public logs.
     # Every check has to pass first: the ruleset's required checks guard a
-    # merge, not a push or a manual run from main.
+    # merge, not a push or a manual run from main. The repository variable
+    # HINDCAST_PUSH_IMAGE gates the job: without a registry to push to, the
+    # job would fail on every push to main, so it runs only while an
+    # environment exists (deployment runbook, step 6).
     needs: [python, yaml, audit, infra]
     if: >-
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
       && github.ref == 'refs/heads/main'
+      && vars.HINDCAST_PUSH_IMAGE == 'true'
     runs-on: ubuntu-26.04
     environment: azure
     permissions:

@@ -1,12 +1,12 @@
 # Milestone 3: Retrieval
 
-Status: Verified on 2026-11-01. The library index is live, its [gate](#gate) checks pass on it, and the [independent review](#independent-review) ran with its fixes in. The milestone state is in the [roadmap](../roadmap.md).
+Status: Verified on 2026-11-01. The library index was live until 2026-11-04, its [gate](#gate) checks passed on it, and the [independent review](#independent-review) ran with its fixes in. The milestone state is in the [roadmap](../roadmap.md).
 
 ## Scope
 
 The postmortem library in Azure AI Search: section- and figure-bounded chunks that resolve to citations, a search that a case can only use within its date bound and its picks, and the checks that prove both on the live index ([decision 0019](../decisions/0019-library-index.md)). Before that, the extraction model moved to a pinned gpt-5.4-mini, and every analysis checks its analyzer first ([decision 0018](../decisions/0018-extraction-model.md); [#13](https://github.com/sindredg/hindcast/issues/13), [#15](https://github.com/sindredg/hindcast/issues/15)).
 
-The investigator's library tool and library citations are milestone 4's second slice. A Foundry IQ knowledge base is not built. The procedure is the [retrieval runbook](../runbooks/retrieval.md).
+The investigator's library tool and library citations are milestone 4's second slice. The Foundry IQ comparison ran on 2026-11-05 in the full environment ([foundry-iq-v1](../../eval/retrieval/foundry-iq-v1/README.md)); when this worklog was written no knowledge base was built. The procedure is the [retrieval runbook](../runbooks/retrieval.md).
 
 ## Work completed
 

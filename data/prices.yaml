@@ -44,6 +44,11 @@ models:
 # 1,000), effective 2024-06-01.
 embedding: 0.13
 
+# No line for the library search. The search service bills per hour for the
+# service and per 1,000 queries for semantic ranking, and the Cost Management
+# read of 2026-11-07 (worklog 04, slice 3 gate) showed no per-run line for
+# either, so a run's cost leaves its one search out. Issue #52.
+#
 # Per 1,000 text records. A record is taken as up to 1,000 characters of one
 # document, the unit Language's data-limits page states; assumed for Prompt
 # Shields until the table is compared with billed cost.

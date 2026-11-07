@@ -27,6 +27,7 @@ added to the sealed scoring ledger for the judge. Prints counts and hashes only.
 import argparse
 import hashlib
 import json
+import re
 from collections.abc import Callable, Mapping
 from datetime import UTC, datetime
 from pathlib import Path
@@ -88,6 +89,70 @@ def published_at(source: SourceFile, data: bytes, given: str | None) -> tuple[st
     return _stamp(_utc(given)), "stated on the postmortem page"
 
 
+# A host, an IP address, a URL, or a GUID in an SDK message. A revealed file is
+# published byte for byte, so such a message would be published with it.
+UNSAFE = re.compile(
+    r"https?://"
+    r"|\b\d{1,3}(?:\.\d{1,3}){3}\b"
+    r"|\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b"
+    r"|\b[\w-]+(?:\.[\w-]+)*\.(?:net|com|io|org|cloud|azure|microsoft)\b",
+    re.IGNORECASE,
+)
+
+
+def unsafe_reason(reason: str | None) -> bool:
+    """Whether an incomplete reason names a host, an address, or an ID (issue #48)."""
+    return bool(reason) and UNSAFE.search(reason or "") is not None
+
+
+def _resolved_body(data: bytes, name: str) -> str:
+    incident = json.loads(data)
+    resolved = sorted(
+        (u for u in incident["incident_updates"] if u["status"] == "resolved"),
+        key=lambda u: u["created_at"],
+    )
+    if not resolved:
+        raise RevealRefused(f"{name}: no resolved update")
+    return str(resolved[0]["body"])
+
+
+def _sealing_day_capture(
+    case: Case, first_seal: str, sources_dir: Path, postmortem: bytes | None
+) -> None:
+    """The status-updates capture the seals ran on held no cause (issue #102).
+
+    The postmortem's publication time is the resolved update's last edit, an
+    upper bound. The lower bound is the capture taken before the first seal:
+    its resolved update is at most the placeholder floor, and the postmortem
+    capture's resolved text differs from it.
+    """
+    from hindcast.keys import MIN_SUMMARY_WORDS
+
+    status = next((s for s in case.sources if s.kind == "status-updates"), None)
+    if status is None:
+        raise RevealRefused(f"{case.case_id}: no status-updates source captured before the seals")
+    if _utc(status.retrieved_at) >= _utc(first_seal):
+        raise RevealRefused(
+            f"{status.filename}: captured {status.retrieved_at}, "
+            f"not before the first seal at {first_seal}"
+        )
+    data = (sources_dir / case.case_id / status.filename).read_bytes()
+    if _sha256(data) != status.sha256:
+        raise RevealRefused(f"{status.filename}: differs from its registry hash")
+    body = _resolved_body(data, status.filename)
+    words = len(re.findall(r"\w+", body))
+    if words > MIN_SUMMARY_WORDS:
+        raise RevealRefused(
+            f"{status.filename}: its resolved update had {words} words at sealing time, "
+            f"above the placeholder floor of {MIN_SUMMARY_WORDS}"
+        )
+    if postmortem is not None and _resolved_body(postmortem, "the postmortem capture") == body:
+        raise RevealRefused(
+            f"{status.filename}: already held the resolved text the postmortem capture "
+            "carries; the cause was not published after the seals"
+        )
+
+
 def _frozen(path: Path, record: Path, case_id: str) -> str:
     if not path.is_file():
         raise RevealRefused(f"{path}: not frozen")
@@ -141,6 +206,12 @@ def check_ready(
     late = [s["sealed_at"] for s in own if _utc(published) <= _utc(s["sealed_at"])]
     if late:
         raise RevealRefused(f"cause published {published}, not after the seal at {late[0]}")
+    _sealing_day_capture(
+        case,
+        min(s["sealed_at"] for s in own),
+        sources_dir,
+        data if source.filename.endswith(".json") else None,
+    )
     snapshot_path, snapshot_record = snapshot or (
         seal_module.SNAPSHOT_DIR / f"{case.case_id}.json",
         seal_module.SNAPSHOTS,
@@ -174,6 +245,8 @@ def check_ready(
 
 def ledger_entry(seal: Mapping[str, Any], document: Mapping[str, Any]) -> dict[str, Any]:
     """A revealed seal as an attempt in the sealed scoring ledger."""
+    from hindcast.seal import reason_prefix
+
     deployment = seal["deployment"]
     return {
         "run_id": f"sealed/{seal['case_id']}/{deployment}/a{seal['attempt']}",
@@ -185,7 +258,8 @@ def ledger_entry(seal: Mapping[str, Any], document: Mapping[str, Any]) -> dict[s
         "attempt": seal["attempt"],
         "started_at": seal["sealed_at"],
         "status": seal["status"],
-        "reason": document.get("incomplete_reason"),
+        # The kind of reason only: a tool error echoes the SDK's message.
+        "reason": reason_prefix(document.get("incomplete_reason")),
         "file": f"{seal['case_id']}/{seal['file']}",
         "sha256": seal["sha256"],
         "usage": document["usage"],
@@ -246,9 +320,15 @@ def reveal(
             raise RevealRefused(f"{target} exists; a revealed file is never replaced")
         if seal["status"] in ("complete", "incomplete"):
             try:
-                entries.append(ledger_entry(seal, json.loads(data)))
+                document = json.loads(data)
+                entries.append(ledger_entry(seal, document))
             except (ValueError, KeyError) as error:
                 raise RevealRefused(f"{seal['file']}: not a result file ({error!r})") from error
+            if unsafe_reason(document.get("incomplete_reason")):
+                raise RevealRefused(
+                    f"{seal['file']}: its incomplete reason names a host, an address, or an ID; "
+                    "a revealed file is published as sealed"
+                )
         ready.append((seal, data, target))
     files = []
     for seal, data, target in ready:

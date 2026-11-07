@@ -58,6 +58,7 @@ The judge and the reviewer agree on 17 of the 18 queue items (94.4%, Cohen's kap
 - A miss shows that this question did not bring the cause out. It does not show that the model never read the postmortem.
 - Four cases and two models: 14 answers. `github-2026-10-07` has one answer per model, the other cases two.
 - Two models from one provider decide the outcomes, and no person checks them: the reviewer decides every proposed hit and partial, and a quarter of the rest; the judge's proposal stands on the other items.
+- Each answer file records the reasoning effort that was requested (`medium`), not the effort the response reports. A live call on 2026-10-25 showed the response reports an effort (`medium` when none was sent); whether it can differ from the requested one was not checked, and both collections requested the same effort ([issue #4](https://github.com/sindredg/hindcast/issues/4)).
 
 ## Files
 

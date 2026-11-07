@@ -458,6 +458,7 @@ def load_second_judgments(root: Path, reviews: Mapping[str, Mapping[str, Any]]) 
 
 
 def main(argv: list[str] | None = None) -> int:
+    from hindcast.evaluation.batch import is_root
     from hindcast.evaluation.judge import load_case
     from hindcast.labels import FROZEN as LABELS_FROZEN
     from hindcast.labels import LABELS_DIR, load_labels
@@ -524,7 +525,7 @@ def main(argv: list[str] | None = None) -> int:
     else:
         out["second_opinion"] = opinion
     (root / "scores.json").write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8")
-    if root == ROOT:
+    if is_root(root, ROOT):
         (PRIOR_ROOT / "scores.json").write_text(json.dumps(prior, indent=2) + "\n", "utf-8")
     print(f"{root / 'scores.json'}: {len(scores)} runs")
     return 0

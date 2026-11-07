@@ -8,7 +8,7 @@ Findings about Foundry evaluation runs in the portal: what a run sends, what its
 
 **Evidence:** tested live, 2026-10-26, in `run-luna-dev-outage-v1.json`: `result_counts` `{"total": 5, "passed": 4, "failed": 1, "errored": 0}`, while `per_testing_criteria_results` lists `errored: 1` for Coherence and for ResponseCompleteness. In `results-luna-dev-outage-v1.jsonl`, those two results have `status` `error`, `score` null, and an error message in `sample`. The log excerpt has the two failed calls ("Error during evaluation ... Principal does not have access to API/Operation") and the service's own count: `EVALUATOR_ROW_SUMMARY ... errored_items=2 graded_items=25`.
 
-**For Hindcast:** a headline pass count can hide a missing score. `summarise_runs.py` lists the failed calls and reports a mean as missing when one of its scores is. The evaluation in milestone 5 reads scores from the rows and treats a run with a missing score on a gated metric as incomplete.
+**For Hindcast:** a headline pass count can hide a missing score. `summarise_runs.py` lists the failed calls and reports a mean as missing when one of its scores is. The evaluation in milestone 5 reads scores from the rows and counts a row with a missing score as errored, in `hindcast.evaluation.foundry`.
 
 **Read more:** [Run evaluations from the portal](https://learn.microsoft.com/azure/foundry/how-to/evaluate-generative-ai-app).
 

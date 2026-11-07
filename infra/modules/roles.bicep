@@ -1,4 +1,5 @@
-// Every role assignment the environment needs, each next to the call it
+// Every role assignment the environment needs except the registry's two,
+// which app.bicep makes next to the registry, each next to the call it
 // serves (decision 0028). Built-in role definition IDs read with
 // `az role definition list --name <role>` on 2026-11-05.
 

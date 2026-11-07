@@ -110,7 +110,7 @@ Failures that showed something about Hindcast, the platform, or a procedure: the
 
 **Fix:** the digest read from the registry for the current placeholder, and the port and probes follow the image.
 
-**Verification:** tested live, 2026-10-31: the next `azd provision` succeeded, the revision is `Healthy`, and the deploying account reached the placeholder through sign-in.
+**Verification:** tested live, 2026-10-31: the next `azd provision` succeeded, the revision was `Healthy`, and the deploying account reached the placeholder through sign-in. The group was deleted on 2026-11-05.
 
 ## Deployment: `azd provision --preview` prompts for a parameter (2026-10-31)
 

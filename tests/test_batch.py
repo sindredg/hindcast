@@ -392,3 +392,18 @@ def test_the_sealed_tree_reads_revealed_files_by_hash_alone() -> None:
     # The showcase tree still needs the run ID in the file.
     with pytest.raises(ValueError, match="names another run"):
         verified_run(entries[0], Path("eval/investigations"))
+
+
+def test_an_absolute_sealed_root_still_reads_revealed_files() -> None:
+    from hindcast.evaluation.batch import SEALED_ROOT, run_loader
+
+    entries = load_attempts(SEALED_ROOT / "attempts.json")
+    assert run_loader(SEALED_ROOT.resolve())(entries[0])["run_id"] == entries[0]["run_id"]
+
+
+def test_the_root_comparisons_resolve_both_sides() -> None:
+    from hindcast.evaluation.batch import ROOT, SEALED_ROOT, is_root
+
+    assert is_root(ROOT.resolve(), ROOT)
+    assert is_root(Path("eval/../eval/reconstruction/showcase-v1"), ROOT)
+    assert not is_root(SEALED_ROOT, ROOT)

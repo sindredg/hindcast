@@ -4,7 +4,7 @@ Status: Written on 2026-11-04.
 
 - Steps 1 to 17 ran on 2026-11-03 and 2026-11-04 with the output shown, steps 5 to 8 again for the case-chart variant ([decision 0026](../decisions/0026-case-chart-injection.md)).
 - Steps 18 to 23 (the reviewer, the decisions, the scores, and the spend) ran on 2026-11-04 with the output shown.
-- The search service was deleted on 2026-11-04 after step 14, recreated for the case-chart runs, and deleted again at 17:41Z. Steps 4 to 11 need it: recreate it with the [retrieval runbook](retrieval.md) first.
+- The search service was deleted on 2026-11-04 after step 14, recreated for the case-chart runs, and deleted again at 17:41Z. Steps 4 to 11 need it: recreate it with the [retrieval runbook](retrieval.md) first. Since the teardown on 2026-11-07 the Foundry resource is gone too: start from [reproduce](../reproduce.md).
 
 The procedure scores Hindcast's reconstructions of the showcase cases against their frozen keys ([decision 0006](../decisions/0006-evaluation-design.md), [rubric version 3](../../eval/rubric/rubric.md)): five arms, four cases, three runs each; the injection tests on two layers ([decisions 0025](../decisions/0025-injection-test-layers.md) and [0026](../decisions/0026-case-chart-injection.md)); the Foundry cloud evaluators; then, offline, the judge, the reviewer model that decides the review queue, the scores, and their spend. The results are in the [evaluation report](../../eval/reconstruction/showcase-v1/README.md) and the [injection report](../../eval/injection/dev-v1/README.md).
 

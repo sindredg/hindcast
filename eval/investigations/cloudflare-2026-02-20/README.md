@@ -1,6 +1,6 @@
 # Investigations of the development case `cloudflare-2026-02-20`
 
-Four development runs and nine challenges, read against the evidence and not scored. The answer key stays closed until the milestone 5 rubric is frozen. The page lists the runs and opens on the newest `gpt-6-luna` run.
+Four development runs and nine challenges, read against the evidence and not scored. The answer key was frozen on 2026-10-27 and is not used to score these runs. The page lists the runs and opens on the newest `gpt-6-luna` run.
 
 ## The runs
 

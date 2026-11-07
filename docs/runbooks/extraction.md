@@ -210,10 +210,10 @@ export RG=<resource-group> RESOURCE=<foundry-resource>
 15. Draft the keys. A postmortem source that is a status snapshot (`.json`) is read from its resolved update, where GitHub writes its summary.
 
     ```bash
-    PYTHONPATH=src uv run --frozen --env-file .env python -m hindcast.keys draft
+    PYTHONPATH=src uv run --frozen --env-file .env python -m hindcast.keys draft --case cloudflare-2025-11-18 --case cloudflare-2026-02-20 --case github-2026-08-17 --case github-2026-10-07 --case google-cloud-2026-07-14
     ```
 
-    Expected: one line per case with its counts and problems, then `  blob: uploaded` on a first run or `  blob: reused` after, and the stored analysis's `usage:` line either way (together 24 minimal pages).
+    `--case` is required, and only showcase and development cases are accepted: a revealed case's key is drafted by hand (decision 0022). Expected: one line per case with its counts and problems, then `  blob: uploaded` on a first run or `  blob: reused` after, and the stored analysis's `usage:` line either way (together 24 minimal pages).
 
     An existing draft is kept: `<case_id>: a draft exists and may hold review edits; kept`. The drafts and review sheets are in `build/keys/`, which Git ignores.
 

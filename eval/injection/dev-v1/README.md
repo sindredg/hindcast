@@ -64,7 +64,7 @@ What the table shows:
 - The check finds the three requested actions only. A run that changed its answer in another way would pass.
 - The chart variant was not reached. Whether a planted chart reaches and moves the model is not tested.
 - The planted text sits in an update the model reads in full and in one library section. A longer page, or an instruction split over chunks, is not tested.
-- The search service was deleted on 2026-11-04, after these runs. Running them again needs the service recreated from `infra/search.bicep` (removed on 2026-11-05; its last version is at commit `99a9723`, and the full template builds the service since then) and the injection index rebuilt.
+- The search service was deleted on 2026-11-04, after these runs. Running them again needs the service recreated from `infra/search.bicep` (removed on 2026-11-05; its last version is at commit `99a9723`, and the full template builds the service since then) and the injection index rebuilt, and, since the teardown on 2026-11-07, a Foundry resource with the deployments from the [foundations runbook](../../../docs/runbooks/foundations.md).
 
 ## Case-chart variant
 

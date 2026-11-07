@@ -6,7 +6,7 @@ The procedure builds all of Hindcast in one resource group with one `azd up`, fi
 
 ## Inputs and access
 
-- Azure Developer CLI 1.37.2 and Bicep CLI 0.48.1 (through `az bicep`), the newest stable releases on 2026-11-05; Azure CLI 2.88.0; GitHub CLI; uv.
+- Azure Developer CLI 1.37.2 and Bicep CLI 0.48.1 (through `az bicep`), the newest stable releases on 2026-11-05 (CI pins Bicep 0.49.2 since 2026-11-07); Azure CLI 2.88.0; GitHub CLI; uv.
 - Signed in as an Owner of the subscription who can create app registrations in the tenant, and as a GitHub user who can set the repository's environment secrets.
 - Global Standard quota in Sweden Central of 50 thousand tokens per minute free for each of gpt-6-luna, gpt-6.1-sol, gpt-5.4-mini, and text-embedding-3-large (`az cognitiveservices usage list -l swedencentral`).
 - The local data tree: `data/sources/` with every source the registries pin, and `build/evidence/`, `build/extracted/library/`, and `build/injection/` from the extraction and injection runbooks.
@@ -24,7 +24,7 @@ The procedure builds all of Hindcast in one resource group with one `azd up`, fi
    azd version && az bicep version
    ```
 
-   Expected: `azd version 1.37.2` and `Bicep CLI version 0.48.1`.
+   Expected: the versions the last run used, on 2026-11-06: `azd version 1.37.2` and `Bicep CLI version 0.48.1`. Newer releases are fine when the preview and the provision below pass; CI pins Bicep in `.github/workflows/ci.yml`.
 
 ## Environment
 
@@ -79,10 +79,10 @@ The procedure builds all of Hindcast in one resource group with one `azd up`, fi
 6. Point the `azure` environment's secrets at the new CI identity and registry. The tenant and subscription stay the same.
 
    ```bash
-   gh secret set AZURE_CLIENT_ID --env azure --body "$(azd env get-value CI_IDENTITY_CLIENT_ID)" && gh secret set AZURE_CONTAINER_REGISTRY_NAME --env azure --body "$(azd env get-value AZURE_CONTAINER_REGISTRY_NAME)" && gh secret list --env azure
+   gh secret set AZURE_CLIENT_ID --env azure --body "$(azd env get-value CI_IDENTITY_CLIENT_ID)" && gh secret set AZURE_CONTAINER_REGISTRY_NAME --env azure --body "$(azd env get-value AZURE_CONTAINER_REGISTRY_NAME)" && gh secret list --env azure && gh variable set HINDCAST_PUSH_IMAGE --body true && gh variable list
    ```
 
-   Expected: two `Set Actions secret` lines and four names in the list.
+   Expected: two `Set Actions secret` lines, four names in the secret list, and `HINDCAST_PUSH_IMAGE  true` in the variable list. The variable gates the push job: without it the job is skipped, so a push to `main` stays green when no registry exists.
 
 7. Push the image from `main`. CI writes the provenance manifest, builds and checks the image, and, once every check job has passed, pushes that same image as `hindcast:<sha>` and `hindcast:main` ([decision 0029](../decisions/0029-push-the-tested-image.md)).
 
@@ -187,7 +187,7 @@ The procedure builds all of Hindcast in one resource group with one `azd up`, fi
 16. Delete the custom role first: role definitions are not deleted with the resource group, and an assigned one cannot be deleted. Its assignments go, then the definition, while its scope still exists. The assignments are found by the definition's ID: `az role assignment list --all --role` with this role's name fails ([troubleshooting](../troubleshooting.md#deployment-the-custom-roles-delete-fails-with-roledefinitionhasassignments-2026-11-06)).
 
     ```bash
-    ROLE="Hindcast Safety Caller (hindcast-full)" && RGID=$(az group show -n rg-hindcast-full --query id -o tsv) && RID=$(az role definition list --custom-role-only true --name "$ROLE" --scope "$RGID" --query "[0].name" -o tsv) && az role assignment list --all --query "[?ends_with(roleDefinitionId, '$RID')].id" -o tsv | xargs -r az role assignment delete --ids && az role definition delete --name "$ROLE" --custom-role-only true --scope "$RGID" && az role definition list --custom-role-only true --query "[].roleName" -o tsv
+    ROLE="Hindcast Safety Caller (hindcast-full)" && RGID=$(az group show -n rg-hindcast-full --query id -o tsv) && RID=$(az role definition list --custom-role-only true --name "$ROLE" --scope "$RGID" --query "[0].name" -o tsv) && test -n "$RID" && az role assignment list --all --query "[?ends_with(roleDefinitionId, '$RID')].id" -o tsv | xargs -r az role assignment delete --ids && az role definition delete --name "$ROLE" --custom-role-only true --scope "$RGID" && az role definition list --custom-role-only true --query "[].roleName" -o tsv
     ```
 
     Expected: the list no longer shows `Hindcast Safety Caller (hindcast-full)`.
@@ -200,10 +200,10 @@ The procedure builds all of Hindcast in one resource group with one `azd up`, fi
 
     Expected: `false`, and no Hindcast name among the deleted accounts or the deleted workspaces.
 
-18. Delete the environment's app registration.
+18. Delete the environment's app registration, and turn the push job off again.
 
     ```bash
-    az ad app delete --id "$(azd env get-value -e hindcast-full AUTH_CLIENT_ID)" && az ad app list --display-name hindcast-full --query "[].displayName" -o tsv
+    az ad app delete --id "$(azd env get-value -e hindcast-full AUTH_CLIENT_ID)" && az ad app list --display-name hindcast-full --query "[].displayName" -o tsv && gh variable delete HINDCAST_PUSH_IMAGE && gh variable list
     ```
 
-    Expected: an empty list.
+    Expected: an empty list twice.
