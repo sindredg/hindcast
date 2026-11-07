@@ -1,6 +1,6 @@
 # Worklog 07: Close
 
-Status: Built on 2026-11-07. The checks before the teardown ran with the output below, every open issue has a verdict, and the staleness pass is in. The [teardown](#teardown) and the [independent review](#independent-review) are recorded here as they complete. Milestone state: [roadmap](../roadmap.md#status).
+Status: Verified on 2026-11-07. The checks before the teardown ran with the output below, the [teardown](#teardown) left nothing in Azure, every open issue has a verdict, the staleness pass is in, and the [independent review](#independent-review) ran with its fixes in. One step waits on the repository owner: the GitHub environment's secrets (teardown runbook step 10). Milestone state: [roadmap](../roadmap.md#status).
 
 Scope: [milestone 7](../roadmap.md#7-close). The procedure is the [teardown runbook](../runbooks/teardown.md); the order of every runbook is the [reproduce page](../reproduce.md).
 
@@ -14,7 +14,19 @@ Scope: [milestone 7](../roadmap.md#7-close). The procedure is the [teardown runb
 
 ## Teardown
 
-Recorded when the [teardown runbook](../runbooks/teardown.md) steps 3 to 9 have run.
+The [teardown runbook](../runbooks/teardown.md) ran on 2026-11-07, steps 4 to 9, after steps 1 and 2 above. Step 3 (the agents) did not run as a separate step: the agents went with the Foundry resource in step 6 and their identity registrations in step 8. Times are UTC.
+
+| Step | Ran | Observed |
+| --- | --- | --- |
+| 4. Custom role | by 12:29 | The assignment and the definition deleted; `az role definition list --custom-role-only true` printed nothing |
+| 5. Developer's assignments | 12:29:30 | Three assignments deleted by ID (Foundry User on the project, Storage Blob Data Contributor, Cognitive Services OpenAI User); the list for the group printed nothing |
+| 6. Workspace and group | 12:30:34, 12:32:45 | The workspace force-deleted, the group deleted in 2m11s, `az group exists` printed `false` |
+| 7. Purge | 12:34:51 | The soft-deleted Foundry resource purged; `list-deleted` printed no account, and no workspace of the project's (two from other subscriptions' projects were listed) |
+| 8. Registrations | 12:35:04 to 12:35:39 | `hindcast-app` deleted; six `AgentIdentityBlueprint` registrations remained after the purge (the project-level one and three others went with it), listed, and deleted by ID; the final list printed nothing |
+| 9. Final check | 12:35:50 | No resource named after the project, no custom role, no assignment to an unknown principal; the only group left is the subscription's `NetworkWatcherRG` |
+| 10. GitHub secrets | Pending | The `azure` environment's four secrets (IDs of removed resources) wait for the repository owner |
+
+The checks can fail: the same queries at 11:40 that day, before the run, listed the group, the custom role, four assignments, and eleven registrations.
 
 ## Issues
 
@@ -62,12 +74,12 @@ A read-only pass over every tracked page compared each state-carrying sentence w
 
 | Criterion | Status | Evidence |
 | --- | --- | --- |
-| Everything built by hand is removed and nothing is left | Pending | [Teardown](#teardown) |
+| Everything built by hand is removed and nothing is left | Tested | [Teardown](#teardown): step 9 printed three empty results at 12:35:50Z, and the same queries listed the resources before the run |
 | The sealed copies and every blob were checked before the storage went | Tested | [Before the teardown](#before-the-teardown) |
 | Every open issue has a verdict | Tested | [Issues](#issues): `gh issue list --state open` listed 25 on 2026-11-07 and each has a row. The nine closes land with the merge and the eight reasoned closes after it; the list is read again then |
 | A reproduce page orders the runbooks | Written | [reproduce](../reproduce.md); not tested from a fork, and the page says so |
 | Every state-carrying page matches the code and the close | Tested | [Staleness pass](#staleness-pass) |
-| An independent review of the close ran with its fixes in | Pending | [Independent review](#independent-review) |
+| An independent review of the close ran with its fixes in | Tested | [Independent review](#independent-review): eleven fix-now items, each fixed in this pull request |
 
 ## Independent review
 

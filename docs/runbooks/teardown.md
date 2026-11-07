@@ -1,6 +1,6 @@
 # Teardown: operator procedure
 
-Status: Written on 2026-11-07. Steps 1 and 2 ran on 2026-11-07 with the output shown; steps 3 to 9 are written from the removal that ran for the full environment ([deployment runbook](deployment.md#remove)) and the live inventory of 2026-11-07, and their expected values are reasoned until the [close worklog](../worklogs/07-close.md#teardown) records the run.
+Status: Validated on 2026-11-07. Steps 1, 2, and 4 to 9 ran that day with the output shown ([close worklog](../worklogs/07-close.md#teardown)); step 3 did not run as a step, since the agents went with the resource in step 6 and their registrations in step 8; step 10 is written, not run.
 
 The procedure removes everything the [foundations](foundations.md), [extraction](extraction.md), [investigator](investigator.md), and [retrieval](retrieval.md) runbooks built by hand: the resource group with the Foundry resource and project, the storage account, Application Insights and its workspace, the agents, the custom role, the developer's role assignments, and the app registration from milestone 6's first slice. The full environment has its own removal ([deployment runbook](deployment.md#remove)); run that first if it exists.
 
@@ -49,7 +49,7 @@ export RG=<resource-group> RESOURCE=<foundry-resource> STORAGE=<storage-account>
    PYTHONPATH=src uv run --frozen --env-file .env python -c "from hindcast.models import project_client; c=project_client(); names=[a.name for a in c.agents.list()]; [print(c.agents.delete(n)) for n in names]; print('remaining', [a.name for a in c.agents.list()])"
    ```
 
-   Expected: one deletion record per agent (six on 2026-11-07: the two investigators, the two challengers, and the two arm agents) and `remaining []`.
+   Expected (reasoned from the spike agent's deletion on 2026-10-30, not run on these agents): one deletion record per agent (six on 2026-11-07: the two investigators, the two challengers, and the two arm agents) and `remaining []`. Skipping this step leaves the agents to step 6 and their identity registrations to step 8, as on 2026-11-07.
 
 4. Delete the custom role's assignment, then the role, while its scope exists. An assigned role definition cannot be deleted ([troubleshooting](../troubleshooting.md#deployment-the-custom-roles-delete-fails-with-roledefinitionhasassignments-2026-11-06)).
 
@@ -73,7 +73,7 @@ export RG=<resource-group> RESOURCE=<foundry-resource> STORAGE=<storage-account>
    az monitor log-analytics workspace delete -g "$RG" -n "$WORKSPACE" --force true --yes && az group delete -n "$RG" --yes && az group exists -n "$RG"
    ```
 
-   Expected: `false`, after some minutes.
+   Expected: `false`, after some minutes. Observed on 2026-11-07: the group was gone 2m11s after the workspace.
 
 7. Purge the soft-deleted Foundry resource and check that no deleted account or workspace is left.
 
@@ -89,7 +89,7 @@ export RG=<resource-group> RESOURCE=<foundry-resource> STORAGE=<storage-account>
    az ad app delete --id "$APP" && az ad app list --all --query "[?starts_with(displayName, '$RESOURCE-')].displayName" -o tsv
    ```
 
-   Expected: the project's blueprint registrations only (eleven on 2026-11-07). Then delete them:
+   Expected: the project's blueprint registrations only. On 2026-11-07 six remained after step 7 (eleven existed before it). Then delete them:
 
    ```bash
    az ad app list --all --query "[?starts_with(displayName, '$RESOURCE-')].appId" -o tsv | xargs -r -n1 az ad app delete --id; az ad app list --all --query "[?starts_with(displayName, '$RESOURCE-') || displayName=='hindcast-app'].displayName" -o tsv
@@ -103,7 +103,7 @@ export RG=<resource-group> RESOURCE=<foundry-resource> STORAGE=<storage-account>
    az resource list --query "[?contains(name, 'hindcast')].name" -o tsv; az role definition list --custom-role-only true --query "[].roleName" -o tsv; az role assignment list --all --query "[?principalType=='Unknown' || principalName==''].id" -o tsv
    ```
 
-   Expected: three empty results.
+   Expected: three empty results. Observed on 2026-11-07 at 12:35:50Z.
 
 10. Remove the GitHub settings that named the removed resources: the `azure` environment's secrets (IDs, not credentials) and the push variable, if the deployment runbook's step 18 has not already.
 
