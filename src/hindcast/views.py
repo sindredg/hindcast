@@ -14,6 +14,7 @@ judgment made for another file than the run shown.
 import hashlib
 import json
 import textwrap
+import unicodedata
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -21,7 +22,7 @@ from pathlib import Path
 from typing import Any
 
 from hindcast import cited
-from hindcast.evaluation.score import run_items_behind
+from hindcast.evaluation.score import load_second_judgments, run_items_behind
 from hindcast.keys import AnswerKey, load_key
 from hindcast.labels import item_ids
 from hindcast.result import Investigation, TimelineEvent
@@ -137,11 +138,13 @@ def dot_label(*lines: str) -> str:
 
     Inside a quoted DOT string only a backslash and a double quote are
     special; a backslash also starts Graphviz's label escapes (\\n, \\l, \\N).
-    Both are escaped, line breaks in the text become spaces, and the line
+    Both are escaped, line breaks and other control characters in the text
+    become spaces (a NUL can end the string in a C parser), and the line
     breaks between the given lines are the only \\n escapes in the result.
     """
 
     def one(line: str) -> str:
+        line = "".join(" " if unicodedata.category(c) == "Cc" else c for c in line)
         line = " ".join(line.split())
         return line.replace("\\", "\\\\").replace('"', '\\"')
 
@@ -326,11 +329,18 @@ def load_scored(run_path: Path, root: Path) -> Scored | None:
     if entry is None:
         return None
     base = root / SCORED_ROOT
-    record = _json(base / "judgments" / f"{run_id}.json")
+    judgment = (base / "judgments" / f"{run_id}.json").read_bytes()
+    record = json.loads(judgment)
     if record.get("run_sha256") != _sha256(data):
         raise ValueError(f"{run_id}: the judgment is for another file than the run shown")
+    # The same two checks the score makes (hindcast.evaluation.score): a review
+    # counts only for the judgment it was made on, and a reviewer decision only
+    # with the reviewer judgment it names. Without them, an edited reviewer
+    # judgment would reach the Run items column.
     review = _json(base / "reviews" / f"{run_id}.json")
-    second = _json(base / "reviewer" / "judgments" / f"{run_id}.json") or None
+    if review and review.get("judgment_sha256") != _sha256(judgment):
+        raise ValueError(f"{run_id}: the review is for another judgment")
+    second = load_second_judgments(base, {run_id: review}).get(run_id)
     case_id = entry["case_id"]
     key_path = root / KEYS_DIR / f"{case_id}.json"
     _frozen(key_path, root / KEYS_DIR / "frozen.json", case_id)

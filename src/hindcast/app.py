@@ -369,6 +369,12 @@ class View:
         )
 
     @property
+    def live_case(self) -> bool:
+        """Whether the page may run model calls on this result's case (LIVE_ROLES)."""
+        case = self.cases.get(self.result.case_id)
+        return case is not None and case.role in LIVE_ROLES
+
+    @property
     def pii_checked(self) -> bool:
         return "pii" in self.result.checks
 
@@ -585,7 +591,12 @@ def _investigation_tab(view: View) -> None:
             _citations(event.citations, view)
 
     st.header("Findings", help=_help("Finding"))
-    if view.live and not (view.result.status == "complete" and view.screened):
+    if view.live and not view.live_case:
+        st.caption(
+            "No challenge box: the page challenges findings of the development case and its"
+            " injection copies only, and this run is of a scored or sealed case."
+        )
+    elif view.live and not (view.result.status == "complete" and view.screened):
         st.caption(
             "No challenge box: a challenge needs a complete run whose tool results Prompt"
             " Shields screened, and this run predates the screen."
@@ -599,8 +610,12 @@ def _investigation_tab(view: View) -> None:
             _rests_on_line(finding.rests_on)
             _citations(finding.citations, view)
             stored = challenges(view.path, finding.id)
+            # The case's role, not only the run's state: a scored showcase run
+            # is complete and screened, and the challenge command lets a
+            # showcase case through once the rubric is frozen.
             can_ask = (
                 view.live
+                and view.live_case
                 and view.result.status == "complete"
                 and "screen_calls" in view.result.usage
             )
@@ -879,9 +894,10 @@ def _score_tab(view: View, scored: views.Scored) -> None:
 def _scored(path: Path) -> views.Scored | None:
     try:
         return views.load_scored(path, ROOT)
-    except (OSError, ValueError, KeyError) as error:
-        # A key or labels changed after the score, or a judgment made for
-        # another file: no score is shown next to a run it may not describe.
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        # A key or labels changed after the score, a judgment made for another
+        # file, or a malformed scores file (TypeError from an entry that is not
+        # an object): no score is shown next to a run it may not describe.
         st.error(f"The score is not shown: {plain(error)}")
         return None
 

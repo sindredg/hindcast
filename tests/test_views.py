@@ -2,7 +2,7 @@
 
 import json
 import shutil
-from dataclasses import replace
+from dataclasses import asdict, replace
 from pathlib import Path
 
 import pytest
@@ -132,6 +132,14 @@ def test_dot_label_keeps_hostile_text_inside_its_string():
 
     assert outside == "n0 [label=];"
     assert strings == ["F1 · inference\n" + " ".join(HOSTILE.split())]
+
+
+def test_dot_label_turns_control_characters_into_spaces():
+    label = views.dot_label("F1", "before\x00after\x1b[31m\x7fend")
+    _, strings = split_dot(f"n0 [label={label}];")
+
+    assert strings == ["F1\nbefore after [31m end"]
+    assert not any(ord(c) < 32 or ord(c) == 127 for c in label)
 
 
 def test_evidence_graph_links_claims_to_findings_and_citations():
@@ -272,6 +280,29 @@ def test_load_scored_refuses_a_key_or_labels_changed_after_freezing(tmp_path, re
         views.load_scored(RUN, root)
 
 
+def test_load_scored_refuses_a_review_made_on_another_judgment(tmp_path):
+    root = _scored_root(tmp_path)
+    path = root / views.SCORED_ROOT / "reviews" / f"{RUN_ID}.json"
+    review = json.loads(path.read_text("utf-8"))
+    review["judgment_sha256"] = "0" * 64
+    path.write_text(json.dumps(review), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="review is for another judgment"):
+        views.load_scored(RUN, root)
+
+
+def test_load_scored_refuses_an_edited_reviewer_judgment(tmp_path):
+    # The review showed edited reviewer run items reaching the Run items column.
+    root = _scored_root(tmp_path)
+    path = root / views.SCORED_ROOT / "reviewer/judgments" / f"{RUN_ID}.json"
+    second = json.loads(path.read_text("utf-8"))
+    second["judgment"]["key_items"]["timeline/0"]["run_items"] = ["findings[0]"]
+    path.write_text(json.dumps(second), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="decided from another reviewer judgment"):
+        views.load_scored(RUN, root)
+
+
 def test_load_scored_without_scores_returns_none(tmp_path):
     root = _scored_root(tmp_path)
     (root / views.SCORED_ROOT / "scores.json").unlink()
@@ -337,7 +368,5 @@ def test_scores_json_still_matches_the_score_of_every_run():
         raw = json.loads((ROOT / f"eval/keys/labels/{case}.json").read_text("utf-8"))
         labels = {one["item"]: one["label"] for one in raw["items"]}
         score = score_run(record, review, labels, second)
-        assert score.outcomes == entry["outcomes"], run_id
-        assert score.credits == entry["credits"], run_id
-        assert score.unsupported == entry["unsupported"], run_id
-        assert score.extra_supported == entry["extra_supported"], run_id
+        # Every field, as scores.json stores it after a JSON round trip.
+        assert json.loads(json.dumps(asdict(score))) == entry, run_id

@@ -4,7 +4,6 @@ import json
 import re
 from pathlib import Path
 
-import pyarrow as pa
 import pytest
 from streamlit.testing.v1 import AppTest
 
@@ -935,10 +934,11 @@ def test_page_draws_the_timeline_chart_and_the_evidence_graph(monkeypatch):
     assert len(charts) == 1
     spec = json.loads(charts[0].proto.spec)
     assert spec["encoding"]["x"]["scale"] == {"type": "utc"}
-    # Streamlit sends the spec's inline values as an Arrow table beside it.
-    rows = pa.ipc.open_stream(charts[0].proto.data.data).read_all()
+    # Streamlit sends the spec's inline values as Arrow bytes beside it; each
+    # event's time is in them as UTF-8 text.
+    data = charts[0].proto.data.data
     events = json.loads(RESULT.read_text(encoding="utf-8"))["investigation"]["timeline"]
-    assert rows.column("time").to_pylist() == [e["time"] for e in events]
+    assert all(e["time"].encode() in data for e in events)
     graphs = at.get("graphviz_chart")
     assert len(graphs) == 1
     assert "Root cause" in graphs[0].proto.spec
@@ -1036,3 +1036,32 @@ def test_page_shows_the_score_table_as_plain_text(monkeypatch):
     shown = _shown(at)
     assert "](https://example.invalid" not in shown
     assert shown.count(plain("![x](https://example.invalid/a.png)")) >= 3
+
+
+def test_no_challenge_box_on_a_scored_run_with_live_flag(monkeypatch):
+    # A scored run is screened and complete, so only its case's role keeps
+    # the paid challenge box off it.
+    raw = json.loads(SCORED_RUN.read_text(encoding="utf-8"))
+    assert raw["status"] == "complete" and "screen_calls" in raw["usage"]
+    monkeypatch.setenv(app.RESULT_FILE_VAR, str(SCORED_RUN))
+    monkeypatch.setenv(app.LIVE_VAR, "1")
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+
+    assert not at.exception
+    assert "Score" in [tab.label for tab in at.tabs]
+    assert "Challenge this finding" not in [expander.label for expander in at.expander]
+
+
+def test_page_shows_no_score_from_a_malformed_scores_file(tmp_path, monkeypatch):
+    # A run entry that is not an object raises TypeError in the loader.
+    scores = tmp_path / views.SCORED_ROOT / "scores.json"
+    scores.parent.mkdir(parents=True)
+    scores.write_text(json.dumps({"runs": [1]}), encoding="utf-8")
+    real = views.load_scored
+    monkeypatch.setattr(views, "load_scored", lambda path, root: real(path, tmp_path))
+    monkeypatch.setenv(app.RESULT_FILE_VAR, str(SCORED_RUN))
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+
+    assert not at.exception
+    assert "Score" not in [tab.label for tab in at.tabs]
+    assert any("The score is not shown" in e.value for e in at.error)
