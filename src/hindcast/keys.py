@@ -64,6 +64,7 @@ ZONES = {
 }
 ZONE = re.compile(r"(?<![\w/])(" + "|".join(re.escape(z) for z in ZONES) + r")(?![\w/])")
 CLOCK = re.compile(r"\b(\d{1,2}):(\d{2})\b")
+DURATION = re.compile(r"\b(lasting|lasted|duration|hours?|minutes?)\b", re.IGNORECASE)
 ISO_DATE = re.compile(r"\b(\d{4})-(\d{2})-(\d{2})\b")
 DAY_MONTH_YEAR = re.compile(r"\b(\d{1,2})\s+([A-Za-z]{3,9})\.?,?\s+(\d{4})\b")
 MONTH_DAY = re.compile(r"\b([A-Za-z]{3,9})\.?\s+(\d{1,2})(?:st|nd|rd|th)?,?(?:\s+(\d{4}))?\b")
@@ -132,9 +133,17 @@ def written_time_problem(event: TimelineEvent) -> str | None:
     before are both tried: a Pacific evening is the next UTC day.
     """
     zone = ZONE.search(event.time_as_written)
-    clock = CLOCK.search(event.time_as_written)
-    if zone is None or clock is None or not UTC_MINUTE.fullmatch(event.time):
+    clocks = CLOCK.findall(event.time_as_written)
+    # A text with two clock times or a duration ("13:40 UTC, lasting 7 hours")
+    # names more than the event's own time, so there is nothing to compare.
+    if (
+        zone is None
+        or len(clocks) != 1
+        or DURATION.search(event.time_as_written)
+        or not UTC_MINUTE.fullmatch(event.time)
+    ):
         return None
+    clock = clocks[0]
     expected = datetime.strptime(event.time, "%Y-%m-%dT%H:%MZ").replace(tzinfo=UTC)
     try:
         tz = ZoneInfo(ZONES[zone[1]])
@@ -150,7 +159,7 @@ def written_time_problem(event: TimelineEvent) -> str | None:
     found = []
     for date in dates:
         try:
-            local = datetime(*date, int(clock[1]), int(clock[2]), tzinfo=tz)
+            local = datetime(*date, int(clock[0]), int(clock[1]), tzinfo=tz)
         except ValueError:
             return f"as written {event.time_as_written!r}: not a date and time"
         found.append(local.astimezone(UTC).strftime("%Y-%m-%dT%H:%MZ"))

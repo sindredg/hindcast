@@ -456,6 +456,9 @@ def test_draft_refuses_a_case_without_a_postmortem_before_any_download():
         ("15:06 UTC", "2026-10-07T15:07Z", True),
         ("2026-02-20 17:46", "2026-02-20T17:46Z", False),
         ("11:05", "2025-11-18T11:05Z", False),
+        # A duration or a second clock names more than the event's time.
+        ("13:40 UTC, lasting 7 hours and 35 minutes", "2026-08-17T21:15Z", False),
+        ("between 13:40 UTC and 21:15 UTC", "2026-08-17T21:15Z", False),
     ],
 )
 def test_a_written_time_with_a_zone_is_converted_and_compared(written, time, flagged):
@@ -505,3 +508,10 @@ def test_check_draft_reports_a_written_time_in_another_zone(tmp_path):
         "timeline[0]: as written '14 July 2026 20:40 US/Pacific' is 2026-07-15T03:40Z, "
         "not 2026-07-14T20:40Z; check the zone"
     ]
+
+
+def test_every_frozen_key_passes_the_written_time_check():
+    from hindcast.keys import time_problems
+
+    for case_id in sorted(json.loads(FROZEN.read_text())):
+        assert time_problems(load_key(KEYS_DIR / f"{case_id}.json")) == [], case_id
