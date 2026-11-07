@@ -39,7 +39,7 @@ from typing import Any
 
 import jsonschema
 
-from hindcast.evaluation.batch import ATTEMPTS, FILLED, ROOT, load_attempts, verified_run
+from hindcast.evaluation.batch import FILLED, ROOT, load_attempts, run_loader
 from hindcast.evidence import CaseEvidence, evidence_json
 from hindcast.excerpts import resolve
 from hindcast.keys import AnswerKey
@@ -611,6 +611,7 @@ def main(argv: list[str] | None = None) -> int:
     one.add_argument("--out", type=Path, required=True)
     run = commands.add_parser("run", help="judge every filled scored run")
     run.add_argument("--workers", type=int, default=4)
+    run.add_argument("--root", type=Path, default=ROOT, help=f"the scoring tree (default {ROOT})")
     args = parser.parse_args(argv)
     if args.command == "freeze":
         record = freeze()
@@ -638,16 +639,18 @@ def main(argv: list[str] | None = None) -> int:
         print(f"{args.out}: error {record['error']}, stop {record['stop_reason']}")
         print(f"usage: {_usage_line([record])}")
         return 0
+    out_dir = args.root / "judgments"
     counts = judge_all(
-        load_attempts(ATTEMPTS),
-        load_run=verified_run,
+        load_attempts(args.root / "attempts.json"),
+        load_run=run_loader(args.root),
         load_case=load_case,
         library=library,
         client=client,
+        out_dir=out_dir,
         workers=args.workers,
         stamp=stamp,
     )
-    records = [json.loads(p.read_text("utf-8")) for p in sorted(OUT_DIR.rglob("*.json"))]
+    records = [json.loads(p.read_text("utf-8")) for p in sorted(out_dir.rglob("*.json"))]
     errors = sorted({r["error"] for r in records if r["error"]})
     print(f"judged {counts['judged']}, errors {counts['errors']}, kept {counts['kept']}")
     print(f"judgment files {len(records)}, error kinds: {', '.join(errors) or 'none'}")
