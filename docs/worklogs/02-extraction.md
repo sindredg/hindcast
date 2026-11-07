@@ -2,6 +2,8 @@
 
 Status: Verified on 2026-10-27. Everything the milestone builds was built and run that day: the evidence cut, ingestion from Blob Storage, the library and its extraction, the charts, and the frozen answer keys. The independent review ran and its fixes are in. The milestone state is in the [roadmap](../roadmap.md).
 
+On this page: [Scope](#scope) · [Work completed](#work-completed) · [Gate](#gate) · [Independent review](#independent-review) · [Deviations from the plan](#deviations-from-the-plan) · [Follow-up](#follow-up) · [Not verified](#not-verified)
+
 ## Scope
 
 Cut each case's status updates into evidence, extract the postmortem library and the answer keys, and describe the charts ([roadmap](../roadmap.md#2-extraction)). The procedure to rebuild it is the [runbook](../runbooks/extraction.md).

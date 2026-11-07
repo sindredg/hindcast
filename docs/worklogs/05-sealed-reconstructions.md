@@ -2,6 +2,8 @@
 
 Status: Verified on 2026-11-07 with milestone 5 ([roadmap](../roadmap.md#status)). Built on 2026-11-01. Three October outages are sealed on both models, and GitHub 2026-10-07 is a fourth scored case with its evidence, prior-knowledge answers, library picks, and frozen key. The [independent review](#independent-review) ran with its fixes in. On 2026-11-02 the three cases were [sealed again with the library search](#second-seals-with-the-library-2026-11-02), still before any provider published a cause. On 2026-11-03 the drop date moved from 2026-11-09 to 2026-11-30 ([decision 0022](../decisions/0022-sealed-drop-date-and-offline-reveal.md)). On 2026-11-04 [two GitHub outages of that day](#third-seals-two-github-outages-of-2026-11-04) were sealed on both models with the library search. On 2026-11-07 `github-2026-11-04-actions` was [revealed and scored](#reveal-github-2026-11-04-actions-2026-11-07). The milestone state is in the [roadmap](../roadmap.md).
 
+On this page: [Scope](#scope) · [Work completed](#work-completed) · [Checks](#checks) · [Live run](#live-run) · [Gate](#gate) · [Independent review](#independent-review) · [Issues opened](#issues-opened) · [Second seals, with the library (2026-11-02)](#second-seals-with-the-library-2026-11-02) · [Third seals: two GitHub outages of 2026-11-04](#third-seals-two-github-outages-of-2026-11-04) · [Reveal: github-2026-11-04-actions (2026-11-07)](#reveal-github-2026-11-04-actions-2026-11-07)
+
 ## Scope
 
 Two answers to "could the model have known the answer?" that do not rest on a vendor's training cutoff ([decision 0017](../decisions/0017-sealed-reconstructions.md)):

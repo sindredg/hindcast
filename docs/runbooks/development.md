@@ -1,5 +1,7 @@
 # Local development
 
+Status: Written on 2026-11-05. The commands are the ones [ci.yml](../../.github/workflows/ci.yml) runs; the runbook is not validated as a separate procedure.
+
 Requires [uv](https://docs.astral.sh/uv/). It installs the Python version in `.python-version` and the locked tools. These are the checks CI runs on the code; the workflow also lints the YAML, audits the dependencies, and builds the image ([ci.yml](../../.github/workflows/ci.yml)).
 
 ```bash

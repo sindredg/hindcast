@@ -4,6 +4,8 @@ Status: Rewritten on 2026-11-05 for the full environment ([decision 0028](../dec
 
 The procedure builds all of Hindcast in one resource group with one `azd up`, fills it from the operator's local data tree, runs an investigation, a challenge, and an injection copy from the signed-in page, and removes it all with `azd down`. The data is the operator's: `data/sources/` and `build/` are not in the repository, so a clean clone also needs the [extraction runbook](extraction.md) first.
 
+On this page: [Inputs and access](#inputs-and-access) · [Tools](#tools) · [Environment](#environment) · [Preview](#preview) · [Provision](#provision) · [Image](#image) · [Data](#data) · [The page](#the-page) · [Traces](#traces) · [Foundry IQ](#foundry-iq) · [Remove](#remove)
+
 ## Inputs and access
 
 - Azure Developer CLI 1.37.2 and Bicep CLI 0.48.1 (through `az bicep`), the newest stable releases on 2026-11-05 (CI pins Bicep 0.49.2 since 2026-11-07); Azure CLI 2.88.0; GitHub CLI; uv.

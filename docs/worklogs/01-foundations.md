@@ -2,6 +2,8 @@
 
 Status: Verified on 2026-10-26. Built on 2026-10-25; the model re-check was tested live and the [independent review](#independent-review) ran on 2026-10-26, with its fixes in. The milestone state is in the [roadmap](../roadmap.md).
 
+On this page: [Scope](#scope) · [Work completed](#work-completed) · [Gate](#gate) · [Independent review](#independent-review) · [Deviations from the plan](#deviations-from-the-plan) · [Follow-up](#follow-up) · [Not verified](#not-verified)
+
 ## Scope
 
 The repository and its pipeline, the GitHub protection, the Azure foundation, the case registry with its captured sources, the prior-knowledge baseline, and the check of the model choice on the development outage. The procedure to rebuild it is the [runbook](../runbooks/foundations.md).

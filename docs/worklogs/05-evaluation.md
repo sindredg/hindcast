@@ -2,6 +2,8 @@
 
 Status: Verified on 2026-11-07. Every criterion in the [gate](#gate) has a tested row or an accepted gap, the [independent review](#independent-review) of 2026-11-04 and the [milestone close review](#milestone-close-review) ran with their fixes in, and the first sealed case is revealed and scored ([sealed report](../../eval/reconstruction/sealed-v1/README.md)). Four sealed cases remain, each an addendum or dropped on 2026-11-30 ([decision 0030](../decisions/0030-close-evaluation-with-sealed-addenda.md)). Milestone state: [roadmap](../roadmap.md#status).
 
+On this page: [Scope](#scope) · [Work completed](#work-completed) · [Live runs](#live-runs) · [Checks](#checks) · [Gate](#gate) · [Independent review](#independent-review) · [Milestone close review](#milestone-close-review) · [Issues](#issues)
+
 ## Scope
 
 Score the blind reconstructions of the four showcase cases against their frozen keys, with five arms and three repeats each, and test planted instructions on two layers ([decision 0006](../decisions/0006-evaluation-design.md), [decisions 0022 to 0026](../decisions/)). The sealed reconstructions and the October case are the [first part](05-sealed-reconstructions.md). The procedure is the [evaluation runbook](../runbooks/evaluation.md).

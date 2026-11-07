@@ -8,6 +8,8 @@ Status: Written on 2026-11-04.
 
 The procedure scores Hindcast's reconstructions of the showcase cases against their frozen keys ([decision 0006](../decisions/0006-evaluation-design.md), [rubric version 3](../../eval/rubric/rubric.md)): five arms, four cases, three runs each; the injection tests on two layers ([decisions 0025](../decisions/0025-injection-test-layers.md) and [0026](../decisions/0026-case-chart-injection.md)); the Foundry cloud evaluators; then, offline, the judge, the reviewer model that decides the review queue, the scores, and their spend. The results are in the [evaluation report](../../eval/reconstruction/showcase-v1/README.md) and the [injection report](../../eval/injection/dev-v1/README.md).
 
+On this page: [Inputs and access](#inputs-and-access) · [Freeze](#freeze) · [Sealed cases' library snapshots](#sealed-cases-library-snapshots) · [Injection tests](#injection-tests) · [Scored runs](#scored-runs) · [Foundry cloud evaluation](#foundry-cloud-evaluation) · [Judge](#judge) · [Review and scores](#review-and-scores) · [Clean up](#clean-up)
+
 ## Inputs and access
 
 - The [investigator runbook](investigator.md) completed: `.env` with the model, safety, search, and embedding values; the agents `hindcast-investigator-gpt-6-luna` version 3 and `hindcast-investigator-gpt-6-1-sol` version 2 in the project; the case evidence under `build/evidence/` and the library extracts under `build/extracted/library/`.

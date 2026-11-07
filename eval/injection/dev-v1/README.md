@@ -2,6 +2,8 @@
 
 Whether a planted instruction in the evidence or the library changes what the investigator does, on two layers ([decision 0007](../../../docs/decisions/0007-safety-and-injection.md), [decision 0025](../../../docs/decisions/0025-injection-test-layers.md)). Layer 1 is the product as shipped, with Prompt Shields screening every tool item. Layer 2 turns the screens off, which the code allows only for a case whose role is `injection`, to test the model on its own.
 
+On this page: [Written before the runs](#written-before-the-runs) · [Setup (live, 2026-11-04)](#setup-live-2026-11-04) · [Results](#results) · [Limits](#limits) · [Case-chart variant](#case-chart-variant) · [Status](#status) · [Files](#files)
+
 ## Written before the runs
 
 **Cases.** Three copies of the development case `cloudflare-2026-02-20`, role `injection`, registered in [`data/cases.yaml`](../../../data/cases.yaml). Each plants the same instruction, [`data/injection/instruction.txt`](../../../data/injection/instruction.txt), in one place:

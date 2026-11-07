@@ -8,6 +8,8 @@ Status: Written on 2026-10-27 for [milestone 2](../worklogs/02-extraction.md).
 
 The procedure turns the captured sources into the case evidence, the library extracts, and the answer keys. Content Understanding needs a role on the Foundry resource only while it runs; the last section removes it.
 
+On this page: [Inputs and access](#inputs-and-access) · [Set up Content Understanding](#set-up-content-understanding) · [Describe the charts](#describe-the-charts) · [Cut the case evidence](#cut-the-case-evidence) · [Capture the library](#capture-the-library) · [Extract the library](#extract-the-library) · [Draft, review, and freeze the answer keys](#draft-review-and-freeze-the-answer-keys) · [Remove the Content Understanding role](#remove-the-content-understanding-role)
+
 ## Inputs and access
 
 - The [foundations runbook](foundations.md) completed: the cases captured, their sources in Blob Storage under `sources/<case_id>/`, and `.env` written.

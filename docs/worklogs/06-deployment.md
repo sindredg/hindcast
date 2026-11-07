@@ -6,6 +6,8 @@ The sections up to [Independent review](#independent-review) are slice 1, the th
 
 Scope: one `azd up` puts a signed-in page on Azure Container Apps that renders the committed development-case result, with telemetry in Application Insights, from an image CI builds. No model call from the app and no full-environment template in this slice: [slice 2](#slice-2-the-full-environment-and-the-live-page) added both. The reasons for the sign-in credential, the build path, and the resource group are in [decision 0016](../decisions/0016-sign-in-credential-image-build-and-resource-group.md).
 
+On this page: [Built](#built) · [Checks](#checks) · [Gate](#gate) · [Live run](#live-run) · [After the merge](#after-the-merge) · [Issues opened](#issues-opened) · [Independent review](#independent-review) · [Slice 2: the full environment and the live page](#slice-2-the-full-environment-and-the-live-page)
+
 ## Built
 
 - `app` extra in `pyproject.toml`: Streamlit 1.66.1 and azure-monitor-opentelemetry 1.8.11, installed and audited in CI with `--all-extras`.

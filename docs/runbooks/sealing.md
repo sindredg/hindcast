@@ -14,6 +14,8 @@ Each seal makes at most 13 model calls on the deployment it names and, in the se
 
 ![Sealing a reconstruction: the seal command refuses, before any model call, a case that is not sealed, a case and deployment that already have a seal in this series, a changed tree, a seal record that does not extend the committed one, or a library search that does not answer; otherwise it investigates once with the library search, records an attempt with no model output as no-result, which may be retried up to three attempts in all, and otherwise commits the hash and uploads the file to private storage. If the provider publishes its cause by 2026-11-30, the file is revealed after the rubric is frozen, checked against its hash, and scored; if not, the case is dropped with its record kept](../diagrams/sealing.svg)
 
+On this page: [Inputs and access](#inputs-and-access) · [Choose the outages](#choose-the-outages) · [Register the cases](#register-the-cases) · [Seal](#seal) · [Reveal a seal](#reveal-a-seal) · [Drop a seal](#drop-a-seal) · [Remove the agents](#remove-the-agents)
+
 ## Inputs and access
 
 - The [foundations runbook](foundations.md) completed: `.env` written, with `HINDCAST_CHAT_DEPLOYMENT` (gpt-6-luna) and `HINDCAST_COMPARE_DEPLOYMENT` (gpt-6.1-sol).

@@ -2,6 +2,8 @@
 
 Status: Verified on 2026-11-01. The library index was live until 2026-11-04, its [gate](#gate) checks passed on it, and the [independent review](#independent-review) ran with its fixes in. The milestone state is in the [roadmap](../roadmap.md).
 
+On this page: [Scope](#scope) · [Work completed](#work-completed) · [Live run](#live-run) · [Gate](#gate) · [A step taken out of order](#a-step-taken-out-of-order) · [Independent review](#independent-review) · [Issues opened](#issues-opened)
+
 ## Scope
 
 The postmortem library in Azure AI Search: section- and figure-bounded chunks that resolve to citations, a search that a case can only use within its date bound and its picks, and the checks that prove both on the live index ([decision 0019](../decisions/0019-library-index.md)). Before that, the extraction model moved to a pinned gpt-5.4-mini, and every analysis checks its analyzer first ([decision 0018](../decisions/0018-extraction-model.md); [#13](https://github.com/sindredg/hindcast/issues/13), [#15](https://github.com/sindredg/hindcast/issues/15)).

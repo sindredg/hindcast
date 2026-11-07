@@ -2,6 +2,8 @@
 
 The sealed reconstructions that have been revealed: each one made before its provider had published a cause, committed by hash, and opened only after the cause was published and the key and labels were frozen ([decisions 0017](../../../docs/decisions/0017-sealed-reconstructions.md), [0022](../../../docs/decisions/0022-sealed-drop-date-and-offline-reveal.md), and [0030](../../../docs/decisions/0030-close-evaluation-with-sealed-addenda.md)). Scored by the same judge, reviewer, and [rubric](../../rubric/rubric.md), version 3, as the [showcase runs](../showcase-v1/README.md), and reported apart from them.
 
+On this page: [Status](#status) · [Results](#results) · [Error analysis](#error-analysis) · [Cost and spend](#cost-and-spend) · [Dataset](#dataset) · [Pending cases](#pending-cases) · [Limits](#limits) · [Files](#files)
+
 ## Status
 
 - **Revealed, verified on 2026-11-07:** `github-2026-11-04-actions`, both seals. The other four sealed cases have no published cause yet; each is revealed in its own addendum or dropped on 2026-11-30 ([pending cases](#pending-cases)).

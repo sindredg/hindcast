@@ -7,6 +7,8 @@ Each milestone has completion criteria: things shown to work, not things built. 
 
 An independent review is a read-only pass from a fresh context, with no part in the milestone's work. Each of its findings is checked again before it is acted on. Decisions behind the design are in [decisions](decisions/).
 
+On this page: [Status](#status) · [Target architecture](#target-architecture) · [1. Foundations](#1-foundations) · [2. Extraction](#2-extraction) · [3. Retrieval](#3-retrieval) · [4. Investigator](#4-investigator) · [5. Evaluation](#5-evaluation) · [6. Deployment and release](#6-deployment-and-release) · [7. Close](#7-close)
+
 ## Status
 
 | Milestone | State |

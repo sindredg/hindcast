@@ -11,6 +11,8 @@ The procedure moves extraction to the pinned gpt-5.4-mini deployment, creates th
 
 ![Library index and search: The index build reads the library extracts, checks each against its blob, cuts them into chunks that stay inside one section or one figure, embeds them through the Foundry resource endpoint, and pushes them to the library index in Azure AI Search, refusing an index that already holds documents. A search takes a case ID and a query: the filter comes from the registries alone (published before the case's start day and, unless the case is sealed or revealed, picked for the case), the query text reaches only the hybrid keyword, vector, and semantic search on the index, and every hit is checked again against the same rule and the extracts. Hits that pass are returned with their ref, document, and date; a hit outside the rule raises LibraryLeak and nothing is returned](../diagrams/retrieval.svg)
 
+On this page: [Inputs and access](#inputs-and-access) · [Move extraction to gpt-5.4-mini](#move-extraction-to-gpt-54-mini) · [Create the search service](#create-the-search-service) · [Build the index and pick its size](#build-the-index-and-pick-its-size) · [Run the gate](#run-the-gate) · [Remove the Content Understanding role and the old deployment](#remove-the-content-understanding-role-and-the-old-deployment) · [Delete the search service](#delete-the-search-service)
+
 ## Inputs and access
 
 - The [foundations runbook](foundations.md) and the [extraction runbook](extraction.md) completed: the library extracts in `build/extracted/library/` and in Blob Storage, and `.env` written.

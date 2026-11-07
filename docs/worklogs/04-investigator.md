@@ -4,6 +4,8 @@ Status: Verified on 2026-11-07: every milestone criterion has a tested row or an
 
 The sections up to [Independent review](#independent-review) are slice 1, the investigator on case tools.
 
+On this page: [Scope](#scope) · [Pass bar for the live run](#pass-bar-for-the-live-run) · [Work completed](#work-completed) · [Live run](#live-run) · [Gate](#gate) · [Independent review](#independent-review) · [Slice 2: the library search tool](#slice-2-the-library-search-tool) · [Slice 3: screens, PII, challenge, traces, and cost](#slice-3-screens-pii-challenge-traces-and-cost) · [Slice 4: the view parts](#slice-4-the-view-parts)
+
 ## Scope
 
 The first investigation: a Foundry prompt agent, driven by Hindcast's own tool loop, reads the development case through two case-bound tools and returns a structured, cited reconstruction, or ends as incomplete with a reason. It covers the first three criteria of [milestone 4](../roadmap.md#4-investigator) for case evidence only. The library tool and library citations come in slice 2, after milestone 3. The procedure is the [runbook](../runbooks/investigator.md); the result policy is [decision 0015](../decisions/0015-investigation-result-and-citation-policy.md).

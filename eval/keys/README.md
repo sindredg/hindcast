@@ -2,6 +2,8 @@
 
 One frozen key per case: what the provider's own postmortem says happened. Milestone 5 scores each scored case's reconstruction against its key; the development case's key is for iterating on the investigator in milestone 4 and is never scored. The investigator never sees a key or the postmortem it comes from ([decision 0005](../../docs/decisions/0005-evidence-library-and-answer-key.md)).
 
+On this page: [Status](#status) · [Files](#files) · [Fields](#fields) · [How the keys were made](#how-the-keys-were-made) · [Limits](#limits) · [Sources and attribution](#sources-and-attribution)
+
 ## Status
 
 Four keys frozen on 2026-10-27 and `github-2026-10-07` on 2026-11-01, each before any scored run, with the prior-knowledge answers still unread. A sealed case gets its key once its provider has published a cause ([decision 0017](../../docs/decisions/0017-sealed-reconstructions.md)): `github-2026-11-04-actions` on 2026-11-07, drafted by hand from GitHub's summary and checked with `python -m hindcast.keys check` before its seals were opened ([sealed report](../reconstruction/sealed-v1/README.md)).

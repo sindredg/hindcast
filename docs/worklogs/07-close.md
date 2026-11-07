@@ -4,6 +4,8 @@ Status: Verified on 2026-11-07. The checks before the teardown ran with the outp
 
 Scope: [milestone 7](../roadmap.md#7-close). The procedure is the [teardown runbook](../runbooks/teardown.md); the order of every runbook is the [reproduce page](../reproduce.md).
 
+On this page: [Before the teardown](#before-the-teardown) · [Teardown](#teardown) · [Issues](#issues) · [Staleness pass](#staleness-pass) · [Gate](#gate) · [Independent review](#independent-review)
+
 ## Before the teardown
 
 | Check | How | Result |

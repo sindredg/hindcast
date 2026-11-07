@@ -2,6 +2,19 @@
 
 Failures that showed something about Hindcast, the platform, or a procedure: the symptom, the cause, the fix, and how the fix was verified. Newest first. A cause that was not confirmed is labelled as a hypothesis. The behaviour behind an entry is recorded once, in [findings](findings/), and linked from here.
 
+Entries by area:
+
+- **Deployment:** [a rebuilt environment shows the removed environment's traces (2026-11-06)](#deployment-a-rebuilt-environment-shows-the-removed-environments-traces-2026-11-06); [the custom role's delete fails with `RoleDefinitionHasAssignments` (2026-11-06)](#deployment-the-custom-roles-delete-fails-with-roledefinitionhasassignments-2026-11-06); [the second provision fails with `MaxNumberOfRegionalEnvironmentsInSubExceeded` (2026-11-05)](#deployment-the-second-provision-fails-with-maxnumberofregionalenvironmentsinsubexceeded-2026-11-05); [the first provision fails with `RequestConflict` on the Foundry project (2026-11-05)](#deployment-the-first-provision-fails-with-requestconflict-on-the-foundry-project-2026-11-05); [re-provision fails with a circular dependency (2026-10-31)](#deployment-re-provision-fails-with-a-circular-dependency-2026-10-31); [first provision fails with `InternalServerError` on the container app (2026-10-31)](#deployment-first-provision-fails-with-internalservererror-on-the-container-app-2026-10-31); [`azd provision --preview` prompts for a parameter (2026-10-31)](#deployment-azd-provision---preview-prompts-for-a-parameter-2026-10-31)
+- **Evaluation:** [the judge refuses a later run after the rubric moved to version 3 (2026-11-07)](#evaluation-the-judge-refuses-a-later-run-after-the-rubric-moved-to-version-3-2026-11-07)
+- **Judge:** [the API refuses the reply schema as too large (2026-11-04)](#judge-the-api-refuses-the-reply-schema-as-too-large-2026-11-04)
+- **Portal evaluation:** [a few evaluator calls fail with 401 after the fix below (2026-10-26)](#portal-evaluation-a-few-evaluator-calls-fail-with-401-after-the-fix-below-2026-10-26); [every row fails with 401 `PermissionDenied` (2026-10-26)](#portal-evaluation-every-row-fails-with-401-permissiondenied-2026-10-26)
+- **Investigator:** [a library search ends the run with an SSL error (2026-11-02)](#investigator-a-library-search-ends-the-run-with-an-ssl-error-2026-11-02)
+- **Traces:** [a run's root span and some model calls never arrive (2026-11-03)](#traces-a-runs-root-span-and-some-model-calls-never-arrive-2026-11-03)
+- **Retrieval:** [the first index build fails with 404 on embeddings (2026-11-01)](#retrieval-the-first-index-build-fails-with-404-on-embeddings-2026-11-01)
+- **Content Understanding:** [creating a document analyzer fails with `DefaultDeploymentModelNotFound` (2026-10-27)](#content-understanding-creating-a-document-analyzer-fails-with-defaultdeploymentmodelnotfound-2026-10-27)
+- **Library extraction:** [GitHub extracts named a person and described their photo (2026-10-27)](#library-extraction-github-extracts-named-a-person-and-described-their-photo-2026-10-27)
+- **Answer-key draft:** [most quotes reported as not found (2026-10-27)](#answer-key-draft-most-quotes-reported-as-not-found-2026-10-27)
+
 ## Evaluation: the judge refuses a later run after the rubric moved to version 3 (2026-11-07)
 
 **Symptom:** `python -m hindcast.evaluation.judge run --root eval/reconstruction/sealed-v1`, the first judge call since 2026-11-04, stopped before any call with `NotFrozen: the judge prompt, the rubric, or the settings differ from eval/judge/frozen.json`.

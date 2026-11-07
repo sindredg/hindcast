@@ -2,6 +2,8 @@
 
 The terms the page, the documentation, and the evaluation use, by category. The page's Glossary view shows the same rows, and its labels' help texts are these entries. Each meaning is what the term means in Hindcast; the linked page has the detail.
 
+On this page: [Cases and data](#cases-and-data) · [Investigation](#investigation) · [Safety](#safety) · [Retrieval](#retrieval) · [Evaluation](#evaluation) · [Platform and operations](#platform-and-operations)
+
 ## Cases and data
 
 | Term | Meaning |

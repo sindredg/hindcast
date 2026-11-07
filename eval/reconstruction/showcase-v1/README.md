@@ -2,6 +2,8 @@
 
 The scored reconstructions of the four showcase cases: each arm of [decision 0023](../../../docs/decisions/0023-abstention-and-inferable-labels.md) run three times per case, scored against the frozen keys and labels by the [rubric](../../rubric/rubric.md), version 3. This page holds the scores, the judge-reviewer agreement, the error analysis, and the Foundry cloud evaluation's numbers.
 
+On this page: [Status](#status) · [Results](#results) · [Error analysis](#error-analysis) · [Cost and spend](#cost-and-spend) · [Dataset](#dataset) · [Arms](#arms) · [Foundry cloud evaluation](#foundry-cloud-evaluation) · [Limits](#limits) · [Files](#files)
+
 ## Status
 
 - **Frozen before any scored run:** the inferable-from-evidence labels on 2026-11-03, and the rubric (version 2) with the timeline tolerance of 30 minutes on 2026-11-04, with the keys frozen earlier. Version 2 replaced version 1, frozen on 2026-11-03, before any run used it. Version 3 replaced version 2 at 18:56:41Z on 2026-11-04, after the judge ran and before any review decision; it changes only who decides the review queue. [`eval/rubric/frozen.json`](../../rubric/frozen.json) records their hashes, and `tests/test_rubric.py` fails if any of them changes.

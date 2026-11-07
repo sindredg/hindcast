@@ -9,6 +9,8 @@ The procedure runs one investigation of a case through the investigator prompt a
 - a few Prompt Shields calls: one document for the title and for each update, chart, and hit, five documents per call;
 - one PII call per five answer fields and search queries.
 
+On this page: [Inputs and access](#inputs-and-access) · [Check the evidence](#check-the-evidence) · [Give the developer the safety role](#give-the-developer-the-safety-role) · [Run an investigation](#run-an-investigation) · [Read the result](#read-the-result) · [Challenge a finding](#challenge-a-finding) · [Find the trace](#find-the-trace) · [Remove the agents and the role](#remove-the-agents-and-the-role) · [Read a scored run on the page](#read-a-scored-run-on-the-page)
+
 ## Inputs and access
 
 - The [foundations runbook](foundations.md) and the [extraction runbook](extraction.md) completed: `.env` written, and the case evidence under `build/evidence/<case_id>.json`.

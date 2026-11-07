@@ -17,6 +17,8 @@ How Hindcast is built. Every Azure resource was removed by 2026-11-07 ([worklog 
 | 2026-11-07 | The page, its view parts, the score's run items, and what the image carries, during milestone 4's [fourth slice](../worklogs/04-investigator.md#slice-4-the-view-parts) | The code on `feat/m4-view-parts`, the `Dockerfile`, and `.dockerignore` |
 | 2026-11-07 | The case registry, the search, investigation, and challenge rows, the answer keys, the seal, judge, score, and spend rows, the new reveal row, and the investigation-loop and evaluation diagrams, at milestone 5's close | The code on `feat/m5-reveal-close` |
 
+On this page: [What exists](#what-exists) · [What reaches the investigator](#what-reaches-the-investigator) · [Components](#components) · [The investigator](#the-investigator) · [The library search](#the-library-search) · [Sealed reconstructions](#sealed-reconstructions) · [The prior-knowledge check](#the-prior-knowledge-check) · [The evaluation](#the-evaluation) · [The deployment](#the-deployment) · [Azure](#azure) · [Pipeline](#pipeline)
+
 ## What exists
 
 What each milestone built:

@@ -10,6 +10,8 @@ Status: Written on 2026-10-25 for [milestone 1](../worklogs/01-foundations.md).
 
 Build the milestone 1 foundation from scratch: the repository checks, the GitHub repository and its protection, the Azure resources and roles, the case sources, and the prior-knowledge answers. [Decision 0009](../decisions/0009-hosting-and-identity.md) records why every call uses Entra ID and no keys.
 
+On this page: [Prerequisites](#prerequisites) · [Check the repository](#check-the-repository) · [Protect the repository on GitHub](#protect-the-repository-on-github) · [Create the Azure foundation](#create-the-azure-foundation) · [Add the case sources](#add-the-case-sources) · [Record what the models know](#record-what-the-models-know) · [Re-check the model choice](#re-check-the-model-choice)
+
 ## Prerequisites
 
 - An Azure subscription where you can create resources and assign roles (Owner, or Contributor plus User Access Administrator).
