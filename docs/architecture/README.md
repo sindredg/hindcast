@@ -1,6 +1,6 @@
 # Architecture
 
-How Hindcast is built. Every Azure resource was removed by 2026-11-07 ([worklog 07](../worklogs/07-close.md)); the code, the data, and the results stay, and the resource and caller tables describe the environment as it ran. Milestone states: [roadmap](../roadmap.md); reasons: [decisions](../decisions/README.md). Last compared:
+This guide explains Hindcast's components, data flow, and deployment. Every Azure resource was removed by 2026-11-07 ([worklog 07](../worklogs/07-close.md)). The code, data, and results remain; the resource and caller tables describe the environment used for the recorded runs. Milestone states: [roadmap](../roadmap.md); reasons: [decisions](../decisions/README.md). Last compared:
 
 | Date | Parts | Against |
 |---|---|---|
@@ -21,7 +21,15 @@ On this page: [What exists](#what-exists) · [What reaches the investigator](#wh
 
 ## What exists
 
-Per milestone:
+The system has three main workflows:
+
+- **Prepare the data.** Capture provider sources, extract incident evidence, and build a searchable library of older reports. Prepare the current incident's answer key separately for evaluation.
+- **Investigate.** Give the model tools to read the incident evidence and retrieve relevant library passages. Screen tool results, validate the answer's citations, and record the run.
+- **Evaluate.** Compare the reconstruction with the hidden answer key, including whether the public evidence could support each conclusion.
+
+The library provides retrieval-augmented generation (RAG), explained under [library search](#the-library-search). The five tested configurations are explained under [evaluation](#the-evaluation). The tables below map these workflows to their implementation and delivery milestones.
+
+By milestone:
 
 | Milestone | Built |
 |---|---|
@@ -49,7 +57,7 @@ Sealing runs the same investigator on outages without a published cause and comm
 
 ### What reaches the investigator
 
-Three cuts decide what the investigator reads: the evidence cut ([decision 0005](../decisions/0005-evidence-library-and-answer-key.md)), the library ([decision 0013](../decisions/0013-library-selection.md)), and the answer keys, which stay with the evaluation.
+Three rules control the model's context. Incident evidence excludes the resolved update's text and later entries; this filtering step is called the **evidence cut** in the code and decision records ([decision 0005](../decisions/0005-evidence-library-and-answer-key.md)). The searchable library contains eligible reports from earlier outages ([decision 0013](../decisions/0013-library-selection.md)). The current incident's postmortem and answer key are reserved for evaluation and never supplied to the investigator.
 
 ![What the investigator can read, in three lanes. Case evidence: each hash-checked status snapshot goes through the evidence cut, which keeps the updates before the resolved one and drops the resolved update's text and report entries, and becomes the case evidence with its chart descriptions. Library: each page, picked by the case's symptoms and dated before every case it serves, is cut to its article and extracted, later text and bylines dropped, figures not shown. Answer keys: each postmortem, never in the library, is drafted into a key, reviewed quote by quote, and frozen with its SHA-256; the keys are for the evaluation only. Every step fails closed.](../diagrams/extraction-flow.svg)
 
@@ -105,13 +113,23 @@ Three cuts decide what the investigator reads: the evidence cut ([decision 0005]
 
 ### The investigator
 
-Hindcast runs the tool loop, not the service: the Foundry agent holds the instructions and tool definitions, and the command executes every tool call, so the case scoping, caps, and checks hold in code ([decision 0002](../decisions/0002-agent-approach.md)).
+The Foundry agent stores the model's instructions, tool definitions, and output schema. Hindcast's Python code runs the **tool loop**: call the model, execute the tools it requests, return their outputs, and repeat until the model answers. This lets the application enforce incident boundaries, execution limits, and validation checks ([decision 0002](../decisions/0002-agent-approach.md)).
 
 First runs: [worklog](../worklogs/04-investigator.md#live-run), [second slice](../worklogs/04-investigator.md#slice-2-the-library-search-tool) (library search), [third slice](../worklogs/04-investigator.md#slice-3-screens-pii-challenge-traces-and-cost) (screens, PII check, challenge, traces).
 
 ![The investigation loop. Before any model call the command refuses a scored case before the rubric is frozen, a sealed or revealed case, a case missing its evidence, settings, price, or library chunks, and screens off outside an injection copy. It then calls the investigator agent with the time left as the timeout, runs each returned tool call bound to the case, screens every item with Prompt Shields and withholds a flagged one, and sends the outputs back until a response has no function calls; that response is parsed against the schema, its citations checked, and its personal data masked. A failed model call, a thirteenth tool call, a tool call past 120 seconds, a tool, screen, schema, or PII error, or an empty answer ends the run as incomplete with the reason. The result file is written either way; the command prints counts, never the text.](../diagrams/investigation-loop.svg)
 
 ### The library search
+
+This is Hindcast's **retrieval-augmented generation (RAG)** pipeline. Retrieved passages give the investigating model relevant background without training or updating the model itself. Azure AI Search searches the prepared document library, not the open internet.
+
+1. Register earlier incident reports in `data/library.yaml`, including their URLs, publication dates, source hashes, and selection reasons.
+2. Capture the pages and extract the article text and figure descriptions with Content Understanding. Store the prepared extracts in Blob Storage.
+3. Split the extracts into searchable passages (chunks). An embedding model converts each chunk's title, heading, and text into a numerical vector representing its meaning.
+4. Upload the text, vectors, publication dates, and citation references to an Azure AI Search index. The index build checks that the local extracts match the stored copies.
+5. For an investigation, combine keyword matching and vector similarity, then use semantic ranking to reorder the results. Return up to five hits with references the investigator can cite.
+
+The full agent chooses when to search and what query to send. The `single-search` baseline runs one search in application code before one model call. Both use RAG. Library passages can suggest explanations, but cannot support a claim about the current outage on their own.
 
 A case searches only the library documents published before its start day and, unless it is sealed or revealed, picked for it. The filter comes from the registries, never the query, and every hit is checked again in code ([decision 0019](../decisions/0019-library-index.md)).
 
@@ -135,7 +153,21 @@ Every refusal happens before a model is called, so a refused run costs nothing a
 
 ### The evaluation
 
-The judge proposes and a second model, judging blind, decides ([decision 0006](../decisions/0006-evaluation-design.md), [decision 0024](../decisions/0024-judge-model.md), [decision 0027](../decisions/0027-reviewer-model.md)). No person decides an item. Both models run outside Azure. Procedure: [evaluation runbook](../runbooks/evaluation.md); results: [evaluation report](../../eval/reconstruction/showcase-v1/README.md), [injection report](../../eval/injection/dev-v1/README.md).
+The evaluation compares five configurations, called **arms** in the code and reports. Each ran three times on each of four showcase outages, giving 60 reconstructions:
+
+| Configuration | What changes | What it tests |
+| --- | --- | --- |
+| `hindcast` | The full investigator on `gpt-6-luna`, with updates, chart descriptions, and library search tools | The main agent workflow |
+| `comparison` | The same prompt and tools on `gpt-6.1-sol` | Whether a more expensive model improves the result |
+| `single-search` | Application code gathers updates and charts, searches the library once using the title and first available update, then makes one model call | Whether the model needs to choose and repeat tool calls |
+| `library-off` | Remove library search and the prompt's library instructions | Whether access to older reports improves reconstruction |
+| `abstention` | Add one prompt rule about saying when the cause cannot be determined | Whether that instruction improves handling of uncertainty |
+
+The configurations share input screening, citation validation, personal-data checks, and scoring rules. The single-search workflow still uses a language model and RAG. The library-off comparison changes both the tools and the prompt, so it does not isolate retrieval alone.
+
+On the three cases the models did not know beforehand, `single-search` averaged 0.82 and `hindcast` 0.78. The simpler workflow was slightly faster and cheaper, but had two items scored wrong compared with none for `hindcast`. These few cases do not establish a reliable winner or a benefit from the extra agent steps. The [evaluation report](../../eval/reconstruction/showcase-v1/README.md#results) gives the scores, error analysis, and limitations; the known-before-evidence case is reported separately.
+
+One AI judge proposes the scoring outcomes. A second model independently evaluates the same runs without seeing those proposals, and its verdicts replace the first judge's for the selected review items ([decision 0006](../decisions/0006-evaluation-design.md), [decision 0024](../decisions/0024-judge-model.md), [decision 0027](../decisions/0027-reviewer-model.md)). No person decides an item. Both models run outside Azure. Procedure: [evaluation runbook](../runbooks/evaluation.md); results: [evaluation report](../../eval/reconstruction/showcase-v1/README.md), [injection report](../../eval/injection/dev-v1/README.md).
 
 ![Scoring the reconstructions. Every filled scored run (60 showcase runs and 2 revealed seals) and every prior-knowledge answer goes to the judge, claude-opus-5-5 on the Anthropic API, with the frozen keys and the rubric's rules but without the arm or labels. The reviewer, claude-fable-5-1 on the Anthropic API, judges each again from the same input without the judge's proposals, and its verdicts decide the review queue. The score reads both, applies the frozen labels' credit, and reports per arm and case; the Foundry cloud evaluators score repeat 1 of each arm and case with gpt-6.1-sol as judge.](../diagrams/evaluation-flow.svg)
 
