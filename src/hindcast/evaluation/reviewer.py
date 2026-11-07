@@ -31,7 +31,7 @@ from pathlib import Path
 from typing import Any
 
 from hindcast.evaluation import judge, judge_prior
-from hindcast.evaluation.batch import FILLED, ROOT, load_attempts, run_loader
+from hindcast.evaluation.batch import FILLED, ROOT, is_root, load_attempts, run_loader
 from hindcast.evaluation.review import (
     ReviewItem,
     load_review,
@@ -188,7 +188,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "apply":
         runs = apply_runs(args.root, args.root / "reviewer" / "judgments")
         print(f"runs {runs['runs']}, decisions {runs['decisions']}, missing {runs['missing']}")
-        if args.root != ROOT:
+        if not is_root(args.root, ROOT):
             return 0
         prior = apply_prior()
         print(
@@ -220,7 +220,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     print(f"runs: judged {counts['judged']}, errors {counts['errors']}, kept {counts['kept']}")
     records = [json.loads(p.read_text("utf-8")) for p in sorted(out_dir.rglob("*.json"))]
-    if not args.limit and args.root == ROOT:
+    if not args.limit and is_root(args.root, ROOT):
         prior = judge_prior.judge_all(
             sorted(judge_prior.RESULTS_DIR.glob("prior-*.json")),
             load_key=lambda case_id: judge.load_case(case_id)[0],
