@@ -24,7 +24,7 @@ The procedure builds all of Hindcast in one resource group with one `azd up`, fi
    azd version && az bicep version
    ```
 
-   Expected: `azd version 1.37.2` and `Bicep CLI version 0.48.1`.
+   Expected: the versions the last run used, on 2026-11-06: `azd version 1.37.2` and `Bicep CLI version 0.48.1`. Newer releases are fine when the preview and the provision below pass; CI pins Bicep in `.github/workflows/ci.yml`.
 
 ## Environment
 
@@ -79,10 +79,10 @@ The procedure builds all of Hindcast in one resource group with one `azd up`, fi
 6. Point the `azure` environment's secrets at the new CI identity and registry. The tenant and subscription stay the same.
 
    ```bash
-   gh secret set AZURE_CLIENT_ID --env azure --body "$(azd env get-value CI_IDENTITY_CLIENT_ID)" && gh secret set AZURE_CONTAINER_REGISTRY_NAME --env azure --body "$(azd env get-value AZURE_CONTAINER_REGISTRY_NAME)" && gh secret list --env azure
+   gh secret set AZURE_CLIENT_ID --env azure --body "$(azd env get-value CI_IDENTITY_CLIENT_ID)" && gh secret set AZURE_CONTAINER_REGISTRY_NAME --env azure --body "$(azd env get-value AZURE_CONTAINER_REGISTRY_NAME)" && gh secret list --env azure && gh variable set HINDCAST_PUSH_IMAGE --body true && gh variable list
    ```
 
-   Expected: two `Set Actions secret` lines and four names in the list.
+   Expected: two `Set Actions secret` lines, four names in the secret list, and `HINDCAST_PUSH_IMAGE  true` in the variable list. The variable gates the push job: without it the job is skipped, so a push to `main` stays green when no registry exists.
 
 7. Push the image from `main`. CI writes the provenance manifest, builds and checks the image, and, once every check job has passed, pushes that same image as `hindcast:<sha>` and `hindcast:main` ([decision 0029](../decisions/0029-push-the-tested-image.md)).
 
@@ -200,10 +200,10 @@ The procedure builds all of Hindcast in one resource group with one `azd up`, fi
 
     Expected: `false`, and no Hindcast name among the deleted accounts or the deleted workspaces.
 
-18. Delete the environment's app registration.
+18. Delete the environment's app registration, and turn the push job off again.
 
     ```bash
-    az ad app delete --id "$(azd env get-value -e hindcast-full AUTH_CLIENT_ID)" && az ad app list --display-name hindcast-full --query "[].displayName" -o tsv
+    az ad app delete --id "$(azd env get-value -e hindcast-full AUTH_CLIENT_ID)" && az ad app list --display-name hindcast-full --query "[].displayName" -o tsv && gh variable delete HINDCAST_PUSH_IMAGE && gh variable list
     ```
 
-    Expected: an empty list.
+    Expected: an empty list twice.
