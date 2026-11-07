@@ -15,6 +15,9 @@ before any sealed file is read:
 5. The leak check finds nothing in the evidence or in the library snapshot,
    whose hash is checked against its record.
 
+It also refuses while src/, the registry, eval/keys/, or eval/sealed/ has
+uncommitted changes, and records the commit it ran from.
+
 Then each sealed file is read from build/sealed/, checked against its seal,
 copied to eval/investigations/<case_id>/, and its seal entry marked revealed.
 The reveal is recorded in eval/sealed/reveals.json, and each revealed run is
@@ -24,7 +27,7 @@ added to the sealed scoring ledger for the judge. Prints counts and hashes only.
 import argparse
 import hashlib
 import json
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -40,6 +43,17 @@ SOURCES_DIR = Path("data/sources")
 
 class RevealRefused(PermissionError):
     """A reveal that would break decision 0022's order."""
+
+
+# What a reveal reads to decide: the code, the registry, the keys and labels,
+# and the seal and snapshot records.
+CLEAN_PATHS = ("src", "data/cases.yaml", "eval/keys", "eval/sealed")
+
+
+def _clean_commit() -> str:
+    from hindcast.evaluation.prior import clean_head_commit
+
+    return clean_head_commit([Path(p) for p in CLEAN_PATHS])
 
 
 def _sha256(data: bytes) -> str:
@@ -196,12 +210,19 @@ def reveal(
     reveals_path: Path = REVEALS,
     ledger_path: Path = SEALED_ROOT / "attempts.json",
     now: datetime | None = None,
+    clean: Callable[[], str] | None = None,
     **paths: Any,
 ) -> dict[str, Any]:
     from hindcast import seal as seal_module
 
     seals_path = seals_path or seal_module.SEALS
     sealed_dir = sealed_dir or seal_module.OUT_DIR
+    # The key, the labels, the registry, and the code are committed before the
+    # reveal, so the history shows they were fixed before a seal was opened.
+    try:
+        code_commit = (clean or _clean_commit)()
+    except RuntimeError as error:
+        raise RevealRefused(str(error)) from error
     seals = seal_module.load_seals(seals_path)
     record = check_ready(case, seals, given=given, **paths)
     reveals = (
@@ -210,9 +231,10 @@ def reveal(
     if any(r["case_id"] == case.case_id for r in reveals):
         raise RevealRefused(f"{case.case_id} is revealed already")
     ledger = load_attempts(ledger_path)
-    # Every file is read and checked, and every target checked absent, before
-    # anything is written, so a refusal leaves no half-revealed case.
+    # Every file is read, checked, and parsed, and every target checked absent,
+    # before anything is written, so a refusal leaves no half-revealed case.
     ready = []
+    entries = []
     for seal in seals:
         if seal["case_id"] != case.case_id or not seal.get("file") or seal.get("dropped"):
             continue
@@ -222,6 +244,11 @@ def reveal(
         target = revealed_dir / case.case_id / seal["file"]
         if target.exists():
             raise RevealRefused(f"{target} exists; a revealed file is never replaced")
+        if seal["status"] in ("complete", "incomplete"):
+            try:
+                entries.append(ledger_entry(seal, json.loads(data)))
+            except (ValueError, KeyError) as error:
+                raise RevealRefused(f"{seal['file']}: not a result file ({error!r})") from error
         ready.append((seal, data, target))
     files = []
     for seal, data, target in ready:
@@ -230,9 +257,12 @@ def reveal(
             out.write(data)
         seal["revealed"] = True
         files.append(seal["file"])
-        if seal["status"] in ("complete", "incomplete"):
-            ledger.append(ledger_entry(seal, json.loads(data)))
-    record |= {"revealed_at": _stamp(now or datetime.now(UTC)), "files": files}
+    ledger += entries
+    record |= {
+        "revealed_at": _stamp(now or datetime.now(UTC)),
+        "code_commit": code_commit,
+        "files": files,
+    }
     seal_module.write_seals(seals_path, seals)
     reveals_path.parent.mkdir(parents=True, exist_ok=True)
     reveals_path.write_text(json.dumps({"reveals": [*reveals, record]}, indent=2) + "\n", "utf-8")
@@ -250,7 +280,7 @@ def main(argv: list[str] | None = None) -> int:
         parser.error(f"unknown case {args.case_id!r}")
     try:
         record = reveal(cases[args.case_id], given=args.published_at)
-    except (RevealRefused, OSError, ValueError) as error:
+    except (RevealRefused, OSError, ValueError, KeyError) as error:
         print(f"refused: {error}")
         return 1
     print(f"{args.case_id}: cause published {record['cause_published_at']}")

@@ -120,7 +120,7 @@ def make_tree(
     return case, seal, paths
 
 
-def do_reveal(tmp_path: Path, case: Case, paths: dict) -> dict:
+def do_reveal(tmp_path: Path, case: Case, paths: dict, clean=lambda: "c" * 40) -> dict:
     return reveal(
         case,
         seals_path=tmp_path / "seals.json",
@@ -129,6 +129,7 @@ def do_reveal(tmp_path: Path, case: Case, paths: dict) -> dict:
         reveals_path=tmp_path / "reveals.json",
         ledger_path=tmp_path / "ledger" / "attempts.json",
         now=datetime(2026, 11, 7, 11, 0, tzinfo=UTC),
+        clean=clean,
         **paths,
     )
 
@@ -139,6 +140,7 @@ def test_a_ready_case_is_revealed_and_recorded(tmp_path: Path) -> None:
     record = do_reveal(tmp_path, case, paths)
 
     assert record["cause_published_at"] == "2026-11-07T01:04:38Z"
+    assert record["code_commit"] == "c" * 40
     assert record["leak"]["hits"] == 0
     assert (tmp_path / "revealed" / CASE_ID / "r.json").read_bytes() == (
         tmp_path / "sealed" / CASE_ID / "r.json"
@@ -163,12 +165,19 @@ def test_a_ready_case_is_revealed_and_recorded(tmp_path: Path) -> None:
         ("leak", "the leak check found"),
         ("snapshot", "does not match the hash"),
         ("sealed", "does not match its seal"),
+        ("boundary", "not after the seal"),
+        ("registry", "differs from its registry hash"),
+        ("target", "a revealed file is never replaced"),
+        ("unparsed", "not a result file"),
+        ("dirty", "uncommitted"),
     ],
 )
 def test_each_broken_step_refuses_before_anything_is_written(
     tmp_path: Path, breakage: str, message: str
 ) -> None:
-    published = "2026-11-04T17:00:00Z" if breakage == "early" else "2026-11-07T01:04:38Z"
+    published = {"early": "2026-11-04T17:00:00Z", "boundary": "2026-11-04T17:20:23Z"}.get(
+        breakage, "2026-11-07T01:04:38Z"
+    )
     case, seal, paths = make_tree(
         tmp_path, published=published, role="sealed" if breakage == "role" else "revealed"
     )
@@ -188,16 +197,39 @@ def test_each_broken_step_refuses_before_anything_is_written(
         )
     if breakage == "snapshot":
         paths["snapshot"][0].write_bytes(b'{"chunks": [{"id": "x", "content": "changed"}]}')
+    sealed_file = tmp_path / "sealed" / CASE_ID / "r.json"
     if breakage == "sealed":
-        (tmp_path / "sealed" / CASE_ID / "r.json").write_bytes(b'{"status": "completE"}')
+        sealed_file.write_bytes(b'{"status": "completE"}')
+    if breakage == "registry":
+        pm = paths["sources_dir"] / CASE_ID / "pm.json"
+        pm.write_bytes(pm.read_bytes() + b" ")
+    if breakage == "target":
+        (tmp_path / "revealed" / CASE_ID).mkdir(parents=True)
+        (tmp_path / "revealed" / CASE_ID / "r.json").write_bytes(b"{}")
+    if breakage == "unparsed":
+        # Hashes as sealed, but carries no usage: refused before any write.
+        data = b'{"status": "complete"}'
+        sealed_file.write_bytes(data)
+        seals = json.loads((tmp_path / "seals.json").read_text())
+        seals["seals"][0]["sha256"] = sha(data)
+        (tmp_path / "seals.json").write_text(json.dumps(seals))
+    # A check before the sealed files must refuse without reading them: the
+    # file is moved away, so a read would raise FileNotFoundError instead.
+    if breakage not in ("sealed", "target", "unparsed"):
+        sealed_file.rename(tmp_path / "moved.json")
     seals_before = (tmp_path / "seals.json").read_bytes()
+    revealed_before = sorted((tmp_path / "revealed").rglob("*")) if breakage == "target" else []
+
+    def dirty() -> str:
+        raise RuntimeError("src: uncommitted or untracked changes")
 
     with pytest.raises(RevealRefused, match=message):
-        do_reveal(tmp_path, case, paths)
+        do_reveal(tmp_path, case, paths, **({"clean": dirty} if breakage == "dirty" else {}))
 
     assert (tmp_path / "seals.json").read_bytes() == seals_before
-    assert not (tmp_path / "revealed").exists()
+    assert sorted((tmp_path / "revealed").rglob("*")) == revealed_before
     assert not (tmp_path / "reveals.json").exists()
+    assert not (tmp_path / "ledger").exists()
 
 
 def test_the_publication_time_comes_from_the_captured_file() -> None:
@@ -208,6 +240,8 @@ def test_the_publication_time_comes_from_the_captured_file() -> None:
     assert published_at(pm, data, "2026-11-07T01:04:38Z")[0] == "2026-11-07T01:04:38Z"
     with pytest.raises(RevealRefused, match="differs from the file"):
         published_at(pm, data, "2026-11-06T00:00:00Z")
+    with pytest.raises(RevealRefused, match="no resolved update"):
+        published_at(pm, b'{"incident_updates": []}', None)
     page = source("pm.html", b"<html></html>")
     with pytest.raises(RevealRefused, match="give --published-at"):
         published_at(page, b"<html></html>", None)
