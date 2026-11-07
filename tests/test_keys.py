@@ -427,3 +427,81 @@ def test_check_draft_reports_a_quote_missing_from_the_postmortem(tmp_path) -> No
     (tmp_path / "src" / "c-1" / "s.json").write_bytes(data + b" ")
     with pytest.raises(ValueError, match="differs from its registry hash"):
         check_draft(case, tmp_path / "keys", tmp_path / "src")
+
+
+def test_draft_needs_a_case_and_refuses_one_that_is_not_drafted_by_the_analyzer(capsys):
+    from hindcast import keys
+
+    with pytest.raises(SystemExit):
+        keys.main(["draft"])
+    assert keys.main(["draft", "--case", "cloudflare-2026-10-20"]) == 1
+    assert "sealed case" in capsys.readouterr().out
+
+
+def test_draft_refuses_a_case_without_a_postmortem_before_any_download():
+    from hindcast.keys import _draft
+
+    with pytest.raises(ValueError, match="no postmortem source"):
+        _draft(CASE, None)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize(
+    ("written", "time", "flagged"),
+    [
+        ("14 July 2026 20:40 US/Pacific", "2026-07-14T20:40Z", True),
+        ("14 July 2026 20:40 US/Pacific", "2026-07-15T03:40Z", False),
+        ("14 Jul 2026 16:05 PDT", "2026-07-14T23:05Z", False),
+        ("July 14, 2026 at 16:05 PT", "2026-07-14T23:05Z", False),
+        ("15:06 UTC", "2026-10-07T15:06Z", False),
+        ("15:06 UTC", "2026-10-07T15:07Z", True),
+        ("2026-02-20 17:46", "2026-02-20T17:46Z", False),
+        ("11:05", "2025-11-18T11:05Z", False),
+    ],
+)
+def test_a_written_time_with_a_zone_is_converted_and_compared(written, time, flagged):
+    from hindcast.keys import TimelineEvent, written_time_problem
+
+    problem = written_time_problem(TimelineEvent(time, written, "e", "q"))
+    assert (problem is not None) == flagged, problem
+    if flagged:
+        assert problem and "zone" in problem
+
+
+def test_check_draft_reports_a_written_time_in_another_zone(tmp_path):
+    quote = "The cause was A & B."
+    data = snapshot(("2026-11-04T17:01:11Z", "resolved", CAUSE))
+    source = SourceFile(
+        "s",
+        "s.json",
+        "https://x.test/s.json",
+        "l",
+        "a",
+        hashlib.sha256(data).hexdigest(),
+        "2026-11-07T10:22:42Z",
+        "postmortem",
+    )
+    case = Case("c-1", "t", "GitHub", "revealed", "2026-11-04T16:05:31Z", (source,))
+    (tmp_path / "src" / "c-1").mkdir(parents=True)
+    (tmp_path / "src" / "c-1" / "s.json").write_bytes(data)
+    raw = json.loads(key_json(load_key(KEYS_DIR / "github-2026-10-07.json")))
+    raw |= {"case_id": "c-1", "attack_basis": "not stated", "attack_quote": ""}
+    raw["root_cause"]["source_quote"] = quote
+    for name in ("contributing_factors", "fixes"):
+        raw[name] = [{**raw[name][0], "source_quote": quote}]
+    raw["timeline"] = [
+        {
+            **raw["timeline"][0],
+            "source_quote": quote,
+            "time_as_written": "14 July 2026 20:40 US/Pacific",
+            "time": "2026-07-14T20:40Z",
+        }
+    ]
+    (tmp_path / "keys").mkdir()
+    (tmp_path / "keys" / "c-1-draft.json").write_text(json.dumps(raw))
+
+    _, problems, _ = check_draft(case, tmp_path / "keys", tmp_path / "src")
+
+    assert problems == [
+        "timeline[0]: as written '14 July 2026 20:40 US/Pacific' is 2026-07-15T03:40Z, "
+        "not 2026-07-14T20:40Z; check the zone"
+    ]

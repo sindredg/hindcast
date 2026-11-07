@@ -30,8 +30,10 @@ import json
 import re
 import sys
 from dataclasses import asdict, dataclass
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Literal
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from azure.core.exceptions import ResourceNotFoundError
 
@@ -42,6 +44,50 @@ KEYS_DIR = Path("eval/keys")
 FROZEN = KEYS_DIR / "frozen.json"
 DRAFTS = Path("build/keys")
 UTC_MINUTE = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}Z")
+# The zones providers write; a written time with one of these and a clock
+# time is converted and compared with the key's UTC time (issue #12).
+ZONES = {
+    "UTC": "UTC",
+    "GMT": "UTC",
+    "PT": "America/Los_Angeles",
+    "PST": "America/Los_Angeles",
+    "PDT": "America/Los_Angeles",
+    "US/Pacific": "America/Los_Angeles",
+    "America/Los_Angeles": "America/Los_Angeles",
+    "ET": "America/New_York",
+    "EST": "America/New_York",
+    "EDT": "America/New_York",
+    "US/Eastern": "America/New_York",
+    "America/New_York": "America/New_York",
+    "CET": "Europe/Berlin",
+    "CEST": "Europe/Berlin",
+}
+ZONE = re.compile(r"(?<![\w/])(" + "|".join(re.escape(z) for z in ZONES) + r")(?![\w/])")
+CLOCK = re.compile(r"\b(\d{1,2}):(\d{2})\b")
+ISO_DATE = re.compile(r"\b(\d{4})-(\d{2})-(\d{2})\b")
+DAY_MONTH_YEAR = re.compile(r"\b(\d{1,2})\s+([A-Za-z]{3,9})\.?,?\s+(\d{4})\b")
+MONTH_DAY = re.compile(r"\b([A-Za-z]{3,9})\.?\s+(\d{1,2})(?:st|nd|rd|th)?,?(?:\s+(\d{4}))?\b")
+MONTHS = {
+    name[:n].lower(): i
+    for i, name in enumerate(
+        [
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December",
+        ],
+        1,
+    )
+    for n in (3, len(name))
+}
 ATTACK = ("attack", "not an attack")
 BASIS = ("stated", "implied", "not stated")
 # A monthly report holds several incidents; the key covers the case's only.
@@ -65,6 +111,61 @@ class TimelineEvent:
     event: str
     source_quote: str
     stated_during_incident: bool = False
+
+
+def _written_date(text: str, year: int) -> tuple[int, int, int] | None:
+    if found := ISO_DATE.search(text):
+        return int(found[1]), int(found[2]), int(found[3])
+    if (found := DAY_MONTH_YEAR.search(text)) and found[2].lower() in MONTHS:
+        return int(found[3]), MONTHS[found[2].lower()], int(found[1])
+    for found in MONTH_DAY.finditer(text):
+        if found[1].lower() in MONTHS:
+            return int(found[3] or year), MONTHS[found[1].lower()], int(found[2])
+    return None
+
+
+def written_time_problem(event: TimelineEvent) -> str | None:
+    """Why the event's written time, converted from its zone, is not its UTC time.
+
+    None when the written text names no zone or no clock time, or when the
+    conversion agrees. Without a written date, the UTC date and the day
+    before are both tried: a Pacific evening is the next UTC day.
+    """
+    zone = ZONE.search(event.time_as_written)
+    clock = CLOCK.search(event.time_as_written)
+    if zone is None or clock is None or not UTC_MINUTE.fullmatch(event.time):
+        return None
+    expected = datetime.strptime(event.time, "%Y-%m-%dT%H:%MZ").replace(tzinfo=UTC)
+    try:
+        tz = ZoneInfo(ZONES[zone[1]])
+    except ZoneInfoNotFoundError:
+        return f"as written {event.time_as_written!r}: no zone database for {zone[1]}"
+    written = _written_date(event.time_as_written, expected.year)
+    if written:
+        dates = [written]
+    else:
+        day = expected.date()
+        before = day - timedelta(days=1)
+        dates = [(day.year, day.month, day.day), (before.year, before.month, before.day)]
+    found = []
+    for date in dates:
+        try:
+            local = datetime(*date, int(clock[1]), int(clock[2]), tzinfo=tz)
+        except ValueError:
+            return f"as written {event.time_as_written!r}: not a date and time"
+        found.append(local.astimezone(UTC).strftime("%Y-%m-%dT%H:%MZ"))
+    if event.time in found:
+        return None
+    return f"as written {event.time_as_written!r} is {found[0]}, not {event.time}; check the zone"
+
+
+def time_problems(key: AnswerKey) -> list[str]:
+    """One line per timeline event whose written time does not convert to its UTC time."""
+    out = []
+    for n, event in enumerate(key.timeline):
+        if problem := written_time_problem(event):
+            out.append(f"timeline[{n}]: {problem}")
+    return out
 
 
 @dataclass(frozen=True)
@@ -218,6 +319,8 @@ def draft_key(case: Case, result: dict, markdown: str) -> tuple[AnswerKey, list[
                 f"timeline[{n}]: time {event.time!r} is not UTC; "
                 f"as written {event.time_as_written!r}"
             )
+        elif problem := written_time_problem(event):
+            problems.append(f"timeline[{n}]: {problem}")
         check(f"timeline[{n}]", event.source_quote)
         timeline.append(event)
     attack_quote = _string(fields, "attack_quote")
@@ -358,12 +461,14 @@ def _draft(case: Case, evidence: CaseEvidence) -> None:
     from hindcast.extract import analyze
     from hindcast.storage import container, download_source, upload_bytes
 
+    source = next((s for s in case.sources if s.kind == "postmortem"), None)
+    if source is None:
+        raise ValueError(f"{case.case_id}: no postmortem source in the registry")
     name = f"keys/{case.case_id}-result.json"
     try:
         stored = json.loads(container("extracted").download_blob(name).readall())
         outcome = "reused"
     except ResourceNotFoundError:
-        source = next(s for s in case.sources if s.kind == "postmortem")
         title, body = postmortem_page(source, download_source(case.case_id, source))
         if case.case_id in INCIDENT_HEADINGS:
             body = incident_part(body, INCIDENT_HEADINGS[case.case_id])
@@ -420,7 +525,7 @@ def check_draft(
     title, body = postmortem_page(source, data)
     if case.case_id in INCIDENT_HEADINGS:
         body = incident_part(body, INCIDENT_HEADINGS[case.case_id])
-    return key, quote_problems(key, _plain(f"{title} {body}")), source.url
+    return key, quote_problems(key, _plain(f"{title} {body}")) + time_problems(key), source.url
 
 
 def write_draft(key: AnswerKey, sheet: str, drafts: Path = DRAFTS) -> bool:
@@ -458,7 +563,9 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m hindcast.keys")
     commands = parser.add_subparsers(dest="command", required=True)
     draft = commands.add_parser("draft", help="draft each case's key for review")
-    draft.add_argument("--case", action="append")
+    # Required: a loop over every case would send sealed, revealed, and
+    # injection cases to the analyzer (issue #103).
+    draft.add_argument("--case", action="append", required=True)
     frozen = commands.add_parser("freeze", help="freeze one reviewed key")
     frozen.add_argument("case_id")
     checked = commands.add_parser("check", help="check a hand-drafted key and write its sheet")
@@ -488,11 +595,19 @@ def main(argv: list[str] | None = None) -> int:
             return 1
         return 0
     failed = False
-    for case_id in args.case or sorted(cases):
+    for case_id in args.case:
+        case = cases.get(case_id)
+        if case is None or case.role not in ("showcase", "development"):
+            # Decision 0022: a revealed case's key is drafted by hand; sealed
+            # and injection cases have no key.
+            failed = True
+            role = f"a {case.role} case" if case else "not in the registry"
+            print(f"{case_id}: {role}; only showcase and development keys are drafted here")
+            continue
         evidence_path = Path("build/evidence") / f"{case_id}.json"
         try:
             evidence = _load_evidence(evidence_path)
-            _draft(cases[case_id], evidence)
+            _draft(case, evidence)
         except (ValueError, OSError) as error:
             failed = True
             print(f"{case_id}: {str(error).splitlines()[0]}")
