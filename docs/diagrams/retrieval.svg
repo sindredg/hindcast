@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg viewBox="0 0 1000 536" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="retrieval-title retrieval-desc" id="retrieval-root">
         <title id="retrieval-title">Library index and search</title>
-        <desc id="retrieval-desc">The index build reads the library extracts, checks each against its blob, cuts them into chunks that stay inside one section or one figure, embeds them through the Foundry resource endpoint, and pushes them to the library index in Azure AI Search, refusing an index that already holds documents. A search takes a case ID and a query: the filter comes from the registries alone (published before the case's start day and, unless the case is sealed, picked for the case), the query text reaches only the hybrid keyword, vector, and semantic search on the index, and every hit is checked again against the same rule and the extracts. Hits that pass are returned with their ref, document, and date; a hit outside the rule raises LibraryLeak and nothing is returned.</desc>
+        <desc id="retrieval-desc">The index build reads the library extracts, checks each against its blob, cuts them into chunks that stay inside one section or one figure, embeds them through the Foundry resource endpoint, and pushes them to the library index in Azure AI Search, refusing an index that already holds documents. A search takes a case ID and a query: the filter comes from the registries alone (published before the case's start day and, unless the case is sealed or revealed, picked for the case), the query text reaches only the hybrid keyword, vector, and semantic search on the index, and every hit is checked again against the same rule and the extracts. Hits that pass are returned with their ref, document, and date; a hit outside the rule raises LibraryLeak and nothing is returned.</desc>
         <defs>
       <style>#retrieval-root { --color-paper:   #000000;
       --color-ink:     #f5f5f5;
@@ -84,7 +84,7 @@
         <text x="683" y="81" fill="#22c55e" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">GUARD</text>
         <text x="808" y="94" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Filter from the registries</text>
         <text x="808" y="110" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">published before the start day</text>
-        <text x="808" y="124" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">and picked for the case, unless sealed</text>
+        <text x="808" y="124" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">and picked for the case, unless sealed or revealed</text>
         <rect x="656" y="168" width="304" height="72" rx="6" fill="#000000"/>
         <rect x="656" y="168" width="304" height="72" rx="6" fill="#141414" stroke="#f5f5f5" stroke-width="1"/>
         <rect x="664" y="176" width="32" height="12" rx="2" fill="none" stroke="#f5f5f5" stroke-opacity="0.40" stroke-width="0.8"/>

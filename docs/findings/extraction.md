@@ -66,6 +66,6 @@ Findings about Content Understanding as Hindcast's extraction service ([decision
 
 **Evidence:** tested live, 2026-10-27, `GET /contentunderstanding/analyzers/prebuilt-document` and `prebuilt-imageSearch` with API `2025-11-01`, signed in with Cognitive Services Content Understanding Contributor on the Foundry resource. Before any defaults were set, `GET /contentunderstanding/defaults` returned `DefaultsNotSet`.
 
-**For Hindcast:** extraction uses the existing gpt-5-mini 2025-08-07 deployment, which retires on 2027-02-09, after the project's live phase. Since 2026-11-01 extraction runs on gpt-5.4-mini 2026-03-17 ([decision 0018](../decisions/0018-extraction-model.md)).
+**For Hindcast:** extraction used the existing gpt-5-mini 2025-08-07 deployment, which retires on 2027-02-09, until 2026-11-01, when the deployment was deleted. Since 2026-11-01 extraction runs on gpt-5.4-mini 2026-03-17 ([decision 0018](../decisions/0018-extraction-model.md)).
 
 **Read more:** [Content Understanding service limits](https://learn.microsoft.com/azure/ai-services/content-understanding/service-limits).

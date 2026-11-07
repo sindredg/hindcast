@@ -6,7 +6,7 @@ The procedure builds all of Hindcast in one resource group with one `azd up`, fi
 
 ## Inputs and access
 
-- Azure Developer CLI 1.37.2 and Bicep CLI 0.48.1 (through `az bicep`), the newest stable releases on 2026-11-05; Azure CLI 2.88.0; GitHub CLI; uv.
+- Azure Developer CLI 1.37.2 and Bicep CLI 0.48.1 (through `az bicep`), the newest stable releases on 2026-11-05 (CI pins Bicep 0.49.2 since 2026-11-07); Azure CLI 2.88.0; GitHub CLI; uv.
 - Signed in as an Owner of the subscription who can create app registrations in the tenant, and as a GitHub user who can set the repository's environment secrets.
 - Global Standard quota in Sweden Central of 50 thousand tokens per minute free for each of gpt-6-luna, gpt-6.1-sol, gpt-5.4-mini, and text-embedding-3-large (`az cognitiveservices usage list -l swedencentral`).
 - The local data tree: `data/sources/` with every source the registries pin, and `build/evidence/`, `build/extracted/library/`, and `build/injection/` from the extraction and injection runbooks.
