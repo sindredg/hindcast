@@ -1,0 +1,331 @@
+{
+  "case_id": "github-2026-11-04-actions",
+  "agent": {
+    "name": "hindcast-investigator-gpt-6-1-sol",
+    "version": "2"
+  },
+  "model": {
+    "deployment": "gpt-6.1-sol",
+    "name": "gpt-6.1-sol",
+    "version": "2026-09-29"
+  },
+  "provenance": {
+    "prompt": {
+      "blob": "1d0911f407e73fd3d4def4f4e14ab8763c6cfbbc",
+      "dirty": false
+    },
+    "code": {
+      "commit": "42c308af19ae1bb9e90ba071dd0ee02eee1bfcdd",
+      "dirty": false,
+      "src_tree": "ee981839827a62ce5019ef1a627b281edd363960"
+    },
+    "evidence_sha256": "c88d471627fa4c6c994d72ba14c4bd8117705f11c31995a031b5dfe9932d2fa4",
+    "library": {
+      "registry": {
+        "blob": "ca5fb507e65dab71001a76adb9ae2258aae261b4",
+        "dirty": false
+      },
+      "index": "hindcast-library-1024",
+      "search_api_version": "2026-04-01",
+      "embedding": {
+        "deployment": "text-embedding-3-large",
+        "name": "text-embedding-3-large",
+        "version": "1",
+        "dimensions": 1024
+      },
+      "contents": {
+        "chunks": 267,
+        "sha256": "b0aba867a775310881bba94058614ace3c80b86589548eef453c6a5df80dd524"
+      }
+    },
+    "arm": "hindcast",
+    "screens": true
+  },
+  "status": "complete",
+  "incomplete_reason": null,
+  "investigation": {
+    "attack": {
+      "verdict": "cannot tell",
+      "reasoning": "The provider identified an issue with events that might trigger Actions, but disclosed neither its underlying cause nor evidence establishing or excluding deliberate hostile activity.",
+      "citations": [
+        {
+          "source": "case",
+          "ref": "github-2026-11-04-actions/u5"
+        }
+      ]
+    },
+    "findings": [
+      {
+        "id": "f1",
+        "kind": "observation",
+        "claim": "The incident initially involved reported degraded performance for Actions and Pages; Actions was subsequently described as having degraded availability.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-actions/u1"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-actions/u4"
+          }
+        ]
+      },
+      {
+        "id": "f2",
+        "kind": "observation",
+        "claim": "Webhooks also experienced degraded performance during the incident.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-actions/u3"
+          }
+        ]
+      },
+      {
+        "id": "f3",
+        "kind": "observation",
+        "claim": "At 16:34:45 UTC, GitHub reported identifying an issue with events that might trigger Actions, applying mitigations, and monitoring recovery. Customers could observe delayed job-status updates.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-actions/u5"
+          }
+        ]
+      },
+      {
+        "id": "f4",
+        "kind": "observation",
+        "claim": "GitHub reported Webhooks mitigated at 16:45:48 UTC and Actions and Pages mitigated at 16:48:03 UTC, with stability monitoring continuing.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-actions/u6"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-actions/u7"
+          }
+        ]
+      },
+      {
+        "id": "f5",
+        "kind": "observation",
+        "claim": "The public incident was marked resolved at 17:01:11 UTC. The resolved update's explanatory text is unavailable.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-actions/u9"
+          }
+        ]
+      },
+      {
+        "id": "f6",
+        "kind": "inference",
+        "claim": "A shared upstream processing problem is plausible, but the affected-service combination does not identify a specific failing component. Earlier outages produced overlapping symptoms through background-job degradation or shared-datastore failure; neither mechanism is established for this incident.",
+        "rests_on": [
+          "f1",
+          "f2",
+          "f3"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-actions/u5"
+          },
+          {
+            "source": "library",
+            "ref": "lib/github-availability-2026-06/s7"
+          },
+          {
+            "source": "library",
+            "ref": "lib/github-availability-2023-09/s2"
+          }
+        ]
+      }
+    ],
+    "timeline": [
+      {
+        "time": "2026-11-04T16:05:31Z",
+        "time_kind": "stated",
+        "event": "GitHub opened the incident investigating degraded Actions and Pages performance. This is the public incident start, not necessarily the actual failure onset.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-actions/u1"
+          }
+        ]
+      },
+      {
+        "time": "2026-11-04T16:12:55Z",
+        "time_kind": "stated",
+        "event": "Webhooks degraded performance was reported.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-actions/u3"
+          }
+        ]
+      },
+      {
+        "time": "2026-11-04T16:17:29Z",
+        "time_kind": "stated",
+        "event": "Actions was reported to have degraded availability.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-actions/u4"
+          }
+        ]
+      },
+      {
+        "time": "2026-11-04T16:34:45Z",
+        "time_kind": "stated",
+        "event": "GitHub announced identification of an Actions-triggering event issue and that mitigations had been applied; recovery monitoring and possible job-status delays remained.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-actions/u5"
+          }
+        ]
+      },
+      {
+        "time": "2026-11-04T16:45:48Z",
+        "time_kind": "stated",
+        "event": "Webhooks degradation was reported mitigated.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-actions/u6"
+          }
+        ]
+      },
+      {
+        "time": "2026-11-04T16:48:03Z",
+        "time_kind": "stated",
+        "event": "Actions and Pages degradation was reported mitigated, and the incident entered monitoring.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-actions/u7"
+          }
+        ]
+      },
+      {
+        "time": "2026-11-04T17:01:11Z",
+        "time_kind": "stated",
+        "event": "The incident was marked resolved.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-actions/u9"
+          }
+        ]
+      }
+    ],
+    "root_cause": {
+      "claim": "The best-supported proximate explanation for the Actions degradation is a problem in handling events that might trigger Actions. The underlying technical root cause is not disclosed, and the evidence does not establish how that issue caused the concurrent Pages and Webhooks degradation.",
+      "rests_on": [
+        "f1",
+        "f2",
+        "f3",
+        "f6"
+      ],
+      "citations": [
+        {
+          "source": "case",
+          "ref": "github-2026-11-04-actions/u5"
+        }
+      ]
+    },
+    "contributing_factors": [],
+    "open_questions": [
+      {
+        "question": "Which component failed, and what initiated the event-triggering issue?",
+        "why_open": "The updates identify an event-related issue but give no failure mechanism or initiating condition."
+      },
+      {
+        "question": "Did Actions, Pages, and Webhooks share one failing dependency, or were some impacts secondary?",
+        "why_open": "The updates report overlapping degradation and mitigation without explaining the dependency relationships."
+      },
+      {
+        "question": "What mitigations were applied, and did delayed events or job-status updates fully catch up?",
+        "why_open": "Mitigations are not described, and the updates provide no backlog, replay, loss, or catch-up measurements."
+      },
+      {
+        "question": "What was the actual customer-impact window and scope?",
+        "why_open": "Public reporting and resolution times are available, but exact failure onset, affected-user proportions, regional scope, and service-level recovery times are not."
+      },
+      {
+        "question": "Was deliberate hostile activity involved?",
+        "why_open": "The available updates neither identify an attack nor provide enough causal detail to rule one out."
+      }
+    ]
+  },
+  "checks": {
+    "rejected_citations": [],
+    "unsupported": [],
+    "pii": []
+  },
+  "tool_calls": [
+    {
+      "name": "list_updates",
+      "seconds": 2.123,
+      "withheld": [],
+      "screen_calls": 2
+    },
+    {
+      "name": "list_charts",
+      "seconds": 0.0,
+      "withheld": [],
+      "screen_calls": 0
+    },
+    {
+      "name": "search_library",
+      "seconds": 1.014,
+      "query": "GitHub Actions Pages Webhooks degradation events triggering Actions delayed job status updates event delivery mitigation",
+      "refs": [
+        "lib/github-availability-2026-06/s7",
+        "lib/github-2018-10-21/s1",
+        "lib/github-availability-2023-09/s2",
+        "lib/github-availability-2026-06/s3",
+        "lib/github-2018-10-21/s7"
+      ],
+      "withheld": [],
+      "screen_calls": 1
+    }
+  ],
+  "usage": {
+    "model_calls": 3,
+    "tool_calls": 3,
+    "seconds": 42.111,
+    "input_tokens": 7090,
+    "cached_input_tokens": 4576,
+    "output_tokens": 2004,
+    "screen_calls": 3,
+    "screen_records": 18,
+    "pii_calls": 6,
+    "pii_records": 26,
+    "max_call_input_tokens": 3782,
+    "reasoning_tokens": 121
+  },
+  "reasoning": {
+    "requested": "medium",
+    "applied": [
+      "medium"
+    ]
+  },
+  "cost": {
+    "table_version": 1,
+    "currency": "USD",
+    "model": 0.025526,
+    "screens": 0.00675,
+    "pii": 0.026,
+    "embeddings": 2e-06,
+    "total": 0.058278
+  }
+}

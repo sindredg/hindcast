@@ -1,0 +1,25 @@
+{
+  "reveals": [
+    {
+      "case_id": "github-2026-11-04-actions",
+      "postmortem": "github-summary-2026-11-04-actions",
+      "postmortem_sha256": "76af861710f9273af2066f7dcd4081ee10cfb39e205daed2b6be8884a5bb8cc9",
+      "cause_published_at": "2026-11-07T01:04:38Z",
+      "published_basis": "resolved update updated_at in the captured snapshot",
+      "key_sha256": "4d3d4633b1f48c942fe5c31cf3fa2c32e2f32a1b5bcc7b0d9e887c5d22ca915f",
+      "labels_sha256": "57274146155eefebbc941c4ae95bf1774b4787df46dfb15e9cfbd794a048ebab",
+      "evidence_sha256": "c88d471627fa4c6c994d72ba14c4bd8117705f11c31995a031b5dfe9932d2fa4",
+      "leak": {
+        "evidence_sources": 8,
+        "library_chunks": 267,
+        "snapshot_sha256": "87cfded23c562922992d56dd7c4c629a2ff380bceaf9f26e9832bc7123b2bd71",
+        "hits": 0
+      },
+      "revealed_at": "2026-11-07T10:30:54Z",
+      "files": [
+        "20261104T172023Z-v3.json",
+        "20261104T172217Z-v2.json"
+      ]
+    }
+  ]
+}

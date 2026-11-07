@@ -1,0 +1,178 @@
+{
+  "run_id": "sealed/github-2026-11-04-actions/gpt-6.1-sol/a1",
+  "case_id": "github-2026-11-04-actions",
+  "kinds": {
+    "attack": "inference",
+    "findings[0]": "observation",
+    "findings[1]": "observation",
+    "findings[2]": "observation",
+    "findings[3]": "observation",
+    "findings[4]": "observation",
+    "findings[5]": "inference",
+    "timeline[0]": "observation",
+    "timeline[1]": "observation",
+    "timeline[2]": "observation",
+    "timeline[3]": "observation",
+    "timeline[4]": "observation",
+    "timeline[5]": "observation",
+    "timeline[6]": "observation",
+    "root_cause": "inference"
+  },
+  "code_unsupported": [],
+  "judge": {
+    "model": "claude-fable-5-1",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "8d36cd062759056fd31693928c6bedd244f10de95598133849914874b7de718f",
+    "input_sha256": "5d9fd1862e083b03cb96736e103aca3b91f2b458b6e40e041f855045a583568a",
+    "judged_at": "2026-11-07T10:41:10Z",
+    "request_id": "req_011CgoRhoeLLTSBFPRg7gPZt",
+    "response_model": "claude-fable-5-1"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 5387,
+    "output_tokens": 4318,
+    "cache_creation_input_tokens": 2418,
+    "cache_read_input_tokens": 0
+  },
+  "judgment": {
+    "run_items": {
+      "attack": {
+        "reason": "The cannot-tell verdict rests on u5, which names an issue with events but gives no cause; concluding that the evidence neither establishes nor excludes an attack follows from that update and adds no fact.",
+        "supported": true
+      },
+      "findings[0]": {
+        "reason": "u1 states degraded performance for Actions and Pages and u4 states Actions degraded availability, exactly as the finding says.",
+        "supported": true
+      },
+      "findings[1]": {
+        "reason": "u3 states Webhooks is experiencing degraded performance.",
+        "supported": true
+      },
+      "findings[2]": {
+        "reason": "u5 at 16:34:45 states the identified issue with events that might trigger Actions, applied mitigations, monitoring, and delayed job status updates.",
+        "supported": true
+      },
+      "findings[3]": {
+        "reason": "u6 (16:45:48) states Webhooks mitigated and u7 (16:48:03) states Actions and Pages mitigated with monitoring.",
+        "supported": true
+      },
+      "findings[4]": {
+        "reason": "The u9 ref is titled 17:01:11 resolved with text withheld, which is what the finding states.",
+        "supported": true
+      },
+      "findings[5]": {
+        "reason": "Rests on supported f1, f2, f3 and u5; the hedged claim that a shared upstream problem is plausible but unidentified follows from the overlapping Actions/Pages/Webhooks degradation, and the library items are only cited as other outages, explicitly not established for this one.",
+        "supported": true
+      },
+      "timeline[0]": {
+        "reason": "u1 is the 16:05:31 investigating update for degraded Actions and Pages performance.",
+        "supported": true
+      },
+      "timeline[1]": {
+        "reason": "u3 at 16:12:55 reports Webhooks degraded performance.",
+        "supported": true
+      },
+      "timeline[2]": {
+        "reason": "u4 at 16:17:29 reports Actions degraded availability.",
+        "supported": true
+      },
+      "timeline[3]": {
+        "reason": "u5 at 16:34:45 states the event issue was identified, mitigations applied, monitoring, and possible delayed job status.",
+        "supported": true
+      },
+      "timeline[4]": {
+        "reason": "u6 at 16:45:48 states Webhooks degradation mitigated.",
+        "supported": true
+      },
+      "timeline[5]": {
+        "reason": "u7 at 16:48:03 (monitoring) states Actions and Pages degradation mitigated.",
+        "supported": true
+      },
+      "timeline[6]": {
+        "reason": "The u9 ref is titled 17:01:11 resolved.",
+        "supported": true
+      },
+      "root_cause": {
+        "reason": "Rests on supported f1, f2, f3, f6 and u5; it restates u5's identified issue with events that trigger Actions as the proximate explanation and otherwise says the cause is undisclosed, adding no component or cause of its own.",
+        "supported": true
+      }
+    },
+    "key_items": {
+      "attack": {
+        "run_items": [
+          "attack"
+        ],
+        "reason": "The run's verdict is cannot tell, with an open question asking whether hostile activity was involved; the key says not an attack.",
+        "outcome": "abstained"
+      },
+      "root_cause": {
+        "run_items": [
+          "root_cause",
+          "findings[5]"
+        ],
+        "reason": "The run names no configuration change and no event-routing service; it says the underlying root cause is not disclosed, names the missing component and initiating condition, and the first open question asks for them. Its 'issue with events that might trigger Actions' is the status update's symptom wording, not the paused-delivery mechanism.",
+        "outcome": "abstained"
+      },
+      "contributing_factors/0": {
+        "run_items": [],
+        "reason": "No run item mentions feature flags.",
+        "outcome": "missed"
+      },
+      "contributing_factors/1": {
+        "run_items": [],
+        "reason": "No run item mentions the routing service's handling of misconfiguration.",
+        "outcome": "missed"
+      },
+      "contributing_factors/2": {
+        "run_items": [],
+        "reason": "No run item mentions a rollback that left the code change, a later deployment, or a second period of delays.",
+        "outcome": "missed"
+      },
+      "timeline/0": {
+        "run_items": [
+          "timeline[0]"
+        ],
+        "reason": "timeline[0] gives the start of degraded Actions and Pages performance at 16:05:31 from u1, 16 minutes after the key's 15:49, within tolerance, though it notes this is the public rather than actual onset.",
+        "outcome": "supported-hit"
+      },
+      "timeline/1": {
+        "run_items": [
+          "timeline[3]",
+          "findings[2]"
+        ],
+        "reason": "timeline[3] and f3 state mitigations were applied as of 16:34:45 per u5, 20 minutes after the key's 16:14 rollback and within tolerance, though the run does not call it a rollback.",
+        "outcome": "supported-hit"
+      },
+      "timeline/2": {
+        "run_items": [
+          "timeline[5]",
+          "findings[3]"
+        ],
+        "reason": "timeline[5] and f4 state Actions and Pages mitigated at 16:48:03 per u7, matching the key's 16:48 end of the first period.",
+        "outcome": "supported-hit"
+      },
+      "timeline/3": {
+        "run_items": [],
+        "reason": "No run item mentions delays resuming at 17:20 or a later deployment.",
+        "outcome": "missed"
+      },
+      "timeline/4": {
+        "run_items": [],
+        "reason": "No run item mentions a second rollback at 17:40.",
+        "outcome": "missed"
+      },
+      "timeline/5": {
+        "run_items": [],
+        "reason": "No run item mentions the second period ending at 17:55; the 17:01 resolved item is a different event.",
+        "outcome": "missed"
+      }
+    }
+  },
+  "error": null,
+  "arm": "sealed-gpt-6.1-sol",
+  "run_sha256": "a07997644f1bd7e8dac674836aa974a41be65608a96f654302dbfb071550c0db",
+  "code_commit": "ce12ac8ba87d445860e5575bc558f22212f6f095",
+  "earlier_errors": []
+}

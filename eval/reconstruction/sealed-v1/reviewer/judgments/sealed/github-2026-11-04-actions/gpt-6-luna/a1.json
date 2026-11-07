@@ -1,0 +1,180 @@
+{
+  "run_id": "sealed/github-2026-11-04-actions/gpt-6-luna/a1",
+  "case_id": "github-2026-11-04-actions",
+  "kinds": {
+    "attack": "inference",
+    "findings[0]": "observation",
+    "findings[1]": "observation",
+    "findings[2]": "observation",
+    "findings[3]": "observation",
+    "findings[4]": "inference",
+    "timeline[0]": "observation",
+    "timeline[1]": "observation",
+    "timeline[2]": "observation",
+    "timeline[3]": "observation",
+    "timeline[4]": "observation",
+    "timeline[5]": "observation",
+    "timeline[6]": "observation",
+    "timeline[7]": "observation",
+    "timeline[8]": "observation",
+    "root_cause": "inference"
+  },
+  "code_unsupported": [],
+  "judge": {
+    "model": "claude-fable-5-1",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "8d36cd062759056fd31693928c6bedd244f10de95598133849914874b7de718f",
+    "input_sha256": "db1a35ccfe8c6e03bcf9d7d42d1f1229959975316af8d84c4e7f8b502ebfd9c4",
+    "judged_at": "2026-11-07T10:41:10Z",
+    "request_id": "req_011CgoRhohoScQgh4bBx1y5H",
+    "response_model": "claude-fable-5-1"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 4351,
+    "output_tokens": 3698,
+    "cache_creation_input_tokens": 2418,
+    "cache_read_input_tokens": 0
+  },
+  "judgment": {
+    "run_items": {
+      "attack": {
+        "reason": "Cites u5, which mentions an issue with events and mitigations but nothing about hostile activity; the conclusion that the updates do not determine attack follows from that text.",
+        "supported": true
+      },
+      "findings[0]": {
+        "reason": "u1 states degraded performance for Actions and Pages, u3 states Webhooks degraded performance, u4 states Actions degraded availability.",
+        "supported": true
+      },
+      "findings[1]": {
+        "reason": "u5 states 'We have identified an issue with events that might trigger Actions.'",
+        "supported": true
+      },
+      "findings[2]": {
+        "reason": "u5 states 'Customers may observe delayed status updates for their jobs.'",
+        "supported": true
+      },
+      "findings[3]": {
+        "reason": "u5 states mitigations applied; u6 states Webhooks degradation mitigated; u7 states Actions and Pages degradation mitigated.",
+        "supported": true
+      },
+      "findings[4]": {
+        "reason": "Rests on supported f1 and f2; concluding that the events issue is the narrowest stated proximate cause and that no mechanism is given follows from u5 without adding facts.",
+        "supported": true
+      },
+      "timeline[0]": {
+        "reason": "u1 at 16:05:31Z states investigation of degraded performance for Actions and Pages.",
+        "supported": true
+      },
+      "timeline[1]": {
+        "reason": "u2 at 16:11:38Z states continued investigation of Actions and Pages issues.",
+        "supported": true
+      },
+      "timeline[2]": {
+        "reason": "u3 at 16:12:55Z states Webhooks degraded performance.",
+        "supported": true
+      },
+      "timeline[3]": {
+        "reason": "u4 at 16:17:29Z states Actions degraded availability.",
+        "supported": true
+      },
+      "timeline[4]": {
+        "reason": "u5 at 16:34:45Z states the events issue, mitigations applied, monitoring, and possible delayed job status updates.",
+        "supported": true
+      },
+      "timeline[5]": {
+        "reason": "u6 at 16:45:48Z states Webhooks degradation mitigated and monitoring.",
+        "supported": true
+      },
+      "timeline[6]": {
+        "reason": "u7 at 16:48:03Z states Actions and Pages degradation mitigated and monitoring.",
+        "supported": true
+      },
+      "timeline[7]": {
+        "reason": "u8 at 16:49:27Z states degradation mitigated and monitoring.",
+        "supported": true
+      },
+      "timeline[8]": {
+        "reason": "u9 is labeled resolved at 17:01:11Z; the item claims only that status and notes the text was withheld.",
+        "supported": true
+      },
+      "root_cause": {
+        "reason": "Rests on supported f1 and f2; it restates the u5 events issue as the proximate cause and explicitly says the underlying mechanism was not disclosed, adding nothing beyond the cited update.",
+        "supported": true
+      }
+    },
+    "key_items": {
+      "attack": {
+        "run_items": [
+          "attack"
+        ],
+        "reason": "The run's attack verdict is 'cannot tell', which the rubric scores as abstained.",
+        "outcome": "abstained"
+      },
+      "root_cause": {
+        "run_items": [
+          "root_cause"
+        ],
+        "reason": "The run's root cause names only the u5 'issue with events' symptom, says the underlying mechanism was not disclosed, and open question 1 asks for it; it never names a configuration change or an event-routing service pausing streams.",
+        "outcome": "abstained"
+      },
+      "contributing_factors/0": {
+        "run_items": [],
+        "reason": "No run item mentions feature flags or their setup.",
+        "outcome": "missed"
+      },
+      "contributing_factors/1": {
+        "run_items": [],
+        "reason": "No run item mentions the routing service's handling of misconfigured flags.",
+        "outcome": "missed"
+      },
+      "contributing_factors/2": {
+        "run_items": [],
+        "reason": "No run item mentions a rollback leaving the code change in place or a later deployment reintroducing it.",
+        "outcome": "missed"
+      },
+      "timeline/0": {
+        "run_items": [],
+        "reason": "The run's earliest event is the provider beginning its investigation at 16:05 (timeline[0]), which is a different event from delays beginning at 15:49; no run item states when delays began.",
+        "outcome": "missed"
+      },
+      "timeline/1": {
+        "run_items": [
+          "timeline[4]"
+        ],
+        "reason": "timeline[4] places the provider applying mitigations at 16:34:45Z, the same first-period mitigation event, within 30 minutes of the key's 16:14 rollback; it is supported by u5.",
+        "outcome": "supported-hit"
+      },
+      "timeline/2": {
+        "run_items": [
+          "timeline[6]",
+          "timeline[5]",
+          "timeline[7]"
+        ],
+        "reason": "timeline[6] states Actions and Pages degradation mitigated at 16:48:03Z, matching the key's 16:48 end of the first period and supported by u7.",
+        "outcome": "supported-hit"
+      },
+      "timeline/3": {
+        "run_items": [],
+        "reason": "No run item states that delays recurred after 17:01; the run ends at the resolved update.",
+        "outcome": "missed"
+      },
+      "timeline/4": {
+        "run_items": [],
+        "reason": "No run item mentions a second rollback or any event at 17:40.",
+        "outcome": "missed"
+      },
+      "timeline/5": {
+        "run_items": [],
+        "reason": "No run item mentions a second period of delays ending at 17:55.",
+        "outcome": "missed"
+      }
+    }
+  },
+  "error": null,
+  "arm": "sealed-gpt-6-luna",
+  "run_sha256": "aba5260577cf044abcd0c73f914ba9dc4cfbdcc65abea24c83b5a3d07e430ab0",
+  "code_commit": "ce12ac8ba87d445860e5575bc558f22212f6f095",
+  "earlier_errors": []
+}

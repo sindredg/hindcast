@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg viewBox="0 0 1000 704" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="evaluation-flow-title evaluation-flow-desc" id="evaluation-flow-root">
         <title id="evaluation-flow-title">Scoring the reconstructions</title>
-        <desc id="evaluation-flow-desc">Every filled scored run and every prior-knowledge answer goes to the judge, claude-opus-5-5 on the Anthropic API, with the frozen keys and the rubric's outcome and support rules but without the run's arm or the labels; the reviewer, claude-fable-5-1 on the Anthropic API, judges each run and answer again from the same input without the judge's proposals, and its verdicts decide the review queue that the judge's proposals select; the score reads the judgments and the reviewer's decisions, a decision replacing the judge's proposal, and applies the frozen labels' credit; the Foundry cloud evaluators score repeat 1 of each arm and case with gpt-6.1-sol as their judge; both go into the evaluation report per arm and case.</desc>
+        <desc id="evaluation-flow-desc">Every filled scored run, the 60 showcase runs and the 2 revealed seals, and every prior-knowledge answer goes to the judge, claude-opus-5-5 on the Anthropic API, with the frozen keys and the rubric's outcome and support rules but without the run's arm or the labels; the reviewer, claude-fable-5-1 on the Anthropic API, judges each run and answer again from the same input without the judge's proposals, and its verdicts decide the review queue that the judge's proposals select; the score reads the judgments and every reviewer verdict: its decisions on the queue, each replacing the judge's proposal, and its full judgments for the run items behind each decided match and for the second opinion; then it applies the frozen labels' credit; the Foundry cloud evaluators score repeat 1 of each arm and case with gpt-6.1-sol as their judge; both go into the evaluation report per arm and case.</desc>
         <defs>
       <style>#evaluation-flow-root { --color-paper:   #000000;
       --color-ink:     #f5f5f5;
@@ -33,8 +33,8 @@
         <!-- Arrow labels -->
         <rect x="566" y="172" width="36" height="12" rx="2" fill="#000000"/>
         <text x="584" y="181" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">QUEUE</text>
-        <rect x="736" y="314" width="52" height="12" rx="2" fill="#000000"/>
-        <text x="762" y="323" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">DECISIONS</text>
+        <rect x="736" y="314" width="72" height="12" rx="2" fill="#000000"/>
+        <text x="772" y="323" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">ALL VERDICTS</text>
         <rect x="320" y="440" width="40" height="12" rx="2" fill="#000000"/>
         <text x="340" y="449" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">CREDIT</text>
         <rect x="448" y="314" width="56" height="12" rx="2" fill="#000000"/>
@@ -46,7 +46,7 @@
         <rect x="40" y="64" width="208" height="64" rx="6" fill="#000000"/>
         <rect x="40" y="64" width="208" height="64" rx="6" fill="#f5f5f5" fill-opacity="0.05" stroke="#b4b4b4" stroke-width="1"/>
         <text x="144" y="94" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Scored runs</text>
-        <text x="144" y="110" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">60 runs · attempts.json</text>
+        <text x="144" y="110" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">60 showcase · 2 revealed</text>
 
         <rect x="40" y="160" width="208" height="64" rx="6" fill="#000000"/>
         <rect x="40" y="160" width="208" height="64" rx="6" fill="#f5f5f5" fill-opacity="0.05" stroke="#b4b4b4" stroke-width="1"/>

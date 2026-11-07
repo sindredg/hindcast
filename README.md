@@ -15,7 +15,7 @@ See the [roadmap](docs/roadmap.md) for milestone progress and [current architect
 - **Investigations:** captured evidence, searches of earlier postmortems, cited reconstructions, and follow-up challenges work.
 - **Safeguards:** citation checks, Prompt Shields, personal-data masking, traces, and per-run costs are implemented.
 - **Deployment:** one template builds the whole environment, and the page on Azure Container Apps, behind Entra sign-in, runs investigations and challenges with its managed identity ([live run](docs/worklogs/06-deployment.md#slice-2-live-run)); the environment was rebuilt from empty and removed again with nothing left ([removal](docs/worklogs/06-deployment.md#slice-2-final-removal)).
-- **Remaining:** the teardown of the resources built by hand, and the sealed-case reveals.
+- **Remaining:** the teardown of the resources built by hand, and the reveals of four sealed cases as their providers publish.
 
 Implementation evidence is in the [worklogs](docs/worklogs/).
 
@@ -28,7 +28,7 @@ All **60 showcase runs** completed across five configurations and four outages (
 - **No guesses:** where the evidence could not establish the root cause, every run abstained.
 - **Prior knowledge:** on the outage both models could name before seeing any evidence, all 15 runs kept that knowledge out of the root cause.
 
-Reconstructions of **five further outages** were sealed before providers published their causes. Only their hashes are public until the reports arrive ([sealed reconstructions](docs/decisions/0017-sealed-reconstructions.md)).
+Reconstructions of **five further outages** were sealed before providers published their causes ([sealed reconstructions](docs/decisions/0017-sealed-reconstructions.md)). One has been revealed: the updates did not hold its cause, and both models said so instead of guessing, with no unsupported claim ([sealed report](eval/reconstruction/sealed-v1/README.md)). The other four stay hashed until their reports arrive.
 
 The dataset is small, and no showcase outage was an attack, so attack detection is not measured here. The evaluation report lists every limit.
 

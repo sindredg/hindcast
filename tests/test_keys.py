@@ -1,4 +1,5 @@
 import hashlib
+import html
 import json
 from pathlib import Path
 
@@ -11,6 +12,7 @@ from hindcast.keys import (
     INCIDENT_HEADINGS,
     KEYS_DIR,
     _plain,
+    check_draft,
     draft_key,
     freeze,
     incident_part,
@@ -328,17 +330,40 @@ def snapshot(*updates: tuple[str, str, str]) -> bytes:
     ).encode()
 
 
+# A summary long enough to pass the placeholder floor (issue #36).
+CAUSE = "The cause was A & B. " + "More detail on the cause follows here. " * 8
+PLACEHOLDER = (
+    "This incident has been resolved. Thank you for your patience and understanding as we "
+    "addressed this issue. A detailed root cause analysis will be shared as soon as it is "
+    "available."
+)
+
+
 def test_statuspage_summary_takes_the_resolved_text() -> None:
     # GitHub writes its summary of the cause into the resolved update.
     data = snapshot(
-        ("2026-10-07T16:25:14Z", "resolved", "The cause was A & B.\n\nWe fixed it."),
+        ("2026-10-07T16:25:14Z", "resolved", f"{CAUSE}\n\nWe fixed it."),
         ("2026-10-07T15:14:45Z", "investigating", "We are investigating."),
     )
 
     title, body = statuspage_summary(data)
 
     assert title == "Incident with Git Operations"
-    assert body == "<p>The cause was A &amp; B.</p><p>We fixed it.</p>"
+    assert body == f"<p>{html.escape(CAUSE.strip())}</p><p>We fixed it.</p>"
+
+
+def test_statuspage_summary_splits_paragraphs_at_double_line_breaks() -> None:
+    data = snapshot(("2026-11-04T17:01:11Z", "resolved", f"{CAUSE}<br /><br />We fixed it."))
+
+    assert statuspage_summary(data)[1].endswith("</p><p>We fixed it.</p>")
+
+
+def test_statuspage_summary_refuses_the_placeholder() -> None:
+    # GitHub's resolved update before the summary is written (issue #36).
+    data = snapshot(("2026-11-04T17:01:11Z", "resolved", PLACEHOLDER))
+
+    with pytest.raises(ValueError, match="31 words, under 50; it states no cause yet"):
+        statuspage_summary(data)
 
 
 def test_statuspage_summary_without_a_resolved_update_raises() -> None:
@@ -349,7 +374,7 @@ def test_statuspage_summary_without_a_resolved_update_raises() -> None:
 
 
 def test_postmortem_page_reads_a_status_snapshot_by_its_file_name() -> None:
-    data = snapshot(("2026-10-07T16:25:14Z", "resolved", "The cause was A."))
+    data = snapshot(("2026-10-07T16:25:14Z", "resolved", CAUSE))
     source = SourceFile(
         "s",
         "s.json",
@@ -363,5 +388,42 @@ def test_postmortem_page_reads_a_status_snapshot_by_its_file_name() -> None:
 
     assert postmortem_page(source, data) == (
         "Incident with Git Operations",
-        "<p>The cause was A.</p>",
+        f"<p>{html.escape(CAUSE.strip())}</p>",
     )
+
+
+def test_check_draft_reports_a_quote_missing_from_the_postmortem(tmp_path) -> None:
+    data = snapshot(("2026-11-04T17:01:11Z", "resolved", CAUSE))
+    source = SourceFile(
+        "s",
+        "s.json",
+        "https://x.test/s.json",
+        "l",
+        "a",
+        hashlib.sha256(data).hexdigest(),
+        "2026-11-07T10:22:42Z",
+        "postmortem",
+    )
+    case = Case("c-1", "t", "GitHub", "revealed", "2026-11-04T16:05:31Z", (source,))
+    (tmp_path / "src" / "c-1").mkdir(parents=True)
+    (tmp_path / "src" / "c-1" / "s.json").write_bytes(data)
+    raw = json.loads(key_json(load_key(KEYS_DIR / "github-2026-10-07.json")))
+    quote = "The cause was A & B."
+    raw |= {"case_id": "c-1", "attack_basis": "not stated", "attack_quote": ""}
+    raw["root_cause"]["source_quote"] = quote
+    for name in ("contributing_factors", "fixes"):
+        raw[name] = [{**raw[name][0], "source_quote": quote}]
+    raw["timeline"] = [{**raw["timeline"][0], "source_quote": quote}]
+    (tmp_path / "keys").mkdir()
+    (tmp_path / "keys" / "c-1-draft.json").write_text(json.dumps(raw))
+
+    assert check_draft(case, tmp_path / "keys", tmp_path / "src")[1] == []
+
+    raw["fixes"][0]["source_quote"] = "The cause was A and B."
+    (tmp_path / "keys" / "c-1-draft.json").write_text(json.dumps(raw))
+    assert check_draft(case, tmp_path / "keys", tmp_path / "src")[1] == [
+        "fixes[0]: quote not found word for word in the postmortem"
+    ]
+    (tmp_path / "src" / "c-1" / "s.json").write_bytes(data + b" ")
+    with pytest.raises(ValueError, match="differs from its registry hash"):
+        check_draft(case, tmp_path / "keys", tmp_path / "src")

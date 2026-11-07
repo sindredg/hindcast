@@ -1,6 +1,7 @@
 """Answer keys: each case's postmortem as a reviewed, frozen key.
 
     PYTHONPATH=src uv run --frozen --env-file .env python -m hindcast.keys draft [--case ID ...]
+    PYTHONPATH=src uv run --frozen python -m hindcast.keys check <case_id>
     PYTHONPATH=src uv run --frozen python -m hindcast.keys freeze <case_id>
 
 draft: downloads the case's postmortem (hash-checked), cuts out the article
@@ -16,6 +17,10 @@ that does not is listed for review. A person reviews each sheet, corrects the
 draft, and marks what the provider already said during the incident
 (decision 0005). freeze checks the reviewed draft, writes eval/keys/<case_id>.json,
 and records its SHA-256 in eval/keys/frozen.json; a test checks the hashes.
+
+check: for a key drafted by hand (a revealed sealed case, decision 0022),
+checks build/keys/<case_id>-draft.json against the captured postmortem under
+data/sources/ and rewrites the review sheet. It exits 1 while a quote is missing.
 """
 
 import argparse
@@ -41,6 +46,9 @@ ATTACK = ("attack", "not an attack")
 BASIS = ("stated", "implied", "not stated")
 # A monthly report holds several incidents; the key covers the case's only.
 INCIDENT_HEADINGS = {"github-2026-08-17": "August 17"}
+# GitHub's placeholder resolved update is 31 words; its summaries run to
+# well over a hundred.
+MIN_SUMMARY_WORDS = 50
 
 
 @dataclass(frozen=True)
@@ -311,7 +319,10 @@ def statuspage_summary(snapshot: bytes) -> tuple[str, str]:
     """The incident's name and its resolved update as HTML paragraphs.
 
     GitHub writes its summary of the cause into the resolved update days after
-    the incident; for such a case that update is the postmortem.
+    the incident; for such a case that update is the postmortem. Until then the
+    update is a placeholder ("A detailed root cause analysis will be shared"),
+    so a body under MIN_SUMMARY_WORDS is refused (issue #36). The floor only
+    stops a placeholder; whether the text states a cause is the key review's call.
     """
     incident = json.loads(snapshot)
     resolved = sorted(
@@ -320,7 +331,16 @@ def statuspage_summary(snapshot: bytes) -> tuple[str, str]:
     )
     if not resolved:
         raise ValueError(f"{incident['name']!r}: no resolved update to read a summary from")
-    paragraphs = [p.strip() for p in resolved[0]["body"].split("\n\n") if p.strip()]
+    body = resolved[0]["body"]
+    words = len(re.findall(r"\w+", re.sub(r"<[^>]+>", " ", body)))
+    if words < MIN_SUMMARY_WORDS:
+        raise ValueError(
+            f"{incident['name']!r}: the resolved update has {words} words, under "
+            f"{MIN_SUMMARY_WORDS}; it states no cause yet"
+        )
+    # GitHub separates paragraphs with a blank line or with <br /><br />.
+    body = re.sub(r"(?:\s*<br\s*/?>\s*){2,}", "\n\n", body)
+    paragraphs = [p.strip() for p in body.split("\n\n") if p.strip()]
     return incident["name"], "".join(f"<p>{html.escape(p)}</p>" for p in paragraphs)
 
 
@@ -363,6 +383,46 @@ def _draft(case: Case, evidence: CaseEvidence) -> None:
     )
 
 
+def quote_problems(key: AnswerKey, page: str) -> list[str]:
+    """One line per key quote missing from the page, which is already _plain text."""
+    quotes = [("root_cause", key.root_cause.source_quote)]
+    if key.attack_basis != "not stated":
+        quotes.append(("attack_quote", key.attack_quote))
+    for name, items in (("contributing_factors", key.contributing_factors), ("fixes", key.fixes)):
+        quotes += [(f"{name}[{n}]", item.source_quote) for n, item in enumerate(items)]
+    quotes += [(f"timeline[{n}]", e.source_quote) for n, e in enumerate(key.timeline)]
+    return [
+        f"{where}: quote not found word for word in the postmortem"
+        for where, quote in quotes
+        if not quote.strip() or _plain(quote) not in page
+    ]
+
+
+def check_draft(
+    case: Case, drafts: Path = DRAFTS, sources: Path = Path("data/sources")
+) -> tuple[AnswerKey, list[str], str]:
+    """A hand-drafted key, its quote problems against the captured postmortem, and its URL.
+
+    Decision 0022 drafts a revealed case's key by hand, not with Content
+    Understanding; the quotes are checked here the same way draft_key checks
+    the analyzer's.
+    """
+    key = load_key(drafts / f"{case.case_id}-draft.json")
+    if key.case_id != case.case_id:
+        raise ValueError(f"the draft is for {key.case_id}, not {case.case_id}")
+    source = next((s for s in case.sources if s.kind == "postmortem"), None)
+    if source is None:
+        raise ValueError(f"{case.case_id}: no postmortem source in the registry")
+    data = (sources / case.case_id / source.filename).read_bytes()
+    # The registry hash ties the quotes to the file a reader can fetch again.
+    if hashlib.sha256(data).hexdigest() != source.sha256:
+        raise ValueError(f"{source.filename}: differs from its registry hash")
+    title, body = postmortem_page(source, data)
+    if case.case_id in INCIDENT_HEADINGS:
+        body = incident_part(body, INCIDENT_HEADINGS[case.case_id])
+    return key, quote_problems(key, _plain(f"{title} {body}")), source.url
+
+
 def write_draft(key: AnswerKey, sheet: str, drafts: Path = DRAFTS) -> bool:
     """Write a draft and its review sheet, unless a draft exists: it may hold review edits."""
     draft = drafts / f"{key.case_id}-draft.json"
@@ -401,8 +461,25 @@ def main(argv: list[str] | None = None) -> int:
     draft.add_argument("--case", action="append")
     frozen = commands.add_parser("freeze", help="freeze one reviewed key")
     frozen.add_argument("case_id")
+    checked = commands.add_parser("check", help="check a hand-drafted key and write its sheet")
+    checked.add_argument("case_id")
     args = parser.parse_args(argv)
     cases = load_cases()
+    if args.command == "check":
+        try:
+            key, problems, url = check_draft(cases[args.case_id])
+            evidence = _load_evidence(Path("build/evidence") / f"{args.case_id}.json")
+        except (KeyError, ValueError, OSError) as error:
+            print(f"{args.case_id}: {error}")
+            return 1
+        # The sheet is rewritten on every check; the draft, which holds the
+        # review edits, is only read.
+        sheet = DRAFTS / f"{args.case_id}-review.md"
+        sheet.write_text(review_sheet(key, evidence, problems, url), encoding="utf-8")
+        print(f"{args.case_id}: {len(problems)} problems; sheet {sheet}")
+        for problem in problems:
+            print(f"  {problem}")
+        return 1 if problems else 0
     if args.command == "freeze":
         try:
             print(f"{args.case_id}: frozen, sha256 {freeze(args.case_id)}")

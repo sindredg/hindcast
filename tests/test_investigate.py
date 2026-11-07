@@ -444,6 +444,17 @@ def test_investigate_refuses_a_sealed_case(tmp_path: Path) -> None:
         check_case_allowed(sealed, rubric_lock=lock)
 
 
+def test_investigate_refuses_a_revealed_case(tmp_path: Path) -> None:
+    # A revealed case is scored from its seals; a later run proves nothing.
+    lock = tmp_path / "frozen.json"
+    lock.write_text("{}")
+    revealed = Case(
+        "revealed", "Slow pages", "GitHub", "revealed", "2026-10-21T14:52:49Z", (SOURCE,)
+    )
+    with pytest.raises(ScoredCaseLocked, match="scored from its seals"):
+        check_case_allowed(revealed, rubric_lock=lock)
+
+
 def complete_result() -> Any:
     return run(ScriptedTurn(response(call()), final()))
 

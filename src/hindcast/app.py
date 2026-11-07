@@ -59,6 +59,7 @@ ROLE_LABELS = {
     "injection": "Injection copy",
     "showcase": "Showcase case",
     "sealed": "Sealed case",
+    "revealed": "Revealed case",
 }
 Color = Literal["red", "orange", "green", "blue", "violet", "gray"]
 # The schema's enums (hindcast.result); anything else shows grey.

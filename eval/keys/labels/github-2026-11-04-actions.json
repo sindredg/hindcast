@@ -1,0 +1,89 @@
+{
+ "case_id": "github-2026-11-04-actions",
+ "items": [
+  {
+   "item": "attack",
+   "label": "not inferable",
+   "reason": "No update names a cause or any hostile action; u5 says only that an issue with events that might trigger Actions was identified.",
+   "evidence": [
+    "github-2026-11-04-actions/u5"
+   ]
+  },
+  {
+   "item": "root_cause",
+   "label": "not inferable",
+   "reason": "u5 places the issue in the events that trigger Actions but says nothing about a configuration change or the routing service.",
+   "evidence": [
+    "github-2026-11-04-actions/u5"
+   ]
+  },
+  {
+   "item": "contributing_factors/0",
+   "label": "not inferable",
+   "reason": "No update mentions feature flags.",
+   "evidence": []
+  },
+  {
+   "item": "contributing_factors/1",
+   "label": "not inferable",
+   "reason": "No update describes how the service handled its configuration.",
+   "evidence": []
+  },
+  {
+   "item": "contributing_factors/2",
+   "label": "not inferable",
+   "reason": "The second period began at 17:20, after the resolved update at 17:01; no update mentions a rollback or a redeployment.",
+   "evidence": [
+    "github-2026-11-04-actions/u9"
+   ]
+  },
+  {
+   "item": "timeline/0",
+   "label": "not inferable",
+   "reason": "The first update, u1 at 16:05, reports degraded performance without a start time.",
+   "evidence": [
+    "github-2026-11-04-actions/u1"
+   ]
+  },
+  {
+   "item": "timeline/1",
+   "label": "not inferable",
+   "reason": "u5 at 16:34 says mitigations were applied, with no time and no rollback.",
+   "evidence": [
+    "github-2026-11-04-actions/u5"
+   ]
+  },
+  {
+   "item": "timeline/2",
+   "label": "stated",
+   "reason": "u7 at 16:48 says the degradation affecting Actions and Pages has been mitigated.",
+   "evidence": [
+    "github-2026-11-04-actions/u7"
+   ]
+  },
+  {
+   "item": "timeline/3",
+   "label": "not inferable",
+   "reason": "It began after the resolved update at 17:01, the last item of the evidence.",
+   "evidence": [
+    "github-2026-11-04-actions/u9"
+   ]
+  },
+  {
+   "item": "timeline/4",
+   "label": "not inferable",
+   "reason": "It happened after the resolved update at 17:01, the last item of the evidence.",
+   "evidence": [
+    "github-2026-11-04-actions/u9"
+   ]
+  },
+  {
+   "item": "timeline/5",
+   "label": "not inferable",
+   "reason": "It happened after the resolved update at 17:01, the last item of the evidence.",
+   "evidence": [
+    "github-2026-11-04-actions/u9"
+   ]
+  }
+ ]
+}
