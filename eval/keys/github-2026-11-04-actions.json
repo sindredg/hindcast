@@ -1,0 +1,99 @@
+{
+  "attack": "not an attack",
+  "attack_basis": "implied",
+  "attack_quote": "This incident was caused by a configuration change to an internal event-routing service that unexpectedly paused delivery of several event streams.",
+  "case_id": "github-2026-11-04-actions",
+  "contributing_factors": [
+    {
+      "source_quote": "The change depended on feature flags that were not set up as intended",
+      "stated_during_incident": false,
+      "text": "The change depended on feature flags that were not set up as intended."
+    },
+    {
+      "source_quote": "which the service did not handle gracefully",
+      "stated_during_incident": false,
+      "text": "The routing service did not handle the misconfigured feature flags gracefully."
+    },
+    {
+      "source_quote": "The code change itself was not reverted by the rollback, so a subsequent deployment reintroduced it.",
+      "stated_during_incident": false,
+      "text": "The rollback reverted the configuration but not the code change, so a later deployment reintroduced it and caused the second period of delays."
+    }
+  ],
+  "fixes": [
+    {
+      "source_quote": "The routing service will keep its existing behavior when a feature toggle is missing, so a misconfigured flag can no longer pause delivery.",
+      "stated_during_incident": false,
+      "text": "Keep the routing service's existing behavior when a feature toggle is missing, so a misconfigured flag cannot pause delivery."
+    },
+    {
+      "source_quote": "We are adding a pre-deploy check that each routing flag exists and is registered under the correct owning service",
+      "stated_during_incident": false,
+      "text": "Add a pre-deploy check that each routing flag exists and is registered under the correct owning service."
+    },
+    {
+      "source_quote": "we are making flag ownership less error-prone to set.",
+      "stated_during_incident": false,
+      "text": "Make flag ownership less error-prone to set."
+    },
+    {
+      "source_quote": "We are also improving alerting so we detect paused event delivery sooner.",
+      "stated_during_incident": false,
+      "text": "Improve alerting to detect paused event delivery sooner."
+    },
+    {
+      "source_quote": "then processed queued events and cleared backlogs.",
+      "stated_during_incident": false,
+      "text": "Rolled back the configuration change, then processed queued events and cleared backlogs."
+    }
+  ],
+  "root_cause": {
+    "source_quote": "This incident was caused by a configuration change to an internal event-routing service that unexpectedly paused delivery of several event streams.",
+    "stated_during_incident": false,
+    "text": "A configuration change to an internal event-routing service unexpectedly paused delivery of several event streams, which delayed Actions, Pages, Webhooks, Code Scanning, and Copilot coding agent."
+  },
+  "timeline": [
+    {
+      "event": "Delays began for Actions, Pages, Webhooks, Code Scanning, and Copilot coding agent.",
+      "source_quote": "between 15:49 UTC and 16:48 UTC",
+      "stated_during_incident": false,
+      "time": "2026-11-04T15:49Z",
+      "time_as_written": "15:49 UTC"
+    },
+    {
+      "event": "The configuration change was rolled back, mitigating the first period.",
+      "source_quote": "We mitigated the first period by rolling back the configuration change at 16:14 UTC.",
+      "stated_during_incident": false,
+      "time": "2026-11-04T16:14Z",
+      "time_as_written": "16:14 UTC"
+    },
+    {
+      "event": "The first period of delays ended.",
+      "source_quote": "between 15:49 UTC and 16:48 UTC",
+      "stated_during_incident": true,
+      "time": "2026-11-04T16:48Z",
+      "time_as_written": "16:48 UTC"
+    },
+    {
+      "event": "Delays began again after a later deployment reintroduced the code change.",
+      "source_quote": "and again between 17:20 UTC and 17:55 UTC",
+      "stated_during_incident": false,
+      "time": "2026-11-04T17:20Z",
+      "time_as_written": "17:20 UTC"
+    },
+    {
+      "event": "A second rollback mitigated the second period.",
+      "source_quote": "We mitigated the second period at 17:40 UTC by rolling back again",
+      "stated_during_incident": false,
+      "time": "2026-11-04T17:40Z",
+      "time_as_written": "17:40 UTC"
+    },
+    {
+      "event": "The second period of delays ended.",
+      "source_quote": "and again between 17:20 UTC and 17:55 UTC",
+      "stated_during_incident": false,
+      "time": "2026-11-04T17:55Z",
+      "time_as_written": "17:55 UTC"
+    }
+  ]
+}
