@@ -3,10 +3,13 @@
 Run with ``streamlit run src/hindcast/app.py``. The page has two views: the
 investigation, and the glossary read from docs/glossary.md. The investigation
 view lists the committed development-case results and the page's own runs,
-and shows one at a time, the newest gpt-6-luna run first: a summary row, then
-tabs for the investigation, the cited evidence, the checks, the injection
-test (injection copies only), and the usage. Under each finding it shows the
-challenges stored for that result.
+and, where the repository has them, the scored showcase runs. It shows one at
+a time, the newest gpt-6-luna run first: a summary row, then tabs for the
+investigation (with the timeline chart), the cited evidence (with the
+evidence graph), the checks, the injection test (injection copies only), the
+score against the answer key (scored runs only), and the usage. Under each
+finding it shows the challenges stored for that result. The view parts are
+built in hindcast.views.
 
 A citation opens the update, chart, or library passage it names when the
 page has the files the run read (build/evidence and the library extracts;
@@ -31,15 +34,20 @@ from typing import Literal
 
 import streamlit as st
 
-from hindcast import cited, glossary, injection, runtime, storage, telemetry
+from hindcast import cited, glossary, injection, runtime, storage, telemetry, views
 from hindcast.cases import Case, load_cases
 from hindcast.escape import code, plain
-from hindcast.result import FINDING_ID, Citation, StoredResult, load_result
+from hindcast.result import FINDING_ID, Citation, StoredResult, TimelineEvent, load_result
 
 # Anchored to the repository root, because Streamlit runs the script from its
 # own directory; in the image the root is /app.
 ROOT = Path(__file__).resolve().parents[2]
 RESULT_DIR = ROOT / "eval/investigations/cloudflare-2026-02-20"
+# The scored showcase runs (milestone 5). The image leaves out the keys the
+# scored view reads (.dockerignore) and these runs, so the deployed page
+# lists none.
+SCORED_RUNS = ROOT / views.SCORED_ROOT / "runs"
+SOURCES = ("Development case", "Scored showcase runs")
 DEFAULT_DEPLOYMENT = "gpt-6-luna"
 # Test seam: points the page at one result file instead of the list.
 RESULT_FILE_VAR = "HINDCAST_RESULT_FILE"
@@ -96,6 +104,12 @@ PAGE_TERMS = (
     "Price table",
     "Provenance",
     "Incomplete run",
+    "Primary score",
+    "Outcome",
+    "Neutral item",
+    "Answer key",
+    "Arm",
+    "Evidence graph",
 )
 
 
@@ -356,6 +370,12 @@ class View:
         )
 
     @property
+    def live_case(self) -> bool:
+        """Whether the page may run model calls on this result's case (LIVE_ROLES)."""
+        case = self.cases.get(self.result.case_id)
+        return case is not None and case.role in LIVE_ROLES
+
+    @property
     def pii_checked(self) -> bool:
         return "pii" in self.result.checks
 
@@ -563,6 +583,7 @@ def _investigation_tab(view: View) -> None:
         _citations(investigation.root_cause.citations, view)
 
     st.header("Timeline", help=_help("Timeline"))
+    _timeline_chart(investigation.timeline)
     for event in investigation.timeline:
         when, what, cites = st.columns([1.4, 4, 1.6], vertical_alignment="top")
         when.markdown(f"{code(event.time)} :gray[{plain(event.time_kind)}]")
@@ -571,7 +592,12 @@ def _investigation_tab(view: View) -> None:
             _citations(event.citations, view)
 
     st.header("Findings", help=_help("Finding"))
-    if view.live and not (view.result.status == "complete" and view.screened):
+    if view.live and not view.live_case:
+        st.caption(
+            "No challenge box: the page challenges findings of the development case and its"
+            " injection copies only, and this run is of a scored or sealed case."
+        )
+    elif view.live and not (view.result.status == "complete" and view.screened):
         st.caption(
             "No challenge box: a challenge needs a complete run whose tool results Prompt"
             " Shields screened, and this run predates the screen."
@@ -585,8 +611,12 @@ def _investigation_tab(view: View) -> None:
             _rests_on_line(finding.rests_on)
             _citations(finding.citations, view)
             stored = challenges(view.path, finding.id)
+            # The case's role, not only the run's state: a scored showcase run
+            # is complete and screened, and the challenge command lets a
+            # showcase case through once the rubric is frozen.
             can_ask = (
                 view.live
+                and view.live_case
                 and view.result.status == "complete"
                 and "screen_calls" in view.result.usage
             )
@@ -618,6 +648,42 @@ def _investigation_tab(view: View) -> None:
         st.markdown(f"- {plain(question.question)} *{plain(question.why_open)}*")
 
 
+def _timeline_chart(events: tuple[TimelineEvent, ...]) -> None:
+    spec, skipped = views.timeline_spec(events)
+    if spec is not None:
+        st.vega_lite_chart(
+            spec=spec,
+            width="stretch",
+            alt="The investigation's timeline events placed by their UTC time;"
+            " stated times filled green, inferred times hollow grey.",
+        )
+    if skipped:
+        st.caption(
+            "Not on the chart, because their time is not a UTC time: events "
+            + ", ".join(str(n) for n in skipped)
+            + "."
+        )
+
+
+def _evidence_graph(view: View) -> None:
+    investigation = view.result.investigation
+    if investigation is None:
+        return
+    st.header("Evidence graph", help=_help("Evidence graph"))
+    st.caption(
+        "What each claim rests on, from left to right: the root cause (green) and the"
+        " contributing factors, the findings, then the updates, charts, and library"
+        " sections they cite. A library section (amber, dashed) is a lead from another"
+        " outage, not evidence about this one."
+    )
+    st.graphviz_chart(
+        views.evidence_dot(investigation, view.result.case_id),
+        width="stretch",
+        alt="The evidence graph: the root cause and contributing factors linked to the"
+        " findings they rest on, and each finding linked to the items it cites.",
+    )
+
+
 def _cited_by(view: View) -> dict[tuple[str, str], list[str]]:
     """Every citation in the investigation, with the items that cite it, in order."""
     investigation = view.result.investigation
@@ -641,6 +707,8 @@ def _cited_by(view: View) -> dict[tuple[str, str], list[str]]:
 
 
 def _evidence_tab(view: View) -> None:
+    # The graph needs only the IDs, so it shows even when the cited texts do not.
+    _evidence_graph(view)
     found = _cited_by(view)
     if not found:
         st.info("The investigation cites nothing.")
@@ -757,6 +825,84 @@ def _usage_tab(view: View) -> None:
     st.json(result.provenance, expanded=False)
 
 
+def _score_tab(view: View, scored: views.Scored) -> None:
+    score = scored.score
+    st.header("Score against the answer key", help=_help("Answer key"))
+    st.caption(
+        "The run next to the postmortem's frozen key, as the evaluation scored it under"
+        " rubric version 3: each key item's outcome, its frozen label, and its credit."
+        " The method and the results are in the evaluation report,"
+        " eval/reconstruction/showcase-v1/README.md."
+    )
+    primary = score.get("primary")
+    tiles = [
+        ("Primary score", "none" if primary is None else f"{primary:.2f}", "Primary score"),
+        ("Credited", f"{score['credited']:g} of {score['scorable']}", "Primary score"),
+        ("Arm", str(score["arm"]), "Arm"),
+        ("Neutral items", len(score["neutral"]), "Neutral item"),
+        ("Unsupported run items", len(score["unsupported"]), "Unsupported item"),
+        ("Wrong", len(score["wrong"]), "Outcome"),
+    ]
+    with st.container(horizontal=True, gap="small"):
+        for label, value, term in tiles:
+            st.metric(label, value, border=True, help=_help(term), width="content")
+    # A table, not a dataframe, so the key's text wraps instead of being cut
+    # off. st.table cells render Markdown, and the run items come from the
+    # judge model, so every cell goes through plain. A run item is a field
+    # path, shown with the finding ID the cards use.
+    st.table(
+        [
+            {
+                "Item": plain(row["Item"]),
+                "Outcome": plain(row["Outcome"]),
+                "Credit": plain(row["Credit"]),
+                "Label": plain(row["Label"]),
+                "Key": plain(row["Key"]),
+                "Run items": plain(", ".join(view.where(w) for w in row["Run items"]) or "none"),
+            }
+            for row in scored.rows
+        ]
+    )
+    st.caption(
+        "A missed contributing factor or timeline event labelled not inferable is not"
+        " scored (a neutral item). An abstention on the attack verdict or the root cause"
+        " labelled not inferable earns full credit."
+    )
+    with st.expander("Label reasons"):
+        st.table(
+            [
+                {
+                    "Item": plain(row["Item"]),
+                    "Label": plain(row["Label"]),
+                    "Reason": plain(row["Label reason"]),
+                }
+                for row in scored.rows
+            ]
+        )
+    for title, items in (
+        ("Unsupported run items", score["unsupported"]),
+        ("Guesses", score["guesses"]),
+        ("Review decisions that contradict each other", score["contradictions"]),
+    ):
+        if items:
+            st.markdown(f"**{title}:** " + ", ".join(code(view.where(i)) for i in items))
+    st.caption(
+        f"Supported run items outside the key: {len(score['extra_supported'])}."
+        f" Run {code(scored.run_id)}."
+    )
+
+
+def _scored(path: Path) -> views.Scored | None:
+    try:
+        return views.load_scored(path, ROOT)
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        # A key or labels changed after the score, a judgment made for another
+        # file, or a malformed scores file (TypeError from an entry that is not
+        # an object): no score is shown next to a run it may not describe.
+        st.error(f"The score is not shown: {plain(error)}")
+        return None
+
+
 def _render(view: View) -> None:
     result = view.result
     _case_header(view)
@@ -769,6 +915,9 @@ def _render(view: View) -> None:
     is_copy = injection.is_copy(result.case_id)
     if is_copy:
         names.append("Injection test")
+    scored = _scored(view.path)
+    if scored is not None:
+        names.append("Score")
     names.append("Usage")
     tabs = dict(zip(names, st.tabs(names), strict=True))
     with tabs["Investigation"]:
@@ -780,6 +929,9 @@ def _render(view: View) -> None:
     if is_copy:
         with tabs["Injection test"]:
             _injection(view.path)
+    if scored is not None:
+        with tabs["Score"]:
+            _score_tab(view, scored)
     with tabs["Usage"]:
         _usage_tab(view)
 
@@ -829,6 +981,20 @@ def _result_files(cases: Mapping[str, Case], live: bool) -> list[Path]:
     return results(RESULT_DIR) + sorted(own, key=lambda p: p.name, reverse=True)
 
 
+def scored_files() -> list[Path]:
+    """The scored showcase runs, by case, arm, and repeat."""
+    return sorted(
+        SCORED_RUNS.glob("*/*/*.json"), key=lambda p: (p.parent.name, p.parts[-3], p.name)
+    )
+
+
+def scored_label(path: Path) -> str:
+    """A scored run as the picker names it: case, arm, repeat, and model."""
+    _, deployment = _head(str(path), path.stat().st_mtime)
+    repeat = path.stem.split("-", 1)[0]
+    return f"{path.parent.name} · {path.parts[-3]} arm · {repeat} · {deployment}"
+
+
 def investigation_page() -> None:
     live = os.environ.get(LIVE_VAR) == "1"
     cases = _cases()
@@ -847,8 +1013,22 @@ def investigation_page() -> None:
         # Without the runtime files a challenge cannot run either.
         live = ready
     override = os.environ.get(RESULT_FILE_VAR, "")
+    scored = [] if override else scored_files()
+    source = SOURCES[0]
+    if scored:
+        # A cleared control returns None; it then means the default.
+        source = (
+            st.segmented_control("Results", SOURCES, default=SOURCES[0], key="source") or SOURCES[0]
+        )
     if override:
         path = Path(override)
+    elif source == SOURCES[1]:
+        path = st.selectbox(
+            "Scored run",
+            scored,
+            format_func=scored_label,
+            help="The runs the evaluation scored: each showcase case, each arm, each repeat.",
+        )
     else:
         files = _result_files(cases, live)
         if not files:

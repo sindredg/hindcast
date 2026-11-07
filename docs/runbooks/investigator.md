@@ -1,6 +1,6 @@
 # Investigator: operator procedure
 
-Status: Written on 2026-10-30 for [milestone 4, slice 1](../worklogs/04-investigator.md), validated again on 2026-11-02 for [slice 2](../worklogs/04-investigator.md#slice-2-the-library-search-tool), the library search, and on 2026-11-03 for [slice 3](../worklogs/04-investigator.md#slice-3-screens-pii-challenge-traces-and-cost), the screens, the challenge, and the traces. Steps 1 to 4 and 6 to 9 ran on 2026-11-03 with the output shown, step 5 on 2026-10-30, except where an "Expected:" line is marked as reasoned.
+Status: Written on 2026-10-30 for [milestone 4, slice 1](../worklogs/04-investigator.md), validated again on 2026-11-02 for [slice 2](../worklogs/04-investigator.md#slice-2-the-library-search-tool), the library search, and on 2026-11-03 for [slice 3](../worklogs/04-investigator.md#slice-3-screens-pii-challenge-traces-and-cost), the screens, the challenge, and the traces. Steps 1 to 4 and 6 to 9 ran on 2026-11-03 with the output shown, step 5 on 2026-10-30, and step 12 on 2026-11-07 for [slice 4](../worklogs/04-investigator.md#slice-4-the-view-parts), the view parts, except where an "Expected:" line is marked as reasoned.
 
 The procedure runs one investigation of a case through the investigator prompt agent, reads the result, challenges a finding, and finds the run's trace. A run makes:
 
@@ -184,3 +184,13 @@ The procedure runs one investigation of a case through the investigator prompt a
     ```
 
     Expected (reasoned, not run): no output, and `az role definition list --name "Hindcast Safety Caller"` returns `[]`.
+
+## Read a scored run on the page
+
+12. Start the page without the live flag from the repository root, open it in a browser, set "Results" to "Scored showcase runs", pick a run, and open its Score tab. No model is called.
+
+    ```bash
+    PYTHONPATH=src uv run --frozen streamlit run src/hindcast/app.py
+    ```
+
+    Expected (observed locally in headless Chrome on 2026-11-07, started with `.venv/bin/python -m streamlit` in place of `uv run` while the local uv was older than the lock's, [screenshots](../screenshots/README.md#local-page-view-parts-2026-11-07)): the picker lists the 60 scored runs by case, arm, repeat, and model. For `github-2026-08-17 · hindcast arm · r1 · gpt-6-luna`, the Score tab shows primary score 0.90, 4.5 of 5 credited, and one row per key item. The Investigation tab shows the timeline chart and the Evidence tab the evidence graph. "The score is not shown" with a reason means the key, the labels, or the run file changed after the score.

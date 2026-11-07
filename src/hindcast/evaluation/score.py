@@ -91,6 +91,35 @@ def _decisions(review: Mapping[str, Any], kind: str) -> dict[str, Any]:
     return {d["item"]: d["decision"] for d in review.get("decisions", []) if d["kind"] == kind}
 
 
+def run_items_behind(
+    record: Mapping[str, Any],
+    review: Mapping[str, Any],
+    second: Mapping[str, Any] | None = None,
+) -> dict[str, list[str]]:
+    """The run items each key item's outcome rests on.
+
+    A person confirms or replaces the judge's outcome on the judge's run
+    items. The reviewer model judged the run again, so its decision rests on
+    the run items its own judgment listed for the key item. The scored view
+    on the page shows the same lists the score reads.
+    """
+    judgment = record["judgment"]
+    if judgment is None:
+        raise ValueError(f"{record['run_id']}: no judgment ({record.get('error')})")
+    deciders = {
+        d["item"]: d.get("decided_by") for d in review.get("decisions", []) if d["kind"] == "match"
+    }
+    behind = {}
+    for item, verdict in judgment["key_items"].items():
+        items = verdict["run_items"]
+        if deciders.get(item):
+            if second is None:
+                raise ValueError(f"{record['run_id']}: {item} needs its reviewer judgment")
+            items = second["judgment"]["key_items"][item]["run_items"]
+        behind[item] = list(items)
+    return behind
+
+
 def score_run(
     record: Mapping[str, Any],
     review: Mapping[str, Any],
@@ -102,9 +131,7 @@ def score_run(
     if judgment is None:
         raise ValueError(f"{record['run_id']}: no judgment ({record.get('error')})")
     matched = _decisions(review, "match")
-    deciders = {
-        d["item"]: d.get("decided_by") for d in review.get("decisions", []) if d["kind"] == "match"
-    }
+    behind = run_items_behind(record, review, second)
     supported = _decisions(review, "support")
     code_unsupported = set(record.get("code_unsupported", []))
     support = {
@@ -121,14 +148,7 @@ def score_run(
         label = _label(labels[item])
         outcomes[item] = outcome
         credits[item] = credit(outcome, label, _kind(item))
-        # A person confirms or replaces the judge's outcome on the judge's run
-        # items. The reviewer model judged the run again, so its decision rests
-        # on the run items its own judgment listed for the key item.
-        items = verdict["run_items"]
-        if deciders.get(item):
-            if second is None:
-                raise ValueError(f"{record['run_id']}: {item} needs its reviewer judgment")
-            items = second["judgment"]["key_items"][item]["run_items"]
+        items = behind[item]
         if outcome != "missed":
             listed |= set(items)
         if credits[item] is None:

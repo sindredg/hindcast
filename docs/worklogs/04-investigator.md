@@ -1,6 +1,6 @@
 # Milestone 4: The investigator
 
-Status: Slice 1 built on 2026-10-30: the live run on the development case met its pass bar, and the [independent review](#independent-review) ran with its fixes in. [Slice 2](#slice-2-the-library-search-tool) built on 2026-11-02: the live runs on both models met their pass bar, and its [independent review](#slice-2-independent-review) ran with its fixes in. [Slice 3](#slice-3-screens-pii-challenge-traces-and-cost) built on 2026-11-03: the live runs and challenges on both models met their pass bar ([gate](#slice-3-gate)), and its [independent review](#slice-3-independent-review) ran with its fixes in. An investigation's whole trace, open in the slice 3 gate, was read by query on 2026-11-05 from the deployed page ([worklog 06](06-deployment.md#slice-2-live-run), step 14). The milestone state is in the [roadmap](../roadmap.md).
+Status: Verified on 2026-11-07: every milestone criterion has a tested row or an accepted gap across the slice gates ([slice 1](#gate), [slice 2](#slice-2-gate), [slice 3](#slice-3-gate), [slice 4](#slice-4-gate)), and the [slice 4 independent review](#slice-4-independent-review) ran with its fixes in. Slice 1 built on 2026-10-30: the live run on the development case met its pass bar, and the [independent review](#independent-review) ran with its fixes in. [Slice 2](#slice-2-the-library-search-tool) built on 2026-11-02: the live runs on both models met their pass bar, and its [independent review](#slice-2-independent-review) ran with its fixes in. [Slice 3](#slice-3-screens-pii-challenge-traces-and-cost) built on 2026-11-03: the live runs and challenges on both models met their pass bar ([gate](#slice-3-gate)), and its [independent review](#slice-3-independent-review) ran with its fixes in. An investigation's whole trace, open in the slice 3 gate, was read by query on 2026-11-05 from the deployed page ([worklog 06](06-deployment.md#slice-2-live-run), step 14). [Slice 4](#slice-4-the-view-parts), the view parts, built on 2026-11-07 on stored results ([gate](#slice-4-gate)). The milestone state is in the [roadmap](../roadmap.md).
 
 The sections up to [Independent review](#independent-review) are slice 1, the investigator on case tools.
 
@@ -344,7 +344,7 @@ The runs and the five challenges are committed unchanged in [`eval/investigation
 | A finding can be challenged from the interface, and the answer cites its evidence | Tested live in a browser | Four challenges of F5 started from the local page's box on 2026-11-03, 19:26 to 19:32Z: all `complete`, `stands`, every citation a case ref (one a chart), none rejected ([screenshots](../screenshots/README.md)). `tests/test_app.py::test_challenge_box_with_live_flag` (stubbed), `test_no_challenge_box_without_live_flag`. Five more from the command, above |
 | Every investigation and challenge has a trace and a cost | Tested live for challenges; tested live in part for investigations; the root span tested locally | Challenges F2 to F4: whole traces, read by query. Both investigations: their tool calls, PII checks, and 2 of 6 model calls arrived, and no `investigation` root span, before the sampler fix; no investigation ran after it. `tests/test_telemetry.py::test_configure_keeps_every_span`, `tests/test_investigate.py::test_spans_carry_no_text`, `tests/test_challenge.py::test_a_challenge_is_one_trace`. A cost in every result and challenge file |
 | An unknown deployment has no price | Tested locally | `tests/test_costs.py::test_unknown_deployment_raises`; `tests/test_investigate.py::test_a_deployment_without_a_price_is_refused_before_any_model_call` |
-| The cost matches what is billed | Configured, not tested | The table totals are above; Cost Management lags by about a day, and the comparison is a later read |
+| The cost matches what is billed | Accepted gap | One read-only Cost Management query on 2026-11-07 (`POST .../resourceGroups/<resource-group>/providers/Microsoft.CostManagement/query`, `ActualCost`, 2026-11-03, grouped by meter) returned the day's bill per meter in NOK: the gpt-6-luna token meters sum to NOK 0.069896, the gpt-6.1-sol meters to NOK 0.512417, the text-records meter to NOK 0.385893, and the embeddings to NOK 0.000121. The bill has no per-run line, the day also holds the page's four challenges and other calls, part of the text records was billed at zero, and the price table is in USD with no exchange rate recorded, so no per-run figure can be compared. The table's totals stay the run's cost |
 | The time cap holds for whole calls ([#24](https://github.com/sindredg/hindcast/issues/24)) | Tested live, in part; the rest reasoned | The `model_call` spans above; the dropped ones bounded by each run's total time |
 | A search gets the time left, shares it with its embedding and its screen, and makes no retry ([#49](https://github.com/sindredg/hindcast/issues/49)) | Tested locally | `tests/test_tools.py::test_a_search_and_its_screen_share_the_time_left`, `test_a_tool_call_with_no_time_left_for_its_screen_times_out`; `tests/test_search.py::test_the_search_request_gets_what_the_embedding_left`, `test_search_passes_timeout_and_no_retries`, `test_search_timeout_raises_timeout_error`, `test_investigation_search_client_makes_no_retries`; `tests/test_index.py::test_embedder_with_a_timeout_makes_one_try_within_it`, `test_embedder_timeout_raises_timeout_error`; `tests/test_investigate.py::test_tool_timeout_is_time_cap` |
 | The seal path runs with the screens | Tested locally | `tests/test_seal.py::test_seal_path_runs_with_screens` |
@@ -407,3 +407,87 @@ Opened as issues, each with its trigger: pieces split with no overlap ([#50](htt
 The `IPAddress` exemption, wider than the spec's "public service addresses", is recorded in decision 0021's trade-offs.
 
 Set aside by the review: the live Azure state (the role, the deleted connection, `disableLocalAuth`, the spans), the prices against their sources, and the diagrams' geometry.
+
+## Slice 4: the view parts
+
+[Decision 0008](../decisions/0008-user-interface.md) names four visual parts of the investigation view besides the lists. The attack assessment, shown first, came with slice 3's page. This slice adds the other three, on stored results, with no model call and no Azure resource.
+
+The scored view differs from decision 0008. The decision asks for the reconstruction next to the key. The page shows the key's text next to each outcome, its credit and label, and the run items the outcome rests on as field paths with their finding IDs (`findings[8] (F9)`), not the run's own text. The run's text is one tab away, on the Investigation tab, under the same finding IDs. A row with the run's claim beside the key's is left out: it would repeat the investigation in a second place.
+
+### Slice 4 work completed
+
+| Part | Where | What it does |
+|---|---|---|
+| Timeline chart | `hindcast.views.timeline_spec`, the Investigation tab | A Vega-Lite spec, drawn by Streamlit's built-in renderer, so no new dependency: each event at its UTC time, a stated time as a filled green circle, an inferred one as a hollow grey diamond. An event whose time is not an ISO time in UTC stays in the list and is left out of the chart, with a caption naming it, because placing it would invent a time. The x axis uses a UTC scale, or it would show the reader's local time. The tooltip carries the time and its kind only, no model text |
+| Evidence graph | `hindcast.views.evidence_dot`, the Evidence tab | DOT text for `st.graphviz_chart`, which renders a DOT string in the browser with no `graphviz` Python package (read in Streamlit 1.67.0's `graphviz_chart.py`). Left to right: the root cause (green) and each contributing factor, the findings they rest on, and the updates, charts, and library sections each cites; a library section is amber and dashed. Node IDs are the graph's own; a label escapes the backslash and the double quote, the only special characters in a quoted DOT string |
+| Scored view | `hindcast.views.load_scored`, the Score tab | For a scored showcase run: one row per key item with the key's text, its frozen label, the outcome, the credit, and the run items the outcome rests on, beside the run's primary score. It reads `scores.json`, the run's judgment, review, and reviewer judgment, the key, and the labels. It refuses a key or labels that differ from their frozen hash, a judgment whose `run_sha256` is not the shown file's, a review whose `judgment_sha256` is not the judgment's, and a reviewer judgment that differs from the one its decisions name (`load_second_judgments`, the score's own check). Every cell is escaped: the run items come from the judge model |
+| Shared run items | `hindcast.evaluation.score.run_items_behind` | The run items each outcome rests on, the judge's or, where it decided, the reviewer's. `score_run` and the scored view call the same function, so the page shows the lists the score read |
+| Scored runs in the picker | `hindcast.app` | A "Results" control switches between the development runs and the scored showcase runs, when the repository has them. The image copies neither the keys nor the scored runs (`.dockerignore`, `Dockerfile`), so the deployed page shows no scored view. With `HINDCAST_LIVE=1`, a finding gets the challenge box only when its case is a development case or an injection copy: a scored run is complete and screened, and the challenge command lets a showcase case through once the rubric is frozen |
+| Graph labels | `hindcast.views.dot_label` | Control characters, NUL included, become spaces before the label is escaped |
+
+### Slice 4 gate
+
+| Criterion | Status | Evidence |
+|---|---|---|
+| The timeline chart places each event at its UTC time and draws stated and inferred times differently | Tested locally; rendered locally | `tests/test_views.py::test_timeline_spec_places_every_event_and_marks_the_time_kind`, `test_utc_accepts_a_utc_time_only`, `test_timeline_spec_leaves_out_an_event_without_a_utc_time`; `tests/test_app.py::test_page_draws_the_timeline_chart_and_the_evidence_graph` reads the times Streamlit sends. Rendered in headless Chrome on 2026-11-07 ([screenshots](../screenshots/README.md#local-page-view-parts-2026-11-07)). No stored run has an inferred time, so the hollow diamond and the left-out caption were seen only on an edited copy of a result, not committed |
+| The evidence graph links each factor to its findings and each finding to what it cites, with library citations marked | Tested locally; rendered locally | `test_evidence_graph_links_claims_to_findings_and_citations` on the committed run `20261102T181721Z-v3.json`, which cites a library section; its graph rendered on 2026-11-07 |
+| Model-written text cannot change the graph or the chart | Tested locally | `test_dot_label_keeps_hostile_text_inside_its_string`, `test_evidence_graph_with_hostile_claims_adds_no_node_or_edge`, `test_evidence_graph_never_uses_run_text_as_a_node_id`, `test_timeline_tooltip_carries_no_model_text`. In the tests the DOT text is parsed by the test's own reader. In headless Chrome on 2026-11-07, Streamlit's bundled Graphviz drew a copy of `20261102T181721Z-v3.json` with every claim replaced by a quote, an edge statement, a `URL` attribute, `\N`, `\l`, braces, and `<b>`: 15 nodes and 19 edges, the same as the unchanged run, no link element, and the text shown as written in 8 nodes (read from the page's SVG). `test_dot_label_turns_control_characters_into_spaces` covers NUL and escape characters |
+| The scored view pairs each key item with its outcome, label, and credit, and refuses a changed key, changed labels, or a judgment made for another file | Tested locally; rendered locally | `test_load_scored_pairs_each_key_item_with_its_outcome`, `test_load_scored_refuses_a_run_file_the_judgment_was_not_made_for`, `test_load_scored_refuses_a_key_or_labels_changed_after_freezing` (both), `test_load_scored_refuses_a_review_made_on_another_judgment`, `test_load_scored_refuses_an_edited_reviewer_judgment`, `test_scored_rows_refuse_items_the_key_does_not_have`; `tests/test_app.py::test_page_shows_the_score_of_a_scored_run`, `test_page_shows_no_score_next_to_an_edited_run`, `test_page_shows_no_score_from_a_malformed_scores_file`, `test_page_lists_the_scored_runs` (60 runs) |
+| The live page offers no challenge on a scored run | Tested locally | `test_no_challenge_box_on_a_scored_run_with_live_flag`, which failed before the fix (every finding of `hindcast/github-2026-08-17/r1/a1` had the box); `test_challenge_box_with_live_flag` still finds the box on a screened development run |
+| The score table renders model text as text | Tested locally | `test_page_shows_the_score_table_as_plain_text` |
+| Sharing `run_items_behind` leaves every score as it was | Tested locally | `test_scores_json_still_matches_the_score_of_every_run`: every field of all 60 runs' scores equals its `scores.json` entry after a JSON round trip |
+| The view parts on the deployed page | Accepted gap | No environment runs since the final removal of 2026-11-06 ([worklog 06](06-deployment.md#slice-2-final-removal)), and building one again for a page that only draws stored results is not worth an environment. The chart and the graph were rendered locally with Streamlit 1.67.0, the version the image installs from the same lock. The scored view is local by design: the image leaves out the answer keys (`.dockerignore`) and copies no scored run, so the page that runs live investigations never holds a key |
+
+Every new check was run once against a broken input on 2026-11-07, locally, on a copy of `src/` (page changes in place, restored after), and failed:
+
+| Broken input | Failed tests |
+|---|---|
+| The DOT label's quote escape removed | `test_dot_label_keeps_hostile_text_inside_its_string`, `test_evidence_graph_with_hostile_claims_adds_no_node_or_edge`, `test_evidence_graph_never_uses_run_text_as_a_node_id` |
+| The DOT label's backslash escape removed | The same three |
+| A time with another offset accepted as UTC | `test_utc_accepts_a_utc_time_only`, `test_timeline_spec_leaves_out_an_event_without_a_utc_time` |
+| The chart's UTC scale removed | `test_timeline_spec_places_every_event_and_marks_the_time_kind`, `test_page_draws_the_timeline_chart_and_the_evidence_graph` |
+| The event text added to the tooltip | `test_timeline_tooltip_carries_no_model_text` |
+| The library node's style removed | `test_evidence_graph_links_claims_to_findings_and_citations` |
+| A factor's links to its findings dropped | `test_evidence_graph_links_claims_to_findings_and_citations` |
+| The judgment's run hash not checked | `test_load_scored_refuses_a_run_file_the_judgment_was_not_made_for`, `test_page_shows_no_score_next_to_an_edited_run` |
+| The frozen hash of the key and labels not checked | `test_load_scored_refuses_a_key_or_labels_changed_after_freezing`, both cases |
+| The key item check removed | `test_scored_rows_refuse_items_the_key_does_not_have` |
+| The reviewer's run items ignored | `test_run_items_behind_takes_the_reviewer_items_where_it_decided`, `test_scores_json_still_matches_the_score_of_every_run`, `tests/test_score.py::test_a_reviewer_decision_rests_on_the_reviewers_run_items`, `test_a_reviewer_decision_without_its_judgment_is_refused` |
+| The page's refusal not caught | `test_page_shows_no_score_next_to_an_edited_run` |
+| The Score tab not added | `test_page_shows_the_score_of_a_scored_run`, `test_page_lists_the_scored_runs` |
+| The key cell not escaped | `test_page_shows_the_score_table_as_plain_text` |
+| The "Results" control ignored | `test_page_lists_the_scored_runs` |
+| The challenge box without the case role check (after the review) | `test_no_challenge_box_on_a_scored_run_with_live_flag` |
+| The review's judgment hash not checked (after the review) | `test_load_scored_refuses_a_review_made_on_another_judgment` |
+| The reviewer judgment read without its hash (after the review) | `test_load_scored_refuses_an_edited_reviewer_judgment` |
+| Control characters kept in a graph label (after the review) | `test_dot_label_turns_control_characters_into_spaces` |
+| `TypeError` not caught by the page (after the review) | `test_page_shows_no_score_from_a_malformed_scores_file` |
+| The primary score set to `None` (after the review; the earlier version of the regression test compared four fields and missed it) | `test_scores_json_still_matches_the_score_of_every_run`, `tests/test_score.py::test_unmentioned_not_inferable_factor_leaves_denominator`, `test_aggregate_gives_mean_min_max_and_failures` |
+
+With every file restored, the suite passed: `pytest -q`, 1001 passed and 3 skipped (981 collected on `main` at `e12c856`). The local runs called the project environment's Python directly, not `uv run`, because the lock asks for uv 0.13.7 and the local uv is 0.13.5; the environment's watchdog, pyarrow, and python-dateutil match the lock (read 2026-11-07). CI runs the checks with the locked uv. After the review's fixes, with uv 0.13.7 and `uv sync --locked --all-extras`: `uv run --frozen pytest -q`, 1006 passed and 3 skipped; `ruff check`, `ruff format --check`, `pyright` (0 errors), and `yamllint --strict` clean.
+
+### Slice 4 independent review
+
+A read-only review from a fresh context, with no part in the slice's work, ran on 2026-11-07 over `c3d8881` (PR [#101](https://github.com/sindredg/hindcast/pull/101)). It checked 11 items: decision 0008's coverage, the timeline chart, the evidence graph, the scored view, the `run_items_behind` refactor, the tests and the broken inputs, the screenshots, the gate and the roadmap, the documentation, the public-text rules, and the dependencies. Each finding was checked again against the code before it was acted on.
+
+Verdicts: 9 of 11 items OK and 2 with findings, decision 0008's coverage (the scored view's difference) and the scored view (two hash checks the score makes); the gate item was OK with the wording note on the two configured rows. No item came back as could not check. The review also found the challenge box on scored runs while checking the page code.
+
+Fixed in this pull request; each code fix has a test that failed first:
+
+| Finding | Fix |
+|---|---|
+| With `HINDCAST_LIVE=1`, a scored showcase run got the challenge box: the box checked the run's state only, and the challenge command lets a showcase case through once the rubric is frozen. A challenge there makes paid calls and writes beside the scored run | The box needs the case's role in `LIVE_ROLES`; the page says why there is none |
+| The scored view skipped two checks the score makes: the review's `judgment_sha256` against the judgment, and the reviewer judgment against the hash its decisions name. An edited reviewer judgment reached the Run items column | Both checks, the second through the score's `load_second_judgments` |
+| The worklog did not say the scored view differs from decision 0008 | Stated under [Slice 4](#slice-4-the-view-parts) |
+| Two gate rows were "configured, not tested": slice 3's billed cost and slice 4's deployed page | Each is an accepted gap with its reason; the cost row records one Cost Management read |
+
+Plan-only items, done in this pull request because each was small:
+
+| Item | Outcome |
+|---|---|
+| The regression test compared four fields of each score | It compares every field after a JSON round trip |
+| A control character in a graph label reached the DOT text | Control characters become spaces |
+| Whether Graphviz itself reads the escapes as the test's parser does | Drawn in a browser with Streamlit's bundled Graphviz: the hostile copy has the clean run's 15 nodes and 19 edges (gate above) |
+| `tests/test_app.py` imported pyarrow, which only Streamlit depends on | The chart test reads the times from Streamlit's bytes without it |
+| A malformed `scores.json` raised a `TypeError` the page did not catch | Caught with the other refusals, with a test |
+

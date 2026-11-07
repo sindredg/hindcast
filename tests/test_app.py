@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from streamlit.testing.v1 import AppTest
 
-from hindcast import app
+from hindcast import app, views
 from hindcast.escape import plain
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -916,3 +916,152 @@ def test_a_pre_screen_run_says_why_it_has_no_challenge_box(monkeypatch):
     at = AppTest.from_file(PAGE, default_timeout=60).run()
     assert not at.exception
     assert any("No challenge box" in c.value for c in at.caption)
+
+
+SCORED_RUN = (
+    ROOT
+    / "eval/reconstruction/showcase-v1/runs/hindcast/github-2026-08-17"
+    / "r1-a1-20261104T031347Z.json"
+)
+
+
+def test_page_draws_the_timeline_chart_and_the_evidence_graph(monkeypatch):
+    monkeypatch.setenv(app.RESULT_FILE_VAR, str(RESULT))
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+
+    assert not at.exception
+    charts = at.get("vega_lite_chart")
+    assert len(charts) == 1
+    spec = json.loads(charts[0].proto.spec)
+    assert spec["encoding"]["x"]["scale"] == {"type": "utc"}
+    # Streamlit sends the spec's inline values as Arrow bytes beside it; each
+    # event's time is in them as UTF-8 text.
+    data = charts[0].proto.data.data
+    events = json.loads(RESULT.read_text(encoding="utf-8"))["investigation"]["timeline"]
+    assert all(e["time"].encode() in data for e in events)
+    graphs = at.get("graphviz_chart")
+    assert len(graphs) == 1
+    assert "Root cause" in graphs[0].proto.spec
+    assert "Evidence graph" in headings(at)
+
+
+def test_page_shows_the_score_of_a_scored_run(monkeypatch):
+    monkeypatch.setenv(app.RESULT_FILE_VAR, str(SCORED_RUN))
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+
+    assert not at.exception
+    assert [tab.label for tab in at.tabs] == [
+        "Investigation",
+        "Evidence",
+        "Checks",
+        "Score",
+        "Usage",
+    ]
+    scores = json.loads(
+        (ROOT / "eval/reconstruction/showcase-v1/scores.json").read_text(encoding="utf-8")
+    )
+    entry = next(r for r in scores["runs"] if r["run_id"] == "hindcast/github-2026-08-17/r1/a1")
+    assert (
+        next(m for m in at.metric if m.label == "Primary score").value == f"{entry['primary']:.2f}"
+    )
+    # st.table renders Markdown, so each cell is escaped.
+    table = at.table[0].value
+    assert list(table["Outcome"]) == [plain(o) for o in entry["outcomes"].values()]
+    # A run item is shown with its finding ID.
+    assert any(plain("(F") in cell for cell in table["Run items"])
+
+
+def test_page_shows_no_score_next_to_an_edited_run(tmp_path, monkeypatch):
+    raw = json.loads(SCORED_RUN.read_text(encoding="utf-8"))
+    raw["investigation"]["root_cause"]["claim"] += " Edited after the score."
+    path = tmp_path / SCORED_RUN.name
+    path.write_text(json.dumps(raw), encoding="utf-8")
+    monkeypatch.setenv(app.RESULT_FILE_VAR, str(path))
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+
+    assert not at.exception
+    assert "Score" not in [tab.label for tab in at.tabs]
+    assert any("The score is not shown" in e.value for e in at.error)
+
+
+def test_page_lists_the_scored_runs(monkeypatch):
+    monkeypatch.delenv(app.RESULT_FILE_VAR, raising=False)
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+    assert not at.exception
+    assert "Score" not in [tab.label for tab in at.tabs]
+
+    at.button_group[0].set_value(app.SOURCES[1]).run()
+
+    assert not at.exception
+    picker = next(s for s in at.selectbox if s.label == "Scored run")
+    assert len(picker.options) == len(app.scored_files()) == 60
+    assert "Score" in [tab.label for tab in at.tabs]
+
+
+def test_page_shows_the_score_table_as_plain_text(monkeypatch):
+    # The run items come from the judge model and the key from a postmortem;
+    # both are shown escaped.
+    hostile = views.Scored(
+        "hindcast/x/r1/a1",
+        {
+            "primary": 1.0,
+            "credited": 1.0,
+            "scorable": 1,
+            "arm": "hindcast",
+            "neutral": [],
+            "unsupported": [],
+            "wrong": [],
+            "guesses": [],
+            "contradictions": [],
+            "extra_supported": [],
+        },
+        [
+            {
+                "Item": "Root cause",
+                "Key": HOSTILE,
+                "Label": "stated",
+                "Outcome": "supported-hit",
+                "Credit": "1",
+                "Run items": [HOSTILE],
+                "Label reason": HOSTILE,
+            }
+        ],
+    )
+    monkeypatch.setattr(views, "load_scored", lambda path, root: hostile)
+    monkeypatch.setenv(app.RESULT_FILE_VAR, str(RESULT))
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+
+    assert not at.exception
+    assert "Score" in [tab.label for tab in at.tabs]
+    shown = _shown(at)
+    assert "](https://example.invalid" not in shown
+    assert shown.count(plain("![x](https://example.invalid/a.png)")) >= 3
+
+
+def test_no_challenge_box_on_a_scored_run_with_live_flag(monkeypatch):
+    # A scored run is screened and complete, so only its case's role keeps
+    # the paid challenge box off it.
+    raw = json.loads(SCORED_RUN.read_text(encoding="utf-8"))
+    assert raw["status"] == "complete" and "screen_calls" in raw["usage"]
+    monkeypatch.setenv(app.RESULT_FILE_VAR, str(SCORED_RUN))
+    monkeypatch.setenv(app.LIVE_VAR, "1")
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+
+    assert not at.exception
+    assert "Score" in [tab.label for tab in at.tabs]
+    assert "Challenge this finding" not in [expander.label for expander in at.expander]
+
+
+def test_page_shows_no_score_from_a_malformed_scores_file(tmp_path, monkeypatch):
+    # A run entry that is not an object raises TypeError in the loader.
+    scores = tmp_path / views.SCORED_ROOT / "scores.json"
+    scores.parent.mkdir(parents=True)
+    scores.write_text(json.dumps({"runs": [1]}), encoding="utf-8")
+    real = views.load_scored
+    monkeypatch.setattr(views, "load_scored", lambda path, root: real(path, tmp_path))
+    monkeypatch.setenv(app.RESULT_FILE_VAR, str(SCORED_RUN))
+    at = AppTest.from_file(PAGE, default_timeout=60).run()
+
+    assert not at.exception
+    assert "Score" not in [tab.label for tab in at.tabs]
+    assert any("The score is not shown" in e.value for e in at.error)
