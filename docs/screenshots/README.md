@@ -1,5 +1,16 @@
 # Screenshots
 
+## Local page view parts, 2026-11-07
+
+Captures of the page run locally without the live flag (`PYTHONPATH=src streamlit run src/hindcast/app.py`), in headless Chrome at 1440 pixels wide, from the branch that adds the view parts ([worklog 04, slice 4](../worklogs/04-investigator.md#slice-4-the-view-parts)). The results are committed; no model was called. The graph capture is cut above the cited updates, whose text is the provider's.
+
+| File | Shows |
+|---|---|
+| `local-timeline-chart.png` | The timeline chart of the development run [`20261103T171237Z-v3.json`](../../eval/investigations/cloudflare-2026-02-20/20261103T171237Z-v3.json): eight events, all with stated times, placed on a UTC axis above the timeline list |
+| `local-evidence-graph.png` | The evidence graph of [`20261102T181721Z-v3.json`](../../eval/investigations/cloudflare-2026-02-20/20261102T181721Z-v3.json): the root cause in green resting on F2, F3, and F4; F4 citing the library section `cloudflare-2022-06-21 s4`, amber and dashed; Factor 1 resting on F5 |
+| `local-score.png` | The Score tab of the scored run `hindcast/github-2026-08-17/r1/a1`: primary score 0.90, 4.5 of 5 credited, 2 neutral items, and one row per key item with its outcome, credit, label, key text, and run items |
+| `local-scored-runs.png` | The "Results" control set to the scored showcase runs, the first of them (`cloudflare-2025-11-18`, abstention arm, r1, gpt-6-luna) open with a Score tab, and its timeline chart |
+
 ## Rebuilt environment, 2026-11-06
 
 Captures of the signed-in page after the environment was removed and built again from an empty resource group, image `hindcast:17461b5...` ([worklog 06](../worklogs/06-deployment.md#slice-2-rebuild-from-empty)). The run files are in that environment's `runs` container, not in the repository.

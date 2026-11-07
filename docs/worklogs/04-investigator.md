@@ -1,6 +1,6 @@
 # Milestone 4: The investigator
 
-Status: Slice 1 built on 2026-10-30: the live run on the development case met its pass bar, and the [independent review](#independent-review) ran with its fixes in. [Slice 2](#slice-2-the-library-search-tool) built on 2026-11-02: the live runs on both models met their pass bar, and its [independent review](#slice-2-independent-review) ran with its fixes in. [Slice 3](#slice-3-screens-pii-challenge-traces-and-cost) built on 2026-11-03: the live runs and challenges on both models met their pass bar ([gate](#slice-3-gate)), and its [independent review](#slice-3-independent-review) ran with its fixes in. An investigation's whole trace, open in the slice 3 gate, was read by query on 2026-11-05 from the deployed page ([worklog 06](06-deployment.md#slice-2-live-run), step 14). The milestone state is in the [roadmap](../roadmap.md).
+Status: Slice 1 built on 2026-10-30: the live run on the development case met its pass bar, and the [independent review](#independent-review) ran with its fixes in. [Slice 2](#slice-2-the-library-search-tool) built on 2026-11-02: the live runs on both models met their pass bar, and its [independent review](#slice-2-independent-review) ran with its fixes in. [Slice 3](#slice-3-screens-pii-challenge-traces-and-cost) built on 2026-11-03: the live runs and challenges on both models met their pass bar ([gate](#slice-3-gate)), and its [independent review](#slice-3-independent-review) ran with its fixes in. An investigation's whole trace, open in the slice 3 gate, was read by query on 2026-11-05 from the deployed page ([worklog 06](06-deployment.md#slice-2-live-run), step 14). [Slice 4](#slice-4-the-view-parts), the view parts, built on 2026-11-07 on stored results ([gate](#slice-4-gate)); the milestone's independent review is open. The milestone state is in the [roadmap](../roadmap.md).
 
 The sections up to [Independent review](#independent-review) are slice 1, the investigator on case tools.
 
@@ -407,3 +407,51 @@ Opened as issues, each with its trigger: pieces split with no overlap ([#50](htt
 The `IPAddress` exemption, wider than the spec's "public service addresses", is recorded in decision 0021's trade-offs.
 
 Set aside by the review: the live Azure state (the role, the deleted connection, `disableLocalAuth`, the spans), the prices against their sources, and the diagrams' geometry.
+
+## Slice 4: the view parts
+
+[Decision 0008](../decisions/0008-user-interface.md) names four visual parts of the investigation view besides the lists. The attack assessment, shown first, came with slice 3's page. This slice adds the other three, on stored results, with no model call and no Azure resource.
+
+### Slice 4 work completed
+
+| Part | Where | What it does |
+|---|---|---|
+| Timeline chart | `hindcast.views.timeline_spec`, the Investigation tab | A Vega-Lite spec, drawn by Streamlit's built-in renderer, so no new dependency: each event at its UTC time, a stated time as a filled green circle, an inferred one as a hollow grey diamond. An event whose time is not an ISO time in UTC stays in the list and is left out of the chart, with a caption naming it, because placing it would invent a time. The x axis uses a UTC scale, or it would show the reader's local time. The tooltip carries the time and its kind only, no model text |
+| Evidence graph | `hindcast.views.evidence_dot`, the Evidence tab | DOT text for `st.graphviz_chart`, which renders a DOT string in the browser with no `graphviz` Python package (read in Streamlit 1.67.0's `graphviz_chart.py`). Left to right: the root cause (green) and each contributing factor, the findings they rest on, and the updates, charts, and library sections each cites; a library section is amber and dashed. Node IDs are the graph's own; a label escapes the backslash and the double quote, the only special characters in a quoted DOT string |
+| Scored view | `hindcast.views.load_scored`, the Score tab | For a scored showcase run: one row per key item with the key's text, its frozen label, the outcome, the credit, and the run items the outcome rests on, beside the run's primary score. It reads `scores.json`, the run's judgment, review, and reviewer judgment, the key, and the labels. It refuses a key or labels that differ from their frozen hash, and a judgment whose `run_sha256` is not the shown file's. Every cell is escaped: the run items come from the judge model |
+| Shared run items | `hindcast.evaluation.score.run_items_behind` | The run items each outcome rests on, the judge's or, where it decided, the reviewer's. `score_run` and the scored view call the same function, so the page shows the lists the score read |
+| Scored runs in the picker | `hindcast.app` | A "Results" control switches between the development runs and the scored showcase runs, when the repository has them. The image copies neither the keys nor the scored runs (`.dockerignore`, `Dockerfile`), so the deployed page shows no scored view |
+
+### Slice 4 gate
+
+| Criterion | Status | Evidence |
+|---|---|---|
+| The timeline chart places each event at its UTC time and draws stated and inferred times differently | Tested locally; rendered locally | `tests/test_views.py::test_timeline_spec_places_every_event_and_marks_the_time_kind`, `test_utc_accepts_a_utc_time_only`, `test_timeline_spec_leaves_out_an_event_without_a_utc_time`; `tests/test_app.py::test_page_draws_the_timeline_chart_and_the_evidence_graph` reads the times Streamlit sends. Rendered in headless Chrome on 2026-11-07 ([screenshots](../screenshots/README.md#local-page-view-parts-2026-11-07)). No stored run has an inferred time, so the hollow diamond and the left-out caption were seen only on an edited copy of a result, not committed |
+| The evidence graph links each factor to its findings and each finding to what it cites, with library citations marked | Tested locally; rendered locally | `test_evidence_graph_links_claims_to_findings_and_citations` on the committed run `20261102T181721Z-v3.json`, which cites a library section; its graph rendered on 2026-11-07 |
+| Model-written text cannot change the graph or the chart | Tested locally | `test_dot_label_keeps_hostile_text_inside_its_string`, `test_evidence_graph_with_hostile_claims_adds_no_node_or_edge`, `test_evidence_graph_never_uses_run_text_as_a_node_id`, `test_timeline_tooltip_carries_no_model_text`. Checked by parsing the DOT text in the test, not with Graphviz, which is not installed locally |
+| The scored view pairs each key item with its outcome, label, and credit, and refuses a changed key, changed labels, or a judgment made for another file | Tested locally; rendered locally | `test_load_scored_pairs_each_key_item_with_its_outcome`, `test_load_scored_refuses_a_run_file_the_judgment_was_not_made_for`, `test_load_scored_refuses_a_key_or_labels_changed_after_freezing` (both), `test_scored_rows_refuse_items_the_key_does_not_have`; `tests/test_app.py::test_page_shows_the_score_of_a_scored_run`, `test_page_shows_no_score_next_to_an_edited_run`, `test_page_lists_the_scored_runs` (60 runs) |
+| The score table renders model text as text | Tested locally | `test_page_shows_the_score_table_as_plain_text` |
+| Sharing `run_items_behind` leaves every score as it was | Tested locally | `test_scores_json_still_matches_the_score_of_every_run`: outcomes, credits, unsupported, and supported-outside-the-key items of all 60 runs equal `scores.json` |
+| The view parts on the deployed page | Configured, not tested for the chart and the graph; accepted gap for the scored view | No environment runs since the final removal of 2026-11-06 ([worklog 06](06-deployment.md#slice-2-final-removal)), so the chart and the graph were rendered locally only, with the Streamlit version the image installs. The scored view is local by design: the image leaves out the answer keys (`.dockerignore`) and copies no scored run, so the page that runs live investigations never holds a key |
+
+Every new check was run once against a broken input on 2026-11-07, locally, on a copy of `src/` (page changes in place, restored after), and failed:
+
+| Broken input | Failed tests |
+|---|---|
+| The DOT label's quote escape removed | `test_dot_label_keeps_hostile_text_inside_its_string`, `test_evidence_graph_with_hostile_claims_adds_no_node_or_edge`, `test_evidence_graph_never_uses_run_text_as_a_node_id` |
+| The DOT label's backslash escape removed | The same three |
+| A time with another offset accepted as UTC | `test_utc_accepts_a_utc_time_only`, `test_timeline_spec_leaves_out_an_event_without_a_utc_time` |
+| The chart's UTC scale removed | `test_timeline_spec_places_every_event_and_marks_the_time_kind`, `test_page_draws_the_timeline_chart_and_the_evidence_graph` |
+| The event text added to the tooltip | `test_timeline_tooltip_carries_no_model_text` |
+| The library node's style removed | `test_evidence_graph_links_claims_to_findings_and_citations` |
+| A factor's links to its findings dropped | `test_evidence_graph_links_claims_to_findings_and_citations` |
+| The judgment's run hash not checked | `test_load_scored_refuses_a_run_file_the_judgment_was_not_made_for`, `test_page_shows_no_score_next_to_an_edited_run` |
+| The frozen hash of the key and labels not checked | `test_load_scored_refuses_a_key_or_labels_changed_after_freezing`, both cases |
+| The key item check removed | `test_scored_rows_refuse_items_the_key_does_not_have` |
+| The reviewer's run items ignored | `test_run_items_behind_takes_the_reviewer_items_where_it_decided`, `test_scores_json_still_matches_the_score_of_every_run`, `tests/test_score.py::test_a_reviewer_decision_rests_on_the_reviewers_run_items`, `test_a_reviewer_decision_without_its_judgment_is_refused` |
+| The page's refusal not caught | `test_page_shows_no_score_next_to_an_edited_run` |
+| The Score tab not added | `test_page_shows_the_score_of_a_scored_run`, `test_page_lists_the_scored_runs` |
+| The key cell not escaped | `test_page_shows_the_score_table_as_plain_text` |
+| The "Results" control ignored | `test_page_lists_the_scored_runs` |
+
+With every file restored, the suite passed: `pytest -q`, 1001 passed and 3 skipped (981 collected on `main` at `e12c856`). The local runs called the project environment's Python directly, not `uv run`, because the lock asks for uv 0.13.7 and the local uv is 0.13.5; the environment's watchdog, pyarrow, and python-dateutil match the lock (read 2026-11-07). CI runs the checks with the locked uv.

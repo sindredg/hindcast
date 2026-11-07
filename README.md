@@ -12,10 +12,10 @@ See the [roadmap](docs/roadmap.md) for milestone progress and [current architect
 
 ## Status
 
-- **Investigations:** captured evidence, searches of earlier postmortems, cited reconstructions, and follow-up challenges work.
+- **Investigations:** captured evidence, searches of earlier postmortems, cited reconstructions, and follow-up challenges work. The page draws each run's timeline chart and evidence graph, and, run locally, shows a scored run next to its answer key ([slice 4](docs/worklogs/04-investigator.md#slice-4-the-view-parts)).
 - **Safeguards:** citation checks, Prompt Shields, personal-data masking, traces, and per-run costs are implemented.
 - **Deployment:** one template builds the whole environment, and the page on Azure Container Apps, behind Entra sign-in, runs investigations and challenges with its managed identity ([live run](docs/worklogs/06-deployment.md#slice-2-live-run)); the environment was rebuilt from empty and removed again with nothing left ([removal](docs/worklogs/06-deployment.md#slice-2-final-removal)).
-- **Remaining:** the teardown of the resources built by hand, and the sealed-case reveals.
+- **Remaining:** milestone 4's independent review, the teardown of the resources built by hand, and the sealed-case reveals.
 
 Implementation evidence is in the [worklogs](docs/worklogs/).
 
