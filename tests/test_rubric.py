@@ -52,7 +52,10 @@ def test_rubric_frozen_matches() -> None:
     # the keys by hash; a change to the rubric or to a locked entry fails here.
     lock = json.loads(LOCK.read_text("utf-8"))
     assert lock["rubric_sha256"] == sha256(Path(lock["rubric"]))
-    revealed = {c for c, case in load_cases().items() if case.role == "revealed"}
+    # Only a case the reveal recorded may add entries (decision 0030).
+    record = Path("eval/sealed/reveals.json")
+    reveals = json.loads(record.read_text("utf-8"))["reveals"] if record.is_file() else []
+    revealed = {r["case_id"] for r in reveals}
     for path, field in (
         (LABELS_FROZEN, "labels_frozen_sha256"),
         (KEYS_DIR / "frozen.json", "keys_frozen_sha256"),
