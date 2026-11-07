@@ -1,6 +1,6 @@
 # Milestone 5, first part: Sealed reconstructions and the October case
 
-Status: Built on 2026-11-01. Three October outages are sealed on both models, and GitHub 2026-10-07 is a fourth scored case with its evidence, prior-knowledge answers, library picks, and frozen key. The [independent review](#independent-review) ran with its fixes in. On 2026-11-02 the three cases were [sealed again with the library search](#second-seals-with-the-library-2026-11-02), still before any provider published a cause. On 2026-11-03 the drop date moved from 2026-11-09 to 2026-11-30 ([decision 0022](../decisions/0022-sealed-drop-date-and-offline-reveal.md)). On 2026-11-04 [two GitHub outages of that day](#third-seals-two-github-outages-of-2026-11-04) were sealed on both models with the library search. The milestone state is in the [roadmap](../roadmap.md).
+Status: Built on 2026-11-01. Three October outages are sealed on both models, and GitHub 2026-10-07 is a fourth scored case with its evidence, prior-knowledge answers, library picks, and frozen key. The [independent review](#independent-review) ran with its fixes in. On 2026-11-02 the three cases were [sealed again with the library search](#second-seals-with-the-library-2026-11-02), still before any provider published a cause. On 2026-11-03 the drop date moved from 2026-11-09 to 2026-11-30 ([decision 0022](../decisions/0022-sealed-drop-date-and-offline-reveal.md)). On 2026-11-04 [two GitHub outages of that day](#third-seals-two-github-outages-of-2026-11-04) were sealed on both models with the library search. On 2026-11-07 `github-2026-11-04-actions` was [revealed and scored](#reveal-github-2026-11-04-actions-2026-11-07). The milestone state is in the [roadmap](../roadmap.md).
 
 ## Scope
 
@@ -178,3 +178,52 @@ Three open issues name a sealed case in their trigger:
 - [#63](https://github.com/sindredg/hindcast/issues/63), no history test for the snapshot record: also due before these snapshots and not made. The commit adds two entries and changes no line of the earlier three.
 
 Both were fixed after the seals, before any further seal. `seal upload` now reads an existing blob back and records it only when its bytes match the recorded hash (`test_upload_completes_when_an_earlier_upload_reached_the_service`), and the snapshot record's history is walked like the seal record's (`test_committed_snapshot_record_only_grows`, `test_snapshot_history_with_a_changed_hash_is_a_problem`). Each test failed with its check broken: any existing blob accepted, the existing blob not handled, or the record's list key ignored.
+
+## Reveal: github-2026-11-04-actions (2026-11-07)
+
+GitHub wrote its summary of the cause into the incident's resolved update at 2026-11-07T01:04:38Z. Its 249 words name a configuration change to an internal event-routing service that paused several event streams. When the case was captured and sealed on 2026-11-04, the same update was the 31-word placeholder. The other four sealed cases still had no cause: their resolved updates are unchanged, no Cloudflare post covers 2026-10-20, and GitHub's October report is not out. Milestone 5 closes on this one reveal, and the others follow as addenda ([decision 0030](../decisions/0030-close-evaluation-with-sealed-addenda.md)).
+
+Each step ran from the [sealing runbook](../runbooks/sealing.md#reveal-a-seal), locally, in the order decision 0022 sets:
+
+| Step | Command | Result |
+|---|---|---|
+| Capture | `hindcast.capture status --provider GitHub --incident xr3myzj7ms51` | `retrieved_at: "2026-11-07T10:22:42Z"`, `sha256: 76af8617…`, registered as `github-summary-2026-11-04-actions`, role `revealed` |
+| Key | `hindcast.keys check github-2026-11-04-actions` | `0 problems`; approved by a person, frozen at 10:27:30Z, `4d3d4633…` |
+| Labels | `hindcast.labels freeze github-2026-11-04-actions` | 1 stated, 10 not inferable; approved by a person, `57274146…` |
+| Leak check | `hindcast.leak github-2026-11-04-actions --snapshot build/sealed-library/github-2026-11-04-actions.json` | `14 unstated items, 8 evidence sources, 267 library chunks, 0 hits`; with `--plant`, `root_cause in planted: 15 shared 8-word runs` |
+| Reveal | `hindcast.reveal github-2026-11-04-actions`, at 10:30:54Z | `cause published 2026-11-07T01:04:38Z`, `revealed 2 files`; `tests/test_sealed_reveal.py` 2 passed (4 after the record check was added) |
+| Judge | `hindcast.evaluation.judge run --root eval/reconstruction/sealed-v1`, 10:40:31Z to 10:41:00Z | `judged 2, errors 0, kept 0` |
+| Reviewer | `hindcast.evaluation.reviewer run` and `apply`, `--root eval/reconstruction/sealed-v1`, 10:41:07Z to 10:42:00Z | `judged 2, errors 0`; `runs 2, decisions 22, missing 0` |
+| Score | `hindcast.evaluation.score --root eval/reconstruction/sealed-v1` | `runs 2, open review items 0`; both runs 1.00 |
+| Spend | `hindcast.evaluation.spend --sealed` | judge USD 0.17, reviewer USD 0.56, total USD 0.73 |
+
+The reveal, the judge, and the reviewer ran from commits on `feat/m5-reveal-close`, committed and clean: the reveal before its own record commit, the judge and reviewer from `ce12ac8`. The results and the error analysis are in the [sealed report](../../eval/reconstruction/sealed-v1/README.md).
+
+The first judge call was refused: `NotFrozen: the judge prompt, the rubric, or the settings differ from eval/judge/frozen.json`. The judge's lock names rubric version 2, and version 3 changed the title line the system prompt carries ([troubleshooting](../troubleshooting.md#evaluation-the-judge-refuses-a-later-run-after-the-rubric-moved-to-version-3-2026-11-07)). The judge now rebuilds the locked system prompt from the history, and the two revealed runs were judged with the same system prompt as the showcase runs (`9de219e1…`).
+
+The postmortem capture is local and in the registry, not in Blob Storage: the reveal runs offline (decision 0022), and the storage account is removed at teardown.
+
+### Checks
+
+Every new check was run once against a broken input on 2026-11-07, locally, and failed:
+
+| Broken input | Failed tests or refusal |
+|---|---|
+| One word changed in a hand-drafted key's quote | `keys.check_draft`: `contributing_factors[0]: quote not found word for word in the postmortem` |
+| One byte changed in the captured postmortem | `keys.check_draft`: `differs from its registry hash` |
+| Placeholder floor set to 0 | `test_statuspage_summary_refuses_the_placeholder` |
+| Publication-time refusal removed from the reveal | `test_each_broken_step_refuses_before_anything_is_written[early-…]` |
+| Leak refusal removed from the reveal | `test_each_broken_step_refuses_before_anything_is_written[leak-…]` |
+| The sealed tree's loader sets a run ID even when the file names one | `test_the_sealed_tree_reads_revealed_files_by_hash_alone` |
+| The rebuilt judge record not compared with the lock | `test_the_locked_system_prompt_is_rebuilt_from_the_locked_rubric` |
+| `revealed` left out of the whole-library roles | `test_revealed_case_keeps_the_whole_library` |
+| Revealed refusal removed from `check_case_allowed` | `test_investigate_refuses_a_revealed_case` |
+| The rubric lock check ignores added entries | `test_the_lock_check_fails_on_a_changed_or_unrevealed_entry` |
+
+`test_each_broken_step_refuses_before_anything_is_written` also covers a wrong role, a changed key, missing labels, changed evidence, a changed snapshot, and a changed sealed file, each with the seal record unchanged and nothing written. One planned broken input proved nothing: removing the judge's separate system-hash comparison left every test passing, because the rebuilt record already holds that hash, so the comparison was removed as redundant.
+
+Test suite after the reveal: `uv run --frozen pytest -q` → 1004 passed, locally with the captured sources present; ruff, ruff format, and pyright clean.
+
+### Issues
+
+Closed by this change: [#34](https://github.com/sindredg/hindcast/issues/34) (the `revealed` role), [#35](https://github.com/sindredg/hindcast/issues/35) (the publication time, recorded and checked), and [#36](https://github.com/sindredg/hindcast/issues/36) (the placeholder refusal). Opened: [#99](https://github.com/sindredg/hindcast/issues/99), a timeline hit the 30-minute tolerance credits on a `not inferable` event, for the next rubric version.

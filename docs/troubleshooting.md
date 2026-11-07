@@ -2,6 +2,16 @@
 
 Failures that showed something about Hindcast, the platform, or a procedure: the symptom, the cause, the fix, and how the fix was verified. Newest first. A cause that was not confirmed is labelled as a hypothesis. The behaviour behind an entry is recorded once, in [findings](findings/), and linked from here.
 
+## Evaluation: the judge refuses a later run after the rubric moved to version 3 (2026-11-07)
+
+**Symptom:** `python -m hindcast.evaluation.judge run --root eval/reconstruction/sealed-v1`, the first judge call since 2026-11-04, stopped before any call with `NotFrozen: the judge prompt, the rubric, or the settings differ from eval/judge/frozen.json`.
+
+**Cause:** confirmed by the lock and the rubric's history. The judge's system prompt is its prompt plus the rubric's title line and Outcomes section. The lock was written under rubric version 2 (`46bed8b5…`); version 3 (`a8b78af7…`) changed the title line and the Review section after the judge ran, so the composed prompt no longer matched the lock. The showcase judgments were made before the change, and `score` checks them by the system-prompt hash they recorded, so nothing failed until a new judgment was asked for.
+
+**Fix:** the judge rebuilds the system prompt from the rubric version its lock names, read from the history, and accepts it only when the rebuilt record, the system prompt's hash included, equals the lock (`check_frozen_or_locked`, commit `ce12ac8`).
+
+**Verification:** tested locally. `test_the_locked_system_prompt_is_rebuilt_from_the_locked_rubric` rebuilds `9de219e1…`, the hash in the lock, and refuses a lock with a changed system hash or a rubric hash no commit has; it fails with the comparison removed. The two revealed runs were then judged with that prompt (`judged 2, errors 0`), and their judgment files record `9de219e1…`.
+
 ## Deployment: a rebuilt environment shows the removed environment's traces (2026-11-06)
 
 **Symptom:** after `azd down` removed the environment and `azd up` built it again under the same names, the runbook's trace query (step 14), over its two-hour window, returned five operations with a root span: the two runs made on the new page, and three from 18:25Z to 18:36Z, made on the removed environment's page before the removal. Over 48 hours the same workspace returned every operation since 2026-11-05, ten in all (read during the [independent review](worklogs/06-deployment.md#slice-2-independent-review)).

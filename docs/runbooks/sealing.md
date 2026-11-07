@@ -1,10 +1,10 @@
 # Sealing: operator procedure
 
-Status: Written on 2026-11-01.
+Status: Written on 2026-11-01; the reveal validated on 2026-11-07.
 
 - Steps 1 to 10 ran on 2026-11-01 with the output shown, for the first series (`library: false`).
 - Updated on 2026-11-02 for the second series, with the library search (`library: true`): steps 7 to 10 ran on 2026-11-02 for it ([worklog 05](../worklogs/05-sealed-reconstructions.md#second-seals-with-the-library-2026-11-02)).
-- [Reveal a seal](#reveal-a-seal) and [Drop a seal](#drop-a-seal) are written, not run: no provider had published a cause for a sealed case by then.
+- [Reveal a seal](#reveal-a-seal) ran on 2026-11-07 for `github-2026-11-04-actions`, steps 11 to 24 with the output shown. [Drop a seal](#drop-a-seal) is written, not run: its date is 2026-11-30.
 - Since 2026-11-03 a seal runs with Prompt Shields on every tool item, the PII check on the answer, spans, and a cost ([milestone 4, slice 3](../worklogs/04-investigator.md#slice-3-screens-pii-challenge-traces-and-cost)).
 - Steps 1 to 10 ran again on 2026-11-04 for two GitHub outages of that day, second series, with the screens on: four seals, all `complete` on the first attempt ([worklog 05](../worklogs/05-sealed-reconstructions.md#third-seals-two-github-outages-of-2026-11-04)).
 
@@ -162,39 +162,133 @@ Each seal makes at most 13 model calls on the deployment it names and, in the se
 
 ## Reveal a seal
 
-Written, not run.
+Steps 11 to 24 ran on 2026-11-07 for `github-2026-11-04-actions`, offline except for the capture and the Claude API calls ([worklog 05](../worklogs/05-sealed-reconstructions.md#reveal-github-2026-11-04-actions-2026-11-07)). Needs the sealed files under `build/sealed/`, the case's library snapshot under `build/sealed-library/`, the evidence under `build/evidence/`, and for steps 21 to 23 an Anthropic API key in `.env` ([evaluation runbook](evaluation.md#inputs-and-access)).
 
-11. When the provider has published its cause, capture the postmortem, add it to the case as a `postmortem` source, change the role to `showcase`, and draft and freeze its key ([extraction runbook](extraction.md)).
-
-12. After the rubric is frozen (milestone 5), copy the sealed file into the repository and mark its entry in `eval/sealed/seals.json` with `"revealed": true`.
+11. Check whether the provider has published a cause. For a GitHub or Cloudflare case, read the resolved update of the incident:
 
     ```bash
-    mkdir -p eval/investigations/<case_id>
+    curl -s https://www.githubstatus.com/api/v2/incidents/<incident_id>.json | python3 -I -c "import json,sys; u=[u for u in json.load(sys.stdin)['incident']['incident_updates'] if u['status']=='resolved'][0]; print(u['updated_at'], len(u['body'].split()), 'words')"
+    ```
+
+    Expected: the update's `updated_at` and its length. A placeholder ("A detailed root cause analysis will be shared as soon as it is available") is 31 words; a summary of the cause runs well over 100. Also check the provider's blog or incident report. Observed on 2026-11-07 for `xr3myzj7ms51`: `2026-11-07T01:04:38.642Z 249 words`.
+
+12. Capture the postmortem under a new name. For a status snapshot:
+
+    ```bash
+    PYTHONPATH=src uv run --frozen python -m hindcast.capture status --provider GitHub --incident <incident_id> --out data/sources/<case_id>/github-summary-<case_id-date>.json
+    ```
+
+    Expected: `url:`, `retrieved_at:`, and `sha256:`. Observed: `retrieved_at: "2026-11-07T10:22:42Z"`, `sha256: 76af8617…`. The case's `status-updates` source stays the snapshot the seals used.
+
+13. In `data/cases.yaml`, add the capture as a `postmortem` source with the three printed values, change the role to `revealed` ([decision 0030](../decisions/0030-close-evaluation-with-sealed-addenda.md)), and add a comment that says when the cause was published. Run the registry tests.
+
+    ```bash
+    uv run --frozen pytest tests/test_cases.py -q
+    ```
+
+    Expected: all pass.
+
+14. Draft the key by hand in `build/keys/<case_id>-draft.json`, in the fields of [`eval/keys/README.md`](../../eval/keys/README.md#fields), each item with a quote copied from the postmortem. Then check it:
+
+    ```bash
+    PYTHONPATH=src uv run --frozen python -m hindcast.keys check <case_id>
+    ```
+
+    Expected: `<case_id>: 0 problems; sheet build/keys/<case_id>-review.md`. A quote that differs by one word is listed, and the command exits 1. A person reviews the sheet.
+
+15. Freeze the reviewed key.
+
+    ```bash
+    PYTHONPATH=src uv run --frozen python -m hindcast.keys freeze <case_id>
+    ```
+
+    Expected: `<case_id>: frozen, sha256 <hash>`. Observed: `4d3d4633…`.
+
+16. Draft the labels in `build/labels/<case_id>-draft.json` ([decision 0023](../decisions/0023-abstention-and-inferable-labels.md)), write the sheet, have a person approve each label, and freeze them.
+
+    ```bash
+    PYTHONPATH=src uv run --frozen python -m hindcast.labels sheet <case_id>
     ```
 
     ```bash
-    cp build/sealed/<case_id>/<file> eval/investigations/<case_id>/
+    PYTHONPATH=src uv run --frozen python -m hindcast.labels freeze <case_id>
     ```
 
-    On another workstation, download it from `extracted/sealed/<case_id>/<file>` instead.
+    Expected: `<n> labels; sheet build/labels/<case_id>.md`, then `frozen <case_id> <hash>`. Observed: 11 labels, `57274146…`.
 
-13. Run the reveal check.
+17. Run the leak check against the snapshot, then once with a planted chunk.
+
+    ```bash
+    PYTHONPATH=src uv run --frozen python -m hindcast.leak <case_id> --snapshot build/sealed-library/<case_id>.json
+    ```
+
+    ```bash
+    PYTHONPATH=src uv run --frozen python -m hindcast.leak <case_id> --snapshot build/sealed-library/<case_id>.json --plant
+    ```
+
+    Expected: `0 hits`, then `1 hits` naming the planted chunk. Observed: `14 unstated items, 8 evidence sources, 267 library chunks, 0 hits`; with `--plant`, `root_cause in planted: 15 shared 8-word runs`.
+
+18. Commit the registry, the key, and the labels.
+
+19. Reveal.
+
+    ```bash
+    PYTHONPATH=src uv run --frozen python -m hindcast.reveal <case_id>
+    ```
+
+    Expected: the publication time, the leak check's counts, and `revealed <n> files`. The command checks steps 13 to 17 again and refuses before reading a sealed file if one fails, or if the cause was published before a seal. Observed at 10:30:54Z: `cause published 2026-11-07T01:04:38Z`, `revealed 2 files`.
+
+20. Run the reveal check, then commit `eval/investigations/<case_id>/`, `eval/sealed/seals.json`, `eval/sealed/reveals.json`, and `eval/reconstruction/sealed-v1/attempts.json`.
 
     ```bash
     uv run --frozen pytest tests/test_sealed_reveal.py -q
     ```
 
-    Expected (reasoned): `2 passed`. A file that differs from its seal by one byte fails with `<case_id>/<file>: does not match its seal`.
+    Expected: `4 passed`. A file that differs from its seal by one byte fails with `<case_id>/<file>: does not match its seal`.
+
+21. Judge the revealed runs (one Claude API call each).
+
+    ```bash
+    PYTHONPATH=src uv run --frozen --env-file .env python -m hindcast.evaluation.judge run --root eval/reconstruction/sealed-v1
+    ```
+
+    Expected: `judged <n>, errors 0, kept <k>`; runs judged before are kept. Observed: `judged 2, errors 0, kept 0`.
+
+22. Have the reviewer judge them again, and apply its decisions.
+
+    ```bash
+    PYTHONPATH=src uv run --frozen --env-file .env python -m hindcast.evaluation.reviewer run --root eval/reconstruction/sealed-v1
+    ```
+
+    ```bash
+    PYTHONPATH=src uv run --frozen python -m hindcast.evaluation.reviewer apply --root eval/reconstruction/sealed-v1
+    ```
+
+    Expected: `runs: judged <n>, errors 0`, then `runs <n>, decisions <d>, missing 0`. Observed: 2 runs, 22 decisions.
+
+23. Score, and price the Claude calls.
+
+    ```bash
+    PYTHONPATH=src uv run --frozen python -m hindcast.evaluation.score --root eval/reconstruction/sealed-v1
+    ```
+
+    ```bash
+    PYTHONPATH=src uv run --frozen python -m hindcast.evaluation.spend --sealed
+    ```
+
+    Expected: `open review items 0` and `eval/reconstruction/sealed-v1/scores.json: <n> runs`, then a line per stage and `eval/reconstruction/sealed-v1/spend.json: written`. Observed: 2 runs; USD 0.17 and 0.56, total USD 0.73.
+
+24. Add the case to the [sealed report](../../eval/reconstruction/sealed-v1/README.md) as an addendum, with its results and error analysis, and commit everything under `eval/reconstruction/sealed-v1/`.
 
 ## Drop a seal
 
 Written, not run. A sealed case whose provider has published no cause by 2026-11-30 is dropped ([decision 0022](../decisions/0022-sealed-drop-date-and-offline-reveal.md)).
 
-14. Add `"dropped": true` to each of the case's entries in `eval/sealed/seals.json`, and a comment above the case in `data/cases.yaml` that says it was dropped and when. Keep both: history is not rewritten.
+25. Add `"dropped": true` to each of the case's entries in `eval/sealed/seals.json`, and a comment above the case in `data/cases.yaml` that says it was dropped and when. Keep both: history is not rewritten.
 
 ## Remove the agents
 
-15. At teardown, delete the comparison model's agent with the investigator's (investigator runbook, step 6).
+26. At teardown, delete the comparison model's agent with the investigator's (investigator runbook, step 6).
 
     ```bash
     PYTHONPATH=src uv run --frozen --env-file .env python -c "from hindcast.models import project_client; print(project_client().agents.delete('hindcast-investigator-gpt-6-1-sol'))"

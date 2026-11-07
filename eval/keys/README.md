@@ -4,7 +4,7 @@ One frozen key per case: what the provider's own postmortem says happened. Miles
 
 ## Status
 
-Four keys frozen on 2026-10-27 and `github-2026-10-07` on 2026-11-01, each before any scored run, with the prior-knowledge answers still unread. A sealed case gets its key once its provider has published a cause ([decision 0017](../../docs/decisions/0017-sealed-reconstructions.md)).
+Four keys frozen on 2026-10-27 and `github-2026-10-07` on 2026-11-01, each before any scored run, with the prior-knowledge answers still unread. A sealed case gets its key once its provider has published a cause ([decision 0017](../../docs/decisions/0017-sealed-reconstructions.md)): `github-2026-11-04-actions` on 2026-11-07, drafted by hand from GitHub's summary and checked with `python -m hindcast.keys check` before its seals were opened ([sealed report](../reconstruction/sealed-v1/README.md)).
 
 [`frozen.json`](frozen.json) records each key's SHA-256, and `tests/test_keys.py` fails if a key file changes or a frozen key has no file. A changed key is a new review, not an edit.
 
@@ -16,6 +16,7 @@ Four keys frozen on 2026-10-27 and `github-2026-10-07` on 2026-11-01, each befor
 | [`github-2026-08-17.json`](github-2026-08-17.json) | Scored case |
 | [`google-cloud-2026-07-14.json`](google-cloud-2026-07-14.json) | Scored case |
 | [`github-2026-10-07.json`](github-2026-10-07.json) | Scored case, began after both pinned model versions were released |
+| [`github-2026-11-04-actions.json`](github-2026-11-04-actions.json) | Revealed sealed case, scored from its seals ([decision 0030](../../docs/decisions/0030-close-evaluation-with-sealed-addenda.md)) |
 | [`cloudflare-2026-02-20.json`](cloudflare-2026-02-20.json) | Development case, not scored |
 | [`frozen.json`](frozen.json) | SHA-256 of each key |
 | [`labels/`](labels/README.md) | One label per scored key item: `stated`, `inferable`, or `not inferable` from the case's evidence, frozen by hash before the first scored run |
