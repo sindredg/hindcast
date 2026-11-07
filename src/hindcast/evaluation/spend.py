@@ -1,9 +1,10 @@
 """What the judge and the reviewer cost on the Claude API, per stage and model.
 
-    PYTHONPATH=src uv run --frozen python -m hindcast.evaluation.spend
+    PYTHONPATH=src uv run --frozen python -m hindcast.evaluation.spend [--sealed]
 
 Reads the usage every judgment file records, prices it at
-data/claude-prices.yaml, writes eval/judge/spend.json, and prints one line
+data/claude-prices.yaml, writes eval/judge/spend.json (with --sealed, the
+revealed seals' eval/reconstruction/sealed-v1/spend.json), and prints one line
 per stage. Only the calls a judgment file records are priced. A call that
 errored and was then run again leaves only its error kind (earlier_errors),
 and a record may carry no usage: both are counted as unpriced calls, never
@@ -27,6 +28,13 @@ STAGES = {
     "reviewer, prior answers": Path("eval/prior-knowledge/v1/reviewer/judgments"),
 }
 OUT = Path("eval/judge/spend.json")
+# The revealed seals are judged later and apart (decision 0030), so they are
+# priced into their own file and the showcase total keeps its day.
+SEALED_STAGES = {
+    "judge, revealed seals": Path("eval/reconstruction/sealed-v1/judgments"),
+    "reviewer, revealed seals": Path("eval/reconstruction/sealed-v1/reviewer/judgments"),
+}
+SEALED_OUT = Path("eval/reconstruction/sealed-v1/spend.json")
 
 
 def spend(stages: Mapping[str, Path], table: ClaudePriceTable) -> dict:
@@ -68,10 +76,14 @@ def spend(stages: Mapping[str, Path], table: ClaudePriceTable) -> dict:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m hindcast.evaluation.spend")
-    parser.parse_args(argv)
+    parser.add_argument(
+        "--sealed", action="store_true", help=f"price the revealed seals into {SEALED_OUT}"
+    )
+    args = parser.parse_args(argv)
+    stages, target = (SEALED_STAGES, SEALED_OUT) if args.sealed else (STAGES, OUT)
     table = load_claude_prices()
-    out = spend(STAGES, table)
-    OUT.write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8")
+    out = spend(stages, table)
+    target.write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8")
     for row in out["stages"]:
         print(
             f"{row['stage']}: {row['model']}, {row['calls']} calls, "
@@ -81,7 +93,7 @@ def main(argv: list[str] | None = None) -> int:
         f"total {table.currency} {out['total']:.2f}, {out['unpriced_calls']} unpriced calls "
         f"(Claude price table version {table.version}, read {table.retrieved})"
     )
-    print(f"{OUT}: written")
+    print(f"{target}: written")
     return 0
 
 

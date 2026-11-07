@@ -131,3 +131,13 @@ def test_committed_table_prices_the_judge_and_reviewer_models() -> None:
         assert set(prices) == {"input", "cache_write_5m", "cache_read", "output"}
     assert table.source.startswith("https://platform.claude.com/")
     assert table.retrieved
+
+
+def test_sealed_stages_are_the_folders_judge_run_writes_with_the_sealed_root() -> None:
+    from hindcast.evaluation.batch import SEALED_ROOT
+
+    assert set(spend.SEALED_STAGES.values()) == {
+        SEALED_ROOT / "judgments",
+        SEALED_ROOT / "reviewer" / "judgments",
+    }
+    assert spend.SEALED_OUT.parent == SEALED_ROOT
