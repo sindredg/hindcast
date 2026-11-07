@@ -2,8 +2,8 @@
 
     PYTHONPATH=src uv run --frozen python -m hindcast.evaluation.reviewer freeze
     PYTHONPATH=src uv run --frozen --env-file .env python -m hindcast.evaluation.reviewer \
-        run [--limit N]
-    PYTHONPATH=src uv run --frozen python -m hindcast.evaluation.reviewer apply
+        run [--limit N] [--root DIR]
+    PYTHONPATH=src uv run --frozen python -m hindcast.evaluation.reviewer apply [--root DIR]
 
 Rubric version 3, Review (decision 0027): claude-fable-5-1 judges every judged
 run and every prior answer again, without the judge's proposals. It gets the

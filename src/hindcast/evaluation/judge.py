@@ -3,7 +3,8 @@
     PYTHONPATH=src uv run --frozen python -m hindcast.evaluation.judge freeze
     PYTHONPATH=src uv run --frozen --env-file .env python -m hindcast.evaluation.judge \
         one <result file> --out <judgment file>
-    PYTHONPATH=src uv run --frozen --env-file .env python -m hindcast.evaluation.judge run
+    PYTHONPATH=src uv run --frozen --env-file .env python -m hindcast.evaluation.judge \
+        run [--root DIR]
 
 The judge is claude-opus-5-5 on the Anthropic API (decision 0024): a model
 family no scored arm uses. It proposes; the review decides (rubric version 2,
@@ -25,7 +26,9 @@ run again on its next call and keeps every judgment it already has.
 
 No server-side fallback is sent: a fallback would let another model judge
 some runs. `run` refuses unless the prompt and the rubric match
-eval/judge/frozen.json, and prints counts and token usage only.
+eval/judge/frozen.json, or, once the rubric has moved on, the system prompt
+rebuilt from the locked rubric version in the history matches the lock
+exactly. It prints counts and token usage only.
 """
 
 import argparse
