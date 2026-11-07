@@ -470,6 +470,8 @@ With every file restored, the suite passed: `pytest -q`, 1001 passed and 3 skipp
 
 A read-only review from a fresh context, with no part in the slice's work, ran on 2026-11-07 over `c3d8881` (PR [#101](https://github.com/sindredg/hindcast/pull/101)). It checked 11 items: decision 0008's coverage, the timeline chart, the evidence graph, the scored view, the `run_items_behind` refactor, the tests and the broken inputs, the screenshots, the gate and the roadmap, the documentation, the public-text rules, and the dependencies. Each finding was checked again against the code before it was acted on.
 
+Verdicts: 9 of 11 items OK and 2 with findings, decision 0008's coverage (the scored view's difference) and the scored view (two hash checks the score makes); the gate item was OK with the wording note on the two configured rows. No item came back as could not check. The review also found the challenge box on scored runs while checking the page code.
+
 Fixed in this pull request; each code fix has a test that failed first:
 
 | Finding | Fix |
