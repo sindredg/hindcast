@@ -24,7 +24,7 @@ The attack verdict is `inferable` where an update names a cause that settles it,
 |---|---|
 | `case_id` | The case, matching its key and its evidence |
 | `items[].item` | `attack`, `root_cause`, `contributing_factors/<i>`, or `timeline/<i>`: every scored key item exactly once. Fixes are not scored, so they have no label |
-| `items[].label` | `stated` (an update before the resolved one says it), `inferable` (the evidence supports reaching it through a written step), or `not inferable` (it needs information the evidence does not hold) |
+| `items[].label` | `stated` (an update before the resolved one says it, or the resolved update's time and status, which the investigator sees without its text; issue #66), `inferable` (the evidence supports reaching it through a written step), or `not inferable` (it needs information the evidence does not hold) |
 | `items[].reason` | One line on why |
 | `items[].evidence` | The update and chart IDs the reason rests on; `stated` and `inferable` need at least one |
 
