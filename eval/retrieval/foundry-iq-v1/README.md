@@ -1,16 +1,16 @@
 # Foundry IQ knowledge base against the library search, dataset `library-v1`
 
-Whether a Foundry IQ knowledge base over the same library finds the documents a case's picks were chosen for better than Hindcast's own search does. [Decision 0004](../../../docs/decisions/0004-retrieval.md) planned the comparison, and [decision 0028](../../../docs/decisions/0028-full-environment-and-live-page.md) runs it in the full environment. Written before any knowledge base query ran.
+Whether a Foundry IQ knowledge base over the same library finds the documents a case's picks were chosen for better than Hindcast's own search. [Decision 0004](../../../docs/decisions/0004-retrieval.md) planned the comparison; [decision 0028](../../../docs/decisions/0028-full-environment-and-live-page.md) runs it in the full environment. Written before any knowledge base query ran.
 
 ## Written before the run
 
-**Queries and labels:** the frozen [`library-v1/queries.json`](../library-v1/queries.json), SHA-256 `70ad097a9f2464aae89f3290c294ae3d7fb068145ba05ce2f21cd49893915f43`, with its relevant documents. The run refuses a file with any other hash. 34 queries, 19 scored.
+**Queries and labels:** the frozen [`library-v1/queries.json`](../library-v1/queries.json), SHA-256 `70ad097a9f2464aae89f3290c294ae3d7fb068145ba05ce2f21cd49893915f43`, with its relevant documents. The run refuses any other hash. 34 queries, 19 scored.
 
-**Baseline:** Hindcast's library search on `hindcast-library-1024`, mean recall@5 0.640 and MRR 0.702 ([library-v1 results](../library-v1/README.md#status), run on 2026-11-01). It is not run again: the index it ran on was deleted on 2026-11-04.
+**Baseline:** Hindcast's library search on `hindcast-library-1024`, mean recall@5 0.640 and MRR 0.702 ([library-v1 results](../library-v1/README.md#status), run on 2026-11-01). Not run again: its index was deleted on 2026-11-04.
 
-**Index:** `hindcast-library-1024-kb`, the same chunks as the library index, embedded by the same deployment, plus an Azure OpenAI vectorizer on `text-embedding-3-large`, so the knowledge base can embed its own queries. The library index has no vectorizer, because Hindcast embeds its queries in code, and it stays unchanged.
+**Index:** `hindcast-library-1024-kb`, the same chunks as the library index, embedded by the same deployment, plus an Azure OpenAI vectorizer on `text-embedding-3-large` so the knowledge base can embed its own queries. The library index has no vectorizer, because Hindcast embeds its queries in code.
 
-**Knowledge source:** one `searchIndex` source over that index, with its semantic configuration `library`, returning `doc_id` and `ref`.
+**Knowledge source:** one `searchIndex` source over that index, semantic configuration `library`, returning `doc_id` and `ref`.
 
 **Arms:**
 
@@ -19,9 +19,9 @@ Whether a Foundry IQ knowledge base over the same library finds the documents a 
 | `minimal` | `2026-04-01` (generally available) | The query text as one semantic intent; no query planning | None |
 | `planning` | `2026-08-01-preview` (preview) | The query text as one user message; the knowledge base plans its own queries, reasoning effort `low`, extractive output | `gpt-5.4-mini` |
 
-**Filter:** each query carries its case's filter as `filterAddOn`: documents published before the case began, from the registries, exactly as the baseline (`picks_only=False`).
+**Filter:** each query carries its case's filter as `filterAddOn`: documents published before the case began, from the registries, as the baseline (`picks_only=False`).
 
-**Metrics:** the references of type `searchIndex`, ordered by reranker score, give the ranked documents. Recall@5 and reciprocal rank are computed by the same functions as the baseline, over the 19 scored queries.
+**Metrics:** the references of type `searchIndex`, ordered by reranker score, give the ranked documents. Recall@5 and reciprocal rank by the same functions as the baseline, over the 19 scored queries.
 
 **Rule:** the comparison decides nothing in this milestone; the investigator keeps its own search ([decision 0004](../../../docs/decisions/0004-retrieval.md)). An arm whose mean recall@5 is at least 0.05 above 0.640 opens an issue to reconsider the library tool.
 
@@ -29,9 +29,9 @@ Whether a Foundry IQ knowledge base over the same library finds the documents a 
 
 ## Limits
 
-- The library limits of [library-v1](../library-v1/README.md#limits) apply: 23 documents and 19 scored queries, so retrieval is close to a lookup.
-- The baseline ran on 2026-11-01 on another search service. The knowledge base runs on a rebuilt index in the full environment, with the same chunks and the same embedding deployment, re-embedded.
-- The planning arm runs a preview API. Its behaviour can change without notice.
+- The [library-v1 limits](../library-v1/README.md#limits) apply: 23 documents and 19 scored queries.
+- The baseline ran on 2026-11-01 on another search service. The knowledge base runs on a rebuilt index with the same chunks and the same embedding deployment, re-embedded.
+- The planning arm runs a preview API, which can change without notice.
 - A knowledge base returns references above its reranker threshold only, with no `top`. An arm that returns fewer than five documents for a query is scored on what it returns.
 
 ## Status
@@ -47,9 +47,9 @@ Both runs: `queries.json` at SHA-256 `70ad097a...` and commit `48181dc`, `data/l
 
 Error analysis:
 
-- **Fewer than five documents.** A knowledge base returns only references above its reranker threshold, so a query can come back with fewer than five documents or none. `minimal` returned nothing for one unscored query; no scored query came back empty in either arm.
+- **Fewer than five documents.** `minimal` returned nothing for one unscored query; no scored query came back empty in either arm.
 - **Planning did not help.** Query planning on `low` effort found a relevant document in its top five for 15 scored queries, against 16 for `minimal`, and ranked the first one lower.
-- **The baseline ran elsewhere.** The baseline is the 2026-11-01 run on the deleted service, over the same chunks embedded once before. `minimal`'s gap to it is small enough that this comparison cannot tell a difference between the services from one between the two embeddings, which were not compared.
+- **The baseline ran elsewhere.** `minimal`'s gap to the 2026-11-01 run is small enough that this comparison cannot tell a difference between the services from one between the two embeddings, which were not compared.
 
 ## Files
 

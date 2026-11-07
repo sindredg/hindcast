@@ -1,6 +1,6 @@
 # Investigation result reference
 
-The shape `hindcast.result` and `hindcast.investigate` write, shortened: one item per list, and the values are illustrative ([decisions 0015](../../docs/decisions/0015-investigation-result-and-citation-policy.md), [0020](../../docs/decisions/0020-library-citations.md), and [0021](../../docs/decisions/0021-screens-pii-and-challenge.md)).
+The shape `hindcast.result` and `hindcast.investigate` write, one item per list, values illustrative ([decisions 0015](../../docs/decisions/0015-investigation-result-and-citation-policy.md), [0020](../../docs/decisions/0020-library-citations.md), and [0021](../../docs/decisions/0021-screens-pii-and-challenge.md)).
 
 ```json
 {
@@ -57,21 +57,19 @@ The shape `hindcast.result` and `hindcast.investigate` write, shortened: one ite
 }
 ```
 
-A run from the deployed page has no Git checkout. Its `code` adds `"source": "image"` and carries the commit and the `src/` tree that CI wrote into the image at build time; a prompt or registry is clean when its Git blob hash matches the one recorded then ([decision 0028](../../docs/decisions/0028-full-environment-and-live-page.md)).
+A run from the deployed page, which has no Git checkout, adds `"source": "image"` to `code` and carries the commit and `src/` tree CI wrote into the image; a prompt or registry is clean when its blob hash matches the one recorded then ([decision 0028](../../docs/decisions/0028-full-environment-and-live-page.md)).
 
-A finding is an observation the evidence states, or an inference that names the findings it `rests_on`. The checks on the answer:
+A finding is an observation the evidence states, or an inference that names the findings it `rests_on`. Checks on the answer:
 
 | Check | What happens |
 |---|---|
-| A citation does not resolve, names an item Prompt Shields withheld, or names an item the run never read | Removed and listed in `checks` with its reason |
-| A `rests_on` entry sits on an observation, names its own finding, names an ID two findings carry, or closes a loop among findings | Removed and listed in `checks` with its reason |
-| An item is left with no support: no case citation, and no `rests_on` finding that is itself supported | Kept and listed as unsupported |
-| A library citation (`"source": "library"`) names a ref no search in the run showed | Removed; a kept one never supports an item on its own ([decision 0020](../../docs/decisions/0020-library-citations.md)) |
+| A citation does not resolve, was withheld by Prompt Shields, or names an item the run never read | Removed and listed in `checks` with its reason |
+| A `rests_on` entry sits on an observation, names its own finding, an ambiguous ID, or closes a loop | Removed and listed in `checks` with its reason |
+| An item has no case citation and no supported `rests_on` finding | Kept and listed as unsupported |
+| A library citation names a ref no search in the run showed | Removed; a kept one never supports an item alone ([decision 0020](../../docs/decisions/0020-library-citations.md)) |
 | The answer or a search query holds personal data | Replaced by its category; `checks.pii` lists where, never what |
 
-A run has 120 seconds and 12 tool calls. Each model call gets the time left as its timeout; within a tool call, the search, its embedding, and the screen share the time left. Nothing retries.
-
-A run that reaches a cap, whose model call, tool, screen, or PII check fails, or whose answer does not fit the schema ends as `incomplete` with a reason, and an answer that was not checked is not written. A failed model call keeps only the error's type (`model-error: RateLimitError`) and the usage spent so far. The cost comes from the versioned price table in [`data/prices.yaml`](../../data/prices.yaml).
+A run has 120 seconds and 12 tool calls; each model call gets the time left as its timeout, and nothing retries. A run that reaches a cap, fails a model call, tool, screen, or PII check, or returns an answer outside the schema ends as `incomplete` with a reason, and an unchecked answer is not written; a failed model call keeps only the error's type (`model-error: RateLimitError`) and the usage so far. The cost comes from the versioned price table in [`data/prices.yaml`](../../data/prices.yaml).
 
 
 [Back to the README](../../README.md#what-an-investigation-returns)

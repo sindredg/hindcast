@@ -2,18 +2,17 @@
 
 Status: Written on 2026-10-27 for [milestone 2](../worklogs/02-extraction.md).
 
-- Every step ran on 2026-10-27 with the output shown, except where an "Expected:" line is marked as reasoned.
+- Every step ran on 2026-10-27 with the output shown, except "Expected:" lines marked as reasoned.
 - Steps 1, 15 to 17, 19, and 20 ran again on 2026-11-01 for the key of GitHub 2026-10-07 ([worklog 05](../worklogs/05-sealed-reconstructions.md#the-october-case)).
-- Steps 2 and 3 changed on 2026-11-01 for the extraction model ([decision 0018](../decisions/0018-extraction-model.md)): the deployment and mapping of gpt-5.4-mini ran then from the [retrieval runbook](retrieval.md#move-extraction-to-gpt-54-mini), and the creation of the analyzers on it in this form is reasoned.
+- Steps 2 and 3 changed on 2026-11-01 for gpt-5.4-mini ([decision 0018](../decisions/0018-extraction-model.md)); its deployment and mapping ran from the [retrieval runbook](retrieval.md#move-extraction-to-gpt-54-mini), the analyzer creation in this form is reasoned.
 
-The procedure turns the captured sources into the case evidence, the library extracts, and the answer keys. Content Understanding needs a role on the Foundry resource only while it runs; the last section removes it.
+On this page: [Inputs and access](#inputs-and-access) · [Set up Content Understanding](#set-up-content-understanding) · [Describe the charts](#describe-the-charts) · [Cut the case evidence](#cut-the-case-evidence) · [Capture the library](#capture-the-library) · [Extract the library](#extract-the-library) · [Draft, review, and freeze the answer keys](#draft-review-and-freeze-the-answer-keys) · [Remove the Content Understanding role](#remove-the-content-understanding-role)
 
 ## Inputs and access
 
-- The [foundations runbook](foundations.md) completed: the cases captured, their sources in Blob Storage under `sources/<case_id>/`, and `.env` written.
-- Signed in with `az login` as a user with Storage Blob Data Contributor on the storage account and the right to assign roles on the Foundry resource (Owner or User Access Administrator).
-- A browser, for the Cloudflare Radar charts.
-- Commands run from the repository root. Local values are set once:
+- The [foundations runbook](foundations.md) completed: sources in Blob Storage under `sources/<case_id>/`, `.env` written.
+- `az login` with Storage Blob Data Contributor on the storage account and Owner or User Access Administrator on the Foundry resource.
+- A browser, for the Radar charts. Commands run from the repository root:
 
 ```bash
 export RG=<resource-group> RESOURCE=<foundry-resource>
@@ -21,7 +20,7 @@ export RG=<resource-group> RESOURCE=<foundry-resource>
 
 ## Set up Content Understanding
 
-1. Assign Content Understanding Contributor on the Foundry resource to yourself.
+1. Assign yourself Content Understanding Contributor on the Foundry resource.
 
    ```bash
    RES_ID=$(az cognitiveservices account show -g "$RG" -n "$RESOURCE" --query id -o tsv)
@@ -30,9 +29,9 @@ export RG=<resource-group> RESOURCE=<foundry-resource>
      --role "Cognitive Services Content Understanding Contributor" --scope "$RES_ID" -o none
    ```
 
-   Expected: no output. Within a few minutes, step 3 can read the service.
+   Expected: no output. Step 3 works after a few minutes.
 
-2. Deploy the extraction model and the embedding model the document analyzers require, pinned, with automatic upgrade off.
+2. Deploy the extraction and embedding models, pinned, upgrade off (the Azure CLI cannot set the upgrade option).
 
    ```bash
    for model in gpt-5.4-mini:2026-03-17 text-embedding-3-large:1; do
@@ -43,9 +42,9 @@ export RG=<resource-group> RESOURCE=<foundry-resource>
    done
    ```
 
-   Expected: `Succeeded	NoAutoUpgrade` twice (observed as JSON, for text-embedding-3-large on 2026-10-27 and for gpt-5.4-mini on 2026-11-01). The Azure CLI's `deployment create` cannot set the upgrade option, hence the REST call. Set `HINDCAST_EXTRACTION_DEPLOYMENT=gpt-5.4-mini` in `.env`.
+   Expected: `Succeeded	NoAutoUpgrade` twice (observed as JSON, for text-embedding-3-large on 2026-10-27 and for gpt-5.4-mini on 2026-11-01). Set `HINDCAST_EXTRACTION_DEPLOYMENT=gpt-5.4-mini` in `.env`.
 
-3. Map the models Content Understanding uses to the deployments, and create the three analyzers from [`analyzers/`](../../analyzers/).
+3. Map the models and create the analyzers from [`analyzers/`](../../analyzers/).
 
    ```bash
    PYTHONPATH=src uv run --frozen --env-file .env python -c "
@@ -55,11 +54,11 @@ export RG=<resource-group> RESOURCE=<foundry-resource>
    print('created:', ensure_analyzers())"
    ```
 
-   Expected: the two mappings, then `created: ['hindcast_postmortem', 'hindcast_chart', 'hindcast_answer_key']` (reasoned: on 2026-10-27 they were created in three runs while the setup was worked out), then `created: []`. `AnalyzerDiffers` means an analyzer in the service differs from its file: recreate it with `hindcast.extract.replace_analyzer("<analyzer_id>")`.
+   Expected: the two mappings, then `created: ['hindcast_postmortem', 'hindcast_chart', 'hindcast_answer_key']` (reasoned: on 2026-10-27 they were created in three runs), then `created: []`. On `AnalyzerDiffers`, `hindcast.extract.replace_analyzer("<analyzer_id>")` recreates the analyzer.
 
 ## Describe the charts
 
-4. Download the Radar views in a browser. Radar refuses scripted requests and serves whole UTC days. Open each page, check the chart for any label that names a cause, and download it as PNG into the path shown.
+4. Download the Radar views in a browser (Radar refuses scripted requests). Check each chart for a label naming a cause; save as PNG.
 
    | Page | Chart | Save as |
    |---|---|---|
@@ -67,7 +66,7 @@ export RG=<resource-group> RESOURCE=<foundry-resource>
    | `https://radar.cloudflare.com/routing/as13335?dateStart=2026-02-20&dateEnd=2026-02-20` | Announced IP address space, IPv4 | `data/charts/cloudflare-2026-02-20/radar-announced-ipv4.png` |
    | same page | BGP announcements | `data/charts/cloudflare-2026-02-20/radar-bgp-announcements.png` |
 
-   The images are committed; on a rebuild they are already there. A new download hashes differently and needs a new registry entry.
+   The images are committed; a new download needs a new registry entry.
 
 5. Check the chart files against the registry.
 
@@ -87,7 +86,7 @@ export RG=<resource-group> RESOURCE=<foundry-resource>
    PYTHONPATH=src uv run --frozen --env-file .env python -m hindcast.ingest charts
    ```
 
-   Expected: three lines `<case_id>: <doc_id> described`, each followed by `  blob: uploaded` on a first run and `  blob: reused` after. A first run also prints its usage (three charts: 3,000 contextualization tokens).
+   Expected: three lines `<case_id>: <doc_id> described`, each followed by `  blob: uploaded` on a first run and `  blob: reused` after. A first run prints its usage (3,000 contextualization tokens).
 
 ## Cut the case evidence
 
@@ -99,7 +98,7 @@ export RG=<resource-group> RESOURCE=<foundry-resource>
 
    Expected: `34 passed`.
 
-8. Ingest every case's evidence from Blob Storage, with the chart descriptions attached.
+8. Ingest every case's evidence from Blob Storage.
 
    ```bash
    PYTHONPATH=src uv run --frozen --env-file .env python -m hindcast.ingest evidence; echo "exit $?"
@@ -120,13 +119,9 @@ export RG=<resource-group> RESOURCE=<foundry-resource>
    exit 0
    ```
 
-   On a first run each case reads `blob: uploaded` (reasoned). Other lines mean:
+   A first run prints `blob: uploaded` (reasoned). `chart <doc_id> has no stored description`: run step 6. `evidence in Blob Storage differs`: pass `--replace` only if the rules, sources, or charts changed. `downloaded bytes do not match the registry`: the blob is not the captured source; nothing is written.
 
-   - `<case_id>: chart <doc_id> has no stored description; run ingest charts first`: step 6 has not run.
-   - `<case_id>: evidence in Blob Storage differs; pass --replace to overwrite`: the rules, the sources, or the charts changed; pass `--replace` only then.
-   - `<case_id>: <doc_id>: downloaded bytes do not match the registry`: the blob is not the captured source, and nothing is written for that case.
-
-9. Check that the Blob copies equal the local ones and that no resolved text was kept.
+9. Check the Blob copies against the local ones and that no resolved text was kept.
 
    ```bash
    PYTHONPATH=src uv run --frozen --env-file .env python -c "
@@ -142,7 +137,7 @@ export RG=<resource-group> RESOURCE=<foundry-resource>
 
 ## Capture the library
 
-10. Check the registry. The picks follow [decision 0013](../decisions/0013-library-selection.md) and are listed in [`data/library.yaml`](../../data/library.yaml).
+10. Check the registry, [`data/library.yaml`](../../data/library.yaml) ([decision 0013](../decisions/0013-library-selection.md)).
 
     ```bash
     uv run --frozen pytest -q tests/test_library.py
@@ -150,7 +145,7 @@ export RG=<resource-group> RESOURCE=<foundry-resource>
 
     Expected: `14 passed`. Without the captured status snapshots under `data/sources/`, the quote check is skipped (`13 passed, 1 skipped`, reasoned).
 
-11. Capture each page, unless it is already under `data/sources/library/`.
+11. Capture each page not already under `data/sources/library/`.
 
     ```bash
     PYTHONPATH=src uv run --frozen python -c "
@@ -165,9 +160,9 @@ export RG=<resource-group> RESOURCE=<foundry-resource>
         print(d.doc_id, d.sha256 == __import__('hashlib').sha256(out.read_bytes()).hexdigest())"
     ```
 
-    Expected: one line per document ending in `True`. A page captured again later hashes differently (pages change), and that document cannot be used until it is captured, hashed, and picked again.
+    Expected: one line per document ending in `True`. A page recaptured later hashes differently and needs a new registry entry.
 
-12. Upload the pages to Blob Storage. An existing blob is never overwritten.
+12. Upload the pages to Blob Storage (an existing blob is never overwritten).
 
     ```bash
     PYTHONPATH=src uv run --frozen --env-file .env python -c "
@@ -195,9 +190,9 @@ export RG=<resource-group> RESOURCE=<foundry-resource>
 
     Expected: one line per document, `<doc_id>: <n> sections, <m> figures, dropped 0`, followed by `  blob: reused` when the extract is already in Blob Storage, then `exit 0`. The final library has 176 sections and 65 figures.
 
-    A first extraction prints `  blob: uploaded` and a `usage:` line; on 2026-10-27 the whole library took 118 minimal pages, 189,000 contextualization tokens, and about 131,000 gpt-5-mini input and 23,000 output tokens. A page whose title, date, or body its site's rule cannot find is listed with the reason, and the run exits 1.
+    A first extraction prints `  blob: uploaded` and `usage:`; on 2026-10-27: 118 minimal pages, 189,000 contextualization tokens, about 131,000 gpt-5-mini input and 23,000 output tokens. A page whose title, date, or body the site rule cannot find is listed, and the run exits 1.
 
-14. Check the extracts for text that must not be there: a case's report, a case's date, or a byline.
+14. Check the extracts for a case's report, a case's date, or a byline.
 
     ```bash
     grep -l -i -E 'availability report: August 2026|2025-11-18|November 18, 2025|18 November 2025|2026-02-20|February 20, 2026|20 February 2026|2026-07-14|July 14, 2026|14 July 2026|2026-08-17|August 17, 2026|17 August 2026' build/extracted/library/*.json; grep -l -i 'written by\|author-bio' build/extracted/library/*.json
@@ -207,17 +202,15 @@ export RG=<resource-group> RESOURCE=<foundry-resource>
 
 ## Draft, review, and freeze the answer keys
 
-15. Draft the keys. A postmortem source that is a status snapshot (`.json`) is read from its resolved update, where GitHub writes its summary.
+15. Draft the keys (a `.json` postmortem source is read from its resolved update).
 
     ```bash
     PYTHONPATH=src uv run --frozen --env-file .env python -m hindcast.keys draft --case cloudflare-2025-11-18 --case cloudflare-2026-02-20 --case github-2026-08-17 --case github-2026-10-07 --case google-cloud-2026-07-14
     ```
 
-    `--case` is required, and only showcase and development cases are accepted: a revealed case's key is drafted by hand (decision 0022). Expected: one line per case with its counts and problems, then `  blob: uploaded` on a first run or `  blob: reused` after, and the stored analysis's `usage:` line either way (together 24 minimal pages).
+    Only showcase and development cases are accepted (a revealed case's key is drafted by hand, decision 0022). Expected: one line per case with its counts and problems, then `  blob: uploaded` on a first run or `  blob: reused` after, and the `usage:` line (together 24 minimal pages). An existing draft is kept: `<case_id>: a draft exists and may hold review edits; kept`. Drafts and sheets are in `build/keys/` (ignored).
 
-    An existing draft is kept: `<case_id>: a draft exists and may hold review edits; kept`. The drafts and review sheets are in `build/keys/`, which Git ignores.
-
-16. Review each sheet against its postmortem, linked at the top of the sheet. Correct the draft in `build/keys/<case_id>-draft.json`: values, missing items, times in UTC, and `stated_during_incident` for what a status update already said. The fields and rules are in the [keys README](../../eval/keys/README.md). The prior-knowledge answers stay unopened.
+16. Review each sheet against its postmortem and correct `build/keys/<case_id>-draft.json`: values, missing items, UTC times, `stated_during_incident` ([keys README](../../eval/keys/README.md)). The prior-knowledge answers stay unopened.
 
 17. Freeze each reviewed key.
 
@@ -225,7 +218,7 @@ export RG=<resource-group> RESOURCE=<foundry-resource>
     PYTHONPATH=src uv run --frozen python -m hindcast.keys freeze <case_id>
     ```
 
-    Expected: `<case_id>: frozen, sha256 <hash>`. A second freeze of the same case prints `<case_id>: eval/keys/<case_id>.json is frozen already; a new key needs a new review` and exits 1.
+    Expected: `<case_id>: frozen, sha256 <hash>`. A second freeze prints `<case_id>: eval/keys/<case_id>.json is frozen already; a new key needs a new review` and exits 1.
 
 18. Check the frozen keys.
 
@@ -246,7 +239,7 @@ export RG=<resource-group> RESOURCE=<foundry-resource>
 
     Expected: `Foundry User`, `Owner`, and `Storage Blob Data Contributor`, plus any roles held for other projects.
 
-20. Repeat a Content Understanding read until it is refused. The removal takes about 11 minutes to reach the endpoint.
+20. Repeat a Content Understanding read until refused (about 11 minutes).
 
     ```bash
     PYTHONPATH=src uv run --frozen --env-file .env python -c "
@@ -259,7 +252,7 @@ export RG=<resource-group> RESOURCE=<foundry-resource>
 
     Expected: `still allowed` for a while, then `ClientAuthenticationError (PermissionDenied) The principal ... lacks the required data action ...analyzers/read`.
 
-21. Check that model calls through the project still work on the project-scope role.
+21. Check that project model calls still work.
 
     ```bash
     PYTHONPATH=src uv run --frozen --env-file .env python -c "

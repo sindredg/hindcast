@@ -4,35 +4,25 @@ Status: Accepted (2026-10-25).
 
 ## Context
 
-Hindcast scores its reconstruction against the provider's postmortem. If the investigator can read the postmortem, or the provider's own summary of the cause, the score measures how well it summarises the answer, not how well it investigates.
-
-The answer leaks in more places than the postmortem itself:
-
-- The update that marks an incident resolved often carries a root-cause summary. GitHub's and Google Cloud's do.
-- Google Cloud appends a preliminary and a full incident report to the same incident record as its live updates.
-- The library could hold the case's own postmortem, or a later one that refers back to it.
-
-So the evidence and the library are cut before the investigator sees them. The cut has to be deterministic, testable, and safe for a provider format it has not seen before.
+An investigator that reads the postmortem or the provider's cause summary is scored on summarising. The answer leaks elsewhere too: the resolved update often states the cause (GitHub, Google Cloud), Google Cloud appends incident reports to the incident record, and the library could hold the case's postmortem or a later one that refers to it. The cut has to be deterministic, testable, and safe for an unseen format.
 
 ## Options considered
 
-| Option | How it works | Risk |
+| Option | How | Risk |
 |---|---|---|
-| A. Fixed cut rules, fail closed | Case evidence is every update before the resolved one, plus the resolved update's time and status with its text withheld. Any entry that is itself a report is dropped; an entry type the rules do not know is dropped and listed for review. The library returns only documents published before the outage began and none about the case. A leak check compares the answer key with the evidence and the filtered library before any scored run | Facts stated only in the resolved update are lost, so scores lean pessimistic |
-| B. Keep the resolved update in full | Everything the status page showed is evidence | GitHub and Google Cloud state the cause there, so scores are inflated |
-| C. A model decides which updates reveal the cause | A language model labels each update | Not deterministic; one wrong label leaks the answer, and every label still needs review |
-| D. Option A plus a sentence filter | Also removes evidence sentences that closely match an answer-key statement | Removes true facts the provider stated during the incident, hiding real evidence from the investigator |
+| A. Fixed rules, fail closed | Evidence is every update before the resolved one, plus the resolved update's time and status with its text withheld. Report entries and unknown entry types are dropped and listed. The library returns only documents published before the outage and none about the case. A leak check compares key, evidence, and filtered library before any scored run | Facts stated only in the resolved update are lost |
+| B. Keep the resolved update | The whole status page | The cause is stated there |
+| C. A model labels revealing updates | A model decides | Not deterministic; one wrong label leaks |
+| D. A plus a sentence filter | Removes sentences close to a key statement | Removes true facts the provider stated |
 
 ## Decision
 
-Option A. It is deterministic, it can be tested with fixed inputs, and when it is wrong it errs toward withholding evidence, which lowers scores instead of inflating them.
-
-A fact the provider stated publicly during the incident is legitimate evidence. The answer key marks such facts, so the evaluation report can say which parts of a reconstruction the provider had already told the public.
+Option A: deterministic, testable, and wrong only toward withholding. A fact the provider stated during the incident is evidence; the key marks such facts so the report can say what the public already knew.
 
 ## Trade-offs
 
-- Scores are a lower bound on what the investigator could do with everything the status page showed.
-- The report-entry rules are per provider. A new provider, or a new entry format from a known one, needs its entries reviewed before its cases can be scored.
-- The leak check catches near-copies of answer-key text. It does not catch an update that implies the cause without stating it; that residual risk is named in each evaluation report.
-- A case where the provider named the cause during the incident is easier than one where it did not, and the evaluation report says so per case.
-- What the model already knew about a case is a separate risk, handled by the prior-knowledge check, not by the cut.
+- Scores are a lower bound.
+- Entry rules are per provider; a new format needs review before scoring.
+- The leak check catches near-copies, not an update that implies the cause. Each report names that risk.
+- A case where the provider named the cause is easier; the report says so per case.
+- Prior knowledge is the prior-knowledge check's job, not the cut's.

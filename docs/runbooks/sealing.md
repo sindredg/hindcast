@@ -2,42 +2,39 @@
 
 Status: Written on 2026-11-01; the reveal validated on 2026-11-07.
 
-- Steps 1 to 10 ran on 2026-11-01 with the output shown, for the first series (`library: false`).
-- Updated on 2026-11-02 for the second series, with the library search (`library: true`): steps 7 to 10 ran on 2026-11-02 for it ([worklog 05](../worklogs/05-sealed-reconstructions.md#second-seals-with-the-library-2026-11-02)).
-- [Reveal a seal](#reveal-a-seal) ran on 2026-11-07 for `github-2026-11-04-actions`, steps 11 to 24 with the output shown, except step 18: the registry, the key, and the labels were committed after the reveal, with its output. The reveal has refused an uncommitted tree since. [Drop a seal](#drop-a-seal) is written, not run: its date is 2026-11-30.
-- Since 2026-11-03 a seal runs with Prompt Shields on every tool item, the PII check on the answer, spans, and a cost ([milestone 4, slice 3](../worklogs/04-investigator.md#slice-3-screens-pii-challenge-traces-and-cost)).
-- Steps 1 to 10 ran again on 2026-11-04 for two GitHub outages of that day, second series, with the screens on: four seals, all `complete` on the first attempt ([worklog 05](../worklogs/05-sealed-reconstructions.md#third-seals-two-github-outages-of-2026-11-04)).
+- Steps 1 to 10 ran on 2026-11-01, first series (`library: false`); steps 7 to 10 again on 2026-11-02, second series (`library: true`, [worklog 05](../worklogs/05-sealed-reconstructions.md#second-seals-with-the-library-2026-11-02)); steps 1 to 10 again on 2026-11-04 for two GitHub outages, screens on, four seals `complete` on the first attempt ([worklog 05](../worklogs/05-sealed-reconstructions.md#third-seals-two-github-outages-of-2026-11-04)).
+- [Reveal a seal](#reveal-a-seal) ran on 2026-11-07 for `github-2026-11-04-actions`, steps 11 to 24, except step 18 (committed after the reveal; refused since). [Drop a seal](#drop-a-seal) is written, not run: its date is 2026-11-30.
+- Since 2026-11-03 a seal runs with Prompt Shields, the PII check, spans, and a cost ([milestone 4, slice 3](../worklogs/04-investigator.md#slice-3-screens-pii-challenge-traces-and-cost)).
 
-The procedure seals a reconstruction of an outage whose provider has not yet published a cause: it runs the investigator once per deployment, commits the result's SHA-256, and keeps the file in private storage until the postmortem is out ([decision 0017](../decisions/0017-sealed-reconstructions.md)).
-
-Each seal makes at most 13 model calls on the deployment it names and, in the second series, one embedding call and one search query per library search, plus the Prompt Shields and PII calls the [investigator runbook](investigator.md) describes.
+One investigator run per deployment, the result's SHA-256 committed, the file in private storage until the postmortem is out ([decision 0017](../decisions/0017-sealed-reconstructions.md)). A seal makes at most 13 model calls plus, in the second series, the calls the [investigator runbook](investigator.md) describes.
 
 ![Sealing a reconstruction: the seal command refuses, before any model call, a case that is not sealed, a case and deployment that already have a seal in this series, a changed tree, a seal record that does not extend the committed one, or a library search that does not answer; otherwise it investigates once with the library search, records an attempt with no model output as no-result, which may be retried up to three attempts in all, and otherwise commits the hash and uploads the file to private storage. If the provider publishes its cause by 2026-11-30, the file is revealed after the rubric is frozen, checked against its hash, and scored; if not, the case is dropped with its record kept](../diagrams/sealing.svg)
 
+On this page: [Inputs and access](#inputs-and-access) · [Choose the outages](#choose-the-outages) · [Register the cases](#register-the-cases) · [Seal](#seal) · [Reveal a seal](#reveal-a-seal) · [Drop a seal](#drop-a-seal) · [Remove the agents](#remove-the-agents)
+
 ## Inputs and access
 
-- The [foundations runbook](foundations.md) completed: `.env` written, with `HINDCAST_CHAT_DEPLOYMENT` (gpt-6-luna) and `HINDCAST_COMPARE_DEPLOYMENT` (gpt-6.1-sol).
-- For the second series, the [retrieval runbook](retrieval.md) completed: the library index built, its four search and embedding values in `.env`, and the library extracts under `build/extracted/library/`.
-- Signed in with `az login` as a user with Foundry User on the project and Storage Blob Data Contributor on the storage account; for the second series also Search Index Data Contributor on the search service and Cognitive Services OpenAI User on the Foundry resource.
-- Signed commits, and push access to a branch with an open pull request: the push time is the seal's public timestamp.
+- The [foundations runbook](foundations.md) completed: `.env` with `HINDCAST_CHAT_DEPLOYMENT` (gpt-6-luna) and `HINDCAST_COMPARE_DEPLOYMENT` (gpt-6.1-sol); for the second series the [retrieval runbook](retrieval.md) too.
+- `az login` with Foundry User on the project and Storage Blob Data Contributor; for the second series also Search Index Data Contributor and Cognitive Services OpenAI User.
+- Signed commits and push access to a branch with an open pull request (the push time is the public timestamp).
 - Commands run from the repository root.
 
 ## Choose the outages
 
-1. Read the status feeds for incidents that are resolved, have eight or more updates before the resolved one, and harm nobody (the [decision 0001](../decisions/0001-scope.md) rules). Then read each candidate's resolved update.
+1. Find resolved incidents with eight or more updates before the resolved one that harm nobody ([decision 0001](../decisions/0001-scope.md)); read each resolved update.
 
    ```bash
    curl -s https://www.githubstatus.com/api/v2/incidents/<incident-id>.json | uv run --frozen python -c "import json,sys; i=json.load(sys.stdin)['incident']; print(i['name'], i['status']); [print(u['status'], u['created_at'], u['body'][:200]) for u in i['incident_updates'] if u['status'] in ('resolved','postmortem')]"
    ```
 
-   Use `https://www.cloudflarestatus.com/api/v2/incidents/<incident-id>.json` for Cloudflare. Google Cloud's feed is `https://status.cloud.google.com/incidents.json`; an update that opens with `## Incident Report` or `## Preliminary Incident Report` is a published cause.
+   Cloudflare: `https://www.cloudflarestatus.com/api/v2/incidents/<incident-id>.json`. Google Cloud: `https://status.cloud.google.com/incidents.json`; an update opening with `## Incident Report` or `## Preliminary Incident Report` is a published cause.
 
    Expected: the resolved update states no cause, and no postmortem entry exists. Observed on 2026-11-01:
 
    - GitHub `nms1dpzmh9d9` and `wq8305lppdc2`: "This incident has been resolved. Thank you for your patience and understanding as we addressed this issue. A detailed root cause analysis will be shared as soon as it is available."
    - Cloudflare `0eqtn0khkz87`: "This incident has been resolved."
 
-   Five other October GitHub incidents with eight or more updates, 2026-10-07 among them, already carried GitHub's summary of the cause, and the Google Cloud europe-west2 incident of 2026-10-20 carried its incident report, so none of those is sealable.
+   Five other October GitHub incidents (2026-10-07 among them) already carried a cause summary, and the Google Cloud europe-west2 incident of 2026-10-20 its incident report: not sealable.
 
 ## Register the cases
 
@@ -49,7 +46,7 @@ Each seal makes at most 13 model calls on the deployment it names and, in the se
 
    Expected: three lines, `url:`, `retrieved_at:`, and `sha256:`. Observed on 2026-11-01: `retrieved_at: "2026-11-01T08:15:51Z"`, `sha256: 3b90d46a…`.
 
-3. Add each case to `data/cases.yaml` with `role: sealed`, the incident's title as the status page shows it, `started_at` as the cut reads it (the earlier of the snapshot's `started_at` and its first update, in UTC to the second; `tests/test_cases.py` fails on a mismatch once the source is local), and one `status-updates` source with the three printed values. Run the registry tests.
+3. Add each case to `data/cases.yaml`: `role: sealed`, the status page's title, `started_at` (the earlier of the snapshot's `started_at` and its first update, UTC to the second), one `status-updates` source with the three printed values.
 
    ```bash
    uv run --frozen pytest tests/test_cases.py -q
@@ -63,7 +60,7 @@ Each seal makes at most 13 model calls on the deployment it names and, in the se
    PYTHONPATH=src uv run --frozen --env-file .env python -c "from pathlib import Path; from hindcast.storage import upload_source; c='github-2026-10-21'; f='github-status-2026-10-21.json'; upload_source(c, f, (Path('data/sources')/c/f).read_bytes()); print(c, f, 'uploaded')"
    ```
 
-   Expected: `github-2026-10-21 github-status-2026-10-21.json uploaded`. An existing blob fails with `ResourceExistsError`, and nothing is replaced.
+   Expected: `github-2026-10-21 github-status-2026-10-21.json uploaded`. An existing blob fails with `ResourceExistsError`; nothing is replaced.
 
 5. Cut the evidence.
 
@@ -73,7 +70,7 @@ Each seal makes at most 13 model calls on the deployment it names and, in the se
 
    Expected: the update count including the resolved mark, the resolved time, `dropped 0`, and `blob: uploaded`. Observed on 2026-11-01: 9 updates for `cloudflare-2026-10-20`, 15 for `github-2026-10-21`, 18 for `github-2026-10-22`.
 
-6. Commit the registry. A seal refuses to run while `src/`, `prompts/`, `pyproject.toml`, `uv.lock`, `data/cases.yaml`, or `data/library.yaml` differs from the last commit, or while `eval/sealed/seals.json` does not extend the committed one.
+6. Commit the registry: a seal refuses uncommitted changes under `src/`, `prompts/`, `pyproject.toml`, `uv.lock`, `data/cases.yaml`, or `data/library.yaml`, and a `seals.json` that does not extend the committed one.
 
    ```bash
    git add data/cases.yaml
@@ -93,7 +90,7 @@ Each seal makes at most 13 model calls on the deployment it names and, in the se
    PYTHONPATH=src uv run --frozen --env-file .env python -m hindcast.seal run cloudflare-2026-10-20
    ```
 
-   Expected, as observed on 2026-11-01 (the counts and the usage vary per run):
+   Expected, as observed on 2026-11-01 (counts and usage vary per run):
 
    ```
    complete
@@ -117,22 +114,15 @@ Each seal makes at most 13 model calls on the deployment it names and, in the se
    uploaded extracted/sealed/cloudflare-2026-10-20/20261102T184430Z-v3.json
    ```
 
-   Before the first model call, the command runs one library search and refuses with `SealRefused: the library search did not answer (<error type>); run again later` while it fails, recording nothing. Wait and run it again.
+   While the library search fails, the command refuses before any model call with `SealRefused: the library search did not answer (<error type>); run again later`. One seal per case, deployment, and series. An incomplete run prints only the kind of reason (`schema`, `time-cap`, `tool-cap`, `tool-error`, `screen-error`, `pii-error`, `empty-result`), never the investigation. `no-result`: run again, up to three attempts. `upload failed`: `python -m hindcast.seal upload <case_id> <file>` checks the file against the recorded hash and uploads it, or records an existing blob only when its bytes match (else `upload refused`).
 
-   In the second series the checks line ends with `searches <n>, library citations kept <m>`, and the entries carry `library: true`. One seal per case, deployment, and series: the first series does not block the second.
-
-   The command never prints the investigation, and for an incomplete run it prints only the kind of reason (`schema`, `time-cap`, `tool-cap`, `tool-error`, `screen-error`, `pii-error`, `empty-result`). Two outcomes need a step:
-
-   - `no-result`: the model produced nothing; run it again, up to three attempts in all.
-   - `upload failed`: the hash is already recorded; upload the same file with `python -m hindcast.seal upload <case_id> <file>`, which checks the file against its hash first. If the failed upload had reached the service, the command finds the blob, reads it back, and records it only when its bytes match the hash; otherwise it prints `upload refused` and leaves the entry open.
-
-8. Seal each case with the comparison model in the agent's place.
+8. Seal each case with the comparison model.
 
    ```bash
    HINDCAST_CHAT_DEPLOYMENT=gpt-6.1-sol PYTHONPATH=src uv run --frozen --env-file .env python -m hindcast.seal run cloudflare-2026-10-20
    ```
 
-   Expected: the same shape. The first run creates agent `hindcast-investigator-gpt-6-1-sol` (Foundry agent names take no dot). Observed on 2026-11-01: six seals, all `complete`, all uploaded. Observed on 2026-11-02 for the second series: six more, all `complete` on the first attempt, each with one search, all uploaded.
+   Expected: the same shape. The first run creates agent `hindcast-investigator-gpt-6-1-sol`. Observed on 2026-11-01: six seals, all `complete`, all uploaded; on 2026-11-02, second series: six more, all `complete` on the first attempt, one search each, all uploaded.
 
 9. Confirm a second seal is refused.
 
@@ -140,9 +130,9 @@ Each seal makes at most 13 model calls on the deployment it names and, in the se
    PYTHONPATH=src uv run --frozen --env-file .env python -m hindcast.seal run cloudflare-2026-10-20 2>&1 | tail -1
    ```
 
-   Expected, as observed on 2026-11-01 and again on 2026-11-02 for the second series: `SealRefused: cloudflare-2026-10-20 is already sealed on gpt-6-luna`, before any cloud call.
+   Expected, as observed on 2026-11-01 and on 2026-11-02 for the second series: `SealRefused: cloudflare-2026-10-20 is already sealed on gpt-6-luna`, before any cloud call.
 
-10. Commit `eval/sealed/seals.json` and push it the same day. The push time GitHub records is the seal's public timestamp.
+10. Commit `eval/sealed/seals.json` and push it the same day.
 
     ```bash
     git add eval/sealed/seals.json
@@ -152,35 +142,35 @@ Each seal makes at most 13 model calls on the deployment it names and, in the se
     git commit -m "feat: seal <n> reconstructions"
     ```
 
-    Expected: the branch's pull request shows the commit. Its public time is GitHub's record of the pull request, not the commit date, which the workstation sets:
+    Expected: the pull request shows the commit. Its public time is GitHub's event record, not the commit date:
 
     ```bash
     gh api repos/<owner>/<repo>/events --jq '.[] | select(.type=="PullRequestEvent" and .payload.action=="opened" and .payload.number==<pr>) | .created_at'
     ```
 
-    Observed on 2026-11-01: pushed at 08:21:55 UTC by the workstation clock; `2026-11-01T08:22:15Z` for #32. GitHub keeps these events for a limited time, so record the value the day it is read.
+    Observed on 2026-11-01: pushed at 08:21:55 UTC by the workstation clock; `2026-11-01T08:22:15Z` for #32. GitHub keeps these events for a limited time.
 
 ## Reveal a seal
 
-Steps 11 to 24 ran on 2026-11-07 for `github-2026-11-04-actions`, offline except for the capture and the Claude API calls ([worklog 05](../worklogs/05-sealed-reconstructions.md#reveal-github-2026-11-04-actions-2026-11-07)). Needs the sealed files under `build/sealed/`, the case's library snapshot under `build/sealed-library/`, the evidence under `build/evidence/`, and for steps 21 to 23 an Anthropic API key in `.env` ([evaluation runbook](evaluation.md#inputs-and-access)).
+Ran on 2026-11-07 for `github-2026-11-04-actions`, offline except the capture and the Claude API calls ([worklog 05](../worklogs/05-sealed-reconstructions.md#reveal-github-2026-11-04-actions-2026-11-07)). Needs `build/sealed/`, `build/sealed-library/`, `build/evidence/`, and for steps 21 to 23 an Anthropic API key ([evaluation runbook](evaluation.md#inputs-and-access)).
 
-11. Check whether the provider has published a cause. For a GitHub or Cloudflare case, read the resolved update of the incident, with `<status-host>` set to `www.githubstatus.com` or `www.cloudflarestatus.com`:
+11. Check whether the provider has published a cause. For GitHub or Cloudflare, `<status-host>` is `www.githubstatus.com` or `www.cloudflarestatus.com`:
 
     ```bash
     curl -s https://<status-host>/api/v2/incidents/<incident_id>.json | python3 -I -c "import json,sys; u=[u for u in json.load(sys.stdin)['incident']['incident_updates'] if u['status']=='resolved'][0]; print(u['updated_at'], len(u['body'].split()), 'words')"
     ```
 
-    Expected: the update's `updated_at` and its length. A placeholder ("A detailed root cause analysis will be shared as soon as it is available") is 31 words; a summary of the cause runs well over 100. Also check the provider's blog or incident report. Observed on 2026-11-07 for `xr3myzj7ms51`: `2026-11-07T01:04:38.642Z 249 words`.
+    Expected: the update's `updated_at` and its length. The placeholder ("A detailed root cause analysis will be shared as soon as it is available") is 31 words; a cause summary runs well over 100. Also check the provider's blog. Observed on 2026-11-07 for `xr3myzj7ms51`: `2026-11-07T01:04:38.642Z 249 words`.
 
-12. Capture the postmortem under a new name. For a status snapshot:
+12. Capture the postmortem under a new name (for a status snapshot):
 
     ```bash
     PYTHONPATH=src uv run --frozen python -m hindcast.capture status --provider GitHub --incident <incident_id> --out data/sources/<case_id>/<summary-file>.json
     ```
 
-    `<summary-file>` is a new name, such as `github-summary-2026-11-04-actions`. Expected: `url:`, `retrieved_at:`, and `sha256:`. Observed: `retrieved_at: "2026-11-07T10:22:42Z"`, `sha256: 76af8617…`. The case's `status-updates` source stays the snapshot the seals used.
+    Expected: `url:`, `retrieved_at:`, and `sha256:`. Observed: `retrieved_at: "2026-11-07T10:22:42Z"`, `sha256: 76af8617…`. The `status-updates` source stays as sealed.
 
-13. In `data/cases.yaml`, add the capture as a `postmortem` source with the three printed values, change the role to `revealed` ([decision 0030](../decisions/0030-close-evaluation-with-sealed-addenda.md)), and add a comment that says when the cause was published. Run the registry tests.
+13. In `data/cases.yaml`, add the capture as a `postmortem` source, set `role: revealed` ([decision 0030](../decisions/0030-close-evaluation-with-sealed-addenda.md)), and comment when the cause was published.
 
     ```bash
     uv run --frozen pytest tests/test_cases.py -q
@@ -188,13 +178,13 @@ Steps 11 to 24 ran on 2026-11-07 for `github-2026-11-04-actions`, offline except
 
     Expected: all pass.
 
-14. Draft the key by hand in `build/keys/<case_id>-draft.json`, in the fields of [`eval/keys/README.md`](../../eval/keys/README.md#fields), each item with a quote copied from the postmortem. Then check it:
+14. Draft the key by hand in `build/keys/<case_id>-draft.json` ([fields](../../eval/keys/README.md#fields)), each item quoting the postmortem, and check it:
 
     ```bash
     PYTHONPATH=src uv run --frozen python -m hindcast.keys check <case_id>
     ```
 
-    Expected: `<case_id>: 0 problems; sheet build/keys/<case_id>-review.md`. A quote that differs by one word is listed, and the command exits 1. A person reviews the sheet.
+    Expected: `<case_id>: 0 problems; sheet build/keys/<case_id>-review.md`. A quote off by one word is listed, exit 1. A person reviews the sheet.
 
 15. Freeze the reviewed key.
 
@@ -204,7 +194,7 @@ Steps 11 to 24 ran on 2026-11-07 for `github-2026-11-04-actions`, offline except
 
     Expected: `<case_id>: frozen, sha256 <hash>`. Observed: `4d3d4633…`.
 
-16. Draft the labels in `build/labels/<case_id>-draft.json` ([decision 0023](../decisions/0023-abstention-and-inferable-labels.md)), write the sheet, have a person approve each label, and freeze them.
+16. Draft the labels in `build/labels/<case_id>-draft.json` ([decision 0023](../decisions/0023-abstention-and-inferable-labels.md)), write the sheet, approve each label, freeze.
 
     ```bash
     PYTHONPATH=src uv run --frozen python -m hindcast.labels sheet <case_id>
@@ -216,7 +206,7 @@ Steps 11 to 24 ran on 2026-11-07 for `github-2026-11-04-actions`, offline except
 
     Expected: `<n> labels; sheet build/labels/<case_id>.md`, then `frozen <case_id> <hash>`. Observed: 11 labels, `57274146…`.
 
-17. Run the leak check against the snapshot, then once with a planted chunk.
+17. Run the leak check against the snapshot, then with a planted chunk.
 
     ```bash
     PYTHONPATH=src uv run --frozen python -m hindcast.leak <case_id> --snapshot build/sealed-library/<case_id>.json
@@ -228,7 +218,7 @@ Steps 11 to 24 ran on 2026-11-07 for `github-2026-11-04-actions`, offline except
 
     Expected: `0 hits`, then `1 hits` naming the planted chunk. Observed: `14 unstated items, 8 evidence sources, 267 library chunks, 0 hits`; with `--plant`, `root_cause in planted: 15 shared 8-word runs`.
 
-18. Commit the registry, the key, and the labels. The reveal refuses while `src/`, `data/cases.yaml`, `eval/keys/`, or `eval/sealed/` has uncommitted changes, and records the commit in `reveals.json`.
+18. Commit the registry, the key, and the labels; the reveal refuses uncommitted changes under `src/`, `data/cases.yaml`, `eval/keys/`, or `eval/sealed/` and records the commit in `reveals.json`.
 
 19. Reveal.
 
@@ -236,7 +226,7 @@ Steps 11 to 24 ran on 2026-11-07 for `github-2026-11-04-actions`, offline except
     PYTHONPATH=src uv run --frozen python -m hindcast.reveal <case_id>
     ```
 
-    Expected: the publication time, the leak check's counts, and `revealed <n> files`. The command checks steps 13 to 17 again and refuses before reading a sealed file if one fails, or if the cause was published before a seal. Observed at 10:30:54Z: `cause published 2026-11-07T01:04:38Z`, `revealed 2 files`.
+    Expected: the publication time, the leak check's counts, and `revealed <n> files`. The command rechecks steps 13 to 17 and refuses before reading a sealed file if one fails or the cause predates a seal. Observed at 10:30:54Z: `cause published 2026-11-07T01:04:38Z`, `revealed 2 files`.
 
 20. Run the reveal check, then commit `eval/investigations/<case_id>/`, `eval/sealed/seals.json`, `eval/sealed/reveals.json`, and `eval/reconstruction/sealed-v1/attempts.json`.
 
@@ -244,7 +234,7 @@ Steps 11 to 24 ran on 2026-11-07 for `github-2026-11-04-actions`, offline except
     uv run --frozen pytest tests/test_sealed_reveal.py -q
     ```
 
-    Expected: `4 passed`. A file that differs from its seal by one byte fails with `<case_id>/<file>: does not match its seal`.
+    Expected: `4 passed`. A file one byte off its seal fails with `<case_id>/<file>: does not match its seal`.
 
 21. Judge the revealed runs (one Claude API call each).
 
@@ -278,13 +268,13 @@ Steps 11 to 24 ran on 2026-11-07 for `github-2026-11-04-actions`, offline except
 
     Expected: `open review items 0` and `eval/reconstruction/sealed-v1/scores.json: <n> runs`, then a line per stage and `eval/reconstruction/sealed-v1/spend.json: written`. Observed: 2 runs; USD 0.17 and 0.56, total USD 0.73.
 
-24. Add the case to the [sealed report](../../eval/reconstruction/sealed-v1/README.md) as an addendum, with its results and error analysis, and commit everything under `eval/reconstruction/sealed-v1/`.
+24. Add the case as an addendum to the [sealed report](../../eval/reconstruction/sealed-v1/README.md) and commit `eval/reconstruction/sealed-v1/`.
 
 ## Drop a seal
 
-Written, not run. A sealed case whose provider has published no cause by 2026-11-30 is dropped ([decision 0022](../decisions/0022-sealed-drop-date-and-offline-reveal.md)).
+Written, not run. No published cause by 2026-11-30: dropped ([decision 0022](../decisions/0022-sealed-drop-date-and-offline-reveal.md)).
 
-25. Add `"dropped": true` to each of the case's entries in `eval/sealed/seals.json`, and a comment above the case in `data/cases.yaml` that says it was dropped and when. Keep both: history is not rewritten.
+25. Add `"dropped": true` to the case's entries in `eval/sealed/seals.json` and a dated comment above the case in `data/cases.yaml`. Keep both.
 
 ## Remove the agents
 
