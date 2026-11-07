@@ -1,0 +1,138 @@
+{
+  "run_id": "sealed/github-2026-11-04-actions/gpt-6.1-sol/a1",
+  "judgment_sha256": "5f26e9ea094b10bf319fe5fd1fc52e9fa72c5ad607e86fb4400287e8399fed56",
+  "decisions": [
+    {
+      "kind": "match",
+      "item": "timeline/1",
+      "proposal": "supported-hit",
+      "sampled": false,
+      "decision": "supported-hit",
+      "decided_at": "2026-11-07T10:42:01Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "c8e1e4210d6e94261f81c7046ba339577a76122f8801018222ec9a79881a4704"
+      }
+    },
+    {
+      "kind": "match",
+      "item": "timeline/2",
+      "proposal": "supported-hit",
+      "sampled": false,
+      "decision": "supported-hit",
+      "decided_at": "2026-11-07T10:42:01Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "c8e1e4210d6e94261f81c7046ba339577a76122f8801018222ec9a79881a4704"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "attack",
+      "proposal": true,
+      "sampled": false,
+      "decision": true,
+      "decided_at": "2026-11-07T10:42:01Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "c8e1e4210d6e94261f81c7046ba339577a76122f8801018222ec9a79881a4704"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "findings[5]",
+      "proposal": true,
+      "sampled": false,
+      "decision": true,
+      "decided_at": "2026-11-07T10:42:01Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "c8e1e4210d6e94261f81c7046ba339577a76122f8801018222ec9a79881a4704"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "root_cause",
+      "proposal": true,
+      "sampled": false,
+      "decision": true,
+      "decided_at": "2026-11-07T10:42:01Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "c8e1e4210d6e94261f81c7046ba339577a76122f8801018222ec9a79881a4704"
+      }
+    },
+    {
+      "kind": "match",
+      "item": "contributing_factors/1",
+      "proposal": "missed",
+      "sampled": true,
+      "decision": "missed",
+      "decided_at": "2026-11-07T10:42:01Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "c8e1e4210d6e94261f81c7046ba339577a76122f8801018222ec9a79881a4704"
+      }
+    },
+    {
+      "kind": "match",
+      "item": "contributing_factors/2",
+      "proposal": "missed",
+      "sampled": true,
+      "decision": "missed",
+      "decided_at": "2026-11-07T10:42:01Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "c8e1e4210d6e94261f81c7046ba339577a76122f8801018222ec9a79881a4704"
+      }
+    },
+    {
+      "kind": "match",
+      "item": "timeline/3",
+      "proposal": "missed",
+      "sampled": true,
+      "decision": "missed",
+      "decided_at": "2026-11-07T10:42:01Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "c8e1e4210d6e94261f81c7046ba339577a76122f8801018222ec9a79881a4704"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "timeline[1]",
+      "proposal": true,
+      "sampled": true,
+      "decision": true,
+      "decided_at": "2026-11-07T10:42:01Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "c8e1e4210d6e94261f81c7046ba339577a76122f8801018222ec9a79881a4704"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "timeline[4]",
+      "proposal": true,
+      "sampled": true,
+      "decision": true,
+      "decided_at": "2026-11-07T10:42:01Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "c8e1e4210d6e94261f81c7046ba339577a76122f8801018222ec9a79881a4704"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "timeline[6]",
+      "proposal": true,
+      "sampled": true,
+      "decision": true,
+      "decided_at": "2026-11-07T10:42:01Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "c8e1e4210d6e94261f81c7046ba339577a76122f8801018222ec9a79881a4704"
+      }
+    }
+  ]
+}
