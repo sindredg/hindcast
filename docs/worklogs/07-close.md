@@ -18,7 +18,7 @@ Recorded when the [teardown runbook](../runbooks/teardown.md) steps 3 to 9 have 
 
 ## Issues
 
-Every open issue on 2026-11-07, with its verdict. Fixed items are in this milestone's pull request, each with a test shown failing on the old code.
+Every open issue on 2026-11-07, with its verdict. Fixed items are in this milestone's pull request; each code fix has a test shown failing on the old code, and #52 and #66 are documentation.
 
 | Issue | Verdict | Why |
 | --- | --- | --- |
@@ -50,7 +50,7 @@ Every open issue on 2026-11-07, with its verdict. Fixed items are in this milest
 
 ## Staleness pass
 
-A read-only pass over every tracked page compared each state-carrying sentence with the code, the registries, the workflow, and the close. It found 78 items: present-tense claims about removed resources, "planned" wording the milestones had overtaken, a diagram label and three definitions that left out the `revealed` role, CI job names that differed from the workflow, two counts, and one defect: since the registry was removed on 2026-11-06, the `Push the image` job failed on every push to `main` (runs for `e12c856`, `e2000d7`, and `9d13be7` on 2026-11-07: `AADSTS700016`). The job is now gated on the repository variable `HINDCAST_PUSH_IMAGE`, which the deployment runbook sets in step 6 and removes in step 18; without it the job is skipped. Finding entries keep their dated text ([findings README](../findings/README.md)), except two whose "For Hindcast" line contradicted the code. Every anchor in the tracked pages resolves (922 links checked).
+A read-only pass over every tracked page compared each state-carrying sentence with the code, the registries, the workflow, and the close. It found 78 items: present-tense claims about removed resources, "planned" wording the milestones had overtaken, a diagram label and three definitions that left out the `revealed` role, CI job names that differed from the workflow, two counts, and one defect: since the registry was removed on 2026-11-06, the `Push the image` job failed on every push to `main` (runs for `e12c856`, `e2000d7`, and `9d13be7` on 2026-11-07: `AADSTS700016`). The job is now gated on the repository variable `HINDCAST_PUSH_IMAGE`, which the deployment runbook sets in step 6 and removes in step 18; without it the job is skipped. Finding entries keep their dated text ([findings README](../findings/README.md)), except two whose "For Hindcast" line contradicted the code. Every relative link and anchor in the tracked pages resolves (0 bad on 2026-11-07).
 
 | Check | How | Result |
 | --- | --- | --- |
@@ -64,11 +64,27 @@ A read-only pass over every tracked page compared each state-carrying sentence w
 | --- | --- | --- |
 | Everything built by hand is removed and nothing is left | Pending | [Teardown](#teardown) |
 | The sealed copies and every blob were checked before the storage went | Tested | [Before the teardown](#before-the-teardown) |
-| Every open issue has a verdict | Tested | [Issues](#issues); `gh issue list --state open` after the batch shows only the seven limits and #88 |
+| Every open issue has a verdict | Tested | [Issues](#issues): `gh issue list --state open` listed 25 on 2026-11-07 and each has a row. The nine closes land with the merge and the eight reasoned closes after it; the list is read again then |
 | A reproduce page orders the runbooks | Written | [reproduce](../reproduce.md); not tested from a fork, and the page says so |
 | Every state-carrying page matches the code and the close | Tested | [Staleness pass](#staleness-pass) |
 | An independent review of the close ran with its fixes in | Pending | [Independent review](#independent-review) |
 
 ## Independent review
 
-Recorded when the review has run.
+A read-only review from a fresh context, with no part in the milestone's work, read the close pages and the nine fixes against the code, the registries, the workflow, and the live issue list on 2026-11-07, and ran the new tests against `main`'s code. Each finding was checked again before it was acted on.
+
+| Finding | Checked | Outcome |
+| --- | --- | --- |
+| Pages said the hand-built resources were removed while the teardown section was still pending | The teardown ran the same day; [Teardown](#teardown) records it | Fixed by the run, not by the text |
+| The "every open issue has a verdict" row cited a list not yet observed (the closes land with the merge) | `gh issue list --state open` listed 25 | Fixed: the row says what was read and when |
+| The new written-time check flagged a frozen key: `github-2026-08-17` timeline[1], "13:40 UTC, lasting 7 hours and 35 minutes", a derived end time | `time_problems` on every frozen key | Fixed: a text with a duration or two clocks is not compared; `test_every_frozen_key_passes_the_written_time_check` |
+| The extraction runbook's draft step had no `--case`, which the fix now requires | `docs/runbooks/extraction.md` step 15 | Fixed: one `--case` per showcase and development case |
+| The reproduce page's row 3 said the investigator's steps 1 to 3 run the first investigation; they are the evidence check, the role, and its check | `docs/runbooks/investigator.md` | Fixed |
+| The issues intro claimed a failing test for every fix; #52 and #66 are documentation | The commits | Fixed |
+| Three link counts disagreed (the scripts count differently) | Three scripts, 0 bad each | Fixed: the number is dropped, "0 bad" stays |
+| The prior report said the live call showed the service reports the requested effort; it showed the response reports an effort when none was sent | Issue #4 | Fixed |
+| Teardown step 4 would delete every assignment in the subscription when the role is not found (`ends_with(x, '')` is true) | JMESPath semantics | Fixed: `test -n "$RID"` guards the line, here and in the deployment runbook's step 16; step 5 filters on `/resourceGroups/<name>/` |
+| Teardown step 8 deleted every agent-identity registration in the tenant | The query | Fixed: the resource's name prefix, listed before deleting, with `--all` |
+| `#104`'s behaviour had no test that fails on `main` on its own | The tests against `main`'s code | Fixed: `test_an_absolute_sealed_root_still_reads_revealed_files` |
+
+Plan only, recorded here: the sealed ledger now stores the kind of an incomplete reason while the showcase ledger stores the whole reason (no reader of the field broke; 1061 tests); the postmortem-text comparison of the reveal runs only when the postmortem capture is a status snapshot, so a blog postmortem gets the floor check alone; the written-time check reads 24-hour clocks only; a whole-item match on a two- or three-word key item can hit a common phrase (more hits, never fewer); the GitHub `azure` environment's secrets name removed resources, so the teardown runbook got a step 10 for them.

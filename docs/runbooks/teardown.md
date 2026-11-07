@@ -54,15 +54,15 @@ export RG=<resource-group> RESOURCE=<foundry-resource> STORAGE=<storage-account>
 4. Delete the custom role's assignment, then the role, while its scope exists. An assigned role definition cannot be deleted ([troubleshooting](../troubleshooting.md#deployment-the-custom-roles-delete-fails-with-roledefinitionhasassignments-2026-11-06)).
 
    ```bash
-   RGID=$(az group show -n "$RG" --query id -o tsv) && RID=$(az role definition list --custom-role-only true --name "Hindcast Safety Caller" --scope "$RGID" --query "[0].name" -o tsv) && az role assignment list --all --query "[?ends_with(roleDefinitionId, '$RID')].id" -o tsv | xargs -r az role assignment delete --ids && az role definition delete --name "Hindcast Safety Caller" --custom-role-only true --scope "$RGID" && az role definition list --custom-role-only true --query "[].roleName" -o tsv
+   RGID=$(az group show -n "$RG" --query id -o tsv) && RID=$(az role definition list --custom-role-only true --name "Hindcast Safety Caller" --scope "$RGID" --query "[0].name" -o tsv) && test -n "$RID" && az role assignment list --all --query "[?ends_with(roleDefinitionId, '$RID')].id" -o tsv | xargs -r az role assignment delete --ids && az role definition delete --name "Hindcast Safety Caller" --custom-role-only true --scope "$RGID" && az role definition list --custom-role-only true --query "[].roleName" -o tsv
    ```
 
-   Expected: no output.
+   Expected: no output. `test -n` stops the line when the role is not found: with an empty ID, `ends_with` would match every assignment in the subscription.
 
 5. Delete the developer's data-plane assignments in the group (Foundry User on the project, Storage Blob Data Contributor on the storage account, Cognitive Services OpenAI User on the Foundry resource), so none is left behind as an assignment to a deleted scope.
 
    ```bash
-   az role assignment list --all --query "[?contains(scope, '$RG')].id" -o tsv | xargs -r az role assignment delete --ids && az role assignment list --all --query "[?contains(scope, '$RG')].roleDefinitionName" -o tsv
+   test -n "$RG" && az role assignment list --all --query "[?contains(scope, '/resourceGroups/$RG/')].id" -o tsv | xargs -r az role assignment delete --ids && az role assignment list --all --query "[?contains(scope, '$RG')].roleDefinitionName" -o tsv
    ```
 
    Expected: no output.
@@ -83,10 +83,16 @@ export RG=<resource-group> RESOURCE=<foundry-resource> STORAGE=<storage-account>
 
    Expected: no names printed.
 
-8. Delete the app registration from milestone 6's first slice, and any registration Foundry made for the agents' identities (`...-AgentIdentityBlueprint`, one per agent plus one for the project).
+8. Delete the app registration from milestone 6's first slice, then list the registrations Foundry made for the agents' identities: `<resource>-<project>-...-AgentIdentityBlueprint`, one per agent plus one for the project. Read the list before deleting it; the name prefix keeps other projects' registrations out.
 
    ```bash
-   az ad app delete --id "$APP" && az ad app list --query "[?starts_with(displayName, 'hindcast') || contains(displayName, 'AgentIdentityBlueprint')].appId" -o tsv | xargs -r -n1 az ad app delete --id; az ad app list --query "[?starts_with(displayName, 'hindcast') || contains(displayName, 'AgentIdentityBlueprint')].displayName" -o tsv
+   az ad app delete --id "$APP" && az ad app list --all --query "[?starts_with(displayName, '$RESOURCE-')].displayName" -o tsv
+   ```
+
+   Expected: the project's blueprint registrations only (eleven on 2026-11-07). Then delete them:
+
+   ```bash
+   az ad app list --all --query "[?starts_with(displayName, '$RESOURCE-')].appId" -o tsv | xargs -r -n1 az ad app delete --id; az ad app list --all --query "[?starts_with(displayName, '$RESOURCE-') || displayName=='hindcast-app'].displayName" -o tsv
    ```
 
    Expected: no output from the final list.
@@ -98,5 +104,13 @@ export RG=<resource-group> RESOURCE=<foundry-resource> STORAGE=<storage-account>
    ```
 
    Expected: three empty results.
+
+10. Remove the GitHub settings that named the removed resources: the `azure` environment's secrets (IDs, not credentials) and the push variable, if the deployment runbook's step 18 has not already.
+
+    ```bash
+    for s in $(gh secret list --env azure --json name --jq '.[].name'); do gh secret delete "$s" --env azure; done; gh secret list --env azure; gh variable delete HINDCAST_PUSH_IMAGE 2>/dev/null; gh variable list
+    ```
+
+    Expected: two empty lists.
 
 After the teardown, `.env` points at nothing; it is kept for the names it records. The local data tree, the backup folders, and the repository hold everything the [reproduce page](../reproduce.md) needs.

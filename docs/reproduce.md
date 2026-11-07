@@ -8,7 +8,7 @@ Status: Not tested from a fork. The project was built once, in one subscription 
 | --- | --- |
 | An Azure subscription where you hold Owner, or Contributor plus User Access Administrator | The resource group, the Foundry resource, storage, search, the custom role, and the role assignments |
 | Global Standard quota in Sweden Central of at least 50,000 tokens per minute for each chat model, plus the extraction and embedding models | The deployments ([foundations](runbooks/foundations.md#prerequisites), [deployment](runbooks/deployment.md#inputs-and-access)) |
-| A GitHub repository you own, with a `main` ruleset, secret scanning, and an `azure` deployment environment | CI, the image push over OIDC, and the ruleset the foundations runbook sets |
+| A GitHub repository you own, with a `main` ruleset, secret scanning, and an `azure` deployment environment limited to `main` (the foundations runbook sets the ruleset; the environment is created in the repository settings, as [worklog 06](worklogs/06-deployment.md) records) | CI and the image push over OIDC |
 | An Anthropic API key | The judge and the reviewer model ([evaluation](runbooks/evaluation.md#inputs-and-access)) |
 | An operator machine with Git, uv, the Azure CLI, the Azure Developer CLI, Bicep, the GitHub CLI, `openssl`, and a browser | Every command; a browser for the Cloudflare Radar charts and the Entra sign-in |
 | A signing key for commits | The ruleset requires signed commits |
@@ -23,9 +23,9 @@ Each runbook starts with an "Inputs and access" section that names what the earl
 | --- | --- | --- |
 | 1 | [Foundations](runbooks/foundations.md) | The repository protection, the resource group with the Foundry resource and project, the model deployments, the storage account, `.env`, the case sources in Blob Storage, and the prior-knowledge answers |
 | 2 | [Extraction](runbooks/extraction.md) | The case evidence, the chart descriptions, the library extracts, and the frozen answer keys |
-| 3 | [Investigator](runbooks/investigator.md), steps 1 to 3 | The safety role and the first investigation on case tools only |
+| 3 | [Investigator](runbooks/investigator.md), steps 1 to 3 | The evidence check, the safety role, and its check |
 | 4 | [Retrieval](runbooks/retrieval.md) | The search service, the library index, and the gate |
-| 5 | [Investigator](runbooks/investigator.md), the rest | Investigations with the library search, challenges, traces, and costs |
+| 5 | [Investigator](runbooks/investigator.md), from step 4 | Investigations with the library search, challenges, traces, and costs |
 | 6 | [Sealing](runbooks/sealing.md) | Sealed reconstructions by hash, their library snapshots, and later their reveals |
 | 7 | [Evaluation](runbooks/evaluation.md) | The frozen rubric and labels, the scored runs, the injection runs, the judge and reviewer decisions, and the report |
 | 8 | [Deployment](runbooks/deployment.md) | The full environment from one template, the signed-in page, its live runs and traces, and its removal |

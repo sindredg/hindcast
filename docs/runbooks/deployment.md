@@ -187,7 +187,7 @@ The procedure builds all of Hindcast in one resource group with one `azd up`, fi
 16. Delete the custom role first: role definitions are not deleted with the resource group, and an assigned one cannot be deleted. Its assignments go, then the definition, while its scope still exists. The assignments are found by the definition's ID: `az role assignment list --all --role` with this role's name fails ([troubleshooting](../troubleshooting.md#deployment-the-custom-roles-delete-fails-with-roledefinitionhasassignments-2026-11-06)).
 
     ```bash
-    ROLE="Hindcast Safety Caller (hindcast-full)" && RGID=$(az group show -n rg-hindcast-full --query id -o tsv) && RID=$(az role definition list --custom-role-only true --name "$ROLE" --scope "$RGID" --query "[0].name" -o tsv) && az role assignment list --all --query "[?ends_with(roleDefinitionId, '$RID')].id" -o tsv | xargs -r az role assignment delete --ids && az role definition delete --name "$ROLE" --custom-role-only true --scope "$RGID" && az role definition list --custom-role-only true --query "[].roleName" -o tsv
+    ROLE="Hindcast Safety Caller (hindcast-full)" && RGID=$(az group show -n rg-hindcast-full --query id -o tsv) && RID=$(az role definition list --custom-role-only true --name "$ROLE" --scope "$RGID" --query "[0].name" -o tsv) && test -n "$RID" && az role assignment list --all --query "[?ends_with(roleDefinitionId, '$RID')].id" -o tsv | xargs -r az role assignment delete --ids && az role definition delete --name "$ROLE" --custom-role-only true --scope "$RGID" && az role definition list --custom-role-only true --query "[].roleName" -o tsv
     ```
 
     Expected: the list no longer shows `Hindcast Safety Caller (hindcast-full)`.
