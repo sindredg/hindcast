@@ -1,6 +1,6 @@
 # 22. Sealed cases: a later drop date and a reveal that works offline
 
-Status: Accepted (2026-11-03).
+Status: Accepted (2026-11-03). Reveals after milestone 5 closes are addenda, per [decision 0030](0030-close-evaluation-with-sealed-addenda.md).
 
 Changes [decision 0017](0017-sealed-reconstructions.md)'s drop date and says how its reveal runs after the Azure environment is gone.
 

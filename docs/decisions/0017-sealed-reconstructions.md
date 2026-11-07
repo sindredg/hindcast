@@ -1,6 +1,6 @@
 # 17. Sealed reconstructions: run before the postmortem, publish the hash, reveal after
 
-Status: Accepted (2026-11-01). The drop date moved to 2026-11-30, and the reveal runs offline, per [decision 0022](0022-sealed-drop-date-and-offline-reveal.md).
+Status: Accepted (2026-11-01). The drop date moved to 2026-11-30, and the reveal runs offline, per [decision 0022](0022-sealed-drop-date-and-offline-reveal.md). A revealed case takes the role `revealed`, and later reveals are addenda to a closed milestone 5, per [decision 0030](0030-close-evaluation-with-sealed-addenda.md).
 
 ## Context
 
