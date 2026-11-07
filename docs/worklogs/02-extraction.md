@@ -1,6 +1,6 @@
 # Milestone 2: Extraction
 
-Status: Verified on 2026-10-27. Everything the milestone builds was built and run that day: the evidence cut, ingestion from Blob Storage, the library and its extraction, the charts, and the frozen answer keys. The independent review ran and its fixes are in. The milestone state is in the [roadmap](../roadmap.md).
+Status: Verified on 2026-10-27, built and run the same day ([gate](#gate), [independent review](#independent-review)). Milestone state: [roadmap](../roadmap.md#status).
 
 On this page: [Scope](#scope) · [Work completed](#work-completed) · [Gate](#gate) · [Independent review](#independent-review) · [Deviations from the plan](#deviations-from-the-plan) · [Follow-up](#follow-up) · [Not verified](#not-verified)
 

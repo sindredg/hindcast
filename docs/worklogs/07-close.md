@@ -1,6 +1,6 @@
 # Worklog 07: Close
 
-Status: Verified on 2026-11-07. The checks before the teardown ran with the output below, the [teardown](#teardown) left nothing in Azure, every open issue has a verdict, the staleness pass is in, and the [independent review](#independent-review) ran with its fixes in. Milestone state: [roadmap](../roadmap.md#status).
+Status: Verified on 2026-11-07 ([gate](#gate), [independent review](#independent-review)). The [teardown](#teardown) left nothing in Azure, every open issue has a verdict, and the staleness pass is in. Milestone state: [roadmap](../roadmap.md#status).
 
 Scope: [milestone 7](../roadmap.md#7-close). The procedure is the [teardown runbook](../runbooks/teardown.md); the order of every runbook is the [reproduce page](../reproduce.md).
 

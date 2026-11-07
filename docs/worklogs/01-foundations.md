@@ -1,6 +1,6 @@
 # Milestone 1: Foundations
 
-Status: Verified on 2026-10-26. Built on 2026-10-25; the model re-check was tested live and the [independent review](#independent-review) ran on 2026-10-26, with its fixes in. The milestone state is in the [roadmap](../roadmap.md).
+Status: Verified on 2026-10-26 ([gate](#gate), [independent review](#independent-review)); built on 2026-10-25. Milestone state: [roadmap](../roadmap.md#status).
 
 On this page: [Scope](#scope) · [Work completed](#work-completed) · [Gate](#gate) · [Independent review](#independent-review) · [Deviations from the plan](#deviations-from-the-plan) · [Follow-up](#follow-up) · [Not verified](#not-verified)
 

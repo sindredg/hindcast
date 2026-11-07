@@ -1,6 +1,6 @@
 # Documentation
 
-Hindcast's documentation, by what a reader wants to do. Every page states its own status with the evidence behind it; the [roadmap](roadmap.md) owns each milestone's state, and the other pages link to it.
+Every page states its own status with the evidence behind it. The [roadmap](roadmap.md) owns each milestone's state.
 
 ## Where to start
 
@@ -29,4 +29,4 @@ Hindcast's documentation, by what a reader wants to do. Every page states its ow
 | Diagrams | [diagrams/](diagrams/) | The HTML sources and the exported SVGs that the pages embed |
 | Screenshots | [screenshots/](screenshots/README.md) | Captures of the page with what each one shows |
 
-Each status word has one meaning: **Verified** means every criterion has a tested row or an accepted gap and an independent review ran; **Built** and **Written** mean the thing exists but a check has not run; **Accepted** marks a decision record and an accepted gap; **Open** marks work that waits on something named.
+Status words: **Verified** means every criterion has a tested row or an accepted gap and an independent review ran; **Built** and **Written** mean it exists, unchecked; **Accepted** marks a decision or an accepted gap; **Open** marks work that waits on something named.

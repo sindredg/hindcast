@@ -1,6 +1,6 @@
 # Worklogs
 
-What each milestone built, with the commands and evidence behind each result. Every worklog has a gate, one row per completion criterion with the label **tested**, **configured, not tested**, or **accepted gap**, and an independent review that checked the claims against the code and the running system. A worklog says what was true on its day; only its status line moves. The [roadmap](../roadmap.md#status) owns each milestone's state.
+What each milestone built, with the commands and evidence behind each result. Each gate has one row per criterion, labelled **tested**, **configured, not tested**, or **accepted gap**, and an independent review checked the claims against the code and the running system. A worklog says what was true on its day.
 
 | Milestone | Worklog | Verified | Gate | Independent review |
 |---|---|---|---|---|

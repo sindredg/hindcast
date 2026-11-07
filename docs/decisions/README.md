@@ -1,6 +1,6 @@
 # Decision records
 
-One record per consequential choice: the context, the options considered, the decision, and its trade-offs. An accepted record keeps its text. A change is a new record, and the old one gets a sentence that points to it. The roadmap's [status table](../roadmap.md#status) says which milestone accepted each one.
+One record per consequential choice: context, options, decision, trade-offs. An accepted record keeps its text; a change is a new record that the old one points to.
 
 | No. | Decision | Accepted | Changed later by |
 |---|---|---|---|
@@ -34,5 +34,3 @@ One record per consequential choice: the context, the options considered, the de
 | 28 | [One template for the whole environment, and a page that investigates](0028-full-environment-and-live-page.md) | 2026-11-05 | |
 | 29 | [Push the image CI tested, after every check](0029-push-the-tested-image.md) | 2026-11-06 | |
 | 30 | [Close the evaluation with sealed reveals as addenda, and give a revealed case its own role](0030-close-evaluation-with-sealed-addenda.md) | 2026-11-07 | |
-
-The "Changed later by" column repeats what each record's status line says; the record's own line governs.

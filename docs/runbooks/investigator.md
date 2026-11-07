@@ -1,6 +1,6 @@
 # Investigator: operator procedure
 
-Status: Written on 2026-10-30 for [milestone 4, slice 1](../worklogs/04-investigator.md), validated again on 2026-11-02 for [slice 2](../worklogs/04-investigator.md#slice-2-the-library-search-tool), the library search, and on 2026-11-03 for [slice 3](../worklogs/04-investigator.md#slice-3-screens-pii-challenge-traces-and-cost), the screens, the challenge, and the traces. Steps 1 to 4 and 6 to 9 ran on 2026-11-03 with the output shown, step 5 on 2026-10-30, and step 12 on 2026-11-07 for [slice 4](../worklogs/04-investigator.md#slice-4-the-view-parts), the view parts, except where an "Expected:" line is marked as reasoned.
+Status: Written on 2026-10-30. Steps 1 to 4 and 6 to 9 ran on 2026-11-03, step 5 on 2026-10-30, and step 12 on 2026-11-07 ([worklog 04](../worklogs/04-investigator.md)), except where an "Expected:" line is marked as reasoned.
 
 The procedure runs one investigation of a case through the investigator prompt agent, reads the result, challenges a finding, and finds the run's trace. A run makes:
 

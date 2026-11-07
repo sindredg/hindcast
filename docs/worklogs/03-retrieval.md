@@ -1,6 +1,6 @@
 # Milestone 3: Retrieval
 
-Status: Verified on 2026-11-01. The library index was live until 2026-11-04, its [gate](#gate) checks passed on it, and the [independent review](#independent-review) ran with its fixes in. The milestone state is in the [roadmap](../roadmap.md).
+Status: Verified on 2026-11-01 on the live index, which was deleted on 2026-11-04 ([gate](#gate), [independent review](#independent-review)). Milestone state: [roadmap](../roadmap.md#status).
 
 On this page: [Scope](#scope) · [Work completed](#work-completed) · [Live run](#live-run) · [Gate](#gate) · [A step taken out of order](#a-step-taken-out-of-order) · [Independent review](#independent-review) · [Issues opened](#issues-opened)
 

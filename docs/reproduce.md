@@ -1,6 +1,6 @@
 # Reproduce the project
 
-Status: Not tested from a fork. The project was built once, in one subscription and one GitHub repository, and every Azure resource was removed by 2026-11-07. This page lists what those runs depended on and the order of the runbooks, so that a second build knows what to prepare and what to change. Expect gaps: each runbook was validated on the date in its status line, against the service versions of that day.
+Status: Not tested from a fork. The project was built once, in one subscription and one GitHub repository, and every Azure resource was removed by 2026-11-07. Each runbook was validated on the date in its status line, against the service versions of that day, so expect gaps.
 
 ## What you need
 

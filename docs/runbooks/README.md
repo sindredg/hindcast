@@ -1,6 +1,6 @@
 # Runbooks
 
-One operator procedure per milestone, written so that someone else can build the project again: a status line with the validation date, the inputs and access each one needs, numbered steps with the exact commands, and the expected result after each step. Local values are placeholders. The [reproduce page](../reproduce.md) gives the order to run them in and what each one leaves behind; each runbook's status line says when its steps last ran.
+One operator procedure per milestone: a status line with the validation date, the inputs and access, numbered steps with exact commands, and the expected result of each. Local values are placeholders. The [reproduce page](../reproduce.md) gives the order.
 
 | Runbook | Covers |
 |---|---|

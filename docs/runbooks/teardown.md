@@ -1,6 +1,6 @@
 # Teardown: operator procedure
 
-Status: Validated on 2026-11-07. Steps 1, 2, and 4 to 9 ran that day with the output shown ([close worklog](../worklogs/07-close.md#teardown)); step 3 did not run as a step, since the agents went with the resource in step 6 and their registrations in step 8; step 10 ran the same day with the output shown.
+Status: Validated on 2026-11-07: steps 1, 2, and 4 to 10 ran with the output shown ([close worklog](../worklogs/07-close.md#teardown)). Step 3 did not run as a step; the agents went with the resource in step 6 and their registrations in step 8.
 
 The procedure removes everything the [foundations](foundations.md), [extraction](extraction.md), [investigator](investigator.md), and [retrieval](retrieval.md) runbooks built by hand: the resource group with the Foundry resource and project, the storage account, Application Insights and its workspace, the agents, the custom role, the developer's role assignments, and the app registration from milestone 6's first slice. The full environment has its own removal ([deployment runbook](deployment.md#remove)); run that first if it exists.
 
