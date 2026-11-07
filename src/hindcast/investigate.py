@@ -390,6 +390,10 @@ def check_case_allowed(case: Case, rubric_lock: Path = RUBRIC_LOCK) -> None:
         raise ScoredCaseLocked(
             f"{case.case_id} is a sealed case: it runs only through python -m hindcast.seal"
         )
+    # A revealed case is scored from its seals only; a run made after the
+    # cause was published proves nothing a seal does (decision 0030).
+    if case.role == "revealed":
+        raise ScoredCaseLocked(f"{case.case_id} is a revealed case: it is scored from its seals")
     # Reading a showcase investigation before the rubric exists would shape the
     # rubric around what the model produced.
     if case.role in UNSCORED_ROLES or rubric_lock.is_file():

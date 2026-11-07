@@ -38,6 +38,10 @@ TOP = 5
 VECTOR_K = 50
 FIELDS = ["ref", "doc_id", "title", "heading", "published_at", "content"]
 
+# A sealed case has no picks (decision 0017, rule 9); a revealed one is the
+# same case after its cause is published, so it keeps the whole library.
+WHOLE_LIBRARY_ROLES = frozenset({"sealed", "revealed"})
+
 
 class LibraryLeak(RuntimeError):
     """The service returned a hit the case's rule does not allow."""
@@ -65,7 +69,7 @@ def allowed(case: Case, doc: LibraryDocument, *, picks_only: bool = True) -> boo
     """The filter's rule in code."""
     if f"{doc.published_at}T00:00:00Z" >= _bound(case):
         return False
-    return not picks_only or case.role == "sealed" or case.case_id in doc.serves
+    return not picks_only or case.role in WHOLE_LIBRARY_ROLES or case.case_id in doc.serves
 
 
 def library_filter(
@@ -75,7 +79,7 @@ def library_filter(
     if not CASE_ID.fullmatch(case.case_id):
         raise ValueError(f"case ID {case.case_id!r} is malformed")
     date = f"published_at lt {_bound(case)}"
-    if not picks_only or case.role == "sealed":
+    if not picks_only or case.role in WHOLE_LIBRARY_ROLES:
         return date
     if not any(case.case_id in doc.serves for doc in library.values()):
         raise ValueError(f"{case.case_id} has no library picks")
