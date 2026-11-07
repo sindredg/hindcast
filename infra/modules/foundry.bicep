@@ -21,8 +21,8 @@ var deployments = [
   { name: 'text-embedding-3-large', format: 'OpenAI', version: '1' }
 ]
 
-// 2026-09-01: the newest stable version Bicep 0.48.1 has types for (2026-11-01
-// is listed by `az provider show` on 2026-11-05, BCP081 without types).
+// 2026-09-01: the newest stable version Bicep 0.49.2 has types for (2026-11-01
+// is listed by `az provider show` on 2026-11-07, BCP081 without types).
 resource account 'Microsoft.CognitiveServices/accounts@2026-09-01' = {
   name: accountName
   location: location

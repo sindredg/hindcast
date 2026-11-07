@@ -35,15 +35,15 @@ resource project 'Microsoft.CognitiveServices/accounts/projects@2026-09-01' exis
   name: foundryProjectName
 }
 
-resource storage 'Microsoft.Storage/storageAccounts@2026-06-01' existing = {
+resource storage 'Microsoft.Storage/storageAccounts@2026-09-01' existing = {
   name: storageAccountName
 }
 
-resource runtimeContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2026-06-01' existing = {
+resource runtimeContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2026-09-01' existing = {
   name: '${storageAccountName}/default/runtime'
 }
 
-resource runsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2026-06-01' existing = {
+resource runsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2026-09-01' existing = {
   name: '${storageAccountName}/default/runs'
 }
 
