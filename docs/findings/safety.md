@@ -6,7 +6,7 @@ Findings about Prompt Shields and PII detection on the Foundry resource. The des
 
 **Seen:** with Cognitive Services OpenAI User on the Foundry resource, both services answered 401 `PermissionDenied`, each naming its missing data action. No built-in role holds just these two: Cognitive Services User grants every data action on the resource and `listkeys`.
 
-**Evidence:** tested live, 2026-11-03: Prompt Shields named `Microsoft.CognitiveServices/accounts/ContentSafety/text:shieldprompt/action`, PII detection `Microsoft.CognitiveServices/accounts/Language/analyze-text/action`. Built-in roles read with `az role definition list`. A custom role with only those two data actions, assigned on the resource at 17:05:54Z, let Prompt Shields answer at 17:08:28Z.
+**Evidence:** tested live, 2026-11-03: Prompt Shields named `Microsoft.CognitiveServices/accounts/ContentSafety/text:shieldprompt/action`, PII detection `Microsoft.CognitiveServices/accounts/Language/analyze-text/action`. Built-in roles read with `az role definition list`. A custom role with only those two data actions, assigned at 17:05:54Z, let Prompt Shields answer at 17:08:28Z.
 
 **For Hindcast:** the developer holds the custom role "Hindcast Safety Caller" on the hand-built Foundry resource until teardown; the [investigator runbook](../runbooks/investigator.md) created it. The full template defines `Hindcast Safety Caller (<environment>)` in `infra/modules/foundry.bicep` and assigns it to the app identity and the operator (`infra/modules/roles.bicep`).
 
@@ -14,9 +14,9 @@ Findings about Prompt Shields and PII detection on the Foundry resource. The des
 
 **Seen:** a call with `"userPrompt": ""` and one document returned `documentsAnalysis` and no `userPromptAnalysis` key.
 
-**Evidence:** tested live, 2026-11-03, API version 2024-09-01: the response was `{"documentsAnalysis": [{"attackDetected": false}]}`.
+**Evidence:** tested live, 2026-11-03, API version 2024-09-01: `{"documentsAnalysis": [{"attackDetected": false}]}`.
 
-**For Hindcast:** a missing flag counts as a pass only for an empty prompt. For a challenge question, a missing flag is a screen error.
+**For Hindcast:** a missing flag counts as a pass only for an empty prompt; for a challenge question it is a screen error.
 
 ## PII detection flags roles and IP addresses, not company names or times (2026-11-03)
 
@@ -24,4 +24,4 @@ Findings about Prompt Shields and PII detection on the Foundry resource. The des
 
 **Evidence:** tested live, 2026-11-03, API version 2026-05-01, model version 2026-05-01, `stringIndexType` `UnicodeCodePoint`.
 
-**For Hindcast:** `PersonType`, `Organization`, `DateTime`, `URL`, and `IPAddress` are dropped before masking; in an outage report they name roles, providers, times, and service addresses. Both slice 3 development runs and their five challenges had no hit left after that. Since 2026-11-05 a hit whose text is a provider's name is dropped too, whatever its category: a live run on 2026-11-05 tagged "Cloudflare" as a `Person` in "Cloudflare began investigating; ..." ([#79](https://github.com/sindredg/hindcast/issues/79)).
+**For Hindcast:** `PersonType`, `Organization`, `DateTime`, `URL`, and `IPAddress` are dropped before masking. Both slice 3 development runs and their five challenges had no hit left. Since 2026-11-05 a hit whose text is a provider's name is dropped too: a live run that day tagged "Cloudflare" as a `Person` ([#79](https://github.com/sindredg/hindcast/issues/79)).

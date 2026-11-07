@@ -14,19 +14,19 @@ Every page states its own status with the evidence behind it. The [roadmap](road
 
 ## Kinds of pages
 
-| Kind | Where | What it holds |
+| Kind | Where | Holds |
 |---|---|---|
-| Roadmap | [roadmap.md](roadmap.md) | The completion criteria of each milestone and its verified state, with a link to the evidence |
-| Architecture | [architecture/](architecture/README.md) | What exists now, part by part, with the diagrams and the Azure resources as they ran |
-| Decision records | [decisions/](decisions/README.md) | One record per consequential choice: the context, the options, the decision, and its trade-offs. An accepted record keeps its text; a change is a new record that the old one points to |
-| Evaluation reports | [eval/](../eval/) | Per dataset version: the status, the results, the error analysis, and the limits, each naming the models, prompts, and runs behind it |
-| Runbooks | [runbooks/](runbooks/README.md) | One operator procedure per milestone, with the exact commands and the expected result of each step |
-| Worklogs | [worklogs/](worklogs/README.md) | What each milestone built, the gate with a row per criterion, and the independent review. A worklog says what was true on its day |
-| Findings | [findings/](findings/README.md) | Platform and source behaviour the documentation does not state, by topic |
-| Troubleshooting | [troubleshooting.md](troubleshooting.md) | Failures that showed something: the symptom, the confirmed cause, the fix, and its verification |
-| Glossary | [glossary.md](glossary.md) | The terms the page, the documentation, and the evaluation use |
-| Reproduce | [reproduce.md](reproduce.md) | What a second build needs, the runbook order, and what cannot be repeated |
-| Diagrams | [diagrams/](diagrams/) | The HTML sources and the exported SVGs that the pages embed |
-| Screenshots | [screenshots/](screenshots/README.md) | Captures of the page with what each one shows |
+| Roadmap | [roadmap.md](roadmap.md) | Criteria and verified state per milestone |
+| Architecture | [architecture/](architecture/README.md) | What exists, part by part, with diagrams |
+| Decisions | [decisions/](decisions/README.md) | Context, options, decision, trade-offs; a change is a new record |
+| Evaluation reports | [eval/](../eval/) | Status, results, error analysis, limits, per dataset version |
+| Runbooks | [runbooks/](runbooks/README.md) | Commands and expected results, one per milestone |
+| Worklogs | [worklogs/](worklogs/README.md) | Gate rows and the independent review, per milestone |
+| Findings | [findings/](findings/README.md) | Platform behaviour the documentation does not state |
+| Troubleshooting | [troubleshooting.md](troubleshooting.md) | Symptom, cause, fix, verification |
+| Glossary | [glossary.md](glossary.md) | Terms, also on the page |
+| Reproduce | [reproduce.md](reproduce.md) | What a second build needs and the runbook order |
+| Diagrams | [diagrams/](diagrams/) | HTML sources and exported SVGs |
+| Screenshots | [screenshots/](screenshots/README.md) | Page captures and what each shows |
 
-Status words: **Verified** means every criterion has a tested row or an accepted gap and an independent review ran; **Built** and **Written** mean it exists, unchecked; **Accepted** marks a decision or an accepted gap; **Open** marks work that waits on something named.
+Status words: **Verified** (every criterion tested or an accepted gap, review ran), **Built** and **Written** (exists, unchecked), **Accepted** (a decision or a gap), **Open** (waits on something named).

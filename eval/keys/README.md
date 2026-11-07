@@ -1,14 +1,14 @@
 # Answer keys
 
-One frozen key per case: what the provider's own postmortem says happened. Milestone 5 scores each scored case's reconstruction against its key; the development case's key served milestone 4's iteration on the investigator and is never scored. The investigator never sees a key or its postmortem ([decision 0005](../../docs/decisions/0005-evidence-library-and-answer-key.md)).
+One frozen key per case: what the provider's own postmortem says happened. Milestone 5 scores each scored case against its key; the development case's key served milestone 4 and is never scored. The investigator never sees a key or its postmortem ([decision 0005](../../docs/decisions/0005-evidence-library-and-answer-key.md)).
 
 On this page: [Status](#status) · [Files](#files) · [Fields](#fields) · [How the keys were made](#how-the-keys-were-made) · [Limits](#limits) · [Sources and attribution](#sources-and-attribution)
 
 ## Status
 
-Four keys frozen on 2026-10-27 and `github-2026-10-07` on 2026-11-01, each before any scored run, with the prior-knowledge answers still unread. A sealed case gets its key once its provider publishes a cause ([decision 0017](../../docs/decisions/0017-sealed-reconstructions.md)): `github-2026-11-04-actions` on 2026-11-07, drafted by hand from GitHub's summary and checked with `python -m hindcast.keys check` before its seals were opened ([sealed report](../reconstruction/sealed-v1/README.md)).
+Four keys frozen on 2026-10-27 and `github-2026-10-07` on 2026-11-01, each before any scored run, with the prior-knowledge answers unread. A sealed case gets its key once its provider publishes a cause ([decision 0017](../../docs/decisions/0017-sealed-reconstructions.md)): `github-2026-11-04-actions` on 2026-11-07, drafted by hand from GitHub's summary and checked with `python -m hindcast.keys check` before its seals were opened ([sealed report](../reconstruction/sealed-v1/README.md)).
 
-[`frozen.json`](frozen.json) records each key's SHA-256, and `tests/test_keys.py` fails if a key file changes or a frozen key has no file. A changed key is a new review, not an edit.
+[`frozen.json`](frozen.json) records each key's SHA-256; `tests/test_keys.py` fails if a key file changes or a frozen key has no file. A changed key is a new review, not an edit.
 
 ## Files
 
@@ -21,32 +21,32 @@ Four keys frozen on 2026-10-27 and `github-2026-10-07` on 2026-11-01, each befor
 | [`github-2026-11-04-actions.json`](github-2026-11-04-actions.json) | Revealed sealed case, scored from its seals ([decision 0030](../../docs/decisions/0030-close-evaluation-with-sealed-addenda.md)) |
 | [`cloudflare-2026-02-20.json`](cloudflare-2026-02-20.json) | Development case, not scored |
 | [`frozen.json`](frozen.json) | SHA-256 of each key |
-| [`labels/`](labels/README.md) | One label per scored key item: `stated`, `inferable`, or `not inferable` from the case's evidence, frozen by hash before the first scored run |
+| [`labels/`](labels/README.md) | One label per scored key item: `stated`, `inferable`, or `not inferable`, frozen by hash before the first scored run |
 
 ## Fields
 
 | Field | Meaning |
 |---|---|
-| `attack` | `attack` or `not an attack`. An attack is deliberate hostile action, such as a DDoS attack, an intrusion, or a route hijack, that caused the outage in whole or in part, as the postmortem states it. Heavy but legitimate traffic is not an attack unless the postmortem calls it one. |
-| `attack_basis` | `stated` (the postmortem says it outright), `implied` (the cause it gives settles it, for example an internal configuration change), or `not stated` |
+| `attack` | `attack` or `not an attack`. An attack is deliberate hostile action (a DDoS attack, an intrusion, a route hijack) that caused the outage in whole or in part, as the postmortem states it. Heavy but legitimate traffic is not an attack unless the postmortem calls it one. |
+| `attack_basis` | `stated` (the postmortem says it outright), `implied` (the cause it gives settles it), or `not stated` |
 | `attack_quote` | The sentence the verdict rests on |
 | `root_cause` | The root cause, close to the postmortem's wording |
 | `contributing_factors` | Conditions the postmortem names as making the outage happen, spread, or last longer |
 | `timeline` | Events the postmortem gives a time for, in UTC (`time`) and as written (`time_as_written`) |
 | `fixes` | Changes the provider made or committed to after the outage; mitigation during the outage is in the timeline |
 | `source_quote` | On every item: a sentence from the postmortem that states it. A table row's cells count as one sentence |
-| `stated_during_incident` | On every item: true when a status update before the resolved one already said it, though not necessarily its exact time or detail |
+| `stated_during_incident` | On every item: true when a status update before the resolved one already said it, not necessarily with its exact time or detail |
 
-`stated_during_incident` lets the evaluation report separate what a reconstruction could take from the evidence as written from what it had to work out. The Google Cloud status page named "a recent configuration update" as the likely cause hours before the outage ended, so that key marks its root cause as stated.
+`stated_during_incident` separates what a reconstruction could take from the evidence as written from what it had to work out. The Google Cloud status page named "a recent configuration update" as the likely cause hours before the outage ended, so that key marks its root cause as stated.
 
 ## How the keys were made
 
-Each key went through these steps ([extraction runbook](../../docs/runbooks/extraction.md)):
+Each key ([extraction runbook](../../docs/runbooks/extraction.md)):
 
-1. The postmortem was cut to its article: for GitHub's monthly report, to the case's incident; for GitHub 2026-10-07, to the resolved update of its status incident, where GitHub wrote its summary of both outages.
+1. The postmortem was cut to its article: for GitHub's monthly report, to the case's incident; for GitHub 2026-10-07, to the resolved update of its status incident.
 2. The cut was extracted with the `hindcast_answer_key` analyzer ([`analyzers/answer-key.json`](../../analyzers/answer-key.json)).
 3. The draft was checked field by field against its postmortem: wrong values corrected, missing factors and events added, steps taken during the outage moved out of the fixes, every time converted to UTC.
-4. Every quote, including those added in review, appears word for word in the captured postmortem. `tests/test_keys.py::test_every_frozen_quote_appears_in_its_postmortem` checks it where the captured pages are present.
+4. Every quote appears word for word in the captured postmortem. `tests/test_keys.py::test_every_frozen_quote_appears_in_its_postmortem` checks it where the captured pages are present.
 
 The four keys frozen on 2026-10-27 had their corrections approved before freezing; the corrections to `github-2026-10-07` are not approved ([worklog 05](../../docs/worklogs/05-sealed-reconstructions.md#gate)).
 
@@ -55,7 +55,7 @@ The four keys frozen on 2026-10-27 had their corrections approved before freezin
 - All six keys say `not an attack`. A reconstruction that always answers "not an attack" gets every verdict right, so the evaluation reports the attack verdict with its reasoning and citations, never as accuracy alone.
 - A postmortem can disagree with itself. Where it gives two times for the same event, both are kept with their own quotes (Cloudflare 2025-11-18 gives 11:20 and 11:28 for the start). The GitHub key's end time is 13:40 UTC plus the duration in the report's heading; the report's impact summary gives a shorter duration.
 - `stated_during_incident` is a judgment about meaning, not a string match.
-- The keys have been public in this repository since 2026-10-27. The prior-knowledge check covers the postmortems, not this repository, so a model version released after that day may have seen the keys. Every pinned model version predates it; the evaluation report records the comparison per model ([roadmap, milestone 5](../../docs/roadmap.md#5-evaluation)).
+- The keys have been public in this repository since 2026-10-27. The prior-knowledge check covers the postmortems, not this repository, so a model version released after that day may have seen the keys. Every pinned model version predates it ([roadmap, milestone 5](../../docs/roadmap.md#5-evaluation)).
 
 ## Sources and attribution
 

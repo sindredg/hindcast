@@ -1,6 +1,6 @@
 # Worklogs
 
-What each milestone built, with the commands and evidence behind each result. Each gate has one row per criterion, labelled **tested**, **configured, not tested**, or **accepted gap**, and an independent review checked the claims against the code and the running system. A worklog says what was true on its day.
+What each milestone built, with the evidence behind each result. Gate rows are **tested**, **configured, not tested**, or **accepted gap**; an independent review checked each against the code and the running system.
 
 | Milestone | Worklog | Verified | Gate | Independent review |
 |---|---|---|---|---|

@@ -14,4 +14,4 @@ Platform and source behaviour the documentation does not state, states different
 | Prompt Shields and PII detection | [safety.md](safety.md) |
 | Traces in Application Insights | [observability.md](observability.md) |
 
-Failures with their fixes are in [troubleshooting](../troubleshooting.md); the model comparison is in [decision 0012](../decisions/0012-models.md).
+Failures with their fixes: [troubleshooting](../troubleshooting.md). The model comparison: [decision 0012](../decisions/0012-models.md).

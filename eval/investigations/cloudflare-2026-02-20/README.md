@@ -1,6 +1,6 @@
 # Investigations of the development case `cloudflare-2026-02-20`
 
-Four development runs and nine challenges, read against the evidence and not scored. The answer key was frozen on 2026-10-27 and is not used to score these runs. The page lists the runs and opens on the newest `gpt-6-luna` run.
+Four development runs and nine challenges, read against the evidence and not scored. The answer key was frozen on 2026-10-27 and is not used on these runs. The page lists the runs and opens on the newest `gpt-6-luna` run.
 
 ## The runs
 
@@ -33,51 +33,51 @@ Slice 3 ran each model once with Prompt Shields on every tool item and PII detec
 | Usage | 3 model calls, 3 tool calls, 42.195 s; 10,648 input tokens (4,251 cached), 3,039 output tokens | 3 model calls, 3 tool calls, 56.597 s; 10,552 input tokens (4,251 cached), 2,940 output tokens |
 | Cost (price table v1) | USD 0.037583 | USD 0.080555 |
 
-The challenges each check one observation finding of a slice 3 run, with the question "Which status update shows this, and does any later update contradict it?":
+Each challenge checks one observation finding of a slice 3 run with the question "Which status update shows this, and does any later update contradict it?":
 
 | File | Challenges | Agent | Outcome | Cost |
 |---|---|---|---|---|
 | `challenges/20261103T171441Z-F1.json` | F1 of the gpt-6-luna run | `hindcast-challenger-gpt-6-luna`, version 1 | `complete`, `stands`; 2 case citations kept, 0 rejected; 2 model calls, 1 tool call | USD 0.006129 |
 | `challenges/20261103T171511Z-F1.json` | F1 of the gpt-6.1-sol run | `hindcast-challenger-gpt-6-1-sol`, version 1 | `complete`, `stands`; 10 case citations kept, 0 rejected; 2 model calls, 1 tool call | USD 0.014526 |
-| `challenges/20261103T171932Z-F2.json` | F2 of the gpt-6-luna run, run to check the traces after the sampler fix | `hindcast-challenger-gpt-6-luna`, version 1 | `complete`, `stands`; 8 case citations kept, 0 rejected; 2 model calls, 3 tool calls | USD 0.011807 |
-| `challenges/20261103T174229Z-F3.json` | F3 of the gpt-6-luna run, run to check that traces still arrive with the workspace's shared keys off | same | `complete`, `stands`; 6 case citations kept, 0 rejected; 2 model calls, 2 tool calls | USD 0.007431 |
-| `challenges/20261103T174623Z-F4.json` | F4 of the gpt-6-luna run, run to check the traces after Application Insights was disconnected from the Foundry account | same | `complete`, `stands`; 5 case citations kept, 0 rejected; 2 model calls, 1 tool call | USD 0.006193 |
+| `challenges/20261103T171932Z-F2.json` | F2 of the gpt-6-luna run, to check the traces after the sampler fix | `hindcast-challenger-gpt-6-luna`, version 1 | `complete`, `stands`; 8 case citations kept, 0 rejected; 2 model calls, 3 tool calls | USD 0.011807 |
+| `challenges/20261103T174229Z-F3.json` | F3 of the gpt-6-luna run, to check that traces arrive with the workspace's shared keys off | same | `complete`, `stands`; 6 case citations kept, 0 rejected; 2 model calls, 2 tool calls | USD 0.007431 |
+| `challenges/20261103T174623Z-F4.json` | F4 of the gpt-6-luna run, to check the traces after Application Insights was disconnected from the Foundry account | same | `complete`, `stands`; 5 case citations kept, 0 rejected; 2 model calls, 1 tool call | USD 0.006193 |
 
-Four more challenge F5 of the gpt-6-luna run, started from the page's box in a browser with questions written there ([screenshots](../../../docs/screenshots/README.md)): `20261103T192648Z-F5.json`, `20261103T192857Z-F5.json`, `20261103T193005Z-F5.json`, and `20261103T193159Z-F5.json`. All are `complete` and `stands`, with 2 to 4 case citations each (one cites chart1), none rejected, and no PII hit.
+Four more challenge F5 of the gpt-6-luna run, started from the page's box in a browser ([screenshots](../../../docs/screenshots/README.md)): `20261103T192648Z-F5.json`, `20261103T192857Z-F5.json`, `20261103T193005Z-F5.json`, and `20261103T193159Z-F5.json`. All `complete` and `stands`, 2 to 4 case citations each (one cites chart1), none rejected, no PII hit.
 
-The reading of each result against the evidence is in the [worklog](../../../docs/worklogs/04-investigator.md).
+The reading of each result against the evidence: [worklog](../../../docs/worklogs/04-investigator.md).
 
 ## Files
 
 | File | Purpose |
 |---|---|
-| `20261030T040215Z-v1.json` | The slice 1 result file the command wrote, unchanged. |
-| `20261102T181721Z-v3.json` | The slice 2 result file the command wrote, unchanged: as above, plus the tool calls with each search's query and returned refs, and the library provenance. |
-| `20261103T171237Z-v3.json`, `20261103T171355Z-v2.json` | The slice 3 result files the command wrote, unchanged: as above, plus each tool call's withheld refs and screen calls, `checks.pii`, the screen and PII counts in the usage, and the cost. |
-| `challenges/*.json` | The challenge files `hindcast.challenge` wrote, from the command or the page, unchanged: the result file and finding they challenge, the PII-masked question, the answer, its checks, tool calls, usage, and cost. |
+| `20261030T040215Z-v1.json` | The slice 1 result file, unchanged. |
+| `20261102T181721Z-v3.json` | The slice 2 result file, unchanged: as above, plus the tool calls with each search's query and returned refs, and the library provenance. |
+| `20261103T171237Z-v3.json`, `20261103T171355Z-v2.json` | The slice 3 result files, unchanged: as above, plus each tool call's withheld refs and screen calls, `checks.pii`, the screen and PII counts in the usage, and the cost. |
+| `challenges/*.json` | The challenge files `hindcast.challenge` wrote, from the command or the page, unchanged: the result file and finding challenged, the PII-masked question, the answer, its checks, tool calls, usage, and cost. |
 
-`tests/test_committed_investigation.py` checks the files:
+`tests/test_committed_investigation.py` checks:
 
 - Each run is complete and parses against the schema.
-- Where the evidence file is present, every item except the open questions keeps at least one case citation that resolves. The evidence is not in the repository, so CI skips this test.
-- In each run that kept a library citation, every library citation names a ref that a search in the run returned. This runs in CI.
-- Where the library extracts are present, no run that searched repeats a library section it retrieved in a fragment longer than 120 characters. The extracts are not in the repository, so CI skips this test.
-- Each challenge is complete, parses against the challenge schema, names a committed run, and has no rejected or unsupported citation. This runs in CI.
+- Where the evidence file is present, every item except the open questions keeps at least one case citation that resolves. The evidence is not in the repository, so CI skips this.
+- In each run that kept a library citation, every library citation names a ref that a search in the run returned. Runs in CI.
+- Where the library extracts are present, no run that searched repeats a retrieved library section in a fragment longer than 120 characters. CI skips this.
+- Each challenge is complete, parses against the challenge schema, names a committed run, and has no rejected or unsupported citation. Runs in CI.
 - Where the evidence and the extracts are present, each challenge's case citations resolve, and its answer repeats no library section that it or its run retrieved in a fragment longer than 120 characters.
 
 ## Status
 
 - Slice 1, tested live on 2026-10-30: the run above. Tested locally on 2026-10-30: both tests pass, and each failed once on a broken copy of the file (an inference with its citations removed, a status changed to `incomplete`).
-- Slice 2, tested live on 2026-11-02: the run above. Tested locally on 2026-11-02: every test passes, and each new or changed test failed once on a broken copy of the file. A library citation changed to a ref the run did not retrieve failed the retrieved test and the case-citation test. A 150-character fragment of a retrieved section added to a finding failed the library-text test.
+- Slice 2, tested live on 2026-11-02: the run above. Tested locally on 2026-11-02: every test passes, and each new or changed test failed once on a broken copy. A library citation changed to a ref the run did not retrieve failed the retrieved test and the case-citation test; a 150-character fragment of a retrieved section added to a finding failed the library-text test.
 - Slice 3, tested live on 2026-11-03: the runs and challenges above. Tested locally on 2026-11-03: all 41 tests pass with the evidence and extracts present. A challenge citation changed to `cloudflare-2026-02-20/u99` failed the challenge citation test; a 150-character fragment of a retrieved section added to a finding of the gpt-6.1-sol run failed the library-text test.
 
 ## Licence
 
-The investigations are model output about Cloudflare's status updates for incident `kwy3dt82bwbt`, which are not redistributed here. They paraphrase them. Measured with `difflib` against the evidence file, counting matches of 25 characters or more:
+The investigations are model output about Cloudflare's status updates for incident `kwy3dt82bwbt`, which are not redistributed here. Measured with `difflib` against the evidence file, counting matches of 25 characters or more:
 
 - Slice 1 (measured 2026-10-30): about a fifth of its text repeats the updates word for word, in fragments of at most 61 characters.
 - Slice 2 (measured 2026-11-02): 17.6% of its text repeats the updates, in fragments of at most 56 characters.
 
 - Slice 3 (measured 2026-11-03): the gpt-6-luna run repeats 17.0% of its text from the updates, in fragments of at most 49 characters; the gpt-6.1-sol run 6.3%, at most 44. The five challenges from the command repeat 11.8%, 20.9%, 35.3%, 20.6%, and 15.6% of their answers, and the four from the page 35.2%, 10.2%, 6.6%, and 15.3%, in fragments of at most 81 characters.
 
-The slice 2 and slice 3 runs also read sections of earlier Cloudflare postmortems from the library, which are not redistributed here either. None of their text, nor any challenge's, repeats them in a match of 25 characters or more. The longest shared fragment is 22 characters in a run and 20 in a challenge.
+The slice 2 and slice 3 runs also read sections of earlier Cloudflare postmortems from the library, not redistributed here either. None of their text, nor any challenge's, repeats them in a match of 25 characters or more; the longest shared fragment is 22 characters in a run and 20 in a challenge.

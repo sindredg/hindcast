@@ -1,45 +1,45 @@
 # Milestone 5, first part: Sealed reconstructions and the October case
 
-Status: Verified on 2026-11-07 with milestone 5 ([gate](#gate), [independent review](#independent-review)). Three October outages sealed on both models on 2026-11-01 and [again with the library search](#second-seals-with-the-library-2026-11-02) on 2026-11-02; `github-2026-10-07` became the fourth scored case; [two GitHub outages](#third-seals-two-github-outages-of-2026-11-04) sealed on 2026-11-04; `github-2026-11-04-actions` [revealed and scored](#reveal-github-2026-11-04-actions-2026-11-07) on 2026-11-07. The drop date moved to 2026-11-30 on 2026-11-03 ([decision 0022](../decisions/0022-sealed-drop-date-and-offline-reveal.md)). Milestone state: [roadmap](../roadmap.md#status).
+Status: Verified on 2026-11-07 with milestone 5 ([gate](#gate), [independent review](#independent-review)). Drop date 2026-11-30 since 2026-11-03 ([decision 0022](../decisions/0022-sealed-drop-date-and-offline-reveal.md)). Milestone state: [roadmap](../roadmap.md#status).
 
 On this page: [Scope](#scope) · [Work completed](#work-completed) · [Checks](#checks) · [Live run](#live-run) · [Gate](#gate) · [Independent review](#independent-review) · [Issues opened](#issues-opened) · [Second seals, with the library (2026-11-02)](#second-seals-with-the-library-2026-11-02) · [Third seals: two GitHub outages of 2026-11-04](#third-seals-two-github-outages-of-2026-11-04) · [Reveal: github-2026-11-04-actions (2026-11-07)](#reveal-github-2026-11-04-actions-2026-11-07)
 
 ## Scope
 
-Two answers to "could the model have known the answer?" that do not rest on a vendor's training cutoff ([decision 0017](../decisions/0017-sealed-reconstructions.md)):
+Two answers to "could the model have known the answer?" that do not rest on a training cutoff ([decision 0017](../decisions/0017-sealed-reconstructions.md)):
 
-- **Sealed reconstructions.** Outages whose provider had not published a cause are reconstructed now, and only the SHA-256 of each result is public until the provider's account is out. They are scored after the rubric is frozen, against the postmortem, if one is published by the drop date (2026-11-09 when this was written; 2026-11-30 since [decision 0022](../decisions/0022-sealed-drop-date-and-offline-reveal.md)).
-- **An after-release case.** GitHub's outage of 2026-10-07 began after both pinned model versions were released (gpt-6-luna 2026-09-22, gpt-6.1-sol 2026-09-29), so neither version can have seen it. It joins the three showcase cases under the same rules.
+- **Sealed reconstructions.** Outages without a published cause, reconstructed now; only each result's SHA-256 is public until the provider's account is out. Scored against the postmortem if one is out by the drop date (2026-11-09 when written; 2026-11-30 since [decision 0022](../decisions/0022-sealed-drop-date-and-offline-reveal.md)).
+- **An after-release case.** GitHub's outage of 2026-10-07 began after both pinned model versions were released (gpt-6-luna 2026-09-22, gpt-6.1-sol 2026-09-29). It joins the showcase cases.
 
-The procedure is the [sealing runbook](../runbooks/sealing.md).
+Procedure: the [sealing runbook](../runbooks/sealing.md).
 
 ## Work completed
 
 ### Sealed cases and the seal command
 
-- `hindcast.cases` accepts the role `sealed`, which needs only status updates. `hindcast.investigate` refuses a sealed case at any time, so a sealed case cannot run through it without its role changed first.
-- `hindcast.seal run <case_id>` refuses a case that is not sealed, a second seal for the same case, deployment, and library setting, and a changed `src/`, `prompts/`, `pyproject.toml`, `uv.lock`, or `data/cases.yaml`, all before any cloud call. It writes the result under `build/sealed/` (ignored by Git), records the entry in `eval/sealed/seals.json` with the hash and `blob: null`, then uploads the file to Blob `extracted/sealed/<case_id>/` without overwriting and records the blob. A failed upload leaves the hash recorded; `seal upload` sends the same bytes after checking them against it.
-- An attempt in which the model produced no output (the run raised, or the result has zero output tokens) is recorded as `no-result` and may be retried, up to three attempts. Any result with model output is final.
-- The command prints counts, usage, and the hash. For an incomplete run it prints only the reason's kind before the first colon, since a schema error echoes the rejected value and a tool error echoes the model's arguments.
-- `tests/test_sealed_reveal.py` checks every entry marked `revealed` against the file under `eval/investigations/<case_id>/`.
+- `hindcast.cases` accepts the role `sealed` (status updates only); `hindcast.investigate` refuses it.
+- `hindcast.seal run <case_id>` refuses, before any cloud call, an unsealed case, a second seal for the same case, deployment, and library setting, or a changed `src/`, `prompts/`, `pyproject.toml`, `uv.lock`, or `data/cases.yaml`. It writes under `build/sealed/` (ignored), records the hash in `eval/sealed/seals.json` with `blob: null`, uploads to Blob `extracted/sealed/<case_id>/` without overwriting, and records the blob. `seal upload` resends the same bytes after checking the hash.
+- No model output (raised, or zero output tokens) is `no-result`, retried up to three attempts; any output is final.
+- Output: counts, usage, the hash; for an incomplete run only the reason's kind before the first colon.
+- `tests/test_sealed_reveal.py` checks every `revealed` entry against `eval/investigations/<case_id>/`.
 
 ### Several status incidents per case
 
-- `hindcast.evidence.cut_all` cuts each status snapshot with the [decision 0005](../decisions/0005-evidence-library-and-answer-key.md) rules and merges the updates by time, numbered again. Each incident keeps its own resolved mark with the text withheld, so a recurrence's updates are not dropped as "after resolved". `hindcast.ingest evidence` downloads every status source of a case.
-- The cut's start is the earlier of Statuspage's `started_at` and the first update: GitHub backfilled `started_at` of incident `djlmxz2zd0j7` with its resolved time (16:25:14Z), after its first update (15:14:45Z). The registry test reran on every local snapshot and the existing cases' starts did not move.
-- The investigator prompt (now v2) and the `list_updates` note say each incident ends at its resolved update. The luna agent got version 2 on the first seal.
+- `hindcast.evidence.cut_all` cuts each snapshot by the [decision 0005](../decisions/0005-evidence-library-and-answer-key.md) rules and merges by time; each incident keeps its own withheld resolved mark. `hindcast.ingest evidence` downloads every status source.
+- Start is the earlier of Statuspage's `started_at` and the first update: GitHub backfilled `djlmxz2zd0j7`'s `started_at` with its resolved time (16:25:14Z), after its first update (15:14:45Z). Existing starts did not move.
+- The investigator prompt (v2) and the `list_updates` note say each incident ends at its resolved update; the luna agent got version 2 on the first seal.
 
 ### Agent names
 
-Foundry agent names take letters, digits, and inner hyphens. `hindcast-investigator-gpt-6.1-sol` was refused (`invalid_parameters`) on the first sol seal, before any model call, so nothing was recorded. `agent_name` now replaces any other character with a hyphen: `hindcast-investigator-gpt-6-1-sol`.
+- Foundry refused `hindcast-investigator-gpt-6.1-sol` (`invalid_parameters`) before any model call; `agent_name` now hyphenates: `hindcast-investigator-gpt-6-1-sol`.
 
 ### Keys from a status-page summary
 
-GitHub writes its summary of the cause into the resolved update. `hindcast.keys.statuspage_summary` reads that update from a status snapshot as the postmortem, and `postmortem_page` picks it for a `.json` postmortem source, for drafting and for the quote test.
+- `hindcast.keys.statuspage_summary` reads GitHub's resolved update as the postmortem; `postmortem_page` picks it for a `.json` source.
 
 ## Checks
 
-Every new check was run once against a broken input on 2026-11-01, locally, and failed:
+Each failed once on a broken input, 2026-11-01, locally:
 
 | Broken input | Failed tests |
 |---|---|
@@ -56,7 +56,7 @@ Every new check was run once against a broken input on 2026-11-01, locally, and 
 | Summary taken from the first update, not the resolved one | `test_statuspage_summary_takes_the_resolved_text`, `test_postmortem_page_reads_a_status_snapshot_by_its_file_name` |
 | A key fact that is in the incident title (`Pull Requests`) | `test_no_key_fact_in_any_question` |
 | One character changed in a symptom quote | `test_symptom_quotes_appear_in_their_update` |
-| A pick reason without the case's tagged quote | `test_the_committed_library_loads_with_every_hash_pinned` (the library loader refuses it) |
+| A pick reason without the case's tagged quote | `test_the_committed_library_loads_with_every_hash_pinned` |
 
 Test suite after the slice: `uv run --frozen pytest -q` → 347 passed, locally with the captured sources present.
 
@@ -66,16 +66,16 @@ On 2026-11-01, against the live project and storage account.
 
 ### Choosing the outages
 
-At about 08:07 UTC the three status feeds were read. GitHub `nms1dpzmh9d9` (2026-10-21), GitHub `wq8305lppdc2` (2026-10-22), and Cloudflare `0eqtn0khkz87` (2026-10-20) had no cause in their resolved updates. Five other October GitHub incidents with eight or more updates already carried GitHub's summary of the cause, 2026-10-07 among them, and Google Cloud's europe-west2 incident of 2026-10-20 carried its incident report. None of the sealed outages harmed people, leaked data, or named an attacker.
+Feeds read at about 08:07 UTC. GitHub `nms1dpzmh9d9` (2026-10-21), GitHub `wq8305lppdc2` (2026-10-22), and Cloudflare `0eqtn0khkz87` (2026-10-20) had no cause in their resolved updates; five other October GitHub incidents with eight or more updates carried a summary (2026-10-07 among them), and Google Cloud's europe-west2 incident of 2026-10-20 its report. None harmed people, leaked data, or named an attacker.
 
 | Step | Command | Result |
 |---|---|---|
 | Capture | `capture status` per incident | 08:15:51 to 08:15:52Z; hashes in `data/cases.yaml` |
-| Evidence | `ingest evidence --case <id>` | `cloudflare-2026-10-20` 9 updates, `github-2026-10-21` 15, `github-2026-10-22` 18, each including the resolved mark; none dropped; `blob: uploaded` |
-| Seal, gpt-6-luna | `seal run <id>` | three `complete` results, 0 rejected citations, 0 unsupported, agent version 2; 2 model calls and 2 tool calls each |
-| Seal, gpt-6.1-sol | `HINDCAST_CHAT_DEPLOYMENT=gpt-6.1-sol seal run <id>` | first try refused by Foundry on the agent name, before any model call; after the fix, three `complete` results, 0 rejected, 0 unsupported, agent version 1 |
+| Evidence | `ingest evidence --case <id>` | `cloudflare-2026-10-20` 9 updates, `github-2026-10-21` 15, `github-2026-10-22` 18, each with the resolved mark; none dropped; `blob: uploaded` |
+| Seal, gpt-6-luna | `seal run <id>` | three `complete`, 0 rejected citations, 0 unsupported, agent version 2; 2 model calls and 2 tool calls each |
+| Seal, gpt-6.1-sol | `HINDCAST_CHAT_DEPLOYMENT=gpt-6.1-sol seal run <id>` | first try refused on the agent name before any model call; then three `complete`, 0 rejected, 0 unsupported, agent version 1 |
 | Second seal | `seal run cloudflare-2026-10-20` | `SealRefused: cloudflare-2026-10-20 is already sealed on gpt-6-luna` |
-| Publish | push of `a372f32`, then the pull request opened | pushed at 08:21:55Z by the workstation clock (`date -u`), which matched GitHub's `Date` header to the second when compared at 09:15Z. GitHub's Events API records `PullRequestEvent opened` for #32 at 2026-11-01T08:22:15Z (`gh api repos/sindredg/hindcast/events`), the server-side time for the seal; the event's payload shows the pull request's current head, so that the head was `a372f32` at opening rests on the next push coming at about 09:02Z. The pull request's `created_at` and the check runs read an hour later (09:22:15Z), later than the server clock at 09:15Z; not reconciled. CI green on `a372f32` |
+| Publish | push of `a372f32`, then the pull request | Pushed 08:21:55Z by the workstation clock (`date -u`, matching GitHub's `Date` header at 09:15Z). Events API: `PullRequestEvent opened` for #32 at 2026-11-01T08:22:15Z (`gh api repos/sindredg/hindcast/events`), the seal's server-side time; the payload shows the current head, so head `a372f32` at opening rests on the next push coming at about 09:02Z. `created_at` and the check runs read 09:22:15Z, an hour past the server clock at 09:15Z; not reconciled. CI green on `a372f32` |
 
 The six hashes, times, and commits are in [`eval/sealed/seals.json`](../../eval/sealed/seals.json). The files were not opened.
 
@@ -83,42 +83,40 @@ The six hashes, times, and commits are in [`eval/sealed/seals.json`](../../eval/
 
 | Step | Command | Result |
 |---|---|---|
-| Capture | `capture status` for `djlmxz2zd0j7`, `qpfv5p86dmrl`, and `djlmxz2zd0j7` again as the postmortem | 08:26:24 to 08:26:25Z; the summary capture has the same SHA-256 as the first incident's |
+| Capture | `capture status` for `djlmxz2zd0j7`, `qpfv5p86dmrl`, and `djlmxz2zd0j7` again as the postmortem | 08:26:24 to 08:26:25Z; the summary capture has the first incident's SHA-256 |
 | Evidence | `ingest evidence --case github-2026-10-07` | 25 updates: 19 and 4 before the two resolved marks (16:25:14Z and 18:04:49Z); none dropped; start 15:14:45Z |
 | Prior knowledge | `evaluation.prior collect --deployment <d>` | `prior-2026-11-01-gpt-6-luna.json`: 4 entries, 619 input and 3811 output tokens; `prior-2026-11-01-gpt-6.1-sol.json`: 4 entries, 619 input and 1955 output tokens. Committed unread |
 | Symptom tags | `data/library.yaml` | seven tags quoted from the evidence, committed (`9fbb1e1`) before any pick |
 | Key draft | Content Understanding Contributor assigned (extraction runbook step 1); `keys draft --case github-2026-10-07` | 1 page; 3 factors, 5 timeline events, 6 fixes, 2 problems (two quotes not word for word) |
-| Key review | each field against the summary and the 25 updates, then a second, independent pass | corrections: two quotes made exact; attack basis `implied` with the quote it rests on; the four outage start and end times marked as stated during the incident (u6 and u22 give both windows); a factor that restated the root cause dropped; a pause between the two outages moved out of the fixes; the machine's removal added as a fix; the root-cause quote extended to cover the routing change |
-| Freeze | `keys freeze github-2026-10-07` | `sha256 86ba420c112567208ac33c08717839cb3a62b56ffe07343e1e102a0c5a0a20d1`; every quote found word for word in the summary |
-| Role removed | extraction runbook steps 19 and 20 | removed at 09:01:14Z; the next Content Understanding read, at 09:03:05Z, was refused with `PermissionDenied` |
+| Key review | each field against the summary and the 25 updates, then a second independent pass | two quotes made exact; attack basis `implied` with its quote; the four start and end times marked stated (u6 and u22); a factor restating the root cause dropped; a pause between the outages moved out of the fixes; the machine's removal added as a fix; the root-cause quote extended to the routing change |
+| Freeze | `keys freeze github-2026-10-07` | `sha256 86ba420c112567208ac33c08717839cb3a62b56ffe07343e1e102a0c5a0a20d1`; every quote found word for word |
+| Role removed | extraction runbook steps 19 and 20 | removed 09:01:14Z; the next read at 09:03:05Z refused with `PermissionDenied` |
 | Library picks | [decision 0013](../decisions/0013-library-selection.md) rule, existing documents only | same-provider `github-availability-2023-11`, `github-availability-2026-06`; other-provider `google-cloud-2025-06-12`, `aws-2021-12-07`; attack-suspected `github-2018-02-28` (DDoS confirmed), `github-2016-01-28` (attack ruled out); decoy `cloudflare-2023-11-02` |
 
-Three documents in the library were not picked for this case because their causes sit close to its cause, which would make the library easier (rule 5): `github-availability-2023-09` (a primary database's write error), `github-2018-10-21` (a database failover after a network partition), and `google-cloud-2020-12-14` (leftover records after a migration, and a consensus leader that could not write). `github-availability-2026-06` stays a same-provider pick for its June 25 incident; as a monthly report it is one document (rule 7), so its June 17 incident, a configuration the system judged invalid and replaced with the previous one, comes with it.
+Not picked under rule 5 (cause too close): `github-availability-2023-09` (a primary database's write error), `github-2018-10-21` (a database failover after a network partition), `google-cloud-2020-12-14` (leftover records after a migration, a consensus leader that could not write). `github-availability-2026-06` is one document (rule 7), so its June 17 incident (an invalid configuration replaced with the previous one) comes with the June 25 pick.
 
 ## Gate
 
 | Criterion | Status | Evidence |
 |---|---|---|
-| A sealed result is unchanged between sealing and scoring (milestone 5, sealed cases) | configured, not tested | the hashes are in [`seals.json`](../../eval/sealed/seals.json), public from the opening of #32 at 08:22:15Z; `tests/test_sealed_reveal.py` fails on a changed file (Checks table). No file is revealed yet, so the check has not run against a real one |
-| A sealed run is refused when it would break the rules | tested, locally and live | `tests/test_seal.py` (Checks table); live: the second `seal run` on a sealed case was refused before any cloud call |
+| A sealed result is unchanged between sealing and scoring (milestone 5, sealed cases) | configured, not tested | hashes in [`seals.json`](../../eval/sealed/seals.json), public from the opening of #32 at 08:22:15Z; `tests/test_sealed_reveal.py` fails on a changed file. No file revealed yet |
+| A sealed run is refused when it would break the rules | tested, locally and live | `tests/test_seal.py`; live: the second `seal run` refused before any cloud call |
 | A recurrence's updates are evidence, with each resolved text withheld | tested, locally and live | `test_two_incidents_merge_in_time_order`, `test_ingest_cuts_every_status_source_of_a_case`; live: 25 updates, two resolved marks without text |
-| The prior-knowledge answers for GitHub 2026-10-07 are recorded before any evidence reaches a model | tested, live | both result files written at 2026-11-01 before any investigator or extraction call on the case; committed unread |
-| The October key is reviewed and frozen | accepted gap | every field checked against the summary in two independent passes and every quote verified word for word in code. Unlike the four earlier keys, whose corrections were approved before freezing ([keys gate](02-extraction.md#gate)), the corrections above are not approved |
+| The prior-knowledge answers for GitHub 2026-10-07 are recorded before any evidence reaches a model | tested, live | both files written 2026-11-01 before any investigator or extraction call on the case; committed unread |
+| The October key is reviewed and frozen | accepted gap | every field checked in two independent passes, every quote verified in code. Unlike the four earlier keys ([keys gate](02-extraction.md#gate)), the corrections are not approved |
 | Each new check fails on a broken input | tested | the Checks table |
 
 ## Independent review
 
-On 2026-11-01 a read-only review of the whole branch (`b0f7f62..7d134fe`) checked the five focus items of the plan, the paths by which investigation text could leave a sealed run, and the documents against the code. It did not open the prior-knowledge answers or the sealed files. Each finding was checked against the code before acting on it.
-
-Fixed in this pull request:
+On 2026-11-01 a read-only review of `b0f7f62..7d134fe` checked the plan's five focus items, the paths by which text could leave a sealed run, and the documents against the code, without opening the prior-knowledge answers or the sealed files. Fixed in this pull request:
 
 | Finding | Fix |
 |---|---|
-| The public time of the seals rested on the workstation clock; decision 0017 named "the commit time GitHub shows", which the committer sets | 0017 and the runbook name GitHub's record of the pull request as the time; the Live run table gives the Events API record (08:22:15Z) and the command |
-| The keys README said the corrections to every key were approved | It now says the October key's corrections are not approved, as the gate states |
-| A first-call time cap printed `incomplete: time-cap` and exited 0, though it was recorded as `no-result` and may be retried | `seal run` prints `no-result` first and exits 1; `test_first_call_time_cap_is_no_result` failed before the fix and passes after |
-| The as-built diagram and its alt text did not show the seal command; the sealing runbook's status line left out step 10 | Label and alt text updated (README, architecture page, diagram); status line corrected |
-| The worklog said every sealed run goes through the seal command | Reworded: `hindcast.investigate` refuses a sealed case unless its role is changed first |
+| The seals' public time rested on the workstation clock; decision 0017 named "the commit time GitHub shows", which the committer sets | 0017 and the runbook name GitHub's record of the pull request; the Live run table gives the Events API record (08:22:15Z) and the command |
+| The keys README said the corrections to every key were approved | It says the October key's are not |
+| A first-call time cap printed `incomplete: time-cap` and exited 0, though recorded as `no-result` | `seal run` prints `no-result` first and exits 1; `test_first_call_time_cap_is_no_result` |
+| The as-built diagram and alt text did not show the seal command; the sealing runbook's status line left out step 10 | Label, alt text (README, architecture page, diagram), and status line corrected |
+| The worklog said every sealed run goes through the seal command | Reworded: `hindcast.investigate` refuses a sealed case unless its role is changed |
 
 ## Issues opened
 
@@ -130,11 +128,11 @@ Fixed in this pull request:
 
 ## Second seals, with the library (2026-11-02)
 
-The second series ([decision 0017](../decisions/0017-sealed-reconstructions.md), rule 6): the same three cases, sealed once per model with the investigator's library search from [milestone 4, slice 2](04-investigator.md#slice-2-the-library-search-tool). Its independent review and fixes came first, and no fix changed the agent definition, so the seals ran on the agent versions that met the development pass bar: `hindcast-investigator-gpt-6-luna` version 3 and `hindcast-investigator-gpt-6-1-sol` version 2.
+The second series ([decision 0017](../decisions/0017-sealed-reconstructions.md), rule 6): the same three cases, once per model, with the library search from [milestone 4, slice 2](04-investigator.md#slice-2-the-library-search-tool), on `hindcast-investigator-gpt-6-luna` version 3 and `hindcast-investigator-gpt-6-1-sol` version 2.
 
-Before the runs, at 18:44 UTC, each sealed incident was read again: no postmortem status, and each resolved update unchanged (180, 180, and 32 characters). GitHub's blog had published no October availability report (the newest is September 2026), and Cloudflare's blog no post on the 2026-10-20 incident.
+At 18:44 UTC: no postmortem status, each resolved update unchanged (180, 180, and 32 characters), no October GitHub availability report (newest September 2026), no Cloudflare post on 2026-10-20.
 
-Each seal ran `python -m hindcast.seal run <case_id>` with `--env-file .env`, from commit `5fd90c0`, pushed and clean, between 18:44 and 18:48 UTC. Each one made the preflight search, which answered.
+Each seal: `python -m hindcast.seal run <case_id>` with `--env-file .env`, from commit `5fd90c0`, pushed and clean, 18:44 to 18:48 UTC; each preflight search answered.
 
 | Case | Deployment | Status | Searches | Library citations kept | Rejected, unsupported | Seconds | Tokens in (cached) / out |
 |---|---|---|---|---|---|---|---|
@@ -145,22 +143,22 @@ Each seal ran `python -m hindcast.seal run <case_id>` with `--env-file .env`, fr
 | `github-2026-10-21` | gpt-6.1-sol | complete | 1 | 1 | 0, 0 | 40.221 | 8,844 (5,227) / 2,906 |
 | `github-2026-10-22` | gpt-6.1-sol | complete | 1 | 1 | 0, 0 | 41.314 | 8,485 (5,291) / 2,968 |
 
-All six are first attempts, uploaded to Blob `extracted/sealed/<case_id>/`, with their SHA-256 in [`seals.json`](../../eval/sealed/seals.json) under `library: true`. The luna runs searched but cited no library section; the sol runs each kept one. A seventh `seal run` on `cloudflare-2026-10-20` was refused before any cloud call: `SealRefused: cloudflare-2026-10-20 is already sealed on gpt-6-luna`.
+All six first attempts, uploaded to Blob `extracted/sealed/<case_id>/`, hashes in [`seals.json`](../../eval/sealed/seals.json) under `library: true`. A seventh `seal run` on `cloudflare-2026-10-20` was refused before any cloud call: `SealRefused: cloudflare-2026-10-20 is already sealed on gpt-6-luna`.
 
-`seals.json` was committed as `974febf` and pushed at 18:49:12 UTC by the workstation clock. GitHub's check runs for that commit started at 18:49:21Z, which is GitHub's own record that the commit was on GitHub by then. `test_committed_seal_record_only_grows` passes on it: the six first-series entries are unchanged.
+`seals.json` committed as `974febf`, pushed 18:49:12 UTC (workstation clock); GitHub's check runs started 18:49:21Z. `test_committed_seal_record_only_grows` passes.
 
 ## Third seals: two GitHub outages of 2026-11-04
 
-Two major GitHub incidents of 2026-11-04 met the [sealing rules](../runbooks/sealing.md#choose-the-outages): resolved, eight updates before the resolved one, and harm to nobody. Each resolved update is the same 180 characters, which promise a root cause analysis and state no cause, and neither incident has a postmortem update.
+Two major GitHub incidents of 2026-11-04 met the [sealing rules](../runbooks/sealing.md#choose-the-outages). Each resolved update is the same 180-character placeholder; neither has a postmortem update.
 
 | Case | Incident | Title | Start | Resolved |
 |---|---|---|---|---|
 | `github-2026-11-04-pull-requests` | `smtdswd1h2w4` | Incident with Pull Requests, Git Operations and Issues | 09:49:55Z | 11:50:06Z |
 | `github-2026-11-04-actions` | `xr3myzj7ms51` | Incident with Actions and Pages | 16:05:31Z | 17:01:11Z |
 
-The search service was recreated from `infra/search.bicep` (16:38:56Z to 16:39:38Z) and the library index rebuilt (267 chunks, 16:40:18Z to 16:42:38Z), as the [retrieval runbook](../runbooks/retrieval.md) describes. Both incidents were captured at 17:18:11Z and 17:18:12Z, registered with role `sealed` (`42c308a`), uploaded, and cut into evidence: 9 updates each, `dropped 0`.
+Search service recreated from `infra/search.bicep` (16:38:56Z to 16:39:38Z), library index rebuilt (267 chunks, 16:40:18Z to 16:42:38Z) per the [retrieval runbook](../runbooks/retrieval.md). Captured 17:18:11Z and 17:18:12Z, registered `sealed` (`42c308a`), uploaded, cut: 9 updates each, `dropped 0`.
 
-Each seal ran `python -m hindcast.seal run <case_id>` with `--env-file .env`, from commit `42c308a`, committed and clean, between 17:19 and 17:22 UTC, on the agent versions of the second series. Each one made the preflight search, which answered.
+Each seal: `python -m hindcast.seal run <case_id>` with `--env-file .env`, from `42c308a`, committed and clean, 17:19 to 17:22 UTC, on the second series' agent versions; each preflight search answered.
 
 | Case | Deployment | Status | Searches | Library citations kept | Rejected, unsupported | Seconds | Tokens in (cached) / out |
 |---|---|---|---|---|---|---|---|
@@ -169,45 +167,45 @@ Each seal ran `python -m hindcast.seal run <case_id>` with `--env-file .env`, fr
 | `github-2026-11-04-pull-requests` | gpt-6.1-sol | complete | 1 | 2 | 0, 0 | 50.653 | 7,476 (3,364) / 2,607 |
 | `github-2026-11-04-actions` | gpt-6.1-sol | complete | 1 | 2 | 0, 0 | 42.111 | 7,090 (4,576) / 2,004 |
 
-All four are first attempts, with no withheld item and no PII hit, uploaded to Blob `extracted/sealed/<case_id>/`, with their SHA-256 in [`seals.json`](../../eval/sealed/seals.json) under `library: true`. Running `seal run` again was refused before any cloud call, for `github-2026-11-04-actions` on gpt-6-luna and for `github-2026-11-04-pull-requests` on gpt-6.1-sol: `SealRefused: <case_id> is already sealed on <deployment>`.
+All four first attempts, no withheld item, no PII hit, uploaded to Blob `extracted/sealed/<case_id>/`, hashes in [`seals.json`](../../eval/sealed/seals.json) under `library: true`. A repeat `seal run` (`github-2026-11-04-actions` on gpt-6-luna, `github-2026-11-04-pull-requests` on gpt-6.1-sol) was refused before any cloud call: `SealRefused: <case_id> is already sealed on <deployment>`.
 
-`seals.json` was committed as `f571a41` and pushed at 17:23:18 UTC by the workstation clock; GitHub's check runs for that commit started at 17:23:25Z. Each case's library snapshot followed at 17:23:36Z and 17:23:39Z: 267 chunks each, recorded in [`library-snapshots.json`](../../eval/sealed/library-snapshots.json). The search service was deleted again at 17:41:08Z.
+`seals.json` committed as `f571a41`, pushed 17:23:18 UTC (workstation clock); GitHub's check runs started 17:23:25Z. Library snapshots 17:23:36Z and 17:23:39Z: 267 chunks each, in [`library-snapshots.json`](../../eval/sealed/library-snapshots.json). Search service deleted 17:41:08Z.
 
-Three open issues name a sealed case in their trigger:
+Open issues naming a sealed case in their trigger:
 
-- [#42](https://github.com/sindredg/hindcast/issues/42), the day bound: the newest library document is dated 2026-07-08, 119 days before either case began, so the bound exposes nothing.
-- [#37](https://github.com/sindredg/hindcast/issues/37), an upload that succeeds but reports an error: its fix was due before these seals and was not made. All four uploads reported success, so the case it describes did not occur.
-- [#63](https://github.com/sindredg/hindcast/issues/63), no history test for the snapshot record: also due before these snapshots and not made. The commit adds two entries and changes no line of the earlier three.
+- [#42](https://github.com/sindredg/hindcast/issues/42), the day bound: the newest library document is dated 2026-07-08, 119 days before either case.
+- [#37](https://github.com/sindredg/hindcast/issues/37), an upload that succeeds but reports an error: due before these seals, not made; all four uploads reported success.
+- [#63](https://github.com/sindredg/hindcast/issues/63), no history test for the snapshot record: due before these snapshots, not made; the commit adds two entries and changes no earlier line.
 
-Both were fixed after the seals, before any further seal. `seal upload` now reads an existing blob back and records it only when its bytes match the recorded hash (`test_upload_completes_when_an_earlier_upload_reached_the_service`), and the snapshot record's history is walked like the seal record's (`test_committed_snapshot_record_only_grows`, `test_snapshot_history_with_a_changed_hash_is_a_problem`). Each test failed with its check broken: any existing blob accepted, the existing blob not handled, or the record's list key ignored.
+Both fixed before any further seal: `seal upload` records an existing blob only when its bytes match the hash (`test_upload_completes_when_an_earlier_upload_reached_the_service`); the snapshot record's history is walked like the seal record's (`test_committed_snapshot_record_only_grows`, `test_snapshot_history_with_a_changed_hash_is_a_problem`). Each test failed with its check broken.
 
 ## Reveal: github-2026-11-04-actions (2026-11-07)
 
-GitHub wrote its summary of the cause into the incident's resolved update at 2026-11-07T01:04:38Z. Its 249 words name a configuration change to an internal event-routing service that paused several event streams. When the case was captured and sealed on 2026-11-04, the same update was the 31-word placeholder. The other four sealed cases still had no cause: their resolved updates are unchanged, no Cloudflare post covers 2026-10-20, and GitHub's October report is not out. Milestone 5 closes on this one reveal, and the others follow as addenda ([decision 0030](../decisions/0030-close-evaluation-with-sealed-addenda.md)).
+GitHub wrote its cause into the resolved update at 2026-11-07T01:04:38Z: 249 words naming a configuration change to an internal event-routing service that paused several event streams; on 2026-11-04 it was the 31-word placeholder. The other four cases still had no cause; they follow as addenda ([decision 0030](../decisions/0030-close-evaluation-with-sealed-addenda.md)).
 
-Each step ran from the [sealing runbook](../runbooks/sealing.md#reveal-a-seal), locally, in the order decision 0022 sets:
+Steps from the [sealing runbook](../runbooks/sealing.md#reveal-a-seal), locally, in decision 0022's order:
 
 | Step | Command | Result |
 |---|---|---|
 | Capture | `hindcast.capture status --provider GitHub --incident xr3myzj7ms51` | `retrieved_at: "2026-11-07T10:22:42Z"`, `sha256: 76af8617…`, registered as `github-summary-2026-11-04-actions`, role `revealed` |
-| Key | `hindcast.keys check github-2026-11-04-actions` | `0 problems`; approved by a person, frozen at 10:27:30Z, `4d3d4633…` |
+| Key | `hindcast.keys check github-2026-11-04-actions` | `0 problems`; approved by a person, frozen 10:27:30Z, `4d3d4633…` |
 | Labels | `hindcast.labels freeze github-2026-11-04-actions` | 1 stated, 10 not inferable; approved by a person, `57274146…` |
 | Leak check | `hindcast.leak github-2026-11-04-actions --snapshot build/sealed-library/github-2026-11-04-actions.json` | `14 unstated items, 8 evidence sources, 267 library chunks, 0 hits`; with `--plant`, `root_cause in planted: 15 shared 8-word runs` |
-| Reveal | `hindcast.reveal github-2026-11-04-actions`, at 10:30:54Z | `cause published 2026-11-07T01:04:38Z`, `revealed 2 files`; `tests/test_sealed_reveal.py` 2 passed (4 after the record check was added) |
+| Reveal | `hindcast.reveal github-2026-11-04-actions`, 10:30:54Z | `cause published 2026-11-07T01:04:38Z`, `revealed 2 files`; `tests/test_sealed_reveal.py` 2 passed (4 after the record check) |
 | Judge | `hindcast.evaluation.judge run --root eval/reconstruction/sealed-v1`, 10:40:31Z to 10:41:00Z | `judged 2, errors 0, kept 0` |
 | Reviewer | `hindcast.evaluation.reviewer run` and `apply`, `--root eval/reconstruction/sealed-v1`, 10:41:07Z to 10:42:00Z | `judged 2, errors 0`; `runs 2, decisions 22, missing 0` |
 | Score | `hindcast.evaluation.score --root eval/reconstruction/sealed-v1` | `runs 2, open review items 0`; both runs 1.00 |
 | Spend | `hindcast.evaluation.spend --sealed` | judge USD 0.17, reviewer USD 0.56, total USD 0.73 |
 
-The reveal did not run from a commit. It ran at 10:30:54Z from an uncommitted tree on `e12c856`: the reveal code, the role change, the key, and the labels were committed afterwards, at 10:34:54Z, with the reveal's output (`e8dbfc0` to `dfdd563`), so runbook step 18 was skipped. What shows that the key and labels were fixed before the seals were opened is the code's order and the key's and labels' hashes in `reveals.json`, not the history. The reveal now refuses a tree with uncommitted changes and records the commit it ran from (`17c864f`). The judge and the reviewer ran from `ce12ac8`, committed and clean, as their judgment files record. The results and the error analysis are in the [sealed report](../../eval/reconstruction/sealed-v1/README.md).
+The reveal ran at 10:30:54Z from an uncommitted tree on `e12c856`; the reveal code, role change, key, and labels were committed at 10:34:54Z with its output (`e8dbfc0` to `dfdd563`), so runbook step 18 was skipped. That the key and labels were fixed before the seals opened rests on the code's order and the hashes in `reveals.json`, not the history. The reveal now refuses an uncommitted tree and records its commit (`17c864f`). Judge and reviewer ran from `ce12ac8`, clean. Results: [sealed report](../../eval/reconstruction/sealed-v1/README.md).
 
-The first judge call was refused: `NotFrozen: the judge prompt, the rubric, or the settings differ from eval/judge/frozen.json`. The judge's lock names rubric version 2, and version 3 changed the title line the system prompt carries ([troubleshooting](../troubleshooting.md#evaluation-the-judge-refuses-a-later-run-after-the-rubric-moved-to-version-3-2026-11-07)). The judge now rebuilds the locked system prompt from the history, and the two revealed runs were judged with the same system prompt as the showcase runs (`9de219e1…`).
+The first judge call was refused: `NotFrozen: the judge prompt, the rubric, or the settings differ from eval/judge/frozen.json`; the lock names rubric version 2, and version 3 changed the system prompt's title line ([troubleshooting](../troubleshooting.md#evaluation-the-judge-refuses-a-later-run-after-the-rubric-moved-to-version-3-2026-11-07)). The judge now rebuilds the locked system prompt from the history; both runs were judged with the showcase runs' prompt (`9de219e1…`).
 
-The postmortem capture is local and in the registry, not in Blob Storage: the reveal runs offline (decision 0022), and the storage account is removed at teardown.
+The postmortem capture is local and in the registry, not in Blob Storage: the reveal runs offline (decision 0022).
 
 ### Checks
 
-Every new check was run once against a broken input on 2026-11-07, locally, and failed:
+Each failed once on a broken input, 2026-11-07, locally:
 
 | Broken input | Failed tests or refusal |
 |---|---|
@@ -229,10 +227,10 @@ Every new check was run once against a broken input on 2026-11-07, locally, and 
 | After the review: a revealed role without a reveal record not reported | `test_the_record_check_fails_on_each_broken_record` |
 | After the review: a key or labels file that differs from its reveal record not reported | `test_the_record_check_fails_on_each_broken_record` |
 
-`test_each_broken_step_refuses_before_anything_is_written` also covers a wrong role, a changed key, missing labels, changed evidence, a changed snapshot, and a changed sealed file, each with the seal record unchanged and nothing written. One planned broken input proved nothing: removing the judge's separate system-hash comparison left every test passing, because the rebuilt record already holds that hash, so the comparison was removed as redundant.
+`test_each_broken_step_refuses_before_anything_is_written` also covers a wrong role, a changed key, missing labels, changed evidence, a changed snapshot, and a changed sealed file, each with nothing written. Removing the judge's separate system-hash comparison left every test passing (the rebuilt record holds that hash), so it was removed as redundant.
 
-Test suite after the reveal: `uv run --frozen pytest -q` → 1004 passed, locally with the captured sources present; ruff, ruff format, and pyright clean. After the review's fixes: 1009 passed.
+Test suite: `uv run --frozen pytest -q` → 1004 passed, locally with the captured sources present; ruff, ruff format, and pyright clean. After the review's fixes: 1009 passed.
 
 ### Issues
 
-Closed by this change: [#34](https://github.com/sindredg/hindcast/issues/34) (the `revealed` role), [#35](https://github.com/sindredg/hindcast/issues/35) (the publication time, recorded and checked), and [#36](https://github.com/sindredg/hindcast/issues/36) (the placeholder refusal). Opened: [#99](https://github.com/sindredg/hindcast/issues/99), a timeline hit the 30-minute tolerance credits on a `not inferable` event, for the next rubric version.
+Closed: [#34](https://github.com/sindredg/hindcast/issues/34) (`revealed` role), [#35](https://github.com/sindredg/hindcast/issues/35) (publication time), [#36](https://github.com/sindredg/hindcast/issues/36) (placeholder refusal). Opened: [#99](https://github.com/sindredg/hindcast/issues/99), a timeline hit the 30-minute tolerance credits on a `not inferable` event.

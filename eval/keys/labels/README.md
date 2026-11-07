@@ -1,12 +1,12 @@
 # Inferable-from-evidence labels
 
-One label file per scored case: for each scored key item, whether the case's evidence states it, supports reaching it through a written step, or cannot reach it ([decision 0023](../../../docs/decisions/0023-abstention-and-inferable-labels.md)). The evaluation credits an abstention only on an item labelled `not inferable`. The keys stay as they were frozen; the labels sit next to them.
+One label file per scored case: for each scored key item, whether the case's evidence states it, supports reaching it through a written step, or cannot reach it ([decision 0023](../../../docs/decisions/0023-abstention-and-inferable-labels.md)). An abstention earns credit only on an item labelled `not inferable`. The keys stay as frozen; the labels sit next to them.
 
 ## Status
 
-Four label files frozen on 2026-11-03, before any scored run, and one at a reveal: each label was approved by a person, and the keys were read with the evidence, never with a run's output. A sealed case is labelled at its reveal, before its sealed file is opened ([decision 0022](../../../docs/decisions/0022-sealed-drop-date-and-offline-reveal.md)): `github-2026-11-04-actions` on 2026-11-07, approved by a person and frozen before `python -m hindcast.reveal` read its seals.
+Four label files frozen on 2026-11-03, before any scored run, and one at a reveal; each label approved by a person, from the keys and the evidence, never from a run's output. A sealed case is labelled at its reveal, before its sealed file is opened ([decision 0022](../../../docs/decisions/0022-sealed-drop-date-and-offline-reveal.md)): `github-2026-11-04-actions` on 2026-11-07, approved and frozen before `python -m hindcast.reveal` read its seals.
 
-[`frozen.json`](frozen.json) records each file's SHA-256, and `tests/test_labels.py` fails if a label file changes or is not frozen. A changed label is a new approval, not an edit.
+[`frozen.json`](frozen.json) records each file's SHA-256; `tests/test_labels.py` fails if a label file changes or is not frozen. A changed label is a new approval, not an edit.
 
 | Case | Stated | Inferable | Not inferable |
 |---|---|---|---|
@@ -16,15 +16,15 @@ Four label files frozen on 2026-11-03, before any scored run, and one at a revea
 | `github-2026-10-07` | 4 | 0 | 5 |
 | `github-2026-11-04-actions` | 1 | 0 | 10 |
 
-The attack verdict is `inferable` where an update names a cause that settles it, and `not inferable` where no update names a cause.
+The attack verdict is `inferable` where an update names a cause that settles it, `not inferable` where none does.
 
 ## Fields
 
 | Field | Meaning |
 |---|---|
 | `case_id` | The case, matching its key and its evidence |
-| `items[].item` | `attack`, `root_cause`, `contributing_factors/<i>`, or `timeline/<i>`: every scored key item exactly once. Fixes are not scored, so they have no label |
-| `items[].label` | `stated` (an update before the resolved one says it, or the resolved update's time and status, which the investigator sees without its text; issue #66), `inferable` (the evidence supports reaching it through a written step), or `not inferable` (it needs information the evidence does not hold) |
+| `items[].item` | `attack`, `root_cause`, `contributing_factors/<i>`, or `timeline/<i>`: every scored key item exactly once. Fixes are not scored and have no label |
+| `items[].label` | `stated` (an update before the resolved one says it, or the resolved update's time and status, which the investigator sees without its text; issue #66), `inferable` (reachable through a written step), or `not inferable` (needs information the evidence does not hold) |
 | `items[].reason` | One line on why |
 | `items[].evidence` | The update and chart IDs the reason rests on; `stated` and `inferable` need at least one |
 
@@ -36,7 +36,7 @@ The attack verdict is `inferable` where an update names a cause that settles it,
 
 - misses a scored item, names an unknown one, or names one twice
 - uses a label outside the three, or an empty reason
-- cites an ID that is not in the case's evidence, or cites nothing for `stated` or `inferable`
+- cites an ID not in the case's evidence, or cites nothing for `stated` or `inferable`
 - labels `stated` an item the key marks not stated during the incident, or labels anything else an item the key marks stated
 
 The attack verdict has no `stated_during_incident` flag in the key, so its label is not checked against one.

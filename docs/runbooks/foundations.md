@@ -2,24 +2,22 @@
 
 Status: Written on 2026-10-25 for [milestone 1](../worklogs/01-foundations.md).
 
-- Steps 1 and 2 ran on 2026-10-25, and steps 3 to 8 on 2026-10-26; in step 3 the role was assigned once and the check ran in this form afterwards. "Re-check the model choice" was added on 2026-10-26, after they ran.
-- Every step ran once with the results the worklog records, but not in this order. The Azure foundation was created on 2026-10-24 and 2026-10-25, before the repository existed. Key access on the Foundry resource (step 4 under "Create the Azure foundation") was turned off before the prior-knowledge answers were collected.
-- The Foundry resource, project, and deployments were created in the Foundry portal as it was that day. Not run again from an empty subscription.
-- "Check the repository" gained pyright on 2026-10-28 and ran in this form on 2026-10-30.
-- Step 8 of "Create the Azure foundation" changed on 2026-11-03 to remove Foundry's tracing connection ([decision 0021](../decisions/0021-screens-pii-and-challenge.md)), and ran in its new form that day.
+- Steps 1 and 2 ran on 2026-10-25, steps 3 to 8 on 2026-10-26; "Re-check the model choice" was added on 2026-10-26, after they ran. Every step ran once, not in this order.
+- The Azure foundation was created on 2026-10-24 and 2026-10-25 in the Foundry portal of that day, before the repository existed; not run again from an empty subscription. Key access (step 4 of "Create the Azure foundation") was off before the prior-knowledge answers were collected.
+- "Check the repository" gained pyright on 2026-10-28 and ran in this form on 2026-10-30. Step 8 of "Create the Azure foundation" changed on 2026-11-03 ([decision 0021](../decisions/0021-screens-pii-and-challenge.md)) and ran that day.
 
-Build the milestone 1 foundation from scratch: the repository checks, the GitHub repository and its protection, the Azure resources and roles, the case sources, and the prior-knowledge answers. [Decision 0009](../decisions/0009-hosting-and-identity.md) records why every call uses Entra ID and no keys.
+Every call uses Entra ID and no keys ([decision 0009](../decisions/0009-hosting-and-identity.md)).
 
 On this page: [Prerequisites](#prerequisites) · [Check the repository](#check-the-repository) · [Protect the repository on GitHub](#protect-the-repository-on-github) · [Create the Azure foundation](#create-the-azure-foundation) · [Add the case sources](#add-the-case-sources) · [Record what the models know](#record-what-the-models-know) · [Re-check the model choice](#re-check-the-model-choice)
 
 ## Prerequisites
 
-- An Azure subscription where you can create resources and assign roles (Owner, or Contributor plus User Access Administrator).
-- Global Standard quota in Sweden Central of at least 50,000 tokens per minute for gpt-6-luna and for gpt-6.1-sol (`az cognitiveservices usage list -l swedencentral`).
-- An operator machine with Git, [uv](https://docs.astral.sh/uv/), the Azure CLI (2.88.0 used), the GitHub CLI, `openssl`, and a browser. Sign in with `az login` and `gh auth login`. Commits are signed (`git config commit.gpgsign true` with an SSH or GPG signing key).
-- A clone of the repository. Run every command from its root.
+- An Azure subscription with Owner, or Contributor plus User Access Administrator.
+- Global Standard quota in Sweden Central of at least 50,000 tokens per minute for gpt-6-luna and gpt-6.1-sol (`az cognitiveservices usage list -l swedencentral`).
+- Git, [uv](https://docs.astral.sh/uv/), the Azure CLI (2.88.0 used), the GitHub CLI, `openssl`, a browser; `az login`, `gh auth login`, and signed commits (`git config commit.gpgsign true`).
+- A clone of the repository; every command runs from its root.
 
-Set the local values once per shell. Pick a globally unique storage account name (3 to 24 lowercase letters and digits). `GH_REPO` is also the repository the GitHub CLI uses by default:
+Local values, once per shell (storage account name: 3 to 24 lowercase letters and digits, globally unique; `GH_REPO` is also the GitHub CLI's default):
 
 ```bash
 export RG=<resource-group> STORAGE=<storage-account> GH_REPO=<owner>/hindcast
@@ -51,7 +49,7 @@ export RG=<resource-group> STORAGE=<storage-account> GH_REPO=<owner>/hindcast
 
    Expected: `git ls-remote origin main` prints the commit of your local `main`, and the CI run on it is green (`gh run list --workflow CI --limit 1`).
 
-2. Add the branch ruleset: enforcement active, no bypass list, restrict deletions, block force pushes, require signed commits, require a pull request before merging (squash or rebase, threads resolved), and require the four CI checks with the branch up to date.
+2. Add the branch ruleset.
 
    ```bash
    cat > ruleset.json <<'EOF'
@@ -75,9 +73,9 @@ export RG=<resource-group> STORAGE=<storage-account> GH_REPO=<owner>/hindcast
    gh api "repos/$GH_REPO/rules/branches/main" --jq '[.[].type] | join(",")'
    ```
 
-   Expected: `main active`, then `deletion,non_fast_forward,required_signatures,pull_request,required_status_checks`. `15368` is the GitHub Actions app, so only checks from Actions count. A full read-back (`gh api "repos/$GH_REPO/rulesets/<ruleset-id>"`) also lists `require_extra_approval_for_unattributed_changes: true` and `required_reviewers: []` under the pull request rule: GitHub defaults that this JSON does not set.
+   Expected: `main active`, then `deletion,non_fast_forward,required_signatures,pull_request,required_status_checks`. `15368` is the GitHub Actions app. A full read-back (`gh api "repos/$GH_REPO/rulesets/<ruleset-id>"`) also lists GitHub's defaults `require_extra_approval_for_unattributed_changes: true` and `required_reviewers: []`.
 
-3. Turn on secret scanning, push protection, Dependabot alerts, and Dependabot security updates, then read them back.
+3. Turn on secret scanning, push protection, Dependabot alerts, and Dependabot security updates.
 
    ```bash
    gh api -X PATCH "repos/$GH_REPO" -F 'security_and_analysis[secret_scanning][status]=enabled' -F 'security_and_analysis[secret_scanning_push_protection][status]=enabled' --silent
@@ -100,7 +98,7 @@ export RG=<resource-group> STORAGE=<storage-account> GH_REPO=<owner>/hindcast
 
 ## Create the Azure foundation
 
-1. Register the resource providers the project uses.
+1. Register the resource providers.
 
    ```bash
    for p in Microsoft.CognitiveServices Microsoft.Storage Microsoft.Insights Microsoft.OperationalInsights Microsoft.Search Microsoft.App Microsoft.ContainerRegistry Microsoft.KeyVault; do
@@ -119,20 +117,20 @@ export RG=<resource-group> STORAGE=<storage-account> GH_REPO=<owner>/hindcast
 
    Expected: `Succeeded`.
 
-3. Create the Foundry resource and project in the portal. In [Microsoft Foundry](https://ai.azure.com) with **New Foundry** on, create a project. Under the advanced options choose the resource group, region **Sweden Central**, and a resource name. Then read the names the portal chose:
+3. In [Microsoft Foundry](https://ai.azure.com) with **New Foundry** on, create a project; under the advanced options choose the resource group, region **Sweden Central**, and a resource name. Read the names:
 
    ```bash
    az resource list -g "$RG" --query "[].{name:name, type:type}" -o table
    ```
 
-   Expected: a `Microsoft.CognitiveServices/accounts` resource and an `accounts/projects` child named `<resource>/<project>`. The portal can also create an Application Insights resource and a Log Analytics workspace; step 8 removes the project's tracing connection to them. Set the names:
+   Expected: a `Microsoft.CognitiveServices/accounts` resource and an `accounts/projects` child named `<resource>/<project>`. The portal may also create Application Insights and a Log Analytics workspace (step 8). Set the names:
 
    ```bash
    export RESOURCE=<resource> PROJECT=<project>
    RES_ID=$(az cognitiveservices account show -g "$RG" -n "$RESOURCE" --query id -o tsv)
    ```
 
-4. Turn off key access on the Foundry resource, then prove it. The request lists models and costs nothing.
+4. Turn off key access on the Foundry resource, then prove it (the request lists models and costs nothing).
 
    ```bash
    KEY=$(az cognitiveservices account keys list -g "$RG" -n "$RESOURCE" --query key1 -o tsv)
@@ -143,9 +141,9 @@ export RG=<resource-group> STORAGE=<storage-account> GH_REPO=<owner>/hindcast
    unset KEY
    ```
 
-   Expected: `before: 200`, `true`, `after: 401`. The 401 says "invalid subscription key or wrong API endpoint" even though the key is valid ([finding](../findings/identity-and-access.md)).
+   Expected: `before: 200`, `true`, `after: 401`. The 401 says "invalid subscription key or wrong API endpoint" for a valid key ([finding](../findings/identity-and-access.md)).
 
-5. Give the developer the Foundry User role at project scope, and check that no wider copy exists. The role ID is used because the role was renamed from Azure AI User.
+5. Assign Foundry User at project scope (by ID: the role was renamed from Azure AI User) and check that no wider copy exists.
 
    ```bash
    ME=$(az ad signed-in-user show --query id -o tsv)
@@ -155,25 +153,23 @@ export RG=<resource-group> STORAGE=<storage-account> GH_REPO=<owner>/hindcast
    az role assignment list --assignee "$ME" --all --role "$FOUNDRY_USER" --query "[].scope" -o tsv
    ```
 
-   Expected: exactly one line, ending in `/projects/<project>`. Delete any wider assignment of the same role (`az role assignment delete --ids <assignment-id>`); with one in place, a least-privilege check cannot fail.
+   Expected: exactly one line, ending in `/projects/<project>`. Delete any wider assignment (`az role assignment delete --ids <assignment-id>`): with one in place, a least-privilege check cannot fail.
 
-6. Deploy the models in the portal: **Deployments**, **Deploy model**. Use the model name as the deployment name, deployment type **Global Standard**, and under the version update policy choose to opt out of automatic version upgrades.
+6. Deploy the models in the portal (**Deployments**, **Deploy model**): deployment name = model name, **Global Standard**, opted out of automatic version upgrades. The Azure CLI cannot set that policy.
 
    | Model | Version | Capacity |
    |---|---|---|
    | gpt-6-luna | 2026-09-22 | 50K tokens per minute |
    | gpt-6.1-sol | 2026-09-29 | 50K tokens per minute |
 
-   The Azure CLI cannot set the version update policy, so the portal does this step. Then read back:
-
    ```bash
    az cognitiveservices account deployment list -g "$RG" -n "$RESOURCE" \
      --query "[].{name:name, version:properties.model.version, sku:sku.name, capacity:sku.capacity, upgrade:properties.versionUpgradeOption}" -o table
    ```
 
-   Expected: both deployments with their version, `GlobalStandard`, capacity `50`, and `NoAutoUpgrade`. The milestone 1 build also kept gpt-5-mini and grok-4.7 as candidates for later decisions ([decision 0012](../decisions/0012-models.md)); they are optional here. gpt-5-mini was deleted on 2026-11-01, when extraction moved to gpt-5.4-mini ([decision 0018](../decisions/0018-extraction-model.md)).
+   Expected: both deployments with their version, `GlobalStandard`, capacity `50`, and `NoAutoUpgrade`. Milestone 1 also kept gpt-5-mini and grok-4.7 as candidates ([decision 0012](../decisions/0012-models.md)), optional here; gpt-5-mini was deleted on 2026-11-01 ([decision 0018](../decisions/0018-extraction-model.md)).
 
-7. Create the storage account with shared keys and public access off, give the developer the data role, and create the containers. The container loop retries while the new role takes effect.
+7. Create the storage account (shared keys and public access off), assign the data role, and create the containers; the loop retries while the role takes effect.
 
    ```bash
    az storage account create -n "$STORAGE" -g "$RG" -l swedencentral --sku Standard_LRS --kind StorageV2 \
@@ -189,7 +185,7 @@ export RG=<resource-group> STORAGE=<storage-account> GH_REPO=<owner>/hindcast
    done
    ```
 
-   Expected: `True` twice, possibly after a few `AuthorizationPermissionMismatch` errors. Then prove that keys and anonymous reads are refused:
+   Expected: `True` twice, possibly after a few `AuthorizationPermissionMismatch` errors. Then prove keys and anonymous reads are refused:
 
    ```bash
    az storage container list --account-name "$STORAGE" --auth-mode key -o tsv 2>&1 | grep -o KeyBasedAuthenticationNotPermitted
@@ -198,7 +194,7 @@ export RG=<resource-group> STORAGE=<storage-account> GH_REPO=<owner>/hindcast
 
    Expected: `KeyBasedAuthenticationNotPermitted` and `409`.
 
-8. Keep Application Insights out of Foundry's tracing, and turn off the workspace's shared keys. Foundry's server-side tracing stores every prompt and answer, so Hindcast sends its own spans instead ([decision 0021](../decisions/0021-screens-pii-and-challenge.md)). List the account's connections, and delete an `AppInsights` connection if the portal made one.
+8. Remove the project's `AppInsights` connection if the portal made one, and turn off the workspace's shared keys. Foundry's tracing stores every prompt and answer; Hindcast sends its own spans ([decision 0021](../decisions/0021-screens-pii-and-challenge.md)).
 
    ```bash
    RID=$(az cognitiveservices account show -g $RG -n $RESOURCE --query id -o tsv)
@@ -213,9 +209,9 @@ export RG=<resource-group> STORAGE=<storage-account> GH_REPO=<owner>/hindcast
    az monitor log-analytics workspace update -g $RG -n <log-analytics-workspace> --set features.disableLocalAuth=true --query features.disableLocalAuth -o tsv
    ```
 
-   Expected: the list is empty after the delete (on 2026-11-03 it held one `AppInsights` connection, made by the portal on 2026-10-25), and the update prints `true`. The commands and the page still write with the Application Insights connection string, which step 9 puts in `.env`.
+   Expected: the list is empty after the delete (on 2026-11-03 it held one `AppInsights` connection, made by the portal on 2026-10-25), and the update prints `true`. The connection string in `.env` (step 9) still carries Hindcast's spans.
 
-9. Write `.env` from `.env.example` with these values. The extraction, search, and embedding values are set by the [extraction](extraction.md) and [retrieval](retrieval.md) runbooks.
+9. Write `.env` from `.env.example`. The extraction, search, and embedding values come from the [extraction](extraction.md) and [retrieval](retrieval.md) runbooks.
 
    | Variable | Value |
    |---|---|
@@ -230,7 +226,7 @@ export RG=<resource-group> STORAGE=<storage-account> GH_REPO=<owner>/hindcast
 
 ## Add the case sources
 
-The status pages and postmortems are the providers' copyrighted pages, so the repository holds only their URLs, retrieval times, and hashes in [`data/cases.yaml`](../../data/cases.yaml). This section captures them again into `data/sources/` (ignored by Git) and Blob Storage.
+The repository holds only URLs, retrieval times, and hashes ([`data/cases.yaml`](../../data/cases.yaml)); the pages are captured into `data/sources/` (ignored) and Blob Storage.
 
 1. Capture each case's status updates and postmortem.
 
@@ -246,7 +242,7 @@ The status pages and postmortems are the providers' copyrighted pages, so the re
    cap page --url https://blog.cloudflare.com/cloudflare-outage-february-20-2026/ --out data/sources/cloudflare-2026-02-20/cloudflare-postmortem-2026-02-20.html
    ```
 
-   Expected: each command prints `url:`, `retrieved_at:`, and `sha256:` lines. For a new case, these lines go into the registry. Google Cloud's feed keeps recent incidents only; if the incident has left it, the command says so, and a saved copy of the feed is passed with `--feed-file <path> --retrieved-at <time it was downloaded>`.
+   Expected: each command prints `url:`, `retrieved_at:`, and `sha256:` lines. For a new case, these lines go into the registry. Google Cloud's feed keeps recent incidents only; for an incident that has left it, pass a saved feed with `--feed-file <path> --retrieved-at <time it was downloaded>`.
 
 2. Verify every file against its pinned hash.
 
@@ -257,7 +253,7 @@ The status pages and postmortems are the providers' copyrighted pages, so the re
    print({cid: verify_local_files(case, Path('data/sources')) for cid, case in load_cases().items()})"
    ```
 
-   Expected: an empty list for every case. The status snapshots keep only the incident, so they match unless the provider edited the incident. Postmortem pages are saved as served, so a page whose layout changed since its capture shows up here: compare the article text, and if only the page around it changed, record the new hash and retrieval time.
+   Expected: an empty list for every case. A postmortem page is saved as served, so a changed layout shows up here: if only the page around the article changed, record the new hash and retrieval time.
 
 3. Upload the sources, download them again, and verify the downloaded copies.
 
@@ -274,7 +270,7 @@ The status pages and postmortems are the providers' copyrighted pages, so the re
    print({cid: verify_local_files(case, Path(sys.argv[1])) for cid, case in load_cases().items()})" "$check"
    ```
 
-   Expected: an empty list for every case. The Content-MD5 shown by `az storage blob show` only repeats what the upload sent, so the download is the check.
+   Expected: an empty list for every case. The download is the check: `az storage blob show`'s Content-MD5 only repeats what the upload sent.
 
 ## Record what the models know
 
@@ -289,7 +285,7 @@ The status pages and postmortems are the providers' copyrighted pages, so the re
 
    Expected: a one-word answer with its `TokenUsage`, then `('gpt-6-luna', '2026-09-22')`. A 401 or 403 names the missing data action: check step 5.
 
-2. Collect the prior-knowledge answers before any evidence reaches a model. The collector refuses to run, before any model call, while the prompt, the registry, `src/`, `pyproject.toml`, or `uv.lock` has uncommitted changes, or when the day's result file exists.
+2. Collect the prior-knowledge answers before any evidence reaches a model. The collector refuses uncommitted changes to the prompt, the registry, `src/`, `pyproject.toml`, or `uv.lock`, and an existing result file for the day.
 
    ```bash
    for d in gpt-6-luna gpt-6.1-sol; do
@@ -297,13 +293,11 @@ The status pages and postmortems are the providers' copyrighted pages, so the re
    done
    ```
 
-   Expected: one line per deployment naming `eval/results/prior-<date>-<deployment>.json`, `3 entries`, and the token totals. Commit the files without opening them: they are scored with the rubric frozen in milestone 5, and reading them first would bias the rubric.
+   Expected: one line per deployment naming `eval/results/prior-<date>-<deployment>.json`, `3 entries`, and the token totals. Commit the files unopened: reading them would bias the rubric frozen in milestone 5.
 
 ## Re-check the model choice
 
-The evidence for [decision 0012](../decisions/0012-models.md): luna against sol on the development outage, scored by Foundry evaluators with a rule written before the runs. Run it again when a deployment changes version.
-
-Needs the development case's status snapshot (see "Add the case sources") and the deployments from "Create the Azure foundation". Run every command from the repository root: the scripts read the snapshot by its path from there.
+The evidence for [decision 0012](../decisions/0012-models.md): luna against sol on the development outage, scored by Foundry evaluators with a rule written before the runs. Repeat when a deployment changes version. Needs the development case's snapshot and the deployments; the scripts read the snapshot by its path from the repository root.
 
 1. Build the upload file from the local snapshot.
 
@@ -312,7 +306,7 @@ Needs the development case's status snapshot (see "Add the case sources") and th
    sha256sum data/sources/model-selection/dataset-dev-outage-v1.jsonl
    ```
 
-   Expected: `data/sources/model-selection/dataset-dev-outage-v1.jsonl: 5 rows`, and a hash starting `b76a883bd24595a5`. A different hash means the snapshot or the questions changed: the results are then a new dataset version, not a re-run.
+   Expected: `data/sources/model-selection/dataset-dev-outage-v1.jsonl: 5 rows`, and a hash starting `b76a883bd24595a5`. A different hash means a new dataset version, not a re-run.
 
 2. Ask each model for the timeline, one call per deployment and effort.
 
@@ -323,9 +317,9 @@ Needs the development case's status snapshot (see "Add the case sources") and th
    done
    ```
 
-   Expected: one line per run naming `data/sources/model-selection/timeline-<deployment>-<effort>.txt` and its input and output tokens. The script refuses to overwrite an earlier answer. Score each answer by hand against the event table in the folder's README.
+   Expected: one line per run naming `data/sources/model-selection/timeline-<deployment>-<effort>.txt` and its input and output tokens. The script refuses to overwrite an earlier answer. Score each by hand against the folder README's event table.
 
-3. Give the person who runs the evaluation an OpenAI data role on the Foundry resource, and check it. With key access off, the portal calls the models as that person on the resource endpoint, which the project-scope Foundry User role does not reach ([troubleshooting](../troubleshooting.md)).
+3. Assign the evaluator an OpenAI data role on the Foundry resource. The portal calls the models as that person on the resource endpoint, which the project-scope role does not reach ([troubleshooting](../troubleshooting.md)).
 
    ```bash
    export RG=<resource-group> RESOURCE=<resource>
@@ -339,12 +333,12 @@ Needs the development case's status snapshot (see "Add the case sources") and th
      "$ENDPOINT/openai/evals?api-version=v1&limit=1"
    ```
 
-   Expected: `200`. Right after the assignment it can print `400` for a few minutes (the body names the missing `OpenAI/evals/read` action); run the last two commands again until it prints `200`.
+   Expected: `200`. For a few minutes after the assignment it can print `400` (the body names the missing `OpenAI/evals/read` action); repeat the last two commands until `200`.
 
 4. Run the Foundry evaluation in the Foundry portal, once per target: `gpt-6-luna`, then `gpt-6.1-sol`.
 
    1. **Evaluation**, **Create**, target **Model**, pick the deployment.
-   2. Data source: upload `dataset-dev-outage-v1.jsonl`; the portal names the dataset after the file. For the second run, pick the uploaded dataset.
+   2. Data source: upload `dataset-dev-outage-v1.jsonl` (the second run picks the uploaded dataset).
    3. **Add custom prompt**. Developer message:
 
       ```text
@@ -358,11 +352,11 @@ Needs the development case's status snapshot (see "Add the case sources") and th
    4. Evaluators: clear the recommended set; select Groundedness, Response completeness, Relevance, Coherence, and Similarity.
    5. In each evaluator's **Edit**: judge `gpt-6.1-sol`; fields `{{item.context}}`, `{{item.ground_truth}}`, and response `{{sample.output_text}}`.
    6. Name the run after the target and the dataset, for example `luna-dev-outage-v1`, and submit.
-   7. When it finishes, on the run page: **Download results** and **Download user logs**, and copy the **Raw JSON** view into a file. Save them in `data/sources/model-selection/` as `eval-<target>-dev-outage-v1-results.jsonl`, `eval-<target>-dev-outage-v1-user_logs.txt`, and `eval-<target>-dev-outage-v1-run.json`, with `<target>` `luna` or `sol`.
+   7. On the finished run page: **Download results**, **Download user logs**, and copy the **Raw JSON** view into a file. Save them in `data/sources/model-selection/` as `eval-<target>-dev-outage-v1-results.jsonl`, `eval-<target>-dev-outage-v1-user_logs.txt`, and `eval-<target>-dev-outage-v1-run.json`, with `<target>` `luna` or `sol`.
 
-   Expected: status **Completed** after about 40 seconds, 5 rows, and a score from every evaluator on every row. A row that shows "Error" for one evaluator is a failed judge call ([troubleshooting](../troubleshooting.md)); the run still says completed.
+   Expected: status **Completed** after about 40 seconds, 5 rows, and a score from every evaluator on every row. An "Error" cell is a failed judge call ([troubleshooting](../troubleshooting.md)); the run still says completed.
 
-5. Sanitize each run's downloads into the files committed in the evaluation folder.
+5. Sanitize each run's downloads into the committed files.
 
    ```bash
    for t in luna sol; do
@@ -370,7 +364,7 @@ Needs the development case's status snapshot (see "Add the case sources") and th
    done
    ```
 
-   Expected per target: `results-<target>-dev-outage-v1.jsonl: 5 rows; log-excerpt-<target>-dev-outage-v1.txt: 16 lines` (more when judge calls failed) and `run-<target>-dev-outage-v1.json written`. Exit code 1 with nothing written, and the field or identifier named, when a copy of the status text or an identifier remains.
+   Expected per target: `results-<target>-dev-outage-v1.jsonl: 5 rows; log-excerpt-<target>-dev-outage-v1.txt: 16 lines` (more when judge calls failed) and `run-<target>-dev-outage-v1.json written`. Exit code 1, nothing written, and the field named when status text or an identifier remains.
 
 6. Check every quote against the updates, then break one on purpose.
 
@@ -395,11 +389,9 @@ Needs the development case's status snapshot (see "Add the case sources") and th
 
    Expected: each run's scores per question, the means, and the answer and judge tokens, then `Score part of the rule: met. Read question 5 by hand.` and exit code 0.
 
-   A line `errored evaluator calls: ...` names scores the judge did not return; a missing completeness or groundedness score makes the script print `None against ...` and exit 1. Then either show that the missing score cannot change the outcome, as the 2026-10-26 run did in the [evaluation folder](../../eval/model-selection/dev-outage-v1/README.md), or run that model's evaluation again.
+   `errored evaluator calls: ...` names scores the judge did not return; a missing completeness or groundedness score prints `None against ...` and exits 1. Then show that the missing score cannot change the outcome, as the 2026-10-26 run did ([evaluation folder](../../eval/model-selection/dev-outage-v1/README.md)), or run that evaluation again. Last, read question 5 in each results file: the answer says the updates do not contain the cause and names none.
 
-   Last, read question 5 in each results file: the answer says the updates do not contain the cause and names none.
-
-8. Remove the role from step 3, and check that Hindcast's own calls still work with the project-scope role alone. While a role at resource scope is assigned it also covers the project, so the claim that Foundry User on the project is enough cannot fail ([#9](https://github.com/sindredg/hindcast/issues/9)). Run it in the shell of step 3, which set `ME`, `RES_ID`, and `ENDPOINT`.
+8. Remove the role from step 3 and check that Hindcast's calls work on the project-scope role alone; while a resource-scope role exists, that claim cannot fail ([#9](https://github.com/sindredg/hindcast/issues/9)). Uses `ME`, `RES_ID`, and `ENDPOINT` from step 3.
 
    ```bash
    az role assignment delete --assignee "$ME" --role "Cognitive Services OpenAI User" --scope "$RES_ID"

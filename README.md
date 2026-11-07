@@ -2,7 +2,7 @@
 
 Evidence-grounded AI investigations of infrastructure outages.
 
-Hindcast's AI agent reconstructs an outage from the provider's public status updates and charts: the likely root cause, the contributing factors, and the open questions, with a citation on every claim and an abstention where the evidence does not reach. Each reconstruction is scored against the provider's later postmortem, which the investigator never sees.
+An AI agent reconstructs an outage from the provider's public status updates and charts: root cause, contributing factors, open questions, a citation on every claim, an abstention where the evidence stops. Each reconstruction is scored against the provider's later postmortem, which the investigator never sees.
 
 On this page: [Highlights](#highlights) · [How it works](#how-it-works) · [Architecture](#architecture) · [The page](#the-page) · [Results](#results) · [What an investigation returns](#what-an-investigation-returns) · [Status](#status) · [Development](#development) · [Documentation](#documentation)
 
@@ -29,7 +29,7 @@ Each step has a diagram on the [architecture page](docs/architecture/README.md).
 
 ## Architecture
 
-An Entra-protected page on Azure Container Apps runs the Foundry agent with its managed identity. Blob Storage holds the sources and evidence, Azure AI Search the postmortem library, and Application Insights the traces. Answer keys stay outside the index. One Bicep template builds all of it, and all of it has since been removed; the code, the data, and the results stay. The [architecture page](docs/architecture/README.md) describes each part, and [reproduce](docs/reproduce.md) orders the runbooks for a second build.
+An Entra-protected page on Azure Container Apps runs the Foundry agent with its managed identity; Blob Storage holds the evidence, Azure AI Search the library, Application Insights the traces. One Bicep template builds it all, and all of it has been removed; the code, data, and results stay. Parts: [architecture](docs/architecture/README.md). Rebuild: [reproduce](docs/reproduce.md).
 
 **The deployed environment**
 
@@ -69,7 +69,7 @@ Five further outages were sealed before their providers published a cause ([deci
 | GitHub, 2026-10-22 | 2026-11-01 and 2026-11-02 | [githubstatus.com](https://www.githubstatus.com/incidents/wq8305lppdc2) |
 | GitHub, 2026-11-04 (pull requests) | 2026-11-04 | [githubstatus.com](https://www.githubstatus.com/incidents/smtdswd1h2w4) |
 
-The dataset is small, the library holds 23 documents, and no showcase outage was an attack, so attack detection and retrieval quality are not measured. The report lists every limit.
+Four cases, a 23-document library, and no attack among them: attack detection and retrieval quality are not measured. The report lists every limit.
 
 ## What an investigation returns
 
@@ -78,7 +78,7 @@ The dataset is small, the library holds 23 documents, and no showcase outage was
 - An attack assessment, including "cannot tell" when the evidence is insufficient.
 - Citations, validation results, provenance, usage, and cost.
 
-Three checks govern the answer: **citations** to evidence the run never saw are removed, and earlier postmortems cannot support a claim alone; **unsupported items** stay visible and flagged; **safety** screens every input and masks personal data, and a failed check or an exceeded limit leaves the run incomplete. See the [result example and rules](docs/architecture/investigation-results.md).
+Citations to evidence the run never saw are removed; unsupported items stay visible and flagged; inputs are screened and personal data masked; a failed check leaves the run incomplete ([example and rules](docs/architecture/investigation-results.md)).
 
 ## Status
 

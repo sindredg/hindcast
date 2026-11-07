@@ -1,29 +1,20 @@
 # Investigator: operator procedure
 
-Status: Written on 2026-10-30. Steps 1 to 4 and 6 to 9 ran on 2026-11-03, step 5 on 2026-10-30, and step 12 on 2026-11-07 ([worklog 04](../worklogs/04-investigator.md)), except where an "Expected:" line is marked as reasoned.
+Status: Written on 2026-10-30. Steps 1 to 4 and 6 to 9 ran on 2026-11-03, step 5 on 2026-10-30, step 12 on 2026-11-07 ([worklog 04](../worklogs/04-investigator.md)), except "Expected:" lines marked as reasoned.
 
-The procedure runs one investigation of a case through the investigator prompt agent, reads the result, challenges a finding, and finds the run's trace. A run makes:
-
-- at most 13 model calls on the investigator deployment;
-- for each library search, one embedding call and one query to the search service;
-- a few Prompt Shields calls: one document for the title and for each update, chart, and hit, five documents per call;
-- one PII call per five answer fields and search queries.
+A run makes at most 13 model calls; per library search one embedding call and one search query; Prompt Shields calls (one document per title, update, chart, and hit, five per call); one PII call per five answer fields and search queries.
 
 On this page: [Inputs and access](#inputs-and-access) · [Check the evidence](#check-the-evidence) · [Give the developer the safety role](#give-the-developer-the-safety-role) · [Run an investigation](#run-an-investigation) · [Read the result](#read-the-result) · [Challenge a finding](#challenge-a-finding) · [Find the trace](#find-the-trace) · [Remove the agents and the role](#remove-the-agents-and-the-role) · [Read a scored run on the page](#read-a-scored-run-on-the-page)
 
 ## Inputs and access
 
-- The [foundations runbook](foundations.md) and the [extraction runbook](extraction.md) completed: `.env` written, and the case evidence under `build/evidence/<case_id>.json`.
-- The [retrieval runbook](retrieval.md) completed: the library index built, and `HINDCAST_SEARCH_ENDPOINT`, `HINDCAST_SEARCH_INDEX`, `HINDCAST_EMBEDDING_ENDPOINT`, and `HINDCAST_EMBEDDING_DEPLOYMENT` in `.env`. The command refuses to start without them.
-- `HINDCAST_SAFETY_ENDPOINT` in `.env`: the Foundry resource endpoint, `https://<resource>.services.ai.azure.com/`, the same value as `HINDCAST_EMBEDDING_ENDPOINT`.
-- `APPLICATIONINSIGHTS_CONNECTION_STRING` in `.env` for traces. Without it the commands run and send no telemetry.
-- The library extracts under `build/extracted/library/`: every hit is checked against them.
-- Signed in with `az login` as a user with Foundry User on the project (agent versions, deployment reads, agent calls), Search Index Data Contributor on the search service (queries), Cognitive Services OpenAI User on the Foundry resource (query embeddings), and the custom role from step 2 (Prompt Shields and PII detection). Creating the role needs Owner or User Access Administrator on the resource group.
+- The [foundations](foundations.md), [extraction](extraction.md), and [retrieval](retrieval.md) runbooks completed: `.env` with `HINDCAST_SEARCH_ENDPOINT`, `HINDCAST_SEARCH_INDEX`, `HINDCAST_EMBEDDING_ENDPOINT`, `HINDCAST_EMBEDDING_DEPLOYMENT`, `HINDCAST_SAFETY_ENDPOINT` (`https://<resource>.services.ai.azure.com/`), and `APPLICATIONINSIGHTS_CONNECTION_STRING` (without it, no telemetry); evidence under `build/evidence/`, extracts under `build/extracted/library/`.
+- `az login` with Foundry User on the project, Search Index Data Contributor on the search service, Cognitive Services OpenAI User on the Foundry resource, and the custom role from step 2 (creating it needs Owner or User Access Administrator on the resource group).
 - Commands run from the repository root.
 
 ## Check the evidence
 
-1. Confirm the case's evidence file is present. If it is not, `python -m hindcast.ingest evidence` writes it (extraction runbook).
+1. Confirm the evidence file exists (else `python -m hindcast.ingest evidence`, extraction runbook).
 
    ```bash
    ls build/evidence/cloudflare-2026-02-20.json
@@ -33,7 +24,7 @@ On this page: [Inputs and access](#inputs-and-access) · [Check the evidence](#c
 
 ## Give the developer the safety role
 
-2. Create a role with the two data actions Prompt Shields and PII detection need, and assign it on the Foundry resource. No built-in role holds just these two ([finding](../findings/safety.md)). The loop retries the assignment while the new role replicates.
+2. Create a role with the two data actions Prompt Shields and PII detection need (no built-in role holds just these two, [finding](../findings/safety.md)) and assign it on the Foundry resource. The loop retries while the role replicates.
 
    ```bash
    RG=$(az group show -n <resource-group> --query id -o tsv) && RID=$(az cognitiveservices account show -g <resource-group> -n <foundry-resource> --query id -o tsv) && ME=$(az ad signed-in-user show --query id -o tsv) && az role definition create --query roleName -o tsv --role-definition "{\"Name\":\"Hindcast Safety Caller\",\"Description\":\"Prompt Shields and PII detection on the Hindcast Foundry resource\",\"Actions\":[],\"DataActions\":[\"Microsoft.CognitiveServices/accounts/ContentSafety/text:shieldprompt/action\",\"Microsoft.CognitiveServices/accounts/Language/analyze-text/action\"],\"AssignableScopes\":[\"$RG\"]}" && for i in $(seq 1 20); do az role assignment create --assignee-object-id "$ME" --assignee-principal-type User --role "Hindcast Safety Caller" --scope "$RID" --query roleDefinitionName -o tsv && date -u +%H:%M:%SZ && break; sleep 15; done
@@ -41,7 +32,7 @@ On this page: [Inputs and access](#inputs-and-access) · [Check the evidence](#c
 
    Expected: `Hindcast Safety Caller`, then a UTC time. On 2026-11-03 the assignment printed only the time; `az role assignment list --assignee <object-id> --scope <resource-id>` then listed `Hindcast Safety Caller`.
 
-3. Check that both services answer with a benign text and a made-up name. The grant took about 2.5 minutes on 2026-11-03; until then each call raises `ScreenError: HTTP 401 PermissionDenied` or `PiiError: ...`.
+3. Check both services with a benign text and a made-up name. The grant took about 2.5 minutes on 2026-11-03; until then `ScreenError: HTTP 401 PermissionDenied` or `PiiError: ...`.
 
    ```bash
    set -a; . ./.env; set +a
@@ -51,17 +42,17 @@ On this page: [Inputs and access](#inputs-and-access) · [Check the evidence](#c
    PYTHONPATH=src uv run --frozen python -c "from hindcast.config import SafetySettings, load_settings; from hindcast.safety import pii_client, shield_client; s = load_settings(SafetySettings); print(shield_client(s).documents(['The resolver returned errors for some queries.'], timeout=10)); print([h.category for h in pii_client(s)(['Jane Doe paged the on-call engineer.'], timeout=10)[0]])"
    ```
 
-   Expected, as observed on 2026-11-03: `[False]`, then `['Person']`. The role in "the on-call engineer" is not reported.
+   Expected, as observed on 2026-11-03: `[False]`, then `['Person']`. The role "the on-call engineer" is not reported.
 
 ## Run an investigation
 
-4. Run the investigator on the development case.
+4. Run the investigator on the development case (prefix `HINDCAST_CHAT_DEPLOYMENT=gpt-6.1-sol` for the comparison model).
 
    ```bash
    PYTHONPATH=src uv run --frozen --env-file .env python -m hindcast.investigate cloudflare-2026-02-20
    ```
 
-   Expected, as observed on 2026-11-03 with prompt v3 (the counts, the usage, and the cost vary per run):
+   Expected, as observed on 2026-11-03 with prompt v3 (counts, usage, and cost vary per run):
 
    ```
    complete
@@ -73,20 +64,7 @@ On this page: [Inputs and access](#inputs-and-access) · [Check the evidence](#c
    build/investigations/cloudflare-2026-02-20/20261103T171237Z-v3.json
    ```
 
-   For the comparison model, prefix the command with `HINDCAST_CHAT_DEPLOYMENT=gpt-6.1-sol`.
-
-   The first run creates agent `hindcast-investigator-<deployment>` version 1 in the project, with any character Foundry refuses in a name replaced by a hyphen (`gpt-6.1-sol` gives `hindcast-investigator-gpt-6-1-sol`). A later run reuses the latest version while `prompts/investigator.md`, the tools, the schema, and the effort are unchanged, and creates the next version when any of them changes.
-
-   Other outcomes:
-
-   - A run that stops early prints `incomplete: <reason>` (`tool-cap`, `time-cap`, `model-error: ...`, `tool-error: ...`, `screen-error: ...`, `empty-result`, `schema: ...`, or `pii-error: ...`) and still writes the file.
-   - A search that cannot reach the service ends the run as `tool-error: search_library: ...`; on 2026-11-02 one run ended that way while the search endpoint dropped TLS connections for a few minutes ([troubleshooting](../troubleshooting.md)).
-   - A model call that fails (a 429, a refused request, a dropped connection) ends the run as `model-error: <type>`, and a cut response (an output limit or a content filter) as `model-error: response <status>: <reason>`; both write the file with the usage so far. A refusal inside a completed response has no output text and ends as `empty-result` (all three reasoned from the tests; not yet seen live).
-   - A deployment missing from `data/prices.yaml` is refused before the agent version is made.
-
-   The output above is from before the case title was screened too (commit `a43af94`); a run now sends one more text to Prompt Shields.
-
-   A withheld item means Prompt Shields flagged it. On the development case, none was on 2026-11-03; a flag there is a false positive to record before anything else changes.
+   The first run creates agent `hindcast-investigator-<deployment>` version 1 (a refused character becomes a hyphen: `hindcast-investigator-gpt-6-1-sol`); later runs reuse it while `prompts/investigator.md`, the tools, the schema, and the effort are unchanged. A run that stops early prints `incomplete: <reason>` (`tool-cap`, `time-cap`, `model-error: ...`, `tool-error: ...`, `screen-error: ...`, `empty-result`, `schema: ...`, `pii-error: ...`) and still writes the file; on 2026-11-02 one ended `tool-error: search_library: ...` while the search endpoint dropped TLS connections ([troubleshooting](../troubleshooting.md)). Since commit `a43af94` the case title is screened too. A withheld item is a Prompt Shields flag; none on the development case on 2026-11-03.
 
 5. A showcase case is refused until the rubric is frozen.
 
@@ -109,18 +87,18 @@ On this page: [Inputs and access](#inputs-and-access) · [Check the evidence](#c
    | Line | Value |
    |---|---|
    | `agent`, `model` | `hindcast-investigator-gpt-6-luna` version `3`; `gpt-6-luna`, `2026-09-22` |
-   | `provenance` | the prompt blob hash (or SHA-256 with `dirty: True`), the commit with its dirty flag, the evidence SHA-256, and the library: registry blob, `hindcast-library-1024`, search API `2026-04-01`, `text-embedding-3-large` version `1` at 1,024 dimensions |
-   | `status`, `checks` | `complete`; empty `rejected_citations`, `unsupported`, and `pii` lists for a run that passes |
-   | `usage`, `cost` | `screen_calls 5` and `pii_calls 6`; the cost by part with `table_version 1` |
-   | One line per tool call | `list_updates`, `list_charts`, and each `search_library`, with its seconds, the refs it showed, the refs it withheld (`[]`), and its screen calls (2, 1, and 2) |
+   | `provenance` | prompt blob hash (or SHA-256 with `dirty: True`), commit with dirty flag, evidence SHA-256, library: registry blob, `hindcast-library-1024`, search API `2026-04-01`, `text-embedding-3-large` version `1` at 1,024 dimensions |
+   | `status`, `checks` | `complete`; empty `rejected_citations`, `unsupported`, and `pii` lists |
+   | `usage`, `cost` | `screen_calls 5` and `pii_calls 6`; cost by part with `table_version 1` |
+   | One line per tool call | `list_updates`, `list_charts`, each `search_library`: seconds, refs shown, refs withheld (`[]`), screen calls (2, 1, and 2) |
 
-7. Read the investigation itself under `investigation` in the same file. Each item's `citations` name updates (`<case_id>/u<n>`) or charts (`<case_id>/chart<n>`) of the case, or library sections and figures (`source: library`, `lib/<document>/s<n>` or `fig<n>`); `rests_on` names the findings an inference rests on. Compare each item with the update it cites in `build/evidence/<case_id>.json`, and each library citation with its section in `build/extracted/library/<document>.json`.
+7. Read `investigation` in the same file: `citations` name updates (`<case_id>/u<n>`), charts (`<case_id>/chart<n>`), or library refs (`source: library`, `lib/<document>/s<n>` or `fig<n>`); `rests_on` names findings. Compare with `build/evidence/<case_id>.json` and `build/extracted/library/<document>.json`.
 
-   Expected: every cited update or chart exists in the evidence file and was shown to the model, and every library ref is one the run's searches showed; the checks have already removed any that did not. Reasoned: this step is a reading, and what it found is in the worklog, for [slice 1](../worklogs/04-investigator.md#live-run), [slice 2](../worklogs/04-investigator.md#slice-2-the-library-search-tool), and [slice 3](../worklogs/04-investigator.md#slice-3-live-runs).
+   Expected: every cited update or chart exists in the evidence file and was shown to the model, and every library ref is one the run's searches showed. Reasoned; the readings are in the worklog, for [slice 1](../worklogs/04-investigator.md#live-run), [slice 2](../worklogs/04-investigator.md#slice-2-the-library-search-tool), and [slice 3](../worklogs/04-investigator.md#slice-3-live-runs).
 
 ## Challenge a finding
 
-8. Challenge one finding of a stored result. The challenger runs on the result's own deployment, and the challenge is written next to the result under `challenges/`. The command refuses, before any cloud call, an incomplete result, an unknown finding, an empty or over-long question, and an evidence file that differs from the one the result was made from.
+8. Challenge one finding. The challenger runs on the result's deployment, writes under `challenges/`, and refuses before any cloud call an incomplete result, an unknown finding, an empty or over-long question, or a changed evidence file.
 
    ```bash
    PYTHONPATH=src uv run --frozen --env-file .env python -m hindcast.challenge eval/investigations/cloudflare-2026-02-20/20261103T171237Z-v3.json F4 "Which status update shows this, and does any later update contradict it?"
@@ -136,9 +114,7 @@ On this page: [Inputs and access](#inputs-and-access) · [Check the evidence](#c
    eval/investigations/cloudflare-2026-02-20/challenges/20261103T174623Z-F4.json
    ```
 
-   The first challenge on a deployment creates agent `hindcast-challenger-<deployment>` version 1. A question that Prompt Shields flags prints `refused: prompt-shields` and makes no model call.
-
-   To challenge from the page instead, start it with the live flag; each finding then has a question box. The deployed page has the same box and runs it with the app's identity ([deployment runbook](deployment.md)).
+   The first challenge on a deployment creates agent `hindcast-challenger-<deployment>` version 1. A flagged question prints `refused: prompt-shields` with no model call. With the live flag the page has a question box per finding; the deployed page runs it with the app's identity ([deployment runbook](deployment.md)).
 
    ```bash
    HINDCAST_LIVE=1 PYTHONPATH=src uv run --frozen --env-file .env streamlit run src/hindcast/app.py
@@ -148,7 +124,7 @@ On this page: [Inputs and access](#inputs-and-access) · [Check the evidence](#c
 
 ## Find the trace
 
-9. List the latest Hindcast spans in Application Insights. The query reads with the developer's sign-in; spans arrive within about a minute.
+9. List the latest Hindcast spans in Application Insights (developer's sign-in; spans arrive within about a minute).
 
    ```bash
    APP=$(az resource show -g <resource-group> -n <application-insights> --resource-type Microsoft.Insights/components --query properties.AppId -o tsv) && az monitor app-insights query --apps "$APP" --offset 1h --analytics-query "dependencies | where cloud_RoleName == 'hindcast-investigator' and name in ('investigation', 'challenge', 'model_call', 'tool_call', 'screen', 'pii') | top 9 by timestamp desc | project timestamp, name, seconds = tostring(customDimensions.seconds), time_left = tostring(customDimensions.time_left), status = tostring(customDimensions.status)" --query "tables[0].rows" -o tsv
@@ -165,13 +141,11 @@ On this page: [Inputs and access](#inputs-and-access) · [Check the evidence](#c
    2026-11-03T17:46:09.034348Z	screen
    ```
 
-   Each `model_call` shows its seconds and the time left at its start; the first is never larger than the second. Spans carry counts and times, never text. `--app <name>` instead of `--apps <app ID>`, or a column named `first` or `kind`, fails with `BadArgumentError`.
-
-   Since commit `2768ef5`, after this output, the `challenge` span starts before the question's `screen` span and is its parent, so the `challenge` row sorts below `screen` (reasoned). A challenge started from the page runs in the page's process and traces under `hindcast-web`; filter on that role for it (reasoned).
+   Spans carry counts and times, never text. `--app <name>`, or a column named `first` or `kind`, fails with `BadArgumentError`. Since commit `2768ef5` the `challenge` span parents the question's `screen` span and sorts below it (reasoned). A page challenge traces under `hindcast-web` (reasoned).
 
 ## Remove the agents and the role
 
-10. The agents stay in the project between runs. Delete them when the project is torn down, or to start the version count again: `hindcast-investigator-gpt-6-luna`, `hindcast-investigator-gpt-6-1-sol`, `hindcast-challenger-gpt-6-luna`, and `hindcast-challenger-gpt-6-1-sol`.
+10. Delete the agents at teardown: `hindcast-investigator-gpt-6-luna`, `hindcast-investigator-gpt-6-1-sol`, `hindcast-challenger-gpt-6-luna`, `hindcast-challenger-gpt-6-1-sol`.
 
     ```bash
     PYTHONPATH=src uv run --frozen --env-file .env python -c "from hindcast.models import project_client; print(project_client().agents.delete('hindcast-investigator-gpt-6-luna'))"
@@ -189,7 +163,7 @@ On this page: [Inputs and access](#inputs-and-access) · [Check the evidence](#c
 
 ## Read a scored run on the page
 
-12. Start the page without the live flag from the repository root, open it in a browser, set "Results" to "Scored showcase runs", pick a run, and open its Score tab. No model is called.
+12. Start the page without the live flag, set "Results" to "Scored showcase runs", pick a run, open its Score tab.
 
     ```bash
     PYTHONPATH=src uv run --frozen streamlit run src/hindcast/app.py
