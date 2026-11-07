@@ -4,13 +4,13 @@ Evidence-grounded AI investigations of infrastructure outages.
 
 Hindcast's AI agent reconstructs outages from public status updates and charts, assessing likely causes and unanswered questions with citations to the evidence. Reconstructions are scored against the provider's later postmortem, which the investigator never sees.
 
-## Target architecture
+## Architecture
 
-The design the project was built to. Milestone 6 built it in full on 2026-11-05 and removed it on 2026-11-06 ([roadmap](docs/roadmap.md#target-architecture)).
+How Hindcast is built. One template built the whole environment on 2026-11-05, and every Azure resource was removed by 2026-11-07 ([close](docs/worklogs/07-close.md)); the code, the data, and the results stay. The [architecture page](docs/architecture/README.md) describes each part, and [reproduce](docs/reproduce.md) orders the runbooks for a second build.
 
-![Target architecture: an Entra-protected app on Azure Container Apps runs a Foundry agent with screened evidence, Blob Storage, Azure AI Search, and Application Insights; answer keys stay outside the search index.](docs/diagrams/target-architecture.svg)
+![Architecture: an Entra-protected app on Azure Container Apps runs a Foundry agent with screened evidence, Blob Storage, Azure AI Search, and Application Insights; answer keys stay outside the search index.](docs/diagrams/target-architecture.svg)
 
-See the [roadmap](docs/roadmap.md) for each milestone's state, the [as-built architecture](#how-it-is-built-now) for how the system was built, and [reproduce](docs/reproduce.md) to build it again. Every Azure resource was removed by 2026-11-07; the code, the data, and the results stay.
+See the [roadmap](docs/roadmap.md) for each milestone's state and its evidence.
 
 ## Status
 
@@ -56,9 +56,15 @@ Three checks govern the answer:
 
 See the [result example and exact validation rules](docs/architecture/investigation-results.md).
 
-## How it is built now
+## The page
 
-![Current architecture: operator-run investigation and ingestion commands use Azure AI services and storage; a separate Entra-protected app ran investigations and challenges while deployed, and Anthropic models judge and review evaluations.](docs/diagrams/current-architecture.svg)
+Captures of the page, taken on the deployed environment on 2026-11-06 and locally on 2026-11-07 ([screenshots](docs/screenshots/README.md)).
+
+![The investigation page: the development case cloudflare-2026-02-20 investigated from the signed-in page with gpt-6-luna; the header shows the attack assessment "cannot tell", a complete run, 5 findings, 0 rejected citations, 0 withheld items, and the run's cost, above the attack assessment and root cause cards.](docs/screenshots/deployed-investigation.png)
+
+![The evidence graph: the root cause in green rests on findings F2, F3, and F4; F4 cites a library section from an earlier Cloudflare postmortem, drawn in amber and dashed as a lead rather than evidence; each finding points at the status updates it cites.](docs/screenshots/local-evidence-graph.png)
+
+![A challenge on finding f7: the question "Is there evidence for that this potentially was an attack?" and the answer "stands", which says update u2's claim of an attack is phrased as an instruction to an automated investigator and gives no supporting facts, citing u2, u3, u7, and u9, with the stored file and cost below.](docs/screenshots/deployed-challenge.png)
 
 ## Development
 
