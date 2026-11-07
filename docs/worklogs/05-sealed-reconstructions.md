@@ -197,7 +197,7 @@ Each step ran from the [sealing runbook](../runbooks/sealing.md#reveal-a-seal), 
 | Score | `hindcast.evaluation.score --root eval/reconstruction/sealed-v1` | `runs 2, open review items 0`; both runs 1.00 |
 | Spend | `hindcast.evaluation.spend --sealed` | judge USD 0.17, reviewer USD 0.56, total USD 0.73 |
 
-The reveal, the judge, and the reviewer ran from commits on `feat/m5-reveal-close`, committed and clean: the reveal before its own record commit, the judge and reviewer from `ce12ac8`. The results and the error analysis are in the [sealed report](../../eval/reconstruction/sealed-v1/README.md).
+The reveal did not run from a commit. It ran at 10:30:54Z from an uncommitted tree on `e12c856`: the reveal code, the role change, the key, and the labels were committed afterwards, at 10:34:54Z, with the reveal's output (`e8dbfc0` to `dfdd563`), so runbook step 18 was skipped. What shows that the key and labels were fixed before the seals were opened is the code's order and the key's and labels' hashes in `reveals.json`, not the history. The reveal now refuses a tree with uncommitted changes and records the commit it ran from (`17c864f`). The judge and the reviewer ran from `ce12ac8`, committed and clean, as their judgment files record. The results and the error analysis are in the [sealed report](../../eval/reconstruction/sealed-v1/README.md).
 
 The first judge call was refused: `NotFrozen: the judge prompt, the rubric, or the settings differ from eval/judge/frozen.json`. The judge's lock names rubric version 2, and version 3 changed the title line the system prompt carries ([troubleshooting](../troubleshooting.md#evaluation-the-judge-refuses-a-later-run-after-the-rubric-moved-to-version-3-2026-11-07)). The judge now rebuilds the locked system prompt from the history, and the two revealed runs were judged with the same system prompt as the showcase runs (`9de219e1…`).
 
@@ -219,10 +219,17 @@ Every new check was run once against a broken input on 2026-11-07, locally, and 
 | `revealed` left out of the whole-library roles | `test_revealed_case_keeps_the_whole_library` |
 | Revealed refusal removed from `check_case_allowed` | `test_investigate_refuses_a_revealed_case` |
 | The rubric lock check ignores added entries | `test_the_lock_check_fails_on_a_changed_or_unrevealed_entry` |
+| After the review: the reveal's registry-hash refusal removed | `test_each_broken_step_refuses_before_anything_is_written[registry-…]` |
+| After the review: the reveal's target-exists refusal removed | `test_each_broken_step_refuses_before_anything_is_written[target-…]` |
+| After the review: `<=` made `<` in the publication-time check | `test_each_broken_step_refuses_before_anything_is_written[boundary-…]` |
+| After the review: the reveal's clean-tree check removed | `test_a_ready_case_is_revealed_and_recorded`, `test_each_broken_step_refuses_before_anything_is_written[dirty-…]` |
+| After the review: the no-resolved-update refusal removed | `test_the_publication_time_comes_from_the_captured_file` |
+| After the review: a revealed role without a reveal record not reported | `test_the_record_check_fails_on_each_broken_record` |
+| After the review: a key or labels file that differs from its reveal record not reported | `test_the_record_check_fails_on_each_broken_record` |
 
 `test_each_broken_step_refuses_before_anything_is_written` also covers a wrong role, a changed key, missing labels, changed evidence, a changed snapshot, and a changed sealed file, each with the seal record unchanged and nothing written. One planned broken input proved nothing: removing the judge's separate system-hash comparison left every test passing, because the rebuilt record already holds that hash, so the comparison was removed as redundant.
 
-Test suite after the reveal: `uv run --frozen pytest -q` → 1004 passed, locally with the captured sources present; ruff, ruff format, and pyright clean.
+Test suite after the reveal: `uv run --frozen pytest -q` → 1004 passed, locally with the captured sources present; ruff, ruff format, and pyright clean. After the review's fixes: 1009 passed.
 
 ### Issues
 

@@ -4,7 +4,7 @@ Status: Written on 2026-11-01; the reveal validated on 2026-11-07.
 
 - Steps 1 to 10 ran on 2026-11-01 with the output shown, for the first series (`library: false`).
 - Updated on 2026-11-02 for the second series, with the library search (`library: true`): steps 7 to 10 ran on 2026-11-02 for it ([worklog 05](../worklogs/05-sealed-reconstructions.md#second-seals-with-the-library-2026-11-02)).
-- [Reveal a seal](#reveal-a-seal) ran on 2026-11-07 for `github-2026-11-04-actions`, steps 11 to 24 with the output shown. [Drop a seal](#drop-a-seal) is written, not run: its date is 2026-11-30.
+- [Reveal a seal](#reveal-a-seal) ran on 2026-11-07 for `github-2026-11-04-actions`, steps 11 to 24 with the output shown, except step 18: the registry, the key, and the labels were committed after the reveal, with its output. The reveal has refused an uncommitted tree since. [Drop a seal](#drop-a-seal) is written, not run: its date is 2026-11-30.
 - Since 2026-11-03 a seal runs with Prompt Shields on every tool item, the PII check on the answer, spans, and a cost ([milestone 4, slice 3](../worklogs/04-investigator.md#slice-3-screens-pii-challenge-traces-and-cost)).
 - Steps 1 to 10 ran again on 2026-11-04 for two GitHub outages of that day, second series, with the screens on: four seals, all `complete` on the first attempt ([worklog 05](../worklogs/05-sealed-reconstructions.md#third-seals-two-github-outages-of-2026-11-04)).
 
@@ -164,10 +164,10 @@ Each seal makes at most 13 model calls on the deployment it names and, in the se
 
 Steps 11 to 24 ran on 2026-11-07 for `github-2026-11-04-actions`, offline except for the capture and the Claude API calls ([worklog 05](../worklogs/05-sealed-reconstructions.md#reveal-github-2026-11-04-actions-2026-11-07)). Needs the sealed files under `build/sealed/`, the case's library snapshot under `build/sealed-library/`, the evidence under `build/evidence/`, and for steps 21 to 23 an Anthropic API key in `.env` ([evaluation runbook](evaluation.md#inputs-and-access)).
 
-11. Check whether the provider has published a cause. For a GitHub or Cloudflare case, read the resolved update of the incident:
+11. Check whether the provider has published a cause. For a GitHub or Cloudflare case, read the resolved update of the incident, with `<status-host>` set to `www.githubstatus.com` or `www.cloudflarestatus.com`:
 
     ```bash
-    curl -s https://www.githubstatus.com/api/v2/incidents/<incident_id>.json | python3 -I -c "import json,sys; u=[u for u in json.load(sys.stdin)['incident']['incident_updates'] if u['status']=='resolved'][0]; print(u['updated_at'], len(u['body'].split()), 'words')"
+    curl -s https://<status-host>/api/v2/incidents/<incident_id>.json | python3 -I -c "import json,sys; u=[u for u in json.load(sys.stdin)['incident']['incident_updates'] if u['status']=='resolved'][0]; print(u['updated_at'], len(u['body'].split()), 'words')"
     ```
 
     Expected: the update's `updated_at` and its length. A placeholder ("A detailed root cause analysis will be shared as soon as it is available") is 31 words; a summary of the cause runs well over 100. Also check the provider's blog or incident report. Observed on 2026-11-07 for `xr3myzj7ms51`: `2026-11-07T01:04:38.642Z 249 words`.
@@ -175,10 +175,10 @@ Steps 11 to 24 ran on 2026-11-07 for `github-2026-11-04-actions`, offline except
 12. Capture the postmortem under a new name. For a status snapshot:
 
     ```bash
-    PYTHONPATH=src uv run --frozen python -m hindcast.capture status --provider GitHub --incident <incident_id> --out data/sources/<case_id>/github-summary-<case_id-date>.json
+    PYTHONPATH=src uv run --frozen python -m hindcast.capture status --provider GitHub --incident <incident_id> --out data/sources/<case_id>/<summary-file>.json
     ```
 
-    Expected: `url:`, `retrieved_at:`, and `sha256:`. Observed: `retrieved_at: "2026-11-07T10:22:42Z"`, `sha256: 76af8617…`. The case's `status-updates` source stays the snapshot the seals used.
+    `<summary-file>` is a new name, such as `github-summary-2026-11-04-actions`. Expected: `url:`, `retrieved_at:`, and `sha256:`. Observed: `retrieved_at: "2026-11-07T10:22:42Z"`, `sha256: 76af8617…`. The case's `status-updates` source stays the snapshot the seals used.
 
 13. In `data/cases.yaml`, add the capture as a `postmortem` source with the three printed values, change the role to `revealed` ([decision 0030](../decisions/0030-close-evaluation-with-sealed-addenda.md)), and add a comment that says when the cause was published. Run the registry tests.
 
@@ -228,7 +228,7 @@ Steps 11 to 24 ran on 2026-11-07 for `github-2026-11-04-actions`, offline except
 
     Expected: `0 hits`, then `1 hits` naming the planted chunk. Observed: `14 unstated items, 8 evidence sources, 267 library chunks, 0 hits`; with `--plant`, `root_cause in planted: 15 shared 8-word runs`.
 
-18. Commit the registry, the key, and the labels.
+18. Commit the registry, the key, and the labels. The reveal refuses while `src/`, `data/cases.yaml`, `eval/keys/`, or `eval/sealed/` has uncommitted changes, and records the commit in `reveals.json`.
 
 19. Reveal.
 

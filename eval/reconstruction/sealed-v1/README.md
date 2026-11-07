@@ -6,8 +6,8 @@ The sealed reconstructions that have been revealed: each one made before its pro
 
 - **Revealed, verified on 2026-11-07:** `github-2026-11-04-actions`, both seals. The other four sealed cases have no published cause yet; each is revealed in its own addendum or dropped on 2026-11-30 ([pending cases](#pending-cases)).
 - **Frozen before the reveal:** the key at 10:27:30Z (SHA-256 `4d3d4633…`) and the labels right after (`57274146…`), both approved by a person; the leak check against the library snapshot at 10:27:51Z.
-- **Reveal, verified on 2026-11-07:** `python -m hindcast.reveal github-2026-11-04-actions` at 10:30:54Z; both files match their seals (`tests/test_sealed_reveal.py`, 4 passed).
-- **Judge and reviewer, verified on 2026-11-07:** judged from 10:40:31Z to 10:41:00Z and reviewed from 10:41:07Z to 10:42:00Z, from commit `ce12ac8`, with no error.
+- **Reveal, verified on 2026-11-07:** `python -m hindcast.reveal github-2026-11-04-actions` at 10:30:54Z; both files match their seals (`tests/test_sealed_reveal.py`, 4 passed). It ran from an uncommitted tree; the key, the labels, and the code were committed minutes later ([worklog 05](../../../docs/worklogs/05-sealed-reconstructions.md#reveal-github-2026-11-04-actions-2026-11-07)).
+- **Judge and reviewer, verified on 2026-11-07:** judged from 10:40:31Z to 10:41:00Z and reviewed from 10:41:07Z to 10:42:00Z, from commit `ce12ac8`, with no error; the reviewer's decisions were applied at 10:42:01Z.
 - **Scores, verified on 2026-11-07:** `python -m hindcast.evaluation.score --root eval/reconstruction/sealed-v1` wrote [`scores.json`](scores.json) with no open review item.
 
 ## Results
@@ -24,17 +24,19 @@ Both models scored 1.00 on the one revealed case, on four scorable items. The sc
 | `sealed/github-2026-11-04-actions/gpt-6-luna/a1` | gpt-6-luna, 2026-09-22 | 3 | 1.00 | 4 | 2 | 2 | 7 | 0, 0, 0 |
 | `sealed/github-2026-11-04-actions/gpt-6.1-sol/a1` | gpt-6.1-sol, 2026-09-29 | 2 | 1.00 | 4 | 2 | 2 | 7 | 0, 0, 0 |
 
-Both seals ran from commit `42c308a` with the library search on (`library: true` in [`seals.json`](../../sealed/seals.json)). `gpt-6.1-sol` kept two library citations; no claim rests on a library document alone, since no run item is unsupported.
+Both seals ran from commit `42c308a` with the library search on (`library: true` in [`seals.json`](../../sealed/seals.json)) and the investigator prompt `prompts/investigator.md` at blob `1d0911f4…`, the same prompt as the showcase `hindcast` and comparison arms; the comparison model ran in the agent's place. The judge ran prompt version 1 (`prompts/judge.md`, SHA-256 `afa416c0…`, system prompt `9de219e1…`), and the reviewer `prompts/reviewer.md` (`8ab121d8…`, system prompt `8d36cd06…`). `gpt-6.1-sol` kept two library citations; no claim rests on a library document alone, since no run item is unsupported.
 
 ### Judge and reviewer
 
-The reviewer decided all 22 items in the review queue (10 match decisions, 12 support decisions) and agreed with the judge on every one: 100 percent, Cohen's kappa 1.0 on the match decisions. Over every key item, judged in full by both, they agree on 21 of 22 match verdicts (95.5 percent, kappa 0.92) and on all 31 support verdicts. Scored by the judge alone or the reviewer alone, both runs score 1.00.
+The reviewer decided all 22 items in the review queue (10 match decisions, 12 support decisions) and agreed with the judge on every one: 100 percent, Cohen's kappa 1.0 on the match decisions. Over every key item, judged in full by both, they agree on 21 of 22 match verdicts (95.5 percent, kappa 0.92) and on all 31 support verdicts. The one disagreement is `timeline/0` on the `gpt-6.1-sol` run, outside the queue ([below](#a-timeline-hit-through-the-tolerance)). Scored by the judge alone or the reviewer alone, both runs score 1.00.
 
 ## Error analysis
 
 ### A timeline hit through the tolerance
 
 `timeline/1`, the rollback at 16:14, is labelled `not inferable`: u5 at 16:34 says mitigations were applied, with no time and no rollback. Both runs list u5's event at 16:34, and the judge matched it to the 16:14 rollback as "the same mitigation event, within 30 minutes". The reviewer agreed. The hit does not change the score: without it, `timeline/1` is a neutral miss and each run scores 3 of 3. It shows that the 30-minute tolerance can match an announcement to the action it reports even when the label says the action's time is not in the evidence ([issue #99](https://github.com/sindredg/hindcast/issues/99)).
+
+The same pattern is the one judge-reviewer disagreement. On the `gpt-6.1-sol` run, `timeline/0` (delays began at 15:49, `not inferable`) is `missed` by the judge: the run's first event, u1 at 16:05, is the incident opening, and the run says it is not the onset. The reviewer called it a supported hit, 16 minutes from 15:49 and inside the tolerance. The item was not in the review queue, so the judge's `missed` stands, and the run scores 1.00 either way.
 
 ### What the score cannot show
 
@@ -78,6 +80,7 @@ Each pending case is revealed by the [sealing runbook](../../../docs/runbooks/se
 - The key was drafted by hand, not by Content Understanding as the showcase keys were. The word-for-word quote check and the review by a person are the same.
 - The evidence ends at the resolved update at 17:01. GitHub's summary describes a second period of delays from 17:20 to 17:55, which no update covers.
 - The judge's system prompt was rebuilt from rubric version 2, the version its lock names; versions 2 and 3 differ in that prompt only in the title line.
+- The scores are not comparable with the showcase arms' columns. A sealed case has no single-search baseline (the comparison model runs in the agent's place, decision 0017), no prior-knowledge question (it began after both model versions were released), and no per-case library picks (it searches the whole library within its date bound).
 
 ## Files
 
