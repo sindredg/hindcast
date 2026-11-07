@@ -36,6 +36,8 @@ jobs:
       - run: uv run --frozen ruff format --check .
       - run: uv run --frozen pyright
       - run: uv run --frozen pytest -v
+      # Every relative Markdown link and heading anchor resolves.
+      - run: uv run --frozen python scripts/check_links.py .
 
   yaml:
     name: YAML and workflow lint
