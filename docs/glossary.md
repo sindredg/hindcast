@@ -1,6 +1,6 @@
 # Glossary
 
-The terms the page, the documentation, and the evaluation use, by category. The page's Glossary view shows the same rows, and its labels' help texts are these entries; the linked page has the detail.
+Definitions for terms used in the application, documentation, and evaluation. The application's glossary and help text use these same entries. Follow the links for implementation details.
 
 On this page: [Cases and data](#cases-and-data) · [Investigation](#investigation) · [Safety](#safety) · [Retrieval](#retrieval) · [Evaluation](#evaluation) · [Platform and operations](#platform-and-operations)
 
@@ -8,7 +8,7 @@ On this page: [Cases and data](#cases-and-data) · [Investigation](#investigatio
 
 | Term | Meaning |
 | --- | --- |
-| **Case** | One public infrastructure outage, registered in [`data/cases.yaml`](../data/cases.yaml) with its provider, public title, start time in UTC, role, and source files; a run is bound to one case in code. |
+| **Case** | One infrastructure outage registered in [`data/cases.yaml`](../data/cases.yaml). It records the provider, public title, UTC start time, purpose, and source files. Each investigation is restricted to one case. |
 | **Case role** | What a case is for: `showcase`, `development`, `injection`, `sealed`, or `revealed`; the role decides which sources it needs and where it may run. |
 | **Showcase case** | A scored case, refused by the investigate command until the rubric is frozen ([decision 0015](decisions/0015-investigation-result-and-citation-policy.md)). |
 | **Development case** | The one unscored case used to build and tune the investigator; its answer key is never scored. |
@@ -17,19 +17,20 @@ On this page: [Cases and data](#cases-and-data) · [Investigation](#investigatio
 | **Status update** | One entry a provider posted on its status page during the incident (a time, a status such as `investigating`, and text), with an ID of the form `<case_id>/u<n>`. |
 | **Status incident** | One incident record on a status page; a case can span several, each cut with its own resolved update and merged by time. |
 | **Resolved update** | The update that marks an incident resolved; the evidence keeps its time and status and withholds its text ([decision 0005](decisions/0005-evidence-library-and-answer-key.md)). |
-| **Evidence** | What the investigator may read about a case: every status update before the resolved one, the resolved update's time and status, and the chart descriptions; the cut fails closed. |
-| **Dropped entry** | A status-page entry the evidence cut removes and lists without its text: a report entry, an unknown entry type, or anything after the resolved update. |
-| **Postmortem** | The provider's published account of an outage's cause; it becomes the answer key and never reaches the investigator or the library. |
-| **Answer key** | A reviewed, frozen record of what a postmortem says, each item with a word-for-word quote, its SHA-256 checked by a test ([answer keys](../eval/keys/README.md)). |
+| **Evidence cut** | The incident-evidence filtering step: keep updates before resolution and the resolved update's time and status, but withhold its text and later entries. This prevents later explanations from reaching the investigator ([decision 0005](decisions/0005-evidence-library-and-answer-key.md)). |
+| **Evidence** | The information the investigator may read about the current outage: updates before resolution, the resolved update's time and status, and chart descriptions. If the filtering rules cannot be applied safely, preparation stops. |
+| **Dropped entry** | A status-page entry removed during evidence preparation, such as a report entry, an unknown entry type, or an entry after resolution. Its removal is recorded without its text. |
+| **Postmortem** | The provider's later incident report explaining an outage. The current case's postmortem is used to prepare the answer key and is hidden from the investigator. Reports from other, earlier outages may be included in the library. |
+| **Answer key** | The reviewed reference used to evaluate a reconstruction. It records the provider's account with an exact supporting quotation per item. Its contents are locked with a SHA-256 hash before evaluation ([answer keys](../eval/keys/README.md)). |
 | **Stated during incident** | A mark on an answer-key item the provider already told the public in an update before the resolved one; the leak check skips such items. |
 | **Chart** | A Cloudflare Radar image of traffic or routing for a case, committed under CC BY 4.0 ([charts](../data/charts/README.md)); the model reads it only through its alt text and description. |
 | **Chart description** | The chart analyzer's text about a chart image: model output, so the investigator treats it as a lead to check against the updates. |
-| **Library** | Earlier public postmortems the investigator can search, each case served only documents published before it began ([decision 0013](decisions/0013-library-selection.md)). |
+| **Library** | The searchable collection of reports from earlier outages. Each case can retrieve only eligible documents published before it began ([decision 0013](decisions/0013-library-selection.md)). |
 | **Library document** | One earlier postmortem in [`data/library.yaml`](../data/library.yaml), with its provider, publish date, SHA-256, licence, kind, the cases it serves, and why it was picked; the pages are not committed. |
 | **Library document kind** | Why a document is in the library: `other-provider`, `same-provider`, `attack-suspected`, or `decoy` (same symptoms, different cause). |
-| **Symptom tag** | A label for what an outside engineer could see during a case, quoting a status update word for word; library documents are picked by them. |
+| **Symptom tag** | A label quoting a symptom from an incident's status updates. These labels guide the selection of relevant older reports for the library. |
 | **Case registry** | [`data/cases.yaml`](../data/cases.yaml): every case and its source files with URL, licence, attribution, SHA-256, and retrieval time. |
-| **Source pin** | The SHA-256 and retrieval time recorded for each source file; a copy that does not match is refused. |
+| **Source pin** | A source file's recorded SHA-256 hash and retrieval time. The application rejects a copy whose contents do not match the hash. |
 | **Capture** | The command that saves one source as served, an incident from a status API or a postmortem page; it fetches only `https` URLs, never overwrites, and prints the registry lines. |
 | **Extraction** | Turning captured sources into library sections, chart descriptions, and answer-key drafts on Content Understanding ([decision 0003](decisions/0003-document-extraction.md)). |
 | **Content Understanding** | The Azure service that runs extraction through three analyzers committed under [`analyzers/`](../analyzers/); an analyzer in the service that differs from its file is refused. |
@@ -42,7 +43,7 @@ On this page: [Cases and data](#cases-and-data) · [Investigation](#investigatio
 | **Investigator** | The agent that reconstructs an outage as an outside engineer would, from the case's status updates, charts, and library search results only; one per chat deployment. |
 | **Prompt agent** | A Foundry agent definition holding the instructions, model deployment, tool definitions, and output schema; Hindcast runs the tool calls in its own code ([decision 0002](decisions/0002-agent-approach.md)). |
 | **Agent version** | The Foundry version of the agent a run used, recorded with the result; a changed prompt, tool list, or schema makes a new one. |
-| **Tool loop** | Call the model, run every tool call it returns, send the outputs back, and repeat until a response has no tool calls; that response is the answer. |
+| **Tool loop** | The application calls the model, executes the tools the model requests, and returns their outputs. It repeats this until the model answers or an execution limit is reached. |
 | **Tool cap** | At most 12 tool calls per investigation, searches included, and 6 per challenge; one more ends the run as incomplete with the reason `tool-cap`. |
 | **Time cap** | At most 120 seconds per investigation and 90 per challenge, each call getting the time left as its timeout; running out ends the run with the reason `time-cap`. |
 | **Case tools** | `list_updates` and `list_charts`, which read the open case's evidence, and `search_library`, which searches the library within the case's date bound; the model supplies only a search query. |
@@ -76,9 +77,9 @@ On this page: [Cases and data](#cases-and-data) · [Investigation](#investigatio
 | --- | --- |
 | **Prompt injection** | Text in evidence or library pages that tries to give the investigator instructions; everything a tool returns is third-party text ([decision 0007](decisions/0007-safety-and-injection.md)). |
 | **Prompt Shields** | Azure's classifier for prompt and document attacks, run on every item a tool returns and every challenge question; it misses some attacks and flags some benign text. |
-| **Screen** | One Prompt Shields check of what a tool returned, each update, chart, and library hit a separate document, a long one split into overlapping pieces. |
+| **Screen** | A Prompt Shields check for injected instructions. Each update, chart description, and library hit is checked separately; long items are split into overlapping pieces. |
 | **Withheld item** | An item Prompt Shields flagged, replaced in place with its ref and a marker; a citation of it is rejected as `withheld`, and a run from before the screens shows "not screened". |
-| **Layer 1 and layer 2** | The two ways an injection copy runs: with Prompt Shields on, as shipped, and with it off, to measure whether the model resists the planted instruction alone. |
+| **Layer 1 and layer 2** | Two injection-test settings: Prompt Shields enabled to test the application as shipped, and disabled to test the model's resistance when a planted instruction reaches it. |
 | **PII check** | Azure Language PII detection on every free-text field of an answer, every kept search query, and every challenge question; a failed call ends the run as `pii-error`. |
 | **PII hit** | One entity the PII check found, recorded by field path, category, and confidence, never by text; the stored text has it replaced by its category, such as `[Person]`. |
 | **PII categories** | The entity types PII detection returns, such as `Person`; roles, organisations, times, URLs, IP addresses, and providers' names are dropped before masking ([findings](findings/safety.md)). |
@@ -95,12 +96,14 @@ On this page: [Cases and data](#cases-and-data) · [Investigation](#investigatio
 
 | Term | Meaning |
 | --- | --- |
-| **Azure AI Search** | The search service that held the library index, deleted on 2026-11-04 and recreated by the full template while that environment ran, local authentication off ([decision 0004](decisions/0004-retrieval.md)). |
+| **RAG** | Retrieval-augmented generation: retrieve relevant source passages and supply them to a language model as context for its answer. Hindcast retrieves older-report passages through Azure AI Search; this does not train the model. |
+| **Context engineering** | Choosing and preparing the information a model receives, including instructions, evidence, retrieved passages, and tool outputs. Hindcast restricts incident evidence and library retrieval, screens tool outputs, and keeps answer keys separate. |
+| **Azure AI Search** | The managed search service used to retrieve passages from Hindcast's older-report library. It supports keyword search, vector similarity, and semantic ranking. It searches the loaded index, not the open internet ([decision 0004](decisions/0004-retrieval.md)). |
 | **Library index** | The one index of library chunks with their publish dates and served cases; the filter, not an index per case, decides what each case can reach ([decision 0019](decisions/0019-library-index.md)). |
-| **Chunk** | One searchable piece of a library document inside a single section or figure, so its ref is a citation target; a long section splits at paragraphs. |
-| **Embedding** | A vector computed from a chunk's title, heading, and text, at 1,024 dimensions, in Hindcast's own code. |
-| **Hybrid search** | A keyword search and a vector search over the same filtered chunks, merged and reordered by the semantic ranker; the top five hits are returned without scores. |
-| **Semantic ranker** | The Azure AI Search feature that reorders hits by reading their title, heading, and text; its score is recorded and never shown to the model. |
+| **Chunk** | One searchable passage from a library document, kept within a section or figure so it retains a citation reference. Long sections are split at paragraph boundaries. |
+| **Embedding** | A numerical representation of text used to find passages with similar meaning. Hindcast computes a 1,024-number vector from each chunk's title, heading, and text, and also embeds each search query. |
+| **Hybrid search** | Keyword matching and vector similarity over the same eligible library chunks. Azure AI Search merges the results and applies semantic ranking. Up to five hits reach the model without their scores. |
+| **Semantic ranker** | The Azure AI Search component that reorders search results for relevance using their titles, headings, and text. Its scores are recorded but not supplied to the investigating model. |
 | **Date bound** | A case searches only documents published before midnight UTC of the day its outage began; a document from the start day is dropped too. |
 | **Library picks** | The documents chosen for a case by the symptoms its updates showed, decoys included, each with a reason quoting the symptom; a sealed or revealed case has no picks and searches every document dated before it. |
 | **Library filter** | The search filter built from the case and library registries alone, the date bound and, unless the case is sealed or revealed, its picks; the query never reaches it, and every hit is checked again in code. |
@@ -118,12 +121,12 @@ On this page: [Cases and data](#cases-and-data) · [Investigation](#investigatio
 
 | Term | Meaning |
 | --- | --- |
-| **Reconstruction** | The investigator's account of one outage from the status updates and charts alone, scored against the frozen answer key ([decision 0006](decisions/0006-evaluation-design.md)). |
+| **Reconstruction** | The investigator's account of an outage, based on its public updates and chart descriptions, with older library reports as background. Evaluation compares it with the hidden answer key ([decision 0006](decisions/0006-evaluation-design.md)). |
 | **Scored case** | A showcase case, or a sealed case once its postmortem is published; development cases and injection copies are never scored. |
-| **Arm** | One configuration run three times per case: `hindcast`, `comparison`, `single-search`, `library-off`, or `abstention` ([decision 0023](decisions/0023-abstention-and-inferable-labels.md)). |
-| **Baseline** | An arm the investigator is measured against on the same evidence: single-search and comparison; the prior-knowledge check is a separate comparison. |
+| **Arm** | One configuration in a comparison experiment. Hindcast tests `hindcast`, `comparison`, `single-search`, `library-off`, and `abstention`, each three times per showcase case ([decision 0023](decisions/0023-abstention-and-inferable-labels.md)). |
+| **Baseline** | A reference configuration used to assess whether another approach improves results. Hindcast compares the main agent with the fixed single-search workflow and a second model. Prior knowledge is tested separately. |
 | **Repeat** | One of the three runs of an arm on a case; three repeats show the spread, not a confidence interval. |
-| **Rubric** | The frozen scoring rules ([rubric](../eval/rubric/rubric.md)); a change after a scored output is read makes a new version. |
+| **Rubric** | The versioned scoring rules used for evaluation ([rubric](../eval/rubric/rubric.md)). A change made after reading a scored output requires a new version. |
 | **Freeze** | Recording a file's SHA-256 in a committed lock before the step it must not be shaped by; answer keys, labels, the rubric, and the judge's and reviewer's prompts are frozen before the runs they govern. |
 | **Rubric lock** | The committed file recording the hashes of the rubric, the labels, and the keys with the freeze time; its presence unlocks scored cases for investigation. |
 | **Judge** | The model that reads each scored run, the key items, and the cited text, blind to the arm and labels, and proposes an outcome per key item and a support verdict per run item ([decision 0024](decisions/0024-judge-model.md)). |
@@ -133,14 +136,14 @@ On this page: [Cases and data](#cases-and-data) · [Investigation](#investigatio
 | **Supported hit** | The run states the key item, in any words, from a supported item, for full credit; a partial states the mechanism without its trigger or the trigger without the mechanism, for half. |
 | **Unsupported hit** | The run states the key item, or part of it, but no supported run item does: no credit, and on an item labelled not inferable a guess, reported in its own column. |
 | **Missed and wrong** | Missed: no run item states the key item; wrong: a run item contradicts it, such as another root cause, the opposite attack verdict, or a time outside the tolerance. |
-| **Abstention** | The run says the evidence does not settle an item (`cannot tell` for the attack verdict); full credit on an item labelled not inferable, missed otherwise. |
+| **Abstention** | An explicit statement that the available evidence cannot determine a conclusion, such as `cannot tell` for the attack verdict. It earns full credit when the reference label is `not inferable`; otherwise it counts as missed. |
 | **Inferable-from-evidence label** | One frozen label per scored key item, with a reason naming the update and chart IDs: `stated`, `inferable`, or `not inferable` ([labels](../eval/keys/labels/README.md)). |
 | **Neutral item** | A contributing factor or timeline event labelled not inferable that a run does not mention; it leaves that run's denominator. |
 | **Supported inference** | An inference that rests on supported observations, uses only those and general engineering knowledge, and follows from them; a library document never supports it. |
 | **Timeline tolerance** | The 30 minutes within which a run's time for a key event has to fall to match. |
 | **Primary score** | Credited divided by scorable key items for one run, reported per arm and case as mean, minimum, and maximum; unsupported, wrong, guessed, and failed items are shown next to it. |
 | **Prior-knowledge check** | Each model asked about each showcase outage from its provider, title, and date alone, judged against the key on the root cause and the attack verdict ([results](../eval/prior-knowledge/v1/README.md)). |
-| **Known before evidence** | A model and case pair whose prior-knowledge answer hit the root cause; those runs are reported apart from the main scores. |
+| **Known before evidence** | A model correctly identified a case's root cause when asked using only the provider, title, and date. Those reconstruction runs are reported separately from the main comparison. |
 | **Seal** | One run of the investigator on an outage without a published cause, its SHA-256 committed with the commit, models, and time, the file kept private ([decision 0017](decisions/0017-sealed-reconstructions.md)). |
 | **Reveal** | After a sealed case's postmortem is published: freeze the key and labels, pass the leak check, copy the sealed file into the repository, and score it ([runbook](runbooks/sealing.md)). |
 | **Drop date** | 2026-11-30: a sealed case whose provider has published no cause by then is dropped, not scored, its records kept ([decision 0022](decisions/0022-sealed-drop-date-and-offline-reveal.md)). |
@@ -184,5 +187,5 @@ On this page: [Cases and data](#cases-and-data) · [Investigation](#investigatio
 | **Local authentication off** | The setting on Foundry, search, storage, and Log Analytics that refuses every key; the connection string is the one exception, and it can only write telemetry. |
 | **OIDC** | OpenID Connect, the token GitHub Actions uses to prove which job is running; the push job exchanges it for the CI identity, so no Azure credential is stored in GitHub. |
 | **Settings** | The `HINDCAST_*` environment variables the code reads, endpoints and deployment names, never keys. |
-| **Provenance** | The record in each result of what produced it: prompt blob hash, commit and `src/` tree hash, evidence SHA-256, and for library runs the registry, index, search API version, and embedding model. |
+| **Provenance** | The record of which code, model, prompt, and data produced a result. It includes version identifiers and hashes, plus the search index and embedding model for runs that use the library. |
 | **Digest-pinned base image** | The Python and uv base images in the Dockerfile, each pinned by content digest and moved by hand. |

@@ -2,6 +2,17 @@
 
 Findings about Foundry evaluation runs in the portal, seen on the [model re-check](../../eval/model-selection/dev-outage-v1/README.md), where the run records, results, and log excerpts are committed.
 
+## What these findings mean
+
+These findings concern the earlier portal-based model check, rather than the final reconstruction comparison. The main lesson is that a platform's headline score needs context:
+
+- **Missing scores can disappear from pass counts.** A successful-looking summary can conceal failed grading calls.
+- **The portal uses a different API path and settings.** Its result does not directly measure Hindcast's own execution path.
+- **A metric can penalise the desired answer.** Relevance marked a correct refusal as a failure because it could not see that the evidence lacked the answer.
+- **Grading has its own cost.** The portal's answer-cost estimate omits the judge's usage.
+
+Hindcast therefore checks individual evaluation records, reports errors explicitly, and evaluates actual application runs. The final [reconstruction comparison](../../eval/reconstruction/showcase-v1/README.md#reading-the-results) explains its separate scoring method and findings. The dated entries below preserve the observations and supporting records.
+
 ## An evaluator call that fails drops out of the pass counts (2026-10-26)
 
 **Seen:** in luna's run, two judge calls failed with 401 and returned no score. The run still reports `errored: 0`, four rows passed and one failed. The run page showed "4/4" on the affected rows; the downloaded rows carry no such count.

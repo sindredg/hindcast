@@ -1,8 +1,57 @@
 # Reconstruction evaluation, showcase v1
 
-The four showcase cases, each arm of [decision 0023](../../../docs/decisions/0023-abstention-and-inferable-labels.md) run three times per case, scored against the frozen keys and labels by the [rubric](../../rubric/rubric.md), version 3.
+A comparison of five ways to investigate four infrastructure outages. Each configuration ran three times per outage. The investigations were scored against answer keys from the providers' later reports, using version 3 of the [rubric](../../rubric/rubric.md).
 
-On this page: [Status](#status) · [Results](#results) · [Error analysis](#error-analysis) · [Cost and spend](#cost-and-spend) · [Dataset](#dataset) · [Arms](#arms) · [Foundry cloud evaluation](#foundry-cloud-evaluation) · [Limits](#limits) · [Files](#files)
+On this page: [Reading the results](#reading-the-results) · [Status](#status) · [Results](#results) · [Error analysis](#error-analysis) · [Cost and spend](#cost-and-spend) · [Dataset](#dataset) · [Arms](#arms) · [Foundry cloud evaluation](#foundry-cloud-evaluation) · [Limits](#limits) · [Files](#files)
+
+## Reading the results
+
+**Main finding:** the full agent did not show a clear advantage over a fixed workflow with one search and one model call. The fixed workflow scored slightly higher and used less time and money in this dataset. The small sample and scoring limitations prevent a general conclusion about which approach is better.
+
+### What was tested
+
+Four outages, five configurations, and three repeats of each combination produced 60 investigations. One outage is reported separately because both models could name its cause before receiving any evidence. The main comparison therefore uses three outages: nine runs per configuration, 45 runs in total.
+
+An **arm** means one configuration being compared. The names below also identify its saved result files.
+
+| Configuration | What changes | Question it tests |
+|---|---|---|
+| `hindcast` | Full agent using `gpt-6-luna`, with tools and library search | How well does the complete system perform? |
+| `comparison` | Same agent prompt and tools, using `gpt-6.1-sol` | Does the more expensive model improve the result? |
+| `single-search` | Code gathers the evidence, runs one library search, then makes one model call | Does letting the model choose further tool calls help? |
+| `library-off` | Agent without library search, with its prompt adjusted accordingly | Does access to older reports help? |
+| `abstention` | Full agent with an extra instruction about saying when the cause cannot be determined | Does that instruction improve restraint or scoring? |
+
+Both `hindcast` and `single-search` use retrieval-augmented generation (RAG): they retrieve older reports and give relevant passages to the model. This compares two ways of using retrieval, rather than RAG against no RAG. Removing the library also changes the prompt, so that comparison does not isolate retrieval alone.
+
+### What the score means
+
+The provider's later report supplies the answer key. Labels fixed before the runs say whether each answer-key item was stated, could be inferred, or could not be established from the evidence the investigator received.
+
+The primary score is **credit earned divided by the items counted for that run**:
+
+- A correct, supported match earns 1 point; a supported partial match earns 0.5.
+- Saying the cause or attack verdict cannot be determined earns 1 point when its label is `not inferable`. This is a **justified abstention**.
+- Wrong or unsupported answers earn no credit. An abstention also earns no credit when the evidence was labelled sufficient.
+- Missing a factor or timeline event labelled `not inferable` is neutral: that item is excluded from the denominator.
+
+For example, 3 points across 4 scorable items gives 0.75. A score of 0.82 is not a claim of 82% accuracy across outages. It depends on these labels, partial credit, and exclusions; a perfect score can include correctly saying that the cause is unknown.
+
+A judge model proposes the outcomes. A second model independently judges the same run, and its decisions replace the first judge's on the selected review items. Agreement between models measures consistency, not proof that either is correct. The frozen [rubric](../../rubric/rubric.md) remains the authoritative scoring rules.
+
+### What we learned
+
+| Observation in the main comparison | Practical meaning |
+|---|---|
+| Single-search scored 0.82; the full agent scored 0.78 | Extra model-controlled steps did not demonstrate a benefit here. The lead comes from six answer-key items across the nine runs. |
+| Single-search averaged 25.8 seconds and USD 0.0409; the full agent 30.6 seconds and USD 0.0453 | The fixed workflow was about 5 seconds faster and USD 0.0044 cheaper per investigation. These are investigation costs, excluding grading. |
+| The comparison model scored 0.79 at USD 0.0876 per run | Roughly twice the cost did not produce a clear score improvement. |
+| Every root cause labelled `not inferable` received an abstention | The models generally respected the evidence boundary on those root-cause questions. This does not mean they reconstructed the hidden mechanism. |
+| Single-search had two wrong answer-key items; the full agent had none | The higher average score is not a clean win on every measure. Read the outcome counts alongside the average. |
+
+**What remains uncertain:** only three outages contribute to the main comparison, the library has 23 documents, and changing which judge decides can move an average by up to 0.03. Labels and timeline matching also affect the results. The experiment does not establish broad agent superiority, broad retrieval quality, or attack-detection ability: none of the four outages was an attack.
+
+The sections below retain the detailed evidence, exact counts, and known scoring limitations.
 
 ## Status
 

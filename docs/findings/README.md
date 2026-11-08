@@ -1,6 +1,10 @@
 # Findings
 
-Platform and source behaviour the documentation does not state, states differently, or that changed a design choice. One file per topic, one entry per finding, newest first: what was seen, the evidence and how it was obtained, and what it changes for Hindcast. An entry is not rewritten; a later finding links back.
+Observed behaviour of the platforms and data sources used by Hindcast, including surprises that changed the design.
+
+For the project's investigation results, start with the [reconstruction comparison](../../eval/reconstruction/showcase-v1/README.md#reading-the-results): what was tested, how scoring works, and what the results support. The [sealed report](../../eval/reconstruction/sealed-v1/README.md#how-to-read-this-result) covers investigations recorded before the provider published its cause.
+
+The pages below record engineering findings by topic. Each dated entry explains what happened, the evidence, and what it means for Hindcast. Original entries are preserved; later findings link back when behaviour changes.
 
 | Topic | File |
 |---|---|
