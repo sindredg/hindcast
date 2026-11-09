@@ -1,38 +1,47 @@
 # OWASP Top 10 for Agentic Applications
 
-Each of the ten OWASP agentic risks, what it means for Hindcast, the control that answers it, and the evidence a reviewer can open. Where no control exists, the row says so.
+OWASP lists ten security risks for AI agents. This page shows where each one applies to Hindcast, what guards against it, and what is still open.
 
-On this page: [Scope](#scope) · [Summary](#summary) · [ASI01](#asi01-agent-goal-hijack) · [ASI02](#asi02-tool-misuse-and-exploitation) · [ASI03](#asi03-identity-and-privilege-abuse) · [ASI04](#asi04-agentic-supply-chain-vulnerabilities) · [ASI05](#asi05-unexpected-code-execution-rce) · [ASI06](#asi06-memory--context-poisoning) · [ASI07](#asi07-insecure-inter-agent-communication) · [ASI08](#asi08-cascading-failures) · [ASI09](#asi09-human-agent-trust-exploitation) · [ASI10](#asi10-rogue-agents)
+Hindcast's agent only reads: three read-only tools, one outage per run, no actions outside the run. That makes most risks small. The ones that remain are about text: what the agent reads, and what a reader believes.
 
-## Scope
+![Where the OWASP agentic risks sit in Hindcast: status updates, charts, and library postmortems are third-party text; every tool item passes Prompt Shields (ASI01) before the investigator agent reads it through read-only, capped tools (ASI02, ASI05, ASI10). Citation checks flag unsupported items (ASI09); the result file is written once, failed runs too (ASI08). The reader page shows it behind Entra sign-in (ASI09); the challenger agent and the offline judge read the stored result (ASI07, open gaps #109 and #110). The library has an open gap (ASI06, #112). Identity (ASI03, open gap #111) and the supply chain (ASI04) apply across the system.](../diagrams/owasp-agentic.svg)
 
-| | |
-|---|---|
-| Framework | [OWASP Top 10 for Agentic Applications](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/), Version 2026, December 2025, OWASP GenAI Security Project, Agentic Security Initiative. Licensed [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Entry names are quoted from it; the rest of this page is Hindcast's own text. No newer edition was listed on genai.owasp.org on 2026-11-09. |
-| Assessed | The code, tests, and infrastructure template on `main` at `57691f7`, the committed live runs under [`eval/`](../../eval/), and the live checks recorded in the worklogs. Assessed on 2026-11-09. |
-| Not assessed | A live system. The Azure environment was removed on 2026-11-07 ([worklog 07](../worklogs/07-close.md)); a live result below is the one recorded on its day, not a new check. |
-| Labels | **tested**: a test, CI job, or recorded live run that can fail shows it. **configured, not tested**: the setting exists; nothing has shown it holds. **accepted gap**: no control, with the reason. |
+## Scorecard
 
-**What the agent is.** One investigator reads one outage's evidence through three read-only tools and returns a structured answer. It writes nothing, executes nothing, and sends nothing outside fixed Azure endpoints. A second agent, the challenger, answers a reader's question about one finding. Both run in Hindcast's own tool loop ([decision 0002](../decisions/0002-agent-approach.md)). Most of the list's autonomy risks shrink to that shape; the input risks do not.
+| Risk | In plain words | How Hindcast handles it | Status |
+|---|---|---|---|
+| [ASI01 Agent Goal Hijack](#asi01-agent-goal-hijack) | Text the agent reads tells it to do something else | Every tool result is screened. In planted-instruction tests, none of the 12 runs that saw the instruction followed it | Tested |
+| [ASI02 Tool Misuse and Exploitation](#asi02-tool-misuse-and-exploitation) | The agent uses its tools in a harmful way | Three read-only tools, locked to one case, capped at 12 calls and 120 seconds | Tested |
+| [ASI03 Identity and Privilege Abuse](#asi03-identity-and-privilege-abuse) | The agent acts with more rights than it needs | Its own managed identity with scoped roles; no service keys except telemetry | Tested, gap [#111](https://github.com/sindredg/hindcast/issues/111) |
+| [ASI04 Agentic Supply Chain Vulnerabilities](#asi04-agentic-supply-chain-vulnerabilities) | A package, image, or model is swapped or tampered with | Exact pins with hashes, actions pinned by SHA, model versions pinned, audited in CI | Tested |
+| [ASI05 Unexpected Code Execution (RCE)](#asi05-unexpected-code-execution-rce) | Model output gets run as code | Nothing runs model output; it is only parsed as JSON | Tested |
+| [ASI06 Memory & Context Poisoning](#asi06-memory--context-poisoning) | Stored or retrieved context is poisoned | No memory between runs; the library is pinned and can never prove a claim alone | Tested, gap [#112](https://github.com/sindredg/hindcast/issues/112) |
+| [ASI07 Insecure Inter-Agent Communication](#asi07-insecure-inter-agent-communication) | One agent hands another bad input | The challenger and the judge read the stored answer without a screen | Gaps [#109](https://github.com/sindredg/hindcast/issues/109), [#110](https://github.com/sindredg/hindcast/issues/110) |
+| [ASI08 Cascading Failures](#asi08-cascading-failures) | One failure spreads through the system | Any failure stops the run and records why | Tested |
+| [ASI09 Human-Agent Trust Exploitation](#asi09-human-agent-trust-exploitation) | A confident answer misleads the reader | Every claim needs a citation; unsupported items are flagged; "cannot tell" is allowed | Tested |
+| [ASI10 Rogue Agents](#asi10-rogue-agents) | The agent drifts from its job | One capped, read-only run; nothing it can do outside it | Tested |
 
-## Summary
+**Tested** means a test, CI job, or recorded live run that could fail shows it. Each section below opens to the exact tests and settings.
 
-| Entry | What it means for Hindcast | Status |
+## Open gaps
+
+| Issue | Gap | Risk |
 |---|---|---|
-| [ASI01 Agent Goal Hijack](#asi01-agent-goal-hijack) | Every input is third-party text: status updates, chart descriptions, library postmortems | **tested**, with a small sample |
-| [ASI02 Tool Misuse and Exploitation](#asi02-tool-misuse-and-exploitation) | Three read-only tools; the risk is reading outside the case or past the outage date | **tested** |
-| [ASI03 Identity and Privilege Abuse](#asi03-identity-and-privilege-abuse) | The app's managed identity, and the operator's sign-in on the command line | **tested** for the keys-off settings and sign-in; **configured, not tested** for the role scopes and the one allowed user; **accepted gap** for the operator's wider roles and Application Insights ingestion |
-| [ASI04 Agentic Supply Chain Vulnerabilities](#asi04-agentic-supply-chain-vulnerabilities) | Packages, actions, images, model versions, and the agent definition | **tested** in CI; **accepted gap** for signing and a kill switch |
-| [ASI05 Unexpected Code Execution (RCE)](#asi05-unexpected-code-execution-rce) | No path from model output to execution | **tested** |
-| [ASI06 Memory & Context Poisoning](#asi06-memory--context-poisoning) | No memory between runs; the library is the retrieval store | **tested** |
-| [ASI07 Insecure Inter-Agent Communication](#asi07-insecure-inter-agent-communication) | The investigator's stored answer is the challenger's input | **accepted gap** ([#109](https://github.com/sindredg/hindcast/issues/109)) |
-| [ASI08 Cascading Failures](#asi08-cascading-failures) | One agent per run; a failure ends the run | **tested** |
-| [ASI09 Human-Agent Trust Exploitation](#asi09-human-agent-trust-exploitation) | A reader trusts a confident root cause; the product's core risk | **tested** |
-| [ASI10 Rogue Agents](#asi10-rogue-agents) | No autonomy beyond one capped run | **accepted gap** for behavioural attestation |
+| [#109](https://github.com/sindredg/hindcast/issues/109) | The challenger reads the stored finding without a screen or an integrity check | ASI07 |
+| [#110](https://github.com/sindredg/hindcast/issues/110) | The judge reads cited library excerpts without Prompt Shields | ASI07 |
+| [#111](https://github.com/sindredg/hindcast/issues/111) | Application Insights accepts key-based ingestion | ASI03 |
+| [#112](https://github.com/sindredg/hindcast/issues/112) | A library hit's text is not checked against its pinned extract at query time | ASI06 |
 
-## ASI01 Agent Goal Hijack
+Smaller accepted gaps (no signed manifests, no egress rules, the operator's wider roles) are listed in each section.
 
-**For Hindcast.** A status update, a chart description, or a library page carries an instruction aimed at the investigator: call the outage an attack, leak a code, search for something else.
+## The ten risks
+
+### ASI01 Agent Goal Hijack
+
+A status update, a chart description, or a library page carries an instruction aimed at the investigator: call the outage an attack, leak a code, search for something else.
+
+<details>
+<summary>Controls, evidence, and gaps</summary>
 
 | Control | Evidence | Status |
 |---|---|---|
@@ -48,9 +57,14 @@ On this page: [Scope](#scope) · [Summary](#summary) · [ASI01](#asi01-agent-goa
 - One wording, one run per cell, and the `inject` prefix in the copies' refs is visible to the model ([#69](https://github.com/sindredg/hindcast/issues/69)). The check misses a canary written as a rejected citation ([#82](https://github.com/sindredg/hindcast/issues/82)).
 - OWASP's human approval for goal-changing actions (mitigation 2 and 4) has nothing to gate: the agent has no high-impact action.
 
-## ASI02 Tool Misuse and Exploitation
+</details>
 
-**For Hindcast.** The tools cannot write or send. Misuse here means reading what the case may not read (its own postmortem, a later document, another case) or burning calls.
+### ASI02 Tool Misuse and Exploitation
+
+The tools cannot write or send. Misuse here means reading what the case may not read (its own postmortem, a later document, another case) or burning calls.
+
+<details>
+<summary>Controls, evidence, and gaps</summary>
 
 | Control | Evidence | Status |
 |---|---|---|
@@ -63,9 +77,14 @@ On this page: [Scope](#scope) · [Summary](#summary) · [ASI01](#asi01-agent-goa
 
 **Weak spots.** OWASP's sandboxing and egress allowlists (mitigation 3) are not applied as network rules: the tools reach only the endpoints in the configuration, but the container's outbound traffic is not restricted.
 
-## ASI03 Identity and Privilege Abuse
+</details>
 
-**For Hindcast.** The deployed page runs the agent as its own user-assigned managed identity. On the command line, the same code runs as the operator's Azure sign-in.
+### ASI03 Identity and Privilege Abuse
+
+The deployed page runs the agent as its own user-assigned managed identity. On the command line, the same code runs as the operator's Azure sign-in.
+
+<details>
+<summary>Controls, evidence, and gaps</summary>
 
 | Control | Evidence | Status |
 |---|---|---|
@@ -83,9 +102,14 @@ On this page: [Scope](#scope) · [Summary](#summary) · [ASI01](#asi01-agent-goa
 - OWASP's per-action authorization and short-lived task tokens (mitigations 1, 3, 5) are not applied; the managed identity's token lives for its normal lifetime.
 - **accepted gap:** Application Insights accepts ingestion with its connection string, which carries the instrumentation key ([`monitoring.bicep`](../../infra/modules/monitoring.bicep) sets no `DisableLocalAuth`; [`app.bicep`](../../infra/modules/app.bicep) passes the string). Anyone holding it can write telemetry ([#111](https://github.com/sindredg/hindcast/issues/111)).
 
-## ASI04 Agentic Supply Chain Vulnerabilities
+</details>
 
-**For Hindcast.** Python packages, GitHub Actions, container base images, the model deployments, and the agent's prompt and tool definitions.
+### ASI04 Agentic Supply Chain Vulnerabilities
+
+Python packages, GitHub Actions, container base images, the model deployments, and the agent's prompt and tool definitions.
+
+<details>
+<summary>Controls, evidence, and gaps</summary>
 
 | Control | Evidence | Status |
 |---|---|---|
@@ -98,9 +122,14 @@ On this page: [Scope](#scope) · [Summary](#summary) · [ASI01](#asi01-agent-goa
 
 **Weak spots (accepted gap).** No signed manifests or AI bill of materials, and no kill switch beyond removing the deployment (mitigations 1, 8). Dependabot proposes updates weekly ([`dependabot.yml`](../../.github/dependabot.yml)); the uv version, Python version, actionlint, runner image, and base-image digests move by hand.
 
-## ASI05 Unexpected Code Execution (RCE)
+</details>
 
-**For Hindcast.** No tool runs code. Model output is parsed as JSON and validated against a schema, never evaluated.
+### ASI05 Unexpected Code Execution (RCE)
+
+No tool runs code. Model output is parsed as JSON and validated against a schema, never evaluated.
+
+<details>
+<summary>Controls, evidence, and gaps</summary>
 
 | Control | Evidence | Status |
 |---|---|---|
@@ -112,9 +141,14 @@ On this page: [Scope](#scope) · [Summary](#summary) · [ASI01](#asi01-agent-goa
 
 The only `subprocess` calls run `git` with fixed arguments: `_git` in [`provenance.py`](../../src/hindcast/provenance.py) and in [`evaluation/prior.py`](../../src/hindcast/evaluation/prior.py). No model text reaches them.
 
-## ASI06 Memory & Context Poisoning
+</details>
 
-**For Hindcast.** No memory carries over between runs: each investigation starts from the same first message. The library of earlier postmortems is the retrieval store, and it is the path a poisoned document would take.
+### ASI06 Memory & Context Poisoning
+
+No memory carries over between runs: each investigation starts from the same first message. The library of earlier postmortems is the retrieval store, and it is the path a poisoned document would take.
+
+<details>
+<summary>Controls, evidence, and gaps</summary>
 
 | Control | Evidence | Status |
 |---|---|---|
@@ -129,9 +163,14 @@ The only `subprocess` calls run `git` with fixed arguments: `_git` in [`provenan
 
 **accepted gap.** A hit's text is not checked against the pinned extract at query time: the code checks its document, date, and ref, not its content. A chunk rewritten in the index under a valid ref would reach the model, screened only by Prompt Shields ([#112](https://github.com/sindredg/hindcast/issues/112)). Writing the index takes the operator's search roles.
 
-## ASI07 Insecure Inter-Agent Communication
+</details>
 
-**For Hindcast.** One agent output feeds another at run time: the challenger reads a stored investigation's finding and the findings it rests on. The judge and the reviewer read run items offline, for scoring only.
+### ASI07 Insecure Inter-Agent Communication
+
+One agent output feeds another at run time: the challenger reads a stored investigation's finding and the findings it rests on. The judge and the reviewer read run items offline, for scoring only.
+
+<details>
+<summary>Controls, evidence, and gaps</summary>
 
 | Control | Evidence | Status |
 |---|---|---|
@@ -145,9 +184,14 @@ The only `subprocess` calls run `git` with fixed arguments: `_git` in [`provenan
 - The stored finding text reaches the challenger without Prompt Shields, and the result file's own integrity is not checked: a result altered in storage would be read as the investigator wrote it ([#109](https://github.com/sindredg/hindcast/issues/109)). Writing it takes the app identity's write role on the `runs` container or the operator's disk.
 - The judge reads third-party evidence excerpts without Prompt Shields; a planted instruction in evidence could steer a score ([#110](https://github.com/sindredg/hindcast/issues/110)).
 
-## ASI08 Cascading Failures
+</details>
 
-**For Hindcast.** One agent per run, no delegation, and no agent acts on another's output except the challenger reading a stored result.
+### ASI08 Cascading Failures
+
+One agent per run, no delegation, and no agent acts on another's output except the challenger reading a stored result.
+
+<details>
+<summary>Controls, evidence, and gaps</summary>
 
 | Control | Evidence | Status |
 |---|---|---|
@@ -155,9 +199,14 @@ The only `subprocess` calls run `git` with fixed arguments: `_git` in [`provenan
 | No retries inside a run; a batch tries a slot at most three times and stops after two no-results in a row | `max_retries=0` in [`investigate.py`](../../src/hindcast/investigate.py); [`batch.py`](../../src/hindcast/evaluation/batch.py); `test_search_passes_timeout_and_no_retries` in [`test_search.py`](../../tests/test_search.py); [`test_batch.py`](../../tests/test_batch.py) | tested, locally |
 | A challenge runs only on a complete result | `_findings` in [`challenge.py`](../../src/hindcast/challenge.py) | tested, locally |
 
-## ASI09 Human-Agent Trust Exploitation
+</details>
 
-**For Hindcast.** The reader is the target. A fluent, confident root cause invites trust; the product's job is to show where the evidence stops.
+### ASI09 Human-Agent Trust Exploitation
+
+The reader is the target. A fluent, confident root cause invites trust; the product's job is to show where the evidence stops.
+
+<details>
+<summary>Controls, evidence, and gaps</summary>
 
 | Control | Evidence | Status |
 |---|---|---|
@@ -170,9 +219,14 @@ The only `subprocess` calls run `git` with fixed arguments: `_git` in [`provenan
 
 **Weak spots.** No real attack among the cases, so the attack assessment was never shown right on a positive. OWASP's confirmation step for sensitive actions does not apply: the page takes no action on the answer.
 
-## ASI10 Rogue Agents
+</details>
 
-**For Hindcast.** An agent that drifts can only produce a wrong answer inside one capped, read-only run, and that answer goes through the same checks.
+### ASI10 Rogue Agents
+
+An agent that drifts can only produce a wrong answer inside one capped, read-only run, and that answer goes through the same checks.
+
+<details>
+<summary>Controls, evidence, and gaps</summary>
 
 | Control | Evidence | Status |
 |---|---|---|
@@ -181,3 +235,14 @@ The only `subprocess` calls run `git` with fixed arguments: `_git` in [`provenan
 | The page runs only development and injection cases; the command line refuses sealed and revealed cases, which run only through the sealing commands | `LIVE_ROLES` in [`app.py`](../../src/hindcast/app.py); `check_case_allowed` in [`investigate.py`](../../src/hindcast/investigate.py); `test_live_cases_are_development_and_injection_only`, `test_start_run_refuses_a_scored_or_sealed_case` in [`test_app.py`](../../tests/test_app.py); `test_investigate_refuses_a_sealed_case` in [`test_investigate.py`](../../tests/test_investigate.py) | tested, locally |
 
 **Weak spots (accepted gap).** No signed behavioural manifest or attestation per run (OWASP mitigations 5 and 6), and the logs are not tamper-evident: Application Insights and the result files are ordinary stores. With no autonomy past one run, these protect little that the caps and checks do not.
+
+</details>
+
+## About this assessment
+
+| | |
+|---|---|
+| Framework | [OWASP Top 10 for Agentic Applications](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/), Version 2026, December 2025, OWASP GenAI Security Project, Agentic Security Initiative. Licensed [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Entry names are quoted from it; the rest of this page is Hindcast's own text. No newer edition was listed on genai.owasp.org on 2026-11-09. |
+| Assessed | The code, tests, and infrastructure template on `main` at `57691f7`, the committed live runs under [`eval/`](../../eval/), and the live checks recorded in the worklogs. Assessed on 2026-11-09. |
+| Not assessed | A live system. The Azure environment was removed on 2026-11-07 ([worklog 07](../worklogs/07-close.md)); a live result on this page is the one recorded on its day, not a new check. |
+| Labels | **tested**: a test, CI job, or recorded live run that can fail shows it. **configured, not tested**: the setting exists; nothing has shown it holds. **accepted gap**: no control, with the reason. |
