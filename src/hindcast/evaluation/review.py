@@ -11,6 +11,10 @@ The page (hindcast.review) shows runs under a blind ID, in an order drawn
 from the same seed, so the reviewer does not see the arm. Decisions go to
 reviews/<run_id>.json, one file per run, with the hash of the judgment
 they review: a decision is never applied to another judgment.
+
+Since rubric version 3 (decision 0027) the queue is the same, and the
+reviewer model (hindcast.evaluation.reviewer) makes each decision instead of
+a person.
 """
 
 import hashlib
