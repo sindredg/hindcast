@@ -120,6 +120,7 @@ Use the [documentation map](docs/README.md) to find explanations, evaluation res
 | [Evaluation report](eval/reconstruction/showcase-v1/README.md) | Scores, judge and reviewer agreement, error analysis, limits |
 | [Sealed report](eval/reconstruction/sealed-v1/README.md) | Revealed seals, one addendum per reveal |
 | [Answer keys](eval/keys/README.md) | The frozen provider accounts and their labels |
+| [OWASP agentic top 10](docs/security/owasp-agentic-top-10.md) | Each OWASP agentic risk, its control, the evidence, and the gaps |
 | [Reproduce](docs/reproduce.md) | What a second build needs, and the runbook order |
 | [Runbooks](docs/runbooks/README.md) | One operator procedure per milestone |
 | [Worklogs](docs/worklogs/README.md) | What each milestone built, with its evidence and review |
