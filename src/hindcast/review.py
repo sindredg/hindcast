@@ -13,6 +13,10 @@ matched to it, or one run item with its support verdict, next to the text
 every cited ref points to. The judge's proposal is marked on its button.
 The page resumes at the first item without a decision.
 
+Since rubric version 3 (decision 0027) the reviewer model
+(hindcast.evaluation.reviewer) decides every item and no person does; with
+those decisions applied, the page opens on "Every item is decided."
+
 The second mode reviews the prior-knowledge answers the same way
 (hindcast.evaluation.judge_prior): the answer, the key item, and the
 judge's proposal, under a blind ID that hides the model.

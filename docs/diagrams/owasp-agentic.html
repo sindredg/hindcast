@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Where the OWASP agentic risks sit in Hindcast</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #000000;
+      --color-ink:     #f5f5f5;
+      --color-muted:   #b4b4b4;
+      --color-accent:  #22c55e;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+    .frame { max-width: 1200px; width: 100%; }
+    .diagram-container { width: 100%; overflow-x: auto; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 1.5rem;
+    }
+    svg { width: 100%; min-width: 1000px; display: block; }
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Security</p>
+    <h1>Where the OWASP agentic risks sit in Hindcast</h1>
+    <div class="diagram-container">
+      <svg viewBox="0 0 1000 568" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="owasp-agentic-title owasp-agentic-desc">
+        <title id="owasp-agentic-title">Where the OWASP agentic risks sit in Hindcast</title>
+        <desc id="owasp-agentic-desc">Status updates, charts, and library postmortems are third-party text; every tool item passes Prompt Shields (ASI01) before the investigator agent reads it through three read-only tools under call and time caps (ASI02, ASI05, ASI10). Citation checks flag unsupported items (ASI09); the result file is written once, and a failed run is still written as incomplete with its reason (ASI08). The reader page shows it behind Entra sign-in (ASI09); the challenger agent and the offline judge read the stored result (ASI07, open gaps 109 and 110). The library has an open gap (ASI06, 112). Across the system, identity (ASI03, open gap 111) and the supply chain (ASI04) apply.</desc>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#b4b4b4"/></marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#f0b429"/></marker>
+        </defs>
+
+        <rect width="100%" height="100%" fill="#000000"/>
+
+        <!-- Arrows -->
+        <path d="M 224,64 H 240 Q 248,64 248,72 V 108 Q 248,116 256,116 H 288" fill="none" stroke="#f0b429" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+        <path d="M 224,192 H 256 Q 264,192 264,184 V 148 Q 264,140 272,140 H 288" fill="none" stroke="#f0b429" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+        <line x1="488" y1="128" x2="552" y2="128" stroke="#b4b4b4" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="752" y1="128" x2="800" y2="128" stroke="#b4b4b4" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="888" y1="160" x2="888" y2="224" stroke="#b4b4b4" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="888" y1="288" x2="888" y2="352" stroke="#b4b4b4" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <path d="M 800,272 H 660 Q 652,272 652,280 V 352" fill="none" stroke="#b4b4b4" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <path d="M 800,248 H 396 Q 388,248 388,256 V 352" fill="none" stroke="#b4b4b4" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+
+        <!-- Arrow labels -->
+        <rect x="340" y="292" width="40" height="12" rx="2" fill="#000000"/>
+        <text x="360" y="301" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">OFFLINE</text>
+        <rect x="660" y="312" width="68" height="12" rx="2" fill="#000000"/>
+        <text x="694" y="321" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">ON REQUEST</text>
+
+        <!-- Nodes -->
+        <rect x="24" y="32" width="200" height="64" rx="6" fill="#000000"/>
+        <rect x="24" y="32" width="200" height="64" rx="6" fill="#141414" stroke="#b4b4b4" stroke-width="1"/>
+        <text x="124" y="58" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Status updates and charts</text>
+        <text x="124" y="74" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">third-party · one case</text>
+
+        <rect x="24" y="160" width="200" height="64" rx="6" fill="#000000"/>
+        <rect x="24" y="160" width="200" height="64" rx="6" fill="#141414" stroke="#b4b4b4" stroke-width="1"/>
+        <text x="124" y="186" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Library postmortems</text>
+        <text x="124" y="202" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">third-party · earlier outages</text>
+
+        <rect x="288" y="96" width="200" height="64" rx="6" fill="#000000"/>
+        <rect x="288" y="96" width="200" height="64" rx="6" fill="#141414" stroke="#f5f5f5" stroke-width="1"/>
+        <text x="388" y="122" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Prompt Shields</text>
+        <text x="388" y="138" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">every tool item screened</text>
+
+        <rect x="552" y="96" width="200" height="64" rx="6" fill="#000000"/>
+        <rect x="552" y="96" width="200" height="64" rx="6" fill="rgba(34,197,94,0.10)" stroke="#22c55e" stroke-width="1"/>
+        <text x="652" y="122" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Investigator agent</text>
+        <text x="652" y="138" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">read-only tools · capped</text>
+
+        <rect x="800" y="96" width="176" height="64" rx="6" fill="#000000"/>
+        <rect x="800" y="96" width="176" height="64" rx="6" fill="#141414" stroke="#f5f5f5" stroke-width="1"/>
+        <text x="888" y="122" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Citation checks</text>
+        <text x="888" y="138" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">unsupported items flagged</text>
+
+        <rect x="800" y="224" width="176" height="64" rx="6" fill="#000000"/>
+        <rect x="800" y="224" width="176" height="64" rx="6" fill="rgba(245,245,245,0.03)" stroke="#8c8c8c" stroke-width="1"/>
+        <text x="888" y="250" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Result file</text>
+        <text x="888" y="266" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">written once · failed runs too</text>
+
+        <rect x="800" y="352" width="176" height="64" rx="6" fill="#000000"/>
+        <rect x="800" y="352" width="176" height="64" rx="6" fill="#141414" stroke="#f5f5f5" stroke-width="1"/>
+        <text x="888" y="378" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Reader page</text>
+        <text x="888" y="394" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Entra sign-in · text escaped</text>
+
+        <rect x="552" y="352" width="200" height="64" rx="6" fill="#000000"/>
+        <rect x="552" y="352" width="200" height="64" rx="6" fill="#141414" stroke="#f5f5f5" stroke-width="1"/>
+        <text x="652" y="378" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Challenger agent</text>
+        <text x="652" y="394" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">answers a question on a finding</text>
+
+        <rect x="288" y="352" width="200" height="64" rx="6" fill="#000000"/>
+        <rect x="288" y="352" width="200" height="64" rx="6" fill="#141414" stroke="#f5f5f5" stroke-width="1"/>
+        <text x="388" y="378" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Judge and reviewer</text>
+        <text x="388" y="394" fill="#b4b4b4" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">score against the postmortem</text>
+
+        <!-- Risk tags: solid = control tested, dashed = open gap -->
+        <rect x="24" y="140" width="40" height="14" rx="2" fill="#141414" stroke="#8c8c8c" stroke-width="1"/>
+        <text x="44" y="150" fill="#f5f5f5" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">ASI06</text>
+        <rect x="68" y="140" width="56" height="14" rx="2" fill="#000000" stroke="#b4b4b4" stroke-width="1" stroke-dasharray="3,2"/>
+        <text x="96" y="150" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">GAP #112</text>
+
+        <rect x="288" y="76" width="40" height="14" rx="2" fill="#141414" stroke="#8c8c8c" stroke-width="1"/>
+        <text x="308" y="86" fill="#f5f5f5" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">ASI01</text>
+
+        <rect x="552" y="76" width="40" height="14" rx="2" fill="#141414" stroke="#8c8c8c" stroke-width="1"/>
+        <text x="572" y="86" fill="#f5f5f5" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">ASI02</text>
+        <rect x="596" y="76" width="40" height="14" rx="2" fill="#141414" stroke="#8c8c8c" stroke-width="1"/>
+        <text x="616" y="86" fill="#f5f5f5" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">ASI05</text>
+        <rect x="640" y="76" width="40" height="14" rx="2" fill="#141414" stroke="#8c8c8c" stroke-width="1"/>
+        <text x="660" y="86" fill="#f5f5f5" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">ASI10</text>
+
+        <rect x="800" y="76" width="40" height="14" rx="2" fill="#141414" stroke="#8c8c8c" stroke-width="1"/>
+        <text x="820" y="86" fill="#f5f5f5" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">ASI09</text>
+
+        <rect x="800" y="204" width="40" height="14" rx="2" fill="#141414" stroke="#8c8c8c" stroke-width="1"/>
+        <text x="820" y="214" fill="#f5f5f5" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">ASI08</text>
+
+        <rect x="800" y="424" width="40" height="14" rx="2" fill="#141414" stroke="#8c8c8c" stroke-width="1"/>
+        <text x="820" y="434" fill="#f5f5f5" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">ASI09</text>
+
+        <rect x="552" y="424" width="40" height="14" rx="2" fill="#141414" stroke="#8c8c8c" stroke-width="1"/>
+        <text x="572" y="434" fill="#f5f5f5" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">ASI07</text>
+        <rect x="596" y="424" width="56" height="14" rx="2" fill="#000000" stroke="#b4b4b4" stroke-width="1" stroke-dasharray="3,2"/>
+        <text x="624" y="434" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">GAP #109</text>
+
+        <rect x="288" y="424" width="40" height="14" rx="2" fill="#141414" stroke="#8c8c8c" stroke-width="1"/>
+        <text x="308" y="434" fill="#f5f5f5" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">ASI07</text>
+        <rect x="332" y="424" width="56" height="14" rx="2" fill="#000000" stroke="#b4b4b4" stroke-width="1" stroke-dasharray="3,2"/>
+        <text x="360" y="434" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">GAP #110</text>
+
+        <!-- Across the system -->
+        <line x1="24" y1="464" x2="976" y2="464" stroke="rgba(245,245,245,0.10)" stroke-width="0.8"/>
+        <text x="24" y="484" fill="#8c8c8c" font-size="7" font-family="'Geist Mono', monospace" letter-spacing="0.14em">ACROSS THE SYSTEM</text>
+        <rect x="140" y="474" width="40" height="14" rx="2" fill="#141414" stroke="#8c8c8c" stroke-width="1"/>
+        <text x="160" y="484" fill="#f5f5f5" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">ASI03</text>
+        <rect x="184" y="474" width="56" height="14" rx="2" fill="#000000" stroke="#b4b4b4" stroke-width="1" stroke-dasharray="3,2"/>
+        <text x="212" y="484" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">GAP #111</text>
+        <text x="248" y="484" fill="#b4b4b4" font-size="9" font-family="'Geist', sans-serif">identity: managed identity, Entra sign-in</text>
+        <rect x="540" y="474" width="40" height="14" rx="2" fill="#141414" stroke="#8c8c8c" stroke-width="1"/>
+        <text x="560" y="484" fill="#f5f5f5" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">ASI04</text>
+        <text x="588" y="484" fill="#b4b4b4" font-size="9" font-family="'Geist', sans-serif">supply chain: pinned packages, actions, images, models</text>
+
+        <!-- Legend strip -->
+        <line x1="24" y1="512" x2="976" y2="512" stroke="rgba(245,245,245,0.10)" stroke-width="0.8"/>
+        <text x="24" y="528" fill="#b4b4b4" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+
+        <rect x="24" y="538" width="22" height="10" rx="2" fill="#141414" stroke="#8c8c8c" stroke-width="1"/>
+        <text x="52" y="546" fill="#b4b4b4" font-size="8.5" font-family="'Geist', sans-serif">Risk with a tested control</text>
+
+        <rect x="180" y="538" width="22" height="10" rx="2" fill="#000000" stroke="#b4b4b4" stroke-width="1" stroke-dasharray="3,2"/>
+        <text x="208" y="546" fill="#b4b4b4" font-size="8.5" font-family="'Geist', sans-serif">Open gap and its issue</text>
+
+        <line x1="328" y1="543" x2="352" y2="543" stroke="#f0b429" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+        <text x="360" y="546" fill="#b4b4b4" font-size="8.5" font-family="'Geist', sans-serif">Text from outside Hindcast</text>
+
+        <rect x="488" y="538" width="14" height="10" rx="2" fill="rgba(34,197,94,0.10)" stroke="#22c55e" stroke-width="1"/>
+        <text x="508" y="546" fill="#b4b4b4" font-size="8.5" font-family="'Geist', sans-serif">The agent</text>
+
+        <line x1="576" y1="543" x2="600" y2="543" stroke="#b4b4b4" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+        <text x="608" y="546" fill="#b4b4b4" font-size="8.5" font-family="'Geist', sans-serif">Offline, for scoring only</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>
