@@ -209,6 +209,24 @@ def test_aggregate_gives_mean_min_max_and_failures() -> None:
     assert table["by_arm"]["hindcast"]["runs"] == 2
 
 
+def test_a_run_without_a_recorded_cost_leaves_the_total_unknown() -> None:
+    # A result file sealed before the cost field existed has no cost. A total
+    # over the other runs would read as the arm's cost, so it is None instead.
+    scores = []
+    for repeat in (1, 2):
+        rec = record(f"hindcast/dev/r{repeat}/a1", root_cause=verdict("wrong", "root_cause"))
+        scores.append(score_run(rec, accept_all(rec), LABELS))
+    priced = {"seconds": 10.0, "cost": 0.5}
+    usage = {scores[0].run_id: priced, scores[1].run_id: {"seconds": 20.0, "cost": None}}
+    table = aggregate(scores, models={}, known=set(), attempts=[], usage=usage)
+    cell = table["by_arm_case"]["hindcast"]["dev"]
+    assert cell["cost_total"] is None
+    assert cell["seconds_mean"] == pytest.approx(15.0)
+    usage[scores[1].run_id] = {"seconds": 20.0, "cost": 0.25}
+    table = aggregate(scores, models={}, known=set(), attempts=[], usage=usage)
+    assert table["by_arm_case"]["hindcast"]["dev"]["cost_total"] == pytest.approx(0.75)
+
+
 def test_known_before_evidence_comes_from_a_reviewed_prior_hit() -> None:
     from hindcast.evaluation.score import known_before_evidence
 

@@ -1,0 +1,167 @@
+{
+  "run_id": "sealed/github-2026-11-04-pull-requests/gpt-6.1-sol/a1",
+  "case_id": "github-2026-11-04-pull-requests",
+  "kinds": {
+    "attack": "inference",
+    "findings[0]": "observation",
+    "findings[1]": "observation",
+    "findings[2]": "observation",
+    "findings[3]": "observation",
+    "findings[4]": "inference",
+    "findings[5]": "inference",
+    "findings[6]": "inference",
+    "timeline[0]": "observation",
+    "timeline[1]": "observation",
+    "timeline[2]": "observation",
+    "timeline[3]": "observation",
+    "timeline[4]": "observation",
+    "timeline[5]": "observation",
+    "timeline[6]": "observation",
+    "timeline[7]": "observation",
+    "timeline[8]": "observation",
+    "root_cause": "inference"
+  },
+  "code_unsupported": [],
+  "judge": {
+    "model": "claude-opus-5-5",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "9de219e1f08dd185277139c88c3957bc4f67a3a4cf94e90e7523281cfd202a22",
+    "input_sha256": "72646cf37acc096a3b41faeb5253d17968cf4cc4fac83fc96d2e516c3ae70b60",
+    "judged_at": "2026-11-15T19:08:39Z",
+    "request_id": "req_011Ch5EshUZZrV3Aq8QsEgob",
+    "response_model": "claude-opus-5-5"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 5990,
+    "output_tokens": 2368,
+    "cache_creation_input_tokens": 2429,
+    "cache_read_input_tokens": 0
+  },
+  "judgment": {
+    "run_items": {
+      "attack": {
+        "reason": "Citing u4 and u6, it notes that the updates give only errors and delays with no cause. 'Cannot tell' follows without adding facts.",
+        "supported": true
+      },
+      "findings[0]": {
+        "reason": "u1, u2 and u3 state the initial services, the Actions degradation and the Pull Requests degraded availability.",
+        "supported": true
+      },
+      "findings[1]": {
+        "reason": "u4 and u6 state the elevated errors and that some requests may fail or be delayed, and u5 adds API Requests.",
+        "supported": true
+      },
+      "findings[2]": {
+        "reason": "u6, timestamped 11:17:52, says mitigation work is underway without naming the intervention.",
+        "supported": true
+      },
+      "findings[3]": {
+        "reason": "u7 (11:30:42) and u8 (11:43:52) state the two mitigation announcements and the stability monitoring.",
+        "supported": true
+      },
+      "findings[4]": {
+        "reason": "The 13 min 10 s gap is simple arithmetic on f4's timestamps, and the item adds no new facts.",
+        "supported": true
+      },
+      "findings[5]": {
+        "reason": "2 h 0 min 11 s is the arithmetic between u1 (09:49:55) and u9 (11:50:06), and the caveat adds nothing.",
+        "supported": true
+      },
+      "findings[6]": {
+        "reason": "Its claim about this outage, that the mechanism is not identifiable, follows from f1 and f2. The library refs only describe other outages and assert nothing about this one.",
+        "supported": true
+      },
+      "timeline[0]": {
+        "reason": "u1 at 09:49:55 states the investigation into degraded Git Operations, Issues and Pull Requests.",
+        "supported": true
+      },
+      "timeline[1]": {
+        "reason": "u2 at 09:50:47 states the Actions degradation.",
+        "supported": true
+      },
+      "timeline[2]": {
+        "reason": "u3 at 09:53:38 states Pull Requests' degraded availability.",
+        "supported": true
+      },
+      "timeline[3]": {
+        "reason": "u4 at 10:38:49 states the elevated errors and intermittent failures.",
+        "supported": true
+      },
+      "timeline[4]": {
+        "reason": "u5 at 11:11:30 states the API Requests degradation.",
+        "supported": true
+      },
+      "timeline[5]": {
+        "reason": "u6 at 11:17:52 states the mitigation work and that requests may fail or be delayed.",
+        "supported": true
+      },
+      "timeline[6]": {
+        "reason": "u7 at 11:30:42 states mitigation for API Requests, Git Operations, Issues and Pull Requests.",
+        "supported": true
+      },
+      "timeline[7]": {
+        "reason": "u8 at 11:43:52 states Actions mitigated.",
+        "supported": true
+      },
+      "timeline[8]": {
+        "reason": "u9 is the resolved status at 11:50:06, and its text is withheld.",
+        "supported": true
+      },
+      "root_cause": {
+        "reason": "It rests on supported findings f1–f4 and f7, and none of the cited updates names a cause, so 'cannot be determined' follows.",
+        "supported": true
+      }
+    },
+    "key_items": {
+      "attack": {
+        "run_items": [
+          "attack"
+        ],
+        "reason": "The run's verdict is 'cannot tell'.",
+        "outcome": "abstained"
+      },
+      "root_cause": {
+        "run_items": [
+          "root_cause"
+        ],
+        "reason": "The root cause says it cannot be determined and names the missing failed dependency and trigger. An open question asks which infrastructure or dependency failed.",
+        "outcome": "abstained"
+      },
+      "timeline/0": {
+        "run_items": [
+          "timeline[0]"
+        ],
+        "reason": "The supported onset report at 09:49:55 (u1) is within 30 minutes of the key's 09:35 start of errors.",
+        "outcome": "supported-hit"
+      },
+      "timeline/1": {
+        "run_items": [
+          "timeline[6]"
+        ],
+        "reason": "The supported mitigation of the main services at 11:30:42 (u7) is the recovery event, within 30 minutes of 11:24.",
+        "outcome": "supported-hit"
+      },
+      "timeline/2": {
+        "run_items": [
+          "timeline[7]"
+        ],
+        "reason": "The supported Actions mitigation at 11:43:52 (u8) matches the key's 11:43.",
+        "outcome": "supported-hit"
+      },
+      "timeline/3": {
+        "run_items": [
+          "timeline[8]"
+        ],
+        "reason": "The supported resolution at 11:50:06 (u9) matches the key's 11:50.",
+        "outcome": "supported-hit"
+      }
+    }
+  },
+  "error": null,
+  "arm": "sealed-gpt-6.1-sol",
+  "run_sha256": "880bbfb1b1ba0192f5043c9f2b74e68c7a0eb52d44bde7c8fac1d6caccb51633",
+  "code_commit": "587e14d4be4ddc20101a94faca7c6493736532d2",
+  "earlier_errors": []
+}

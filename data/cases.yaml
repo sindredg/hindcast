@@ -265,10 +265,13 @@ cases:
         retrieved_at: "2026-11-01T08:15:52Z"
         kind: status-updates
 
+  # Revealed on 2026-11-15 (decision 0030): GitHub published the cause in its
+  # October availability report at 2026-11-13T00:20:16Z, the time the page
+  # states. The status-updates source stays the snapshot the seals used.
   - case_id: github-2026-10-21
     title: Delays for Pull Requests and Webhook deliveries
     provider: GitHub
-    role: sealed
+    role: revealed
     started_at: "2026-10-21T14:52:49Z"
     sources:
       - doc_id: github-status-2026-10-21
@@ -279,6 +282,14 @@ cases:
         sha256: 3b90d46afbd3b1f2567bbafeab1bdb622c8272e976b36f57820b4b4f69b043c4
         retrieved_at: "2026-11-01T08:15:51Z"
         kind: status-updates
+      - doc_id: github-availability-2026-10
+        filename: github-availability-2026-10.html
+        url: https://github.blog/news-insights/company-news/github-availability-report-october-2026/
+        licence: Copyright GitHub; not redistributed
+        attribution: 'GitHub blog, "GitHub availability report: October 2026"'
+        sha256: 33799b12acda35adbf03be7ce4f696d192efd78826d1f65fdddc41ee8979c73d
+        retrieved_at: "2026-11-15T14:12:19Z"
+        kind: postmortem
 
   - case_id: github-2026-10-22
     title: Project updates delayed
@@ -294,10 +305,13 @@ cases:
         sha256: 401dcc1087581ef13f27bcbfde93b685d6f0ce3a0ed15a3216aaa0bb7c506e40
         retrieved_at: "2026-11-01T08:15:51Z"
         kind: status-updates
+  # Revealed on 2026-11-15 (decision 0030): GitHub wrote its summary of the
+  # cause into the resolved update at 2026-11-13T16:48:58Z, captured again as
+  # the postmortem. The status-updates source stays the snapshot the seals used.
   - case_id: github-2026-11-04-pull-requests
     title: Incident with Pull Requests, Git Operations and Issues
     provider: GitHub
-    role: sealed
+    role: revealed
     started_at: "2026-11-04T09:49:55Z"
     sources:
       - doc_id: github-status-2026-11-04-pull-requests
@@ -308,6 +322,14 @@ cases:
         sha256: 48fd9c5e77700273d5c0cc20b75c94fe874099ae6ae4e276b60d9c2821fe85a5
         retrieved_at: "2026-11-04T17:18:11Z"
         kind: status-updates
+      - doc_id: github-summary-2026-11-04-pull-requests
+        filename: github-summary-2026-11-04-pull-requests.json
+        url: https://www.githubstatus.com/api/v2/incidents/smtdswd1h2w4.json
+        licence: Copyright GitHub; not redistributed
+        attribution: GitHub status page, resolved update of incident smtdswd1h2w4
+        sha256: 021b3f457fe6a0c3a630da6061c61030345d56a9549d4e8defc5cacd5f2563ef
+        retrieved_at: "2026-11-15T14:12:18Z"
+        kind: postmortem
   # Revealed on 2026-11-07 (decision 0030): GitHub wrote its summary of the
   # cause into the resolved update at 2026-11-07T01:04:38Z, captured again as
   # the postmortem. The status-updates source stays the snapshot the seal used.

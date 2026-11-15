@@ -1,0 +1,329 @@
+{
+  "case_id": "github-2026-10-21",
+  "agent": {
+    "name": "hindcast-investigator-gpt-6-luna",
+    "version": "2"
+  },
+  "model": {
+    "deployment": "gpt-6-luna",
+    "name": "gpt-6-luna",
+    "version": "2026-09-22"
+  },
+  "provenance": {
+    "prompt": {
+      "blob": "a4c608c98477d8a78e8faf8a4ca3fae4f0dd9d13",
+      "dirty": false
+    },
+    "code": {
+      "commit": "c6a26d0bca305f690943de3f16037cbfac796532",
+      "dirty": false
+    },
+    "evidence_sha256": "e727da4730faab9c59fe7ff78882b3e67e38f9f370096f97b4769032d9d892ac"
+  },
+  "status": "complete",
+  "incomplete_reason": null,
+  "investigation": {
+    "attack": {
+      "verdict": "cannot tell",
+      "reasoning": "The updates attribute the impact to increased load and hotspots on the event streaming platform, but do not say what caused the increased load or whether it involved deliberate hostile action.",
+      "citations": [
+        {
+          "source": "case",
+          "ref": "github-2026-10-21/u3"
+        }
+      ]
+    },
+    "findings": [
+      {
+        "id": "f1",
+        "kind": "observation",
+        "claim": "GitHub reported degraded performance affecting Actions, Pull Requests, and Webhooks.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u1"
+          }
+        ]
+      },
+      {
+        "id": "f2",
+        "kind": "observation",
+        "claim": "GitHub said increased load on its event streaming platform was contributing to hotspots; it was shifting traffic away from affected areas and adding processing capacity.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u3"
+          }
+        ]
+      },
+      {
+        "id": "f3",
+        "kind": "observation",
+        "claim": "The impact expanded to include delays in audit log events, while pull request updates, webhook deliveries, and Actions workflow status updates were also delayed.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u4"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u5"
+          }
+        ]
+      },
+      {
+        "id": "f4",
+        "kind": "observation",
+        "claim": "GitHub described recovery as involving restored event processing and work through backlogs. Audit log delays reached up to 110 minutes, then decreased as the backlog was processed.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u6"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u8"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u13"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u14"
+          }
+        ]
+      },
+      {
+        "id": "f5",
+        "kind": "inference",
+        "claim": "The outage was driven by increased load and hotspots in the event streaming platform, with resulting event-processing delays and backlogs prolonging recovery, particularly for audit logs.",
+        "rests_on": [
+          "f2",
+          "f3",
+          "f4"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u3"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u5"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u11"
+          }
+        ]
+      }
+    ],
+    "timeline": [
+      {
+        "time": "2026-10-21T14:52:49Z",
+        "time_kind": "stated",
+        "event": "Incident start time listed by the provider.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u1"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-21T14:52:50Z",
+        "time_kind": "stated",
+        "event": "GitHub began investigating degraded performance affecting Actions, Pull Requests, and Webhooks.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u1"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-21T15:36:47Z",
+        "time_kind": "stated",
+        "event": "GitHub reported event-streaming platform load and hotspots, and said it was shifting traffic and adding processing capacity.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u3"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-21T15:58:38Z",
+        "time_kind": "stated",
+        "event": "Delays were reported in pull request updates, webhook deliveries, and audit log events; the event streaming platform showed signs of recovery.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u4"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-21T16:17:23Z",
+        "time_kind": "stated",
+        "event": "Pull request updates and webhook deliveries were recovering, while audit log events and Actions workflow status updates remained delayed.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u5"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-21T16:34:49Z",
+        "time_kind": "stated",
+        "event": "Pull request updates had recovered; Actions was recovering and webhook deliveries were still working through backlogs. Audit log events were delayed by up to 110 minutes.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u8"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-21T16:59:45Z",
+        "time_kind": "stated",
+        "event": "Actions and webhook deliveries had recovered, but audit log events remained delayed by about 100 minutes.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u10"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-21T17:09:35Z",
+        "time_kind": "stated",
+        "event": "Pull request updates, Actions, and webhook deliveries were reported recovered; audit log delays were decreasing, with a remaining backlog expected to take two to three hours to clear.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u11"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-21T18:52:50Z",
+        "time_kind": "stated",
+        "event": "Audit log delays were below 70 minutes; GitHub expected full audit log recovery in about 40 minutes.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u13"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-21T19:22:38Z",
+        "time_kind": "stated",
+        "event": "Audit log delays were below 40 minutes, within the healthy threshold, and continued to decrease.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u14"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-21T19:22:52Z",
+        "time_kind": "stated",
+        "event": "The incident status changed to resolved; the resolved update text is withheld.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u15"
+          }
+        ]
+      }
+    ],
+    "root_cause": {
+      "claim": "Increased load on the event streaming platform contributed to hotspots and degraded event processing. Processing delays and backlogs then prolonged the impact, especially for audit log events. The published updates do not identify what initially caused the increased load.",
+      "rests_on": [
+        "f2",
+        "f3",
+        "f4"
+      ],
+      "citations": [
+        {
+          "source": "case",
+          "ref": "github-2026-10-21/u3"
+        },
+        {
+          "source": "case",
+          "ref": "github-2026-10-21/u5"
+        },
+        {
+          "source": "case",
+          "ref": "github-2026-10-21/u11"
+        }
+      ]
+    },
+    "contributing_factors": [
+      {
+        "claim": "Hotspots associated with increased load on the event streaming platform contributed to the impact.",
+        "rests_on": [
+          "f2"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u3"
+          }
+        ]
+      },
+      {
+        "claim": "Backlogs in event processing extended recovery after pull request updates, Actions, and webhook deliveries began recovering.",
+        "rests_on": [
+          "f3",
+          "f4"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u5"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u11"
+          }
+        ]
+      }
+    ],
+    "open_questions": [
+      {
+        "question": "What caused the increased load on the event streaming platform?",
+        "why_open": "The updates report increased load and hotspots but do not explain the source of the load."
+      },
+      {
+        "question": "Was the increased load caused in whole or in part by deliberate hostile action?",
+        "why_open": "The updates do not identify an attack, intrusion, route hijack, or other hostile action, and do not rule one out."
+      },
+      {
+        "question": "What specific technical failure or bottleneck produced the hotspots and delays?",
+        "why_open": "The updates describe hotspots, event processing, and recovery measures but provide no further technical diagnosis."
+      }
+    ]
+  },
+  "checks": {
+    "rejected_citations": [],
+    "unsupported": []
+  },
+  "usage": {
+    "model_calls": 2,
+    "tool_calls": 2,
+    "seconds": 17.787,
+    "input_tokens": 3509,
+    "cached_input_tokens": 2098,
+    "output_tokens": 2507
+  }
+}

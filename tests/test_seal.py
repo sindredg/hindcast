@@ -610,7 +610,7 @@ def test_snapshot_writes_the_chunks_and_records_their_hash(tmp_path: Path) -> No
     record = tmp_path / "library-snapshots.json"
     client = Listing(CHUNKS)
     entry = seal.snapshot(
-        "github-2026-10-21",
+        "github-2026-10-22",
         client=client,
         index="idx",
         library=library,
@@ -619,12 +619,12 @@ def test_snapshot_writes_the_chunks_and_records_their_hash(tmp_path: Path) -> No
         record_path=record,
         now=NOW,
     )
-    data = (tmp_path / "out" / "github-2026-10-21.json").read_bytes()
+    data = (tmp_path / "out" / "github-2026-10-22.json").read_bytes()
     written = json.loads(data)
     # Sorted by chunk ID, so the same index gives the same bytes.
     assert [c["id"] for c in written["chunks"]] == ["lib_a_s1_p0", "lib_b_s1_p0"]
     assert entry == {
-        "case_id": "github-2026-10-21",
+        "case_id": "github-2026-10-22",
         "index": "idx",
         "filter": client.filters[0],
         "chunks": 2,
@@ -655,7 +655,7 @@ def test_snapshot_refuses_empty(tmp_path: Path) -> None:
     library, cases = library_for_snapshot()
     with pytest.raises(SealRefused, match="no library chunks"):
         seal.snapshot(
-            "github-2026-10-21",
+            "github-2026-10-22",
             client=Listing([]),
             index="idx",
             library=library,
@@ -678,6 +678,6 @@ def test_snapshot_refuses_a_second_snapshot(tmp_path: Path) -> None:
         "record_path": tmp_path / "r.json",
         "now": NOW,
     }
-    seal.snapshot("github-2026-10-21", **options)
+    seal.snapshot("github-2026-10-22", **options)
     with pytest.raises(SealRefused, match="already"):
-        seal.snapshot("github-2026-10-21", **options)
+        seal.snapshot("github-2026-10-22", **options)

@@ -156,3 +156,22 @@ def test_the_record_check_fails_on_each_broken_record(tmp_path: Path) -> None:
         assert f"{case_id}: publication time differs from the file" in record_problems(
             seals, late, Path("data/sources")
         )
+
+
+def duplicate_run_ids(attempts: list[dict]) -> list[str]:
+    """Run IDs the ledger holds more than once: a judgment file is named by its run ID."""
+    seen: set[str] = set()
+    twice = []
+    for entry in attempts:
+        if entry["run_id"] in seen:
+            twice.append(entry["run_id"])
+        seen.add(entry["run_id"])
+    return twice
+
+
+def test_each_revealed_run_has_its_own_run_id() -> None:
+    ledger = Path("eval/reconstruction/sealed-v1/attempts.json")
+    attempts = json.loads(ledger.read_text("utf-8"))["attempts"]
+
+    assert duplicate_run_ids(attempts) == []
+    assert duplicate_run_ids([*attempts, attempts[0]]) == [attempts[0]["run_id"]]

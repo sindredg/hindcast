@@ -1,0 +1,77 @@
+{
+ "case_id": "github-2026-10-21",
+ "items": [
+  {
+   "item": "attack",
+   "label": "inferable",
+   "reason": "u3 places the cause in increased load on GitHub's own event streaming platform, an internal system behind the affected features, not traffic from outside.",
+   "evidence": [
+    "github-2026-10-21/u3"
+   ]
+  },
+  {
+   "item": "root_cause",
+   "label": "not inferable",
+   "reason": "u3 names increased load and hotspots on the event streaming platform, but no update mentions memory limits or the immediate reconnects that drove the overload.",
+   "evidence": [
+    "github-2026-10-21/u3"
+   ]
+  },
+  {
+   "item": "contributing_factors/0",
+   "label": "not inferable",
+   "reason": "No update mentions server memory or how it grows with connections.",
+   "evidence": []
+  },
+  {
+   "item": "contributing_factors/1",
+   "label": "not inferable",
+   "reason": "u3 says traffic is being shifted away from affected areas, but no update says the shift overloaded other servers.",
+   "evidence": [
+    "github-2026-10-21/u3"
+   ]
+  },
+  {
+   "item": "contributing_factors/2",
+   "label": "not inferable",
+   "reason": "Updates report audit log delays and backlogs, but none says the audit log writer kept restarting.",
+   "evidence": [
+    "github-2026-10-21/u6",
+    "github-2026-10-21/u10"
+   ]
+  },
+  {
+   "item": "contributing_factors/3",
+   "label": "not inferable",
+   "reason": "u11 expects the backlog to take two to three hours but gives no limit on the write rate.",
+   "evidence": [
+    "github-2026-10-21/u11"
+   ]
+  },
+  {
+   "item": "timeline/0",
+   "label": "stated",
+   "reason": "The first update, u1 at 14:52, reports degraded performance for Actions, Pull Requests and Webhooks.",
+   "evidence": [
+    "github-2026-10-21/u1"
+   ]
+  },
+  {
+   "item": "timeline/1",
+   "label": "stated",
+   "reason": "u14 at 19:22 says audit log delays are within the healthy threshold, and the resolved update u15 follows at 19:22.",
+   "evidence": [
+    "github-2026-10-21/u14",
+    "github-2026-10-21/u15"
+   ]
+  },
+  {
+   "item": "timeline/2",
+   "label": "not inferable",
+   "reason": "The last update before resolution, u14, says delays are below 40 minutes and decreasing, with no time for full catch-up.",
+   "evidence": [
+    "github-2026-10-21/u14"
+   ]
+  }
+ ]
+}

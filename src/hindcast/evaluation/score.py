@@ -228,7 +228,9 @@ def _summary(scores: list[RunScore], failures: int, usage: Mapping[str, dict]) -
         "contradictions": sum(len(s.contradictions) for s in scores),
         "failures": failures,
         "seconds_mean": statistics.fmean(seconds) if seconds else None,
-        "cost_total": round(sum(costs), 6) if costs else None,
+        # A result file sealed before the cost field existed carries no cost.
+        # A total over the priced runs alone would understate the cell.
+        "cost_total": round(sum(costs), 6) if costs and None not in costs else None,
     }
 
 
@@ -499,7 +501,10 @@ def main(argv: list[str] | None = None) -> int:
     known = {(deployment, case_id) for deployment, case_id in prior["known_before_evidence"]}
     entries = {e["run_id"]: e for e in attempts}
     usage = {
-        run_id: {"seconds": e["usage"]["seconds"], "cost": e["cost"]["total"]}
+        run_id: {
+            "seconds": e["usage"]["seconds"],
+            "cost": e["cost"]["total"] if e["cost"] else None,
+        }
         for run_id, e in entries.items()
         if run_id in records
     }

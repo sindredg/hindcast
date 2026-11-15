@@ -1,0 +1,402 @@
+{
+  "case_id": "github-2026-11-04-pull-requests",
+  "agent": {
+    "name": "hindcast-investigator-gpt-6-1-sol",
+    "version": "2"
+  },
+  "model": {
+    "deployment": "gpt-6.1-sol",
+    "name": "gpt-6.1-sol",
+    "version": "2026-09-29"
+  },
+  "provenance": {
+    "prompt": {
+      "blob": "1d0911f407e73fd3d4def4f4e14ab8763c6cfbbc",
+      "dirty": false
+    },
+    "code": {
+      "commit": "42c308af19ae1bb9e90ba071dd0ee02eee1bfcdd",
+      "dirty": false,
+      "src_tree": "ee981839827a62ce5019ef1a627b281edd363960"
+    },
+    "evidence_sha256": "5eb5e7880acb4c7f6ac9ca70ad45bb6b831df2997afb3cf4b219d142b932c78f",
+    "library": {
+      "registry": {
+        "blob": "ca5fb507e65dab71001a76adb9ae2258aae261b4",
+        "dirty": false
+      },
+      "index": "hindcast-library-1024",
+      "search_api_version": "2026-04-01",
+      "embedding": {
+        "deployment": "text-embedding-3-large",
+        "name": "text-embedding-3-large",
+        "version": "1",
+        "dimensions": 1024
+      },
+      "contents": {
+        "chunks": 267,
+        "sha256": "b0aba867a775310881bba94058614ace3c80b86589548eef453c6a5df80dd524"
+      }
+    },
+    "arm": "hindcast",
+    "screens": true
+  },
+  "status": "complete",
+  "incomplete_reason": null,
+  "investigation": {
+    "attack": {
+      "verdict": "cannot tell",
+      "reasoning": "GitHub reported elevated errors, intermittent failures, and delayed requests, but disclosed neither a trigger nor a technical cause. These symptoms do not establish or exclude deliberate hostile action.",
+      "citations": [
+        {
+          "source": "case",
+          "ref": "github-2026-11-04-pull-requests/u4"
+        },
+        {
+          "source": "case",
+          "ref": "github-2026-11-04-pull-requests/u6"
+        }
+      ]
+    },
+    "findings": [
+      {
+        "id": "f1",
+        "kind": "observation",
+        "claim": "The initially reported impact covered Git Operations, Issues, and Pull Requests. Actions degradation was reported shortly afterward, and Pull Requests was explicitly described as having degraded availability.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-pull-requests/u1"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-pull-requests/u2"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-pull-requests/u3"
+          }
+        ]
+      },
+      {
+        "id": "f2",
+        "kind": "observation",
+        "claim": "GitHub reported elevated errors and intermittent failures, added API Requests to the affected services, and warned that some requests could fail or be delayed.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-pull-requests/u4"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-pull-requests/u5"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-pull-requests/u6"
+          }
+        ]
+      },
+      {
+        "id": "f3",
+        "kind": "observation",
+        "claim": "At 11:17:52 UTC, GitHub said mitigation work was underway, but did not identify the intervention being performed.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-pull-requests/u6"
+          }
+        ]
+      },
+      {
+        "id": "f4",
+        "kind": "observation",
+        "claim": "GitHub announced mitigation for API Requests, Git Operations, Issues, and Pull Requests at 11:30:42 UTC, then announced mitigation for Actions at 11:43:52 UTC. Both announcements said stability was being monitored.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-pull-requests/u7"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-pull-requests/u8"
+          }
+        ]
+      },
+      {
+        "id": "f5",
+        "kind": "inference",
+        "claim": "Recovery was reported in two stages, with Actions' mitigation announcement 13 minutes 10 seconds after the other services. This does not establish separate causes or the exact recovery time of either group.",
+        "rests_on": [
+          "f4"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-pull-requests/u7"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-pull-requests/u8"
+          }
+        ]
+      },
+      {
+        "id": "f6",
+        "kind": "inference",
+        "claim": "The public incident window lasted 2 hours 11 seconds, from the initial investigating update to the resolved status. This is a reporting interval, not a measurement of every user's period of impairment.",
+        "rests_on": [
+          "f1",
+          "f4"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-pull-requests/u1"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-pull-requests/u9"
+          }
+        ]
+      },
+      {
+        "id": "f7",
+        "kind": "inference",
+        "claim": "The broad impact and request failures are insufficient to identify a failure mechanism. Earlier GitHub incidents involved overlapping symptoms from both shared-database failure and abusive automated traffic; neither explanation is established for this incident.",
+        "rests_on": [
+          "f1",
+          "f2"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-pull-requests/u4"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-pull-requests/u6"
+          },
+          {
+            "source": "library",
+            "ref": "lib/github-availability-2023-09/s2"
+          },
+          {
+            "source": "library",
+            "ref": "lib/github-availability-2026-06/s3"
+          }
+        ]
+      }
+    ],
+    "timeline": [
+      {
+        "time": "2026-11-04T09:49:55Z",
+        "time_kind": "stated",
+        "event": "GitHub opened an investigation into degraded performance for Git Operations, Issues, and Pull Requests.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-pull-requests/u1"
+          }
+        ]
+      },
+      {
+        "time": "2026-11-04T09:50:47Z",
+        "time_kind": "stated",
+        "event": "Actions degradation was reported.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-pull-requests/u2"
+          }
+        ]
+      },
+      {
+        "time": "2026-11-04T09:53:38Z",
+        "time_kind": "stated",
+        "event": "Pull Requests was reported to have degraded availability.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-pull-requests/u3"
+          }
+        ]
+      },
+      {
+        "time": "2026-11-04T10:38:49Z",
+        "time_kind": "stated",
+        "event": "GitHub described elevated errors and intermittent failures affecting services including Pull Requests, Git Operations, and Issues.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-pull-requests/u4"
+          }
+        ]
+      },
+      {
+        "time": "2026-11-04T11:11:30Z",
+        "time_kind": "stated",
+        "event": "API Requests degradation was reported.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-pull-requests/u5"
+          }
+        ]
+      },
+      {
+        "time": "2026-11-04T11:17:52Z",
+        "time_kind": "stated",
+        "event": "GitHub reported active mitigation work and warned that some requests could fail or be delayed.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-pull-requests/u6"
+          }
+        ]
+      },
+      {
+        "time": "2026-11-04T11:30:42Z",
+        "time_kind": "stated",
+        "event": "API Requests, Git Operations, Issues, and Pull Requests were reported mitigated, with stability monitoring underway.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-pull-requests/u7"
+          }
+        ]
+      },
+      {
+        "time": "2026-11-04T11:43:52Z",
+        "time_kind": "stated",
+        "event": "Actions was reported mitigated, with stability monitoring underway.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-pull-requests/u8"
+          }
+        ]
+      },
+      {
+        "time": "2026-11-04T11:50:06Z",
+        "time_kind": "stated",
+        "event": "The incident status changed to resolved; the resolution text is withheld.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-11-04-pull-requests/u9"
+          }
+        ]
+      }
+    ],
+    "root_cause": {
+      "claim": "The underlying root cause cannot be determined from the available evidence. The updates establish a multi-service degradation with errors and delays, followed by mitigation, but identify no failed dependency, triggering event, or recovery mechanism.",
+      "rests_on": [
+        "f1",
+        "f2",
+        "f3",
+        "f4",
+        "f7"
+      ],
+      "citations": [
+        {
+          "source": "case",
+          "ref": "github-2026-11-04-pull-requests/u4"
+        },
+        {
+          "source": "case",
+          "ref": "github-2026-11-04-pull-requests/u6"
+        },
+        {
+          "source": "case",
+          "ref": "github-2026-11-04-pull-requests/u7"
+        },
+        {
+          "source": "case",
+          "ref": "github-2026-11-04-pull-requests/u8"
+        }
+      ]
+    },
+    "contributing_factors": [],
+    "open_questions": [
+      {
+        "question": "What triggered the degradation, and which infrastructure or dependency failed?",
+        "why_open": "The error and mitigation reports name affected services but no technical cause (github-2026-11-04-pull-requests/u4 and github-2026-11-04-pull-requests/u6)."
+      },
+      {
+        "question": "What mitigation restored service, and why was Actions reported mitigated later?",
+        "why_open": "The two mitigation announcements give no intervention details or explanation for their different timing (github-2026-11-04-pull-requests/u7 and github-2026-11-04-pull-requests/u8)."
+      },
+      {
+        "question": "How extensive was the user impact, and when did impairment actually begin?",
+        "why_open": "The updates provide no affected-request percentages, geographic or user scope, or measured onset before the initial report (github-2026-11-04-pull-requests/u1 and github-2026-11-04-pull-requests/u6)."
+      }
+    ]
+  },
+  "checks": {
+    "rejected_citations": [],
+    "unsupported": [],
+    "pii": []
+  },
+  "tool_calls": [
+    {
+      "name": "list_updates",
+      "seconds": 2.207,
+      "withheld": [],
+      "screen_calls": 2
+    },
+    {
+      "name": "list_charts",
+      "seconds": 0.0,
+      "withheld": [],
+      "screen_calls": 0
+    },
+    {
+      "name": "search_library",
+      "seconds": 1.115,
+      "query": "GitHub simultaneous elevated errors intermittent failures delayed requests Git Operations Issues Pull Requests API Actions degraded performance shared dependency mitigation",
+      "refs": [
+        "lib/github-availability-2023-09/s2",
+        "lib/github-availability-2026-06/s3",
+        "lib/github-availability-2026-06/s7",
+        "lib/github-availability-2026-06/s4",
+        "lib/github-availability-2023-11/s2"
+      ],
+      "withheld": [],
+      "screen_calls": 1
+    }
+  ],
+  "usage": {
+    "model_calls": 3,
+    "tool_calls": 3,
+    "seconds": 50.653,
+    "input_tokens": 7476,
+    "cached_input_tokens": 3364,
+    "output_tokens": 2607,
+    "screen_calls": 3,
+    "screen_records": 19,
+    "pii_calls": 6,
+    "pii_records": 25,
+    "max_call_input_tokens": 4106,
+    "reasoning_tokens": 213
+  },
+  "reasoning": {
+    "requested": "medium",
+    "applied": [
+      "medium"
+    ]
+  },
+  "cost": {
+    "table_version": 1,
+    "currency": "USD",
+    "model": 0.03463,
+    "screens": 0.007125,
+    "pii": 0.025,
+    "embeddings": 3e-06,
+    "total": 0.066758
+  }
+}

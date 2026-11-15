@@ -1,0 +1,83 @@
+{
+  "attack": "not an attack",
+  "attack_basis": "implied",
+  "attack_quote": "When requests to these servers failed, new connections were opened immediately, which increased the number of connections and the memory they used.",
+  "case_id": "github-2026-10-21",
+  "contributing_factors": [
+    {
+      "source_quote": "Some servers in our event streaming platform were close to their memory limits, and memory use on these servers grows with the number of client connections.",
+      "stated_during_incident": false,
+      "text": "Some event streaming servers were already close to their memory limits, and their memory use grows with the number of client connections."
+    },
+    {
+      "source_quote": "Those servers then became overloaded too, and the problem spread to more servers over the following hour.",
+      "stated_during_incident": false,
+      "text": "Taking overloaded servers out of service moved their traffic to other servers, which became overloaded too, so the problem spread over the following hour."
+    },
+    {
+      "source_quote": "The service that writes audit log events kept restarting on errors from the platform for more than two hours and fell further behind.",
+      "stated_during_incident": false,
+      "text": "The service that writes audit log events kept restarting on errors from the platform for more than two hours and fell further behind."
+    },
+    {
+      "source_quote": "Once stabilized, it could only write events at a limited rate, so the backlog took several more hours to clear.",
+      "stated_during_incident": false,
+      "text": "Once stabilized, the audit log service could only write events at a limited rate, so the backlog took several more hours to clear."
+    }
+  ],
+  "fixes": [
+    {
+      "source_quote": "We began rebalancing overloaded partitions onto brokers that had available capacity and this mitigated the issue.",
+      "stated_during_incident": false,
+      "text": "Rebalanced overloaded partitions onto brokers with available capacity, which mitigated the issue."
+    },
+    {
+      "source_quote": "We added randomized delays to reconnects after a failed request",
+      "stated_during_incident": false,
+      "text": "Add randomized delays to reconnects after a failed request."
+    },
+    {
+      "source_quote": "We are alerting earlier on server memory use, so we can move traffic before a server slows down.",
+      "stated_during_incident": false,
+      "text": "Alert earlier on server memory use, to move traffic before a server slows down."
+    },
+    {
+      "source_quote": "We are adding a second destination for webhook delivery data that we can switch to",
+      "stated_during_incident": false,
+      "text": "Add a second destination for webhook delivery data to switch to if the event streaming platform slows down."
+    },
+    {
+      "source_quote": "We have improved our playbooks to move hot partitions for similar situations in the future",
+      "stated_during_incident": false,
+      "text": "Improve playbooks to move hot partitions."
+    }
+  ],
+  "root_cause": {
+    "source_quote": "When requests to these servers failed, new connections were opened immediately, which increased the number of connections and the memory they used.",
+    "stated_during_incident": false,
+    "text": "Servers in GitHub's event streaming platform, already close to their memory limits, were overloaded when failed requests made clients open new connections immediately, raising connection counts and memory use; this delayed pull request updates, Actions workflow status updates, webhook deliveries, and audit log events."
+  },
+  "timeline": [
+    {
+      "event": "The incident begins: delays in pull request updates, Actions workflow status updates, and webhook deliveries.",
+      "source_quote": "October 21 14:52 UTC (lasting 4 hours and 30 minutes)",
+      "stated_during_incident": true,
+      "time": "2026-10-21T14:52Z",
+      "time_as_written": "October 21 14:52 UTC"
+    },
+    {
+      "event": "The incident is resolved once audit log delays are back within the healthy range: 14:52 UTC plus the stated 4 hours and 30 minutes.",
+      "source_quote": "We resolved the incident once audit log delays were back within the healthy range, and the remaining backlog cleared afterward.",
+      "stated_during_incident": true,
+      "time": "2026-10-21T19:22Z",
+      "time_as_written": "14:52 UTC, lasting 4 hours and 30 minutes"
+    },
+    {
+      "event": "Audit log events are fully caught up: 14:52 UTC plus the stated 6 hours and 46 minutes.",
+      "source_quote": "Audit log events were fully caught up after about 6 hours and 46 minutes.",
+      "stated_during_incident": false,
+      "time": "2026-10-21T21:38Z",
+      "time_as_written": "14:52 UTC, after about 6 hours and 46 minutes"
+    }
+  ]
+}

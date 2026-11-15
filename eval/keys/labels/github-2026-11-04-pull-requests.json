@@ -1,0 +1,52 @@
+{
+ "case_id": "github-2026-11-04-pull-requests",
+ "items": [
+  {
+   "item": "attack",
+   "label": "not inferable",
+   "reason": "No update names a cause or any hostile action; u4 and u6 report elevated errors and intermittent failures only.",
+   "evidence": [
+    "github-2026-11-04-pull-requests/u4",
+    "github-2026-11-04-pull-requests/u6"
+   ]
+  },
+  {
+   "item": "root_cause",
+   "label": "not inferable",
+   "reason": "No update mentions a database, its capacity, or any cause.",
+   "evidence": []
+  },
+  {
+   "item": "timeline/0",
+   "label": "not inferable",
+   "reason": "The first update, u1 at 09:49, reports degraded performance without a start time.",
+   "evidence": [
+    "github-2026-11-04-pull-requests/u1"
+   ]
+  },
+  {
+   "item": "timeline/1",
+   "label": "stated",
+   "reason": "u7 at 11:30 says the degradation affecting API Requests, Git Operations, Issues and Pull Requests has been mitigated.",
+   "evidence": [
+    "github-2026-11-04-pull-requests/u7"
+   ]
+  },
+  {
+   "item": "timeline/2",
+   "label": "stated",
+   "reason": "u8 at 11:43 says the degradation affecting Actions has been mitigated.",
+   "evidence": [
+    "github-2026-11-04-pull-requests/u8"
+   ]
+  },
+  {
+   "item": "timeline/3",
+   "label": "stated",
+   "reason": "The resolved update u9 is at 11:50.",
+   "evidence": [
+    "github-2026-11-04-pull-requests/u9"
+   ]
+  }
+ ]
+}

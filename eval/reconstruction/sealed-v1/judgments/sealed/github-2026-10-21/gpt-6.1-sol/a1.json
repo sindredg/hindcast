@@ -1,0 +1,216 @@
+{
+  "run_id": "sealed/github-2026-10-21/gpt-6.1-sol/a1",
+  "case_id": "github-2026-10-21",
+  "kinds": {
+    "attack": "inference",
+    "findings[0]": "observation",
+    "findings[1]": "observation",
+    "findings[2]": "observation",
+    "findings[3]": "observation",
+    "findings[4]": "observation",
+    "findings[5]": "observation",
+    "findings[6]": "observation",
+    "findings[7]": "inference",
+    "findings[8]": "inference",
+    "timeline[0]": "observation",
+    "timeline[1]": "observation",
+    "timeline[2]": "observation",
+    "timeline[3]": "observation",
+    "timeline[4]": "observation",
+    "timeline[5]": "observation",
+    "timeline[6]": "observation",
+    "timeline[7]": "observation",
+    "timeline[8]": "observation",
+    "timeline[9]": "observation",
+    "timeline[10]": "observation",
+    "timeline[11]": "observation",
+    "root_cause": "inference",
+    "contributing_factors[0]": "inference",
+    "contributing_factors[1]": "inference"
+  },
+  "code_unsupported": [],
+  "judge": {
+    "model": "claude-opus-5-5",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "9de219e1f08dd185277139c88c3957bc4f67a3a4cf94e90e7523281cfd202a22",
+    "input_sha256": "6762559b49326a0b3a64137de128b6d6e07d30e80bd5fd03ae0ab46f0f350fcb",
+    "judged_at": "2026-11-15T19:09:01Z",
+    "request_id": "req_011Ch5EuK4k8LK4qdjELmXGd",
+    "response_model": "claude-opus-5-5"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 7187,
+    "output_tokens": 3254,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 2429
+  },
+  "judgment": {
+    "run_items": {
+      "attack": {
+        "reason": "u3 attributes the delays to increased load and hotspots without naming a source, so a 'cannot tell' verdict follows from the cited text.",
+        "supported": true
+      },
+      "findings[0]": {
+        "reason": "u1 states degraded performance for Actions, Pull Requests and Webhooks.",
+        "supported": true
+      },
+      "findings[1]": {
+        "reason": "u3 states the increased load, the hotspots, the traffic shifting and the added processing capacity.",
+        "supported": true
+      },
+      "findings[2]": {
+        "reason": "u4 names the audit log delays and u5 names the Actions status delays and the backlog recovery.",
+        "supported": true
+      },
+      "findings[3]": {
+        "reason": "u6 gives 100 minutes and u8 gives 110 minutes, with pull request updates recovered.",
+        "supported": true
+      },
+      "findings[4]": {
+        "reason": "u7, u9 and u10 state these statuses and the roughly 100-minute audit log delay.",
+        "supported": true
+      },
+      "findings[5]": {
+        "reason": "u12, u13 and u14 state the reduced load, the mitigations and the falling delay thresholds.",
+        "supported": true
+      },
+      "findings[6]": {
+        "reason": "u14 states the delay is within the healthy threshold with the backlog continuing, and the u15 title gives the resolution time.",
+        "supported": true
+      },
+      "findings[7]": {
+        "reason": "From f1, f2, f3 and f5 (u3, u5), a shared event-streaming bottleneck across several services follows by general reasoning, and the item adds no new fact.",
+        "supported": true
+      },
+      "findings[8]": {
+        "reason": "Backlog drainage prolonging recovery follows from f3–f7, u10 and u11. The library citation is used only for a remark about earlier incidents, not as support for this outage.",
+        "supported": true
+      },
+      "timeline[0]": {
+        "reason": "u1 at 14:52:50 states the investigation.",
+        "supported": true
+      },
+      "timeline[1]": {
+        "reason": "u3 at 15:36:47 states the load, the hotspots and the mitigations.",
+        "supported": true
+      },
+      "timeline[2]": {
+        "reason": "u4 states signs of recovery while delays continue.",
+        "supported": true
+      },
+      "timeline[3]": {
+        "reason": "u5 states this.",
+        "supported": true
+      },
+      "timeline[4]": {
+        "reason": "u7 states this.",
+        "supported": true
+      },
+      "timeline[5]": {
+        "reason": "u8 states this.",
+        "supported": true
+      },
+      "timeline[6]": {
+        "reason": "u9 states this.",
+        "supported": true
+      },
+      "timeline[7]": {
+        "reason": "u11 states the decreasing delays and the two-to-three-hour estimate.",
+        "supported": true
+      },
+      "timeline[8]": {
+        "reason": "u12 states the reduced load and delays below 90 minutes.",
+        "supported": true
+      },
+      "timeline[9]": {
+        "reason": "u13 states the added mitigations and delays below 70 minutes.",
+        "supported": true
+      },
+      "timeline[10]": {
+        "reason": "u14 states delays below 40 minutes, within the healthy threshold.",
+        "supported": true
+      },
+      "timeline[11]": {
+        "reason": "The u15 title gives the resolved status at 19:22:52.",
+        "supported": true
+      },
+      "root_cause": {
+        "reason": "A load-driven bottleneck in hotspots on the event-streaming platform follows from u3, u5, f8 and f9, and the item adds no unsupported component or cause.",
+        "supported": true
+      },
+      "contributing_factors[0]": {
+        "reason": "u3 states that load caused hotspots and that traffic shifting and capacity were the mitigations.",
+        "supported": true
+      },
+      "contributing_factors[1]": {
+        "reason": "f5, f9, u10 and u11 show the audit log backlog persisting after the other services recovered.",
+        "supported": true
+      }
+    },
+    "key_items": {
+      "attack": {
+        "run_items": [
+          "attack"
+        ],
+        "reason": "The run's verdict is 'cannot tell'.",
+        "outcome": "abstained"
+      },
+      "root_cause": {
+        "run_items": [
+          "root_cause"
+        ],
+        "reason": "The run identifies load-driven overload of the event-streaming platform causing the downstream delays. It omits the trigger (immediate reconnects after failed requests) and the memory and connection mechanism, which it says are unknown.",
+        "outcome": "partial"
+      },
+      "contributing_factors/0": {
+        "run_items": [],
+        "reason": "No run item mentions memory limits or memory growing with connection count.",
+        "outcome": "missed"
+      },
+      "contributing_factors/1": {
+        "run_items": [],
+        "reason": "The run mentions traffic shifting only as a mitigation, never as the step that spread overload to other servers.",
+        "outcome": "missed"
+      },
+      "contributing_factors/2": {
+        "run_items": [],
+        "reason": "No run item mentions the audit log service restarting on platform errors.",
+        "outcome": "missed"
+      },
+      "contributing_factors/3": {
+        "run_items": [
+          "contributing_factors[1]"
+        ],
+        "reason": "contributing_factors[1] says the audit log backlog sustained delays well beyond the other services' recovery. It lacks the limited write rate, which the run lists as an open question.",
+        "outcome": "partial"
+      },
+      "timeline/0": {
+        "run_items": [
+          "timeline[0]"
+        ],
+        "reason": "timeline[0] puts the start at 14:52:50, citing u1.",
+        "outcome": "supported-hit"
+      },
+      "timeline/1": {
+        "run_items": [
+          "timeline[10]",
+          "timeline[11]"
+        ],
+        "reason": "timeline[11] gives resolution at 19:22:52, after audit log delays reached the healthy threshold (timeline[10]).",
+        "outcome": "supported-hit"
+      },
+      "timeline/2": {
+        "run_items": [],
+        "reason": "The run gives no time for the backlog fully clearing and leaves it as an open question.",
+        "outcome": "missed"
+      }
+    }
+  },
+  "error": null,
+  "arm": "sealed-gpt-6.1-sol",
+  "run_sha256": "54919d248ff4cebaf4d8430257916353477e148dbe42a59a228a570eeaafec3d",
+  "code_commit": "587e14d4be4ddc20101a94faca7c6493736532d2",
+  "earlier_errors": []
+}
