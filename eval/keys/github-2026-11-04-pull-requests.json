@@ -1,0 +1,69 @@
+{
+  "attack": "not an attack",
+  "attack_basis": "implied",
+  "attack_quote": "The disruption was caused by a shared database reaching capacity.",
+  "case_id": "github-2026-11-04-pull-requests",
+  "contributing_factors": [],
+  "fixes": [
+    {
+      "source_quote": "We restored service by switching to another database host.",
+      "stated_during_incident": false,
+      "text": "Restored service by switching to another database host."
+    },
+    {
+      "source_quote": "We have since made changes to reduce database load",
+      "stated_during_incident": false,
+      "text": "Reduce database load."
+    },
+    {
+      "source_quote": "increased capacity",
+      "stated_during_incident": false,
+      "text": "Increase database capacity."
+    },
+    {
+      "source_quote": "added monitoring to help identify similar problems earlier",
+      "stated_during_incident": false,
+      "text": "Add monitoring to identify similar problems earlier."
+    },
+    {
+      "source_quote": "We are also improving our recovery procedures.",
+      "stated_during_incident": false,
+      "text": "Improve recovery procedures."
+    }
+  ],
+  "root_cause": {
+    "source_quote": "The disruption was caused by a shared database reaching capacity.",
+    "stated_during_incident": false,
+    "text": "A shared database reached capacity, causing intermittent errors and delays across Pull Requests, Issues, APIs, Git operations, and Actions."
+  },
+  "timeline": [
+    {
+      "event": "Intermittent errors and delays began across Pull Requests, Issues, APIs, Git operations, and Actions.",
+      "source_quote": "beginning at approximately 09:35 UTC",
+      "stated_during_incident": false,
+      "time": "2026-11-04T09:35Z",
+      "time_as_written": "approximately 09:35 UTC"
+    },
+    {
+      "event": "Recovery began after service was switched to another database host.",
+      "source_quote": "Recovery began around 11:24 UTC",
+      "stated_during_incident": true,
+      "time": "2026-11-04T11:24Z",
+      "time_as_written": "11:24 UTC"
+    },
+    {
+      "event": "The remaining Actions impact was mitigated.",
+      "source_quote": "the remaining Actions impact was mitigated by 11:43 UTC",
+      "stated_during_incident": true,
+      "time": "2026-11-04T11:43Z",
+      "time_as_written": "11:43 UTC"
+    },
+    {
+      "event": "The incident was resolved.",
+      "source_quote": "The incident was resolved at 11:50 UTC.",
+      "stated_during_incident": true,
+      "time": "2026-11-04T11:50Z",
+      "time_as_written": "11:50 UTC"
+    }
+  ]
+}
