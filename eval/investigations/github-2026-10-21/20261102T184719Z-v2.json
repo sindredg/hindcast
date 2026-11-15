@@ -1,0 +1,448 @@
+{
+  "case_id": "github-2026-10-21",
+  "agent": {
+    "name": "hindcast-investigator-gpt-6-1-sol",
+    "version": "2"
+  },
+  "model": {
+    "deployment": "gpt-6.1-sol",
+    "name": "gpt-6.1-sol",
+    "version": "2026-09-29"
+  },
+  "provenance": {
+    "prompt": {
+      "blob": "1d0911f407e73fd3d4def4f4e14ab8763c6cfbbc",
+      "dirty": false
+    },
+    "code": {
+      "commit": "5fd90c0feea522ec31e18615ba20e556adb41287",
+      "dirty": false
+    },
+    "evidence_sha256": "e727da4730faab9c59fe7ff78882b3e67e38f9f370096f97b4769032d9d892ac",
+    "library": {
+      "registry": {
+        "blob": "ca5fb507e65dab71001a76adb9ae2258aae261b4",
+        "dirty": false
+      },
+      "index": "hindcast-library-1024",
+      "search_api_version": "2026-04-01",
+      "embedding": {
+        "deployment": "text-embedding-3-large",
+        "name": "text-embedding-3-large",
+        "version": "1",
+        "dimensions": 1024
+      }
+    }
+  },
+  "status": "complete",
+  "incomplete_reason": null,
+  "investigation": {
+    "attack": {
+      "verdict": "cannot tell",
+      "reasoning": "GitHub attributed the delays to increased load and hotspots on its event-streaming platform, but did not explain the source of that load. The updates neither establish hostile activity nor establish that the traffic was legitimate.",
+      "citations": [
+        {
+          "source": "case",
+          "ref": "github-2026-10-21/u3"
+        }
+      ]
+    },
+    "findings": [
+      {
+        "id": "f1",
+        "kind": "observation",
+        "claim": "The initial reported impact included degraded performance for Actions, Pull Requests, and Webhooks.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u1"
+          }
+        ]
+      },
+      {
+        "id": "f2",
+        "kind": "observation",
+        "claim": "GitHub reported increased load contributing to hotspots on its event-streaming platform. It was shifting traffic away from affected areas and adding processing capacity while impact continued.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u3"
+          }
+        ]
+      },
+      {
+        "id": "f3",
+        "kind": "observation",
+        "claim": "The delays also affected audit log events and Actions workflow status updates. Recovery involved restoring event processing and working through backlogs.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u4"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u5"
+          }
+        ]
+      },
+      {
+        "id": "f4",
+        "kind": "observation",
+        "claim": "Reported audit log delays increased from up to 100 minutes at 16:25:30 UTC to up to 110 minutes at 16:34:49 UTC, even as pull request updates recovered.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u6"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u8"
+          }
+        ]
+      },
+      {
+        "id": "f5",
+        "kind": "observation",
+        "claim": "Pull Requests was reported normal at 16:33:10 UTC. Actions and Webhooks were reported normal at 16:57:42 UTC, but audit log events remained delayed by about 100 minutes at 16:59:45 UTC.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u7"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u9"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u10"
+          }
+        ]
+      },
+      {
+        "id": "f6",
+        "kind": "observation",
+        "claim": "GitHub later reported reduced platform load and additional recovery mitigations. Audit log delays fell below 90 minutes, then below 70 minutes, and finally below 40 minutes.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u12"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u13"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u14"
+          }
+        ]
+      },
+      {
+        "id": "f7",
+        "kind": "observation",
+        "claim": "Immediately before resolution, audit log delays were within GitHub's stated healthy threshold, but the remaining backlog was still being processed. The incident was marked resolved at 19:22:52 UTC.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u14"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u15"
+          }
+        ]
+      },
+      {
+        "id": "f8",
+        "kind": "inference",
+        "claim": "The evidence points to an event-processing bottleneck affecting multiple services, rather than establishing separate failures in each service. The precise platform component and failure mechanism are not disclosed.",
+        "rests_on": [
+          "f1",
+          "f2",
+          "f3",
+          "f5"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u3"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u5"
+          }
+        ]
+      },
+      {
+        "id": "f9",
+        "kind": "inference",
+        "claim": "Backlog drainage prolonged recovery after Pull Requests, Actions, and Webhooks returned to normal. Earlier GitHub incidents also distinguish restored processing from backlog completion, but their specific mechanisms and data-loss outcomes cannot be assumed here.",
+        "rests_on": [
+          "f3",
+          "f4",
+          "f5",
+          "f6",
+          "f7"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u10"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u11"
+          },
+          {
+            "source": "library",
+            "ref": "lib/github-2018-10-21/s15"
+          }
+        ]
+      }
+    ],
+    "timeline": [
+      {
+        "time": "2026-10-21T14:52:50Z",
+        "time_kind": "stated",
+        "event": "GitHub announced investigation of degraded Actions, Pull Requests, and Webhooks performance.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u1"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-21T15:36:47Z",
+        "time_kind": "stated",
+        "event": "GitHub identified increased event-streaming load and hotspots; traffic shifting and added processing capacity were underway.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u3"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-21T15:58:38Z",
+        "time_kind": "stated",
+        "event": "The platform showed signs of recovery, but pull request, webhook, and audit log delays continued.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u4"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-21T16:17:23Z",
+        "time_kind": "stated",
+        "event": "Pull request updates and webhook deliveries were recovering as processing was restored and backlogs drained; audit logs and Actions status updates remained delayed.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u5"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-21T16:33:10Z",
+        "time_kind": "stated",
+        "event": "Pull Requests was reported operating normally.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u7"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-21T16:34:49Z",
+        "time_kind": "stated",
+        "event": "Audit log delays were up to 110 minutes. GitHub said Actions users should no longer experience impact, while webhook recovery continued.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u8"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-21T16:57:42Z",
+        "time_kind": "stated",
+        "event": "Actions and Webhooks were reported operating normally.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u9"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-21T17:09:35Z",
+        "time_kind": "stated",
+        "event": "Audit log delays were decreasing; GitHub estimated another two to three hours to clear the remaining backlog.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u11"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-21T18:18:11Z",
+        "time_kind": "stated",
+        "event": "GitHub reported reduced platform load and audit log delays below 90 minutes.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u12"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-21T18:52:50Z",
+        "time_kind": "stated",
+        "event": "Additional mitigations were speeding recovery; audit log delays were below 70 minutes.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u13"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-21T19:22:38Z",
+        "time_kind": "stated",
+        "event": "Audit log delays fell below 40 minutes, within the stated healthy threshold, although backlog processing continued.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u14"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-21T19:22:52Z",
+        "time_kind": "stated",
+        "event": "The incident was marked resolved; the resolution text is withheld.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u15"
+          }
+        ]
+      }
+    ],
+    "root_cause": {
+      "claim": "The best-supported proximate cause is a load-related event-processing bottleneck concentrated in hotspots on GitHub's event-streaming platform, producing delayed downstream updates and delivery backlogs. The initiating cause of the increased load and the exact technical failure remain unknown.",
+      "rests_on": [
+        "f2",
+        "f3",
+        "f8",
+        "f9"
+      ],
+      "citations": [
+        {
+          "source": "case",
+          "ref": "github-2026-10-21/u3"
+        },
+        {
+          "source": "case",
+          "ref": "github-2026-10-21/u5"
+        }
+      ]
+    },
+    "contributing_factors": [
+      {
+        "claim": "Load concentration in affected areas contributed to the disruption; mitigation targeted those areas through traffic shifting and additional processing capacity.",
+        "rests_on": [
+          "f2"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u3"
+          }
+        ]
+      },
+      {
+        "claim": "The accumulated audit log backlog sustained delays well beyond recovery of the other reported services.",
+        "rests_on": [
+          "f5",
+          "f9"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u10"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-21/u11"
+          }
+        ]
+      }
+    ],
+    "open_questions": [
+      {
+        "question": "What caused the increased platform load, and was any of it hostile?",
+        "why_open": "The updates identify load and hotspots but disclose neither the traffic source nor an initiating event."
+      },
+      {
+        "question": "Which platform components became hotspots, and why did traffic concentrate there?",
+        "why_open": "GitHub does not identify nodes, partitions, routing behavior, or a specific software or infrastructure fault."
+      },
+      {
+        "question": "Why did audit logs recover substantially later than the other services?",
+        "why_open": "The audit log backlog is documented, but its size, processing rate, and any recovery prioritization are not."
+      },
+      {
+        "question": "Were any events lost or duplicated, and when was the backlog completely cleared?",
+        "why_open": "The updates describe delays rather than event integrity. The last substantive update still reports backlog processing, and resolution text is withheld."
+      }
+    ]
+  },
+  "checks": {
+    "rejected_citations": [],
+    "unsupported": []
+  },
+  "tool_calls": [
+    {
+      "name": "list_updates",
+      "seconds": 0.0
+    },
+    {
+      "name": "list_charts",
+      "seconds": 0.0
+    },
+    {
+      "name": "search_library",
+      "seconds": 0.825,
+      "query": "event streaming increased load hotspots delayed webhook pull request updates audit log events backlog processing capacity traffic shifting recovery",
+      "refs": [
+        "lib/github-2018-10-21/s15",
+        "lib/github-availability-2026-06/s7",
+        "lib/cloudflare-2024-06-20/s1",
+        "lib/cloudflare-2024-06-20/s3",
+        "lib/cloudflare-2025-06-12/s2"
+      ]
+    }
+  ],
+  "usage": {
+    "model_calls": 3,
+    "tool_calls": 3,
+    "seconds": 40.221,
+    "input_tokens": 8844,
+    "cached_input_tokens": 5227,
+    "output_tokens": 2906
+  }
+}

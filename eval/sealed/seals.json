@@ -32,7 +32,8 @@
       "file": "20261101T081742Z-v2.json",
       "sha256": "ee91c76908445fb833046bf0da96a6c6cb50af0f83b2b492f42251059e79b0c2",
       "blob": "sealed/github-2026-10-21/20261101T081742Z-v2.json",
-      "status": "complete"
+      "status": "complete",
+      "revealed": true
     },
     {
       "case_id": "github-2026-10-22",
@@ -83,7 +84,8 @@
       "file": "20261101T082003Z-v1.json",
       "sha256": "a8843b977585669288b22313910a7cc27f3848550002518a8e7638fc54ca0aee",
       "blob": "sealed/github-2026-10-21/20261101T082003Z-v1.json",
-      "status": "complete"
+      "status": "complete",
+      "revealed": true
     },
     {
       "case_id": "github-2026-10-22",
@@ -134,7 +136,8 @@
       "file": "20261102T184512Z-v3.json",
       "sha256": "6d5a0bc1eec199a3ae99f26292e3c31fb1f81f2b04cc5a0d9864f3444fe768bc",
       "blob": "sealed/github-2026-10-21/20261102T184512Z-v3.json",
-      "status": "complete"
+      "status": "complete",
+      "revealed": true
     },
     {
       "case_id": "github-2026-10-22",
@@ -185,7 +188,8 @@
       "file": "20261102T184719Z-v2.json",
       "sha256": "54919d248ff4cebaf4d8430257916353477e148dbe42a59a228a570eeaafec3d",
       "blob": "sealed/github-2026-10-21/20261102T184719Z-v2.json",
-      "status": "complete"
+      "status": "complete",
+      "revealed": true
     },
     {
       "case_id": "github-2026-10-22",
