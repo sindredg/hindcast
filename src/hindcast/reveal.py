@@ -248,11 +248,14 @@ def ledger_entry(seal: Mapping[str, Any], document: Mapping[str, Any]) -> dict[s
     from hindcast.seal import reason_prefix
 
     deployment = seal["deployment"]
+    # One arm per deployment and library setting (decision 0017, rule 6). A
+    # case sealed with and without the library search has an attempt 1 under
+    # each setting, so the setting is part of the arm and the run ID; the
+    # judgment and review files are named by the run ID.
+    arm = deployment if seal["library"] else f"{deployment}-library-off"
     return {
-        "run_id": f"sealed/{seal['case_id']}/{deployment}/a{seal['attempt']}",
-        # One arm per deployment: the seals ran the investigator on each model
-        # with the library search (decision 0017, rule 6).
-        "arm": f"sealed-{deployment}",
+        "run_id": f"sealed/{seal['case_id']}/{arm}/a{seal['attempt']}",
+        "arm": f"sealed-{arm}",
         "case_id": seal["case_id"],
         "repeat": 1,
         "attempt": seal["attempt"],
@@ -330,6 +333,11 @@ def reveal(
                     "a revealed file is published as sealed"
                 )
         ready.append((seal, data, target))
+    seen = {e["run_id"] for e in ledger}
+    for entry in entries:
+        if entry["run_id"] in seen:
+            raise RevealRefused(f"the ledger would hold run ID {entry['run_id']} twice")
+        seen.add(entry["run_id"])
     files = []
     for seal, data, target in ready:
         target.parent.mkdir(parents=True, exist_ok=True)

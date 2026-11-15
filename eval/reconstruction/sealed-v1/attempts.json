@@ -181,8 +181,8 @@
       "code_commit": "42c308af19ae1bb9e90ba071dd0ee02eee1bfcdd"
     },
     {
-      "run_id": "sealed/github-2026-10-21/gpt-6-luna/a1",
-      "arm": "sealed-gpt-6-luna",
+      "run_id": "sealed/github-2026-10-21/gpt-6-luna-library-off/a1",
+      "arm": "sealed-gpt-6-luna-library-off",
       "case_id": "github-2026-10-21",
       "repeat": 1,
       "attempt": 1,
@@ -212,8 +212,8 @@
       "code_commit": "c6a26d0bca305f690943de3f16037cbfac796532"
     },
     {
-      "run_id": "sealed/github-2026-10-21/gpt-6.1-sol/a1",
-      "arm": "sealed-gpt-6.1-sol",
+      "run_id": "sealed/github-2026-10-21/gpt-6.1-sol-library-off/a1",
+      "arm": "sealed-gpt-6.1-sol-library-off",
       "case_id": "github-2026-10-21",
       "repeat": 1,
       "attempt": 1,

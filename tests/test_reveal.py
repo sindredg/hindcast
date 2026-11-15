@@ -10,7 +10,7 @@ import pytest
 
 from hindcast.cases import Case, SourceFile
 from hindcast.keys import key_json, load_key
-from hindcast.reveal import RevealRefused, check_ready, published_at, reveal
+from hindcast.reveal import RevealRefused, check_ready, ledger_entry, published_at, reveal
 
 KEY = Path("eval/keys/github-2026-11-04-actions.json")
 CASE_ID = "c-1"
@@ -334,3 +334,40 @@ def test_a_reason_that_names_a_host_or_id_is_unsafe(reason: str) -> None:
     assert unsafe_reason(reason)
     assert not unsafe_reason("tool-error: search_library: ServiceRequestError")
     assert not unsafe_reason(None)
+
+
+def test_a_seal_without_the_library_gets_its_own_arm_and_run_id() -> None:
+    # Decision 0017, rule 6: one seal per case, deployment, and library setting.
+    # Both settings have an attempt 1, so the setting has to be in the run ID.
+    seal = {
+        "case_id": "c-1",
+        "deployment": "d",
+        "attempt": 1,
+        "sealed_at": "t",
+        "status": "complete",
+        "file": "r.json",
+        "sha256": "0" * 64,
+        "agent_name": "n",
+        "agent_version": "1",
+        "model_name": "d",
+        "model_version": "v",
+        "code_commit": "c" * 40,
+    }
+    document = {"usage": {"seconds": 1.0}}
+
+    on = ledger_entry(seal | {"library": True}, document)
+    off = ledger_entry(seal | {"library": False}, document)
+
+    assert (on["run_id"], on["arm"]) == ("sealed/c-1/d/a1", "sealed-d")
+    assert (off["run_id"], off["arm"]) == ("sealed/c-1/d-library-off/a1", "sealed-d-library-off")
+
+
+def test_a_run_id_already_in_the_ledger_refuses_the_reveal(tmp_path: Path) -> None:
+    case, seal, paths = make_tree(tmp_path)
+    ledger = tmp_path / "ledger" / "attempts.json"
+    ledger.parent.mkdir(parents=True, exist_ok=True)
+    ledger.write_text(json.dumps({"attempts": [{"run_id": "sealed/c-1/d/a1"}]}), "utf-8")
+
+    with pytest.raises(RevealRefused, match="run ID sealed/c-1/d/a1 twice"):
+        do_reveal(tmp_path, case, paths)
+    assert not (tmp_path / "revealed").exists()
