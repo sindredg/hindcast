@@ -1,9 +1,9 @@
 # Sealing: operator procedure
 
-Status: Written on 2026-11-01; the reveal validated on 2026-11-07.
+Status: Written on 2026-11-01; the reveal validated on 2026-11-07 and again on 2026-11-15.
 
 - Steps 1 to 10 ran on 2026-11-01, first series (`library: false`); steps 7 to 10 again on 2026-11-02, second series (`library: true`, [worklog 05](../worklogs/05-sealed-reconstructions.md#second-seals-with-the-library-2026-11-02)); steps 1 to 10 again on 2026-11-04 for two GitHub outages, screens on, four seals `complete` on the first attempt ([worklog 05](../worklogs/05-sealed-reconstructions.md#third-seals-two-github-outages-of-2026-11-04)).
-- [Reveal a seal](#reveal-a-seal) ran on 2026-11-07 for `github-2026-11-04-actions`, steps 11 to 24, except step 18 (committed after the reveal; refused since). [Drop a seal](#drop-a-seal) is written, not run: its date is 2026-11-30.
+- [Reveal a seal](#reveal-a-seal) ran on 2026-11-07 for `github-2026-11-04-actions`, steps 11 to 24, except step 18 (committed after the reveal; refused since). It ran again on 2026-11-15 for `github-2026-11-04-pull-requests` and `github-2026-10-21`, steps 11 to 24 ([worklog 05](../worklogs/05-sealed-reconstructions.md#reveal-two-github-cases-2026-11-15)). [Drop a seal](#drop-a-seal) is written, not run: its date is 2026-11-30.
 - Since 2026-11-03 a seal runs with Prompt Shields, the PII check, spans, and a cost ([milestone 4, slice 3](../worklogs/04-investigator.md#slice-3-screens-pii-challenge-traces-and-cost)).
 
 One investigator run per deployment, the result's SHA-256 committed, the file in private storage until the postmortem is out ([decision 0017](../decisions/0017-sealed-reconstructions.md)). A seal makes at most 13 model calls plus, in the second series, the calls the [investigator runbook](investigator.md) describes.
@@ -170,6 +170,12 @@ Ran on 2026-11-07 for `github-2026-11-04-actions`, offline except the capture an
 
     Expected: `url:`, `retrieved_at:`, and `sha256:`. Observed: `retrieved_at: "2026-11-07T10:22:42Z"`, `sha256: 76af8617…`. The `status-updates` source stays as sealed.
 
+    For a cause published on a web page, such as GitHub's monthly availability report, capture the page instead and note the publication time the page states (`article:published_time`); step 19 needs it:
+
+    ```bash
+    PYTHONPATH=src uv run --frozen python -m hindcast.capture page --url <page-url> --out data/sources/<case_id>/<page-file>.html
+    ```
+
 13. In `data/cases.yaml`, add the capture as a `postmortem` source, set `role: revealed` ([decision 0030](../decisions/0030-close-evaluation-with-sealed-addenda.md)), and comment when the cause was published.
 
     ```bash
@@ -226,6 +232,8 @@ Ran on 2026-11-07 for `github-2026-11-04-actions`, offline except the capture an
     PYTHONPATH=src uv run --frozen python -m hindcast.reveal <case_id>
     ```
 
+    For a page postmortem, add `--published-at <time the page states>`. Reveal one case at a time and commit step 20 before the next: the reveal refuses while `eval/sealed/` has uncommitted changes.
+
     Expected: the publication time, the leak check's counts, and `revealed <n> files`. The command rechecks steps 13 to 17 and refuses before reading a sealed file if one fails or the cause predates a seal. Observed at 10:30:54Z: `cause published 2026-11-07T01:04:38Z`, `revealed 2 files`.
 
 20. Run the reveal check, then commit `eval/investigations/<case_id>/`, `eval/sealed/seals.json`, `eval/sealed/reveals.json`, and `eval/reconstruction/sealed-v1/attempts.json`.
@@ -242,7 +250,7 @@ Ran on 2026-11-07 for `github-2026-11-04-actions`, offline except the capture an
     PYTHONPATH=src uv run --frozen --env-file .env python -m hindcast.evaluation.judge run --root eval/reconstruction/sealed-v1
     ```
 
-    Expected: `judged <n>, errors 0, kept <k>`; runs judged before are kept. Observed: `judged 2, errors 0, kept 0`.
+    Expected: `judged <n>, errors 0, kept <k>`; runs judged before are kept. Observed: `judged 2, errors 0, kept 0`. A case sealed under both library settings has one run per deployment and setting; the library-off runs are in the arm `sealed-<deployment>-library-off`.
 
 22. Have the reviewer judge them again, and apply its decisions.
 

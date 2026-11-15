@@ -1,6 +1,6 @@
 # Milestone 5, first part: Sealed reconstructions and the October case
 
-Status: Verified on 2026-11-07 with milestone 5 ([gate](#gate), [independent review](#independent-review)). Drop date 2026-11-30 since 2026-11-03 ([decision 0022](../decisions/0022-sealed-drop-date-and-offline-reveal.md)). Milestone state: [roadmap](../roadmap.md#status).
+Status: Verified on 2026-11-07 with milestone 5 ([gate](#gate), [independent review](#independent-review)). Two more cases revealed on 2026-11-15 ([below](#reveal-two-github-cases-2026-11-15)); two stay sealed. Drop date 2026-11-30 since 2026-11-03 ([decision 0022](../decisions/0022-sealed-drop-date-and-offline-reveal.md)). Milestone state: [roadmap](../roadmap.md#status).
 
 On this page: [Scope](#scope) · [Work completed](#work-completed) · [Checks](#checks) · [Live run](#live-run) · [Gate](#gate) · [Independent review](#independent-review) · [Issues opened](#issues-opened) · [Second seals, with the library (2026-11-02)](#second-seals-with-the-library-2026-11-02) · [Third seals: two GitHub outages of 2026-11-04](#third-seals-two-github-outages-of-2026-11-04) · [Reveal: github-2026-11-04-actions (2026-11-07)](#reveal-github-2026-11-04-actions-2026-11-07)
 
@@ -234,3 +234,53 @@ Test suite: `uv run --frozen pytest -q` → 1004 passed, locally with the captur
 ### Issues
 
 Closed: [#34](https://github.com/sindredg/hindcast/issues/34) (`revealed` role), [#35](https://github.com/sindredg/hindcast/issues/35) (publication time), [#36](https://github.com/sindredg/hindcast/issues/36) (placeholder refusal). Opened: [#99](https://github.com/sindredg/hindcast/issues/99), a timeline hit the 30-minute tolerance credits on a `not inferable` event.
+
+## Reveal: two GitHub cases (2026-11-15)
+
+GitHub published two causes on 2026-11-13. For `github-2026-11-04-pull-requests` it rewrote the resolved update at 16:48:58Z: a shared database reached capacity. For `github-2026-10-21` the cause is in the October availability report, published at 00:20:16Z: event streaming servers near their memory limits, overloaded by immediate reconnects. `github-2026-10-22` is not in the report, and `cloudflare-2026-10-20` has no cause; both stay sealed.
+
+Steps from the [sealing runbook](../runbooks/sealing.md#reveal-a-seal), locally. The Azure resources were removed on 2026-11-07; the reveal needs none.
+
+| Step | Command | Result |
+|---|---|---|
+| Capture | `hindcast.capture status --provider GitHub --incident smtdswd1h2w4`; `hindcast.capture page --url <October report>` | `retrieved_at` 2026-11-15T14:12:18Z, `sha256: 021b3f45…`; 14:12:19Z, `sha256: 33799b12…`. Both cases set to `revealed`; `tests/test_cases.py` 35 passed |
+| Key | `hindcast.keys check <case_id>`, then `freeze` | `0 problems` each; frozen `fe7d5c64…` and `de282bbc…` |
+| Labels | `hindcast.labels sheet <case_id>`, then `freeze` | 6 labels (3 stated, 3 not inferable), `c80e72cd…`; 9 labels (2 stated, 1 inferable, 6 not inferable), `4a1e49aa…` |
+| Leak check | `hindcast.leak <case_id> --snapshot build/sealed-library/<case_id>.json` | `7 unstated items, 8 evidence sources, 267 library chunks, 0 hits`; `11 unstated items, 14 evidence sources, 267 library chunks, 0 hits` |
+| Commit | Registry, keys, labels | `f57a0cb` |
+| Reveal | `hindcast.reveal github-2026-11-04-pull-requests`, 19:07:02Z | `cause published 2026-11-13T16:48:58Z`, `revealed 2 files`; committed as `0b7bbee` |
+| Reveal | `hindcast.reveal github-2026-10-21 --published-at 2026-11-13T00:20:16Z`, 19:07:20Z | `cause published 2026-11-13T00:20:16Z`, `revealed 4 files`; committed as `587e14d` |
+| Judge | `hindcast.evaluation.judge run --root eval/reconstruction/sealed-v1` | `judged 6, errors 0, kept 2`; after the run ID fix `judged 2, errors 0, kept 6` |
+| Reviewer | `hindcast.evaluation.reviewer run` and `apply`, same root | `judged 6, errors 0, kept 2` and `decisions 57, missing 0`; after the fix `judged 2, errors 0, kept 6` and `decisions 29, missing 0` |
+| Score | `hindcast.evaluation.score --root eval/reconstruction/sealed-v1` | `runs 8, open review items 0`; pull requests runs 1.00, the four 10-21 runs 0.60 |
+| Spend | `hindcast.evaluation.spend --sealed` | judge USD 0.71, reviewer USD 2.27, total USD 2.98 over all eight runs; USD 2.25 of it this reveal |
+
+Results: [sealed report, addendum](../../eval/reconstruction/sealed-v1/README.md#addendum-2026-11-15-two-github-cases).
+
+### Two defects the second reveal found
+
+| Defect | Seen as | Fix |
+|---|---|---|
+| A seal without the library had the same run ID as the seal with it | The first judge run reported `judged 6` and left four files for the six new runs; `score` wrote 6 runs | `5dc7b36`: the library setting is in the arm and the run ID; the reveal refuses a duplicate run ID ([troubleshooting](../troubleshooting.md#evaluation-two-sealed-runs-of-one-model-share-a-run-id-2026-11-15)) |
+| `score` assumed every result file records a cost | `TypeError: 'NoneType' object is not subscriptable` on the seals of 2026-11-01 and 2026-11-02 | `f529676`: a cell with such a run reports its cost total as unknown |
+
+The second reveal refused once: `refused: src, data/cases.yaml, eval/keys, eval/sealed: uncommitted or untracked changes`, with the first reveal's record uncommitted. One reveal, one commit, then the next.
+
+The two judgments and two second judgments of the library-off runs made before the fix were overwritten by those of the library runs; `run_sha256` in each kept file names the library run. Their usage was not kept.
+
+### Checks
+
+Each failed once on a broken input, 2026-11-15, locally:
+
+| Broken input | Failed test or refusal |
+|---|---|
+| One word changed in a quote of the `github-2026-10-21` key draft | `keys check`: `timeline[2]: quote not found word for word in the postmortem`, exit 1 |
+| A chunk with the root cause planted in each library snapshot | `leak --plant`: `1 hits`, `root_cause in planted` |
+| The ledger entry built without the library setting | `test_a_seal_without_the_library_gets_its_own_arm_and_run_id` |
+| The duplicate refusal absent from the reveal | `test_a_run_id_already_in_the_ledger_refuses_the_reveal` |
+| The committed ledger with two entries per run ID | `test_each_revealed_run_has_its_own_run_id` |
+| A run without a cost summed as a number | `test_a_run_without_a_recorded_cost_leaves_the_total_unknown` |
+
+The seal and page tests used `github-2026-10-21` as their sealed case and now use `github-2026-10-22`.
+
+Test suite: `.venv/bin/python -m pytest -q` → 1075 passed, locally with the captured sources present; ruff and ruff format clean.

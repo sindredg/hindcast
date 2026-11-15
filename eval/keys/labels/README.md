@@ -4,7 +4,7 @@ One label file per scored case: for each scored key item, whether the case's evi
 
 ## Status
 
-Four label files frozen on 2026-11-03, before any scored run, and one at a reveal; each label approved by a person, from the keys and the evidence, never from a run's output. A sealed case is labelled at its reveal, before its sealed file is opened ([decision 0022](../../../docs/decisions/0022-sealed-drop-date-and-offline-reveal.md)): `github-2026-11-04-actions` on 2026-11-07, approved and frozen before `python -m hindcast.reveal` read its seals.
+Four label files frozen on 2026-11-03, before any scored run, and one at the reveal of 2026-11-07; each label approved by a person, from the keys and the evidence, never from a run's output. A sealed case is labelled at its reveal, before its sealed file is opened ([decision 0022](../../../docs/decisions/0022-sealed-drop-date-and-offline-reveal.md)): `github-2026-11-04-actions` on 2026-11-07, approved and frozen before `python -m hindcast.reveal` read its seals. `github-2026-11-04-pull-requests` and `github-2026-10-21` were labelled on 2026-11-15 from their keys and evidence and frozen in commit `f57a0cb`, before their seals were read; these labels passed the checks below and had no item-by-item second reading.
 
 [`frozen.json`](frozen.json) records each file's SHA-256; `tests/test_labels.py` fails if a label file changes or is not frozen. A changed label is a new approval, not an edit.
 
@@ -15,6 +15,8 @@ Four label files frozen on 2026-11-03, before any scored run, and one at a revea
 | `google-cloud-2026-07-14` | 3 | 2 | 3 |
 | `github-2026-10-07` | 4 | 0 | 5 |
 | `github-2026-11-04-actions` | 1 | 0 | 10 |
+| `github-2026-11-04-pull-requests` | 3 | 0 | 3 |
+| `github-2026-10-21` | 2 | 1 | 6 |
 
 The attack verdict is `inferable` where an update names a cause that settles it, `not inferable` where none does.
 
@@ -50,4 +52,6 @@ The attack verdict has no `stated_during_incident` flag in the key, so its label
 | [`google-cloud-2026-07-14.json`](google-cloud-2026-07-14.json) | Scored case |
 | [`github-2026-10-07.json`](github-2026-10-07.json) | Scored case |
 | [`github-2026-11-04-actions.json`](github-2026-11-04-actions.json) | Revealed sealed case |
+| [`github-2026-11-04-pull-requests.json`](github-2026-11-04-pull-requests.json) | Revealed sealed case |
+| [`github-2026-10-21.json`](github-2026-10-21.json) | Revealed sealed case |
 | [`frozen.json`](frozen.json) | SHA-256 of each label file |

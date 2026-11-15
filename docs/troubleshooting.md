@@ -5,7 +5,7 @@ Failures that showed something about Hindcast, the platform, or a procedure: sym
 Entries by area:
 
 - **Deployment:** [removed environment's traces reappear (2026-11-06)](#deployment-a-rebuilt-environment-shows-the-removed-environments-traces-2026-11-06); [`RoleDefinitionHasAssignments` (2026-11-06)](#deployment-the-custom-roles-delete-fails-with-roledefinitionhasassignments-2026-11-06); [`MaxNumberOfRegionalEnvironmentsInSubExceeded` (2026-11-05)](#deployment-the-second-provision-fails-with-maxnumberofregionalenvironmentsinsubexceeded-2026-11-05); [`RequestConflict` on the Foundry project (2026-11-05)](#deployment-the-first-provision-fails-with-requestconflict-on-the-foundry-project-2026-11-05); [circular dependency (2026-10-31)](#deployment-re-provision-fails-with-a-circular-dependency-2026-10-31); [`InternalServerError` on the container app (2026-10-31)](#deployment-first-provision-fails-with-internalservererror-on-the-container-app-2026-10-31); [preview prompts for a parameter (2026-10-31)](#deployment-azd-provision---preview-prompts-for-a-parameter-2026-10-31)
-- **Evaluation:** [judge refuses a run after rubric version 3 (2026-11-07)](#evaluation-the-judge-refuses-a-later-run-after-the-rubric-moved-to-version-3-2026-11-07)
+- **Evaluation:** [two sealed runs share a run ID (2026-11-15)](#evaluation-two-sealed-runs-of-one-model-share-a-run-id-2026-11-15); [judge refuses a run after rubric version 3 (2026-11-07)](#evaluation-the-judge-refuses-a-later-run-after-the-rubric-moved-to-version-3-2026-11-07)
 - **Judge:** [reply schema too large (2026-11-04)](#judge-the-api-refuses-the-reply-schema-as-too-large-2026-11-04)
 - **Portal evaluation:** [a few 401s after the fix (2026-10-26)](#portal-evaluation-a-few-evaluator-calls-fail-with-401-after-the-fix-below-2026-10-26); [every row 401 `PermissionDenied` (2026-10-26)](#portal-evaluation-every-row-fails-with-401-permissiondenied-2026-10-26)
 - **Investigator:** [SSL error on a library search (2026-11-02)](#investigator-a-library-search-ends-the-run-with-an-ssl-error-2026-11-02)
@@ -14,6 +14,16 @@ Entries by area:
 - **Content Understanding:** [`DefaultDeploymentModelNotFound` (2026-10-27)](#content-understanding-creating-a-document-analyzer-fails-with-defaultdeploymentmodelnotfound-2026-10-27)
 - **Library extraction:** [GitHub extracts named a person (2026-10-27)](#library-extraction-github-extracts-named-a-person-and-described-their-photo-2026-10-27)
 - **Answer-key draft:** [quotes not found (2026-10-27)](#answer-key-draft-most-quotes-reported-as-not-found-2026-10-27)
+
+## Evaluation: two sealed runs of one model share a run ID (2026-11-15)
+
+**Symptom:** after revealing `github-2026-10-21`, `python -m hindcast.evaluation.judge run --root eval/reconstruction/sealed-v1` printed `judged 6, errors 0, kept 2`, and `score` then wrote 6 runs for 8 ledger entries. The case's judgment folder held one file per model, not two.
+
+**Cause:** confirmed. The case was sealed with and without the library search, and each setting has an attempt 1 (decision 0017, rule 6). `hindcast.reveal.ledger_entry` built the run ID from the case, the deployment, and the attempt, so both runs of a model were `sealed/github-2026-10-21/<deployment>/a1`. Judgment and review files are named by the run ID, so the later write replaced the earlier. The first revealed case had one seal per model and could not show it.
+
+**Fix:** a seal with `library: false` gets the arm `sealed-<deployment>-library-off` and a run ID to match. `hindcast.reveal` refuses a run ID the ledger already holds. The two library-off ledger entries were rebuilt from their seals with the corrected function; the other six entries came out unchanged.
+
+**Verification:** tested locally, `tests/test_reveal.py` (`test_a_seal_without_the_library_gets_its_own_arm_and_run_id`, `test_a_run_id_already_in_the_ledger_refuses_the_reveal`) and `tests/test_sealed_reveal.py` (`test_each_revealed_run_has_its_own_run_id`); each failed before the fix. The judgments left on disk name the library runs in `run_sha256`. After the fix: `judged 2, errors 0, kept 6`, and `score` wrote 8 runs.
 
 ## Evaluation: the judge refuses a later run after the rubric moved to version 3 (2026-11-07)
 
