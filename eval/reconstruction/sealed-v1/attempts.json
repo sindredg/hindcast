@@ -89,6 +89,96 @@
         "version": "2026-09-29"
       },
       "code_commit": "42c308af19ae1bb9e90ba071dd0ee02eee1bfcdd"
+    },
+    {
+      "run_id": "sealed/github-2026-11-04-pull-requests/gpt-6-luna/a1",
+      "arm": "sealed-gpt-6-luna",
+      "case_id": "github-2026-11-04-pull-requests",
+      "repeat": 1,
+      "attempt": 1,
+      "started_at": "2026-11-04T17:19:37Z",
+      "status": "complete",
+      "reason": null,
+      "file": "github-2026-11-04-pull-requests/20261104T171937Z-v3.json",
+      "sha256": "e3ef087893865866513c4ced071ef74a68d64177261b3af70fb69aba646c97cc",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 32.316,
+        "input_tokens": 7731,
+        "cached_input_tokens": 3364,
+        "output_tokens": 2675,
+        "screen_calls": 3,
+        "screen_records": 20,
+        "pii_calls": 6,
+        "pii_records": 25,
+        "max_call_input_tokens": 4361,
+        "reasoning_tokens": 481
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.001808,
+        "screens": 0.0075,
+        "pii": 0.025,
+        "embeddings": 7e-06,
+        "total": 0.034315
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna",
+        "version": "3"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "42c308af19ae1bb9e90ba071dd0ee02eee1bfcdd"
+    },
+    {
+      "run_id": "sealed/github-2026-11-04-pull-requests/gpt-6.1-sol/a1",
+      "arm": "sealed-gpt-6.1-sol",
+      "case_id": "github-2026-11-04-pull-requests",
+      "repeat": 1,
+      "attempt": 1,
+      "started_at": "2026-11-04T17:21:14Z",
+      "status": "complete",
+      "reason": null,
+      "file": "github-2026-11-04-pull-requests/20261104T172114Z-v2.json",
+      "sha256": "880bbfb1b1ba0192f5043c9f2b74e68c7a0eb52d44bde7c8fac1d6caccb51633",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 50.653,
+        "input_tokens": 7476,
+        "cached_input_tokens": 3364,
+        "output_tokens": 2607,
+        "screen_calls": 3,
+        "screen_records": 19,
+        "pii_calls": 6,
+        "pii_records": 25,
+        "max_call_input_tokens": 4106,
+        "reasoning_tokens": 213
+      },
+      "cost": {
+        "table_version": 1,
+        "currency": "USD",
+        "model": 0.03463,
+        "screens": 0.007125,
+        "pii": 0.025,
+        "embeddings": 3e-06,
+        "total": 0.066758
+      },
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-1-sol",
+        "version": "2"
+      },
+      "model": {
+        "deployment": "gpt-6.1-sol",
+        "name": "gpt-6.1-sol",
+        "version": "2026-09-29"
+      },
+      "code_commit": "42c308af19ae1bb9e90ba071dd0ee02eee1bfcdd"
     }
   ]
 }

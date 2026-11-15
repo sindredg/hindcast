@@ -20,6 +20,28 @@
         "20261104T172023Z-v3.json",
         "20261104T172217Z-v2.json"
       ]
+    },
+    {
+      "case_id": "github-2026-11-04-pull-requests",
+      "postmortem": "github-summary-2026-11-04-pull-requests",
+      "postmortem_sha256": "021b3f457fe6a0c3a630da6061c61030345d56a9549d4e8defc5cacd5f2563ef",
+      "cause_published_at": "2026-11-13T16:48:58Z",
+      "published_basis": "resolved update updated_at in the captured snapshot",
+      "key_sha256": "fe7d5c64e86f6aee33f3fdd2c2965c3abbeba425acf176a97502bb93e1f28c55",
+      "labels_sha256": "c80e72cd23abb7fb894afdb639d736c7c9d95736f887029ff8086ba2827434b5",
+      "evidence_sha256": "5eb5e7880acb4c7f6ac9ca70ad45bb6b831df2997afb3cf4b219d142b932c78f",
+      "leak": {
+        "evidence_sources": 8,
+        "library_chunks": 267,
+        "snapshot_sha256": "6fb0054312eee857308a7b5ef137703bc90f9eaa20f6a9a7f744749f6a45201a",
+        "hits": 0
+      },
+      "revealed_at": "2026-11-15T19:07:02Z",
+      "code_commit": "f57a0cb7f00b94fced99ddc4b2aef382bd21b6e4",
+      "files": [
+        "20261104T171937Z-v3.json",
+        "20261104T172114Z-v2.json"
+      ]
     }
   ]
 }

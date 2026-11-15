@@ -219,7 +219,8 @@
       "file": "20261104T171937Z-v3.json",
       "sha256": "e3ef087893865866513c4ced071ef74a68d64177261b3af70fb69aba646c97cc",
       "blob": "sealed/github-2026-11-04-pull-requests/20261104T171937Z-v3.json",
-      "status": "complete"
+      "status": "complete",
+      "revealed": true
     },
     {
       "case_id": "github-2026-11-04-actions",
@@ -254,7 +255,8 @@
       "file": "20261104T172114Z-v2.json",
       "sha256": "880bbfb1b1ba0192f5043c9f2b74e68c7a0eb52d44bde7c8fac1d6caccb51633",
       "blob": "sealed/github-2026-11-04-pull-requests/20261104T172114Z-v2.json",
-      "status": "complete"
+      "status": "complete",
+      "revealed": true
     },
     {
       "case_id": "github-2026-11-04-actions",
