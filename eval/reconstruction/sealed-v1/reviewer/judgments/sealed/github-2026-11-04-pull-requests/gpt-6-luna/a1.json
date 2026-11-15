@@ -1,0 +1,167 @@
+{
+  "run_id": "sealed/github-2026-11-04-pull-requests/gpt-6-luna/a1",
+  "case_id": "github-2026-11-04-pull-requests",
+  "kinds": {
+    "attack": "inference",
+    "findings[0]": "observation",
+    "findings[1]": "observation",
+    "findings[2]": "observation",
+    "findings[3]": "observation",
+    "findings[4]": "observation",
+    "findings[5]": "observation",
+    "findings[6]": "inference",
+    "timeline[0]": "observation",
+    "timeline[1]": "observation",
+    "timeline[2]": "observation",
+    "timeline[3]": "observation",
+    "timeline[4]": "observation",
+    "timeline[5]": "observation",
+    "timeline[6]": "observation",
+    "timeline[7]": "observation",
+    "timeline[8]": "observation",
+    "root_cause": "inference"
+  },
+  "code_unsupported": [],
+  "judge": {
+    "model": "claude-fable-5-1",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "8d36cd062759056fd31693928c6bedd244f10de95598133849914874b7de718f",
+    "input_sha256": "c0b27faa7e1104a30708acdf42f0b416f8499182ed5d280a9b94eca48b0f4de5",
+    "judged_at": "2026-11-15T19:09:45Z",
+    "request_id": "req_011Ch5ExbBBaZbReR3iv3QuS",
+    "response_model": "claude-fable-5-1"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 4347,
+    "output_tokens": 2579,
+    "cache_creation_input_tokens": 2418,
+    "cache_read_input_tokens": 0
+  },
+  "judgment": {
+    "run_items": {
+      "attack": {
+        "reason": "Rests on u4 and u6, which describe errors and mitigation without naming any cause; the conclusion that the updates cannot settle attack or not follows from them.",
+        "supported": true
+      },
+      "findings[0]": {
+        "reason": "u1 states degraded performance for Git Operations, Issues and Pull Requests.",
+        "supported": true
+      },
+      "findings[1]": {
+        "reason": "u2 states Actions is experiencing degraded performance.",
+        "supported": true
+      },
+      "findings[2]": {
+        "reason": "u4 states elevated errors and intermittent failures affecting Pull Requests, Git Operations, Issues; u5 states API Requests degraded.",
+        "supported": true
+      },
+      "findings[3]": {
+        "reason": "u6 states the provider is mitigating elevated errors and that some requests may fail or be delayed.",
+        "supported": true
+      },
+      "findings[4]": {
+        "reason": "u7 states the degradation affecting API Requests, Git Operations, Issues and Pull Requests was mitigated and monitoring continues.",
+        "supported": true
+      },
+      "findings[5]": {
+        "reason": "u8 states Actions degradation mitigated; u9 is the resolved-status update (text withheld, status shown).",
+        "supported": true
+      },
+      "findings[6]": {
+        "reason": "Rests on supported F1-F6; that the updates show a multi-service incident without a stated cause follows directly from their text.",
+        "supported": true
+      },
+      "timeline[0]": {
+        "reason": "u1 at 09:49:55Z states investigation of degraded Git Operations, Issues and Pull Requests.",
+        "supported": true
+      },
+      "timeline[1]": {
+        "reason": "u2 at 09:50:47Z states Actions degraded.",
+        "supported": true
+      },
+      "timeline[2]": {
+        "reason": "u3 at 09:53:38Z states Pull Requests degraded availability.",
+        "supported": true
+      },
+      "timeline[3]": {
+        "reason": "u4 at 10:38:49Z states elevated errors and intermittent failures.",
+        "supported": true
+      },
+      "timeline[4]": {
+        "reason": "u5 at 11:11:30Z states API Requests degraded.",
+        "supported": true
+      },
+      "timeline[5]": {
+        "reason": "u6 at 11:17:52Z states mitigation in progress and that requests may fail or be delayed.",
+        "supported": true
+      },
+      "timeline[6]": {
+        "reason": "u7 at 11:30:42Z states degradation for API Requests, Git Operations, Issues and Pull Requests mitigated.",
+        "supported": true
+      },
+      "timeline[7]": {
+        "reason": "u8 at 11:43:52Z states Actions degradation mitigated.",
+        "supported": true
+      },
+      "timeline[8]": {
+        "reason": "u9 at 11:50:06Z carries resolved status; text withheld is noted.",
+        "supported": true
+      },
+      "root_cause": {
+        "reason": "Rests on supported F3-F7 and u4, u6, u9; the conclusion that the updates give no failure mechanism follows from their text.",
+        "supported": true
+      }
+    },
+    "key_items": {
+      "attack": {
+        "run_items": [
+          "attack"
+        ],
+        "reason": "Run verdict is 'cannot tell' against the key's 'not an attack'.",
+        "outcome": "abstained"
+      },
+      "root_cause": {
+        "run_items": [
+          "root_cause"
+        ],
+        "reason": "Run says the cause cannot be determined, names the missing failure mechanism, and an open question asks for it; the shared database reaching capacity is never stated.",
+        "outcome": "abstained"
+      },
+      "timeline/0": {
+        "run_items": [
+          "timeline[0]"
+        ],
+        "reason": "Run's first-degradation report at 09:49:55Z is within 30 minutes of the key's 09:35 onset of errors across the same services; supported by u1.",
+        "outcome": "supported-hit"
+      },
+      "timeline/1": {
+        "run_items": [
+          "timeline[6]"
+        ],
+        "reason": "Run's mitigation of API/Git/Issues/PR degradation at 11:30:42Z is within 30 minutes of the key's 11:24 recovery start; the database host switch is not mentioned but the recovery event and time match, supported by u7.",
+        "outcome": "supported-hit"
+      },
+      "timeline/2": {
+        "run_items": [
+          "timeline[7]"
+        ],
+        "reason": "Run's Actions mitigation at 11:43:52Z matches the key's 11:43 UTC; supported by u8.",
+        "outcome": "supported-hit"
+      },
+      "timeline/3": {
+        "run_items": [
+          "timeline[8]"
+        ],
+        "reason": "Run's resolved status at 11:50:06Z matches the key's 11:50 UTC; supported by u9.",
+        "outcome": "supported-hit"
+      }
+    }
+  },
+  "error": null,
+  "arm": "sealed-gpt-6-luna",
+  "run_sha256": "e3ef087893865866513c4ced071ef74a68d64177261b3af70fb69aba646c97cc",
+  "code_commit": "587e14d4be4ddc20101a94faca7c6493736532d2",
+  "earlier_errors": []
+}

@@ -1,0 +1,223 @@
+{
+  "run_id": "sealed/github-2026-10-21/gpt-6-luna/a1",
+  "case_id": "github-2026-10-21",
+  "kinds": {
+    "attack": "inference",
+    "findings[0]": "observation",
+    "findings[1]": "observation",
+    "findings[2]": "observation",
+    "findings[3]": "observation",
+    "findings[4]": "observation",
+    "findings[5]": "observation",
+    "findings[6]": "inference",
+    "timeline[0]": "observation",
+    "timeline[1]": "observation",
+    "timeline[2]": "observation",
+    "timeline[3]": "observation",
+    "timeline[4]": "observation",
+    "timeline[5]": "observation",
+    "timeline[6]": "observation",
+    "timeline[7]": "observation",
+    "timeline[8]": "observation",
+    "timeline[9]": "observation",
+    "timeline[10]": "observation",
+    "timeline[11]": "observation",
+    "timeline[12]": "observation",
+    "timeline[13]": "observation",
+    "timeline[14]": "observation",
+    "root_cause": "inference",
+    "contributing_factors[0]": "inference",
+    "contributing_factors[1]": "inference"
+  },
+  "code_unsupported": [],
+  "judge": {
+    "model": "claude-fable-5-1",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "8d36cd062759056fd31693928c6bedd244f10de95598133849914874b7de718f",
+    "input_sha256": "4e775a671137ac4046a53a5835c6ea4b5496da1976dad70fb82b1f28fc3ca437",
+    "judged_at": "2026-11-15T19:10:14Z",
+    "request_id": "req_011Ch5EzfFoiJa4vzvq5zUai",
+    "response_model": "claude-fable-5-1"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 6970,
+    "output_tokens": 4739,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 2418
+  },
+  "judgment": {
+    "run_items": {
+      "attack": {
+        "reason": "Rests directly on u3 and u12, which name increased load and hotspots but say nothing about hostility; the 'cannot tell' conclusion follows from those texts.",
+        "supported": true
+      },
+      "findings[0]": {
+        "reason": "u1 states degraded performance for Actions, Pull Requests and Webhooks.",
+        "supported": true
+      },
+      "findings[1]": {
+        "reason": "u3 states increased load on the event streaming platform contributing to hotspots, shifting traffic, and adding processing capacity.",
+        "supported": true
+      },
+      "findings[2]": {
+        "reason": "u4 and u5 together name delays for pull request updates, webhook deliveries, audit log events, and Actions workflow status updates, and restoring event processing while working through backlogs.",
+        "supported": true
+      },
+      "findings[3]": {
+        "reason": "u6 states up to 100 minutes and u8 states up to 110 minutes of audit log delay.",
+        "supported": true
+      },
+      "findings[4]": {
+        "reason": "u7 and u8 report pull requests recovered while Actions and webhooks still recovering; u10 and u11 report those recovered while audit log remained delayed with a backlog.",
+        "supported": true
+      },
+      "findings[5]": {
+        "reason": "u12 states load was reduced on the event-streaming platform; u14 states audit log delays below 40 minutes within the healthy threshold while backlog is processed.",
+        "supported": true
+      },
+      "findings[6]": {
+        "reason": "Rests on supported f2, f3, f4, f6 and u3/u6/u12; the summary of a load/hotspot problem delaying event processing with backlogs, and the cause of the load being unstated, follows without adding facts.",
+        "supported": true
+      },
+      "timeline[0]": {
+        "reason": "u1 at 14:52:50Z states the investigation of degraded performance for Actions, Pull Requests and Webhooks.",
+        "supported": true
+      },
+      "timeline[1]": {
+        "reason": "u2 at 15:15:04Z states Actions degraded.",
+        "supported": true
+      },
+      "timeline[2]": {
+        "reason": "u3 at 15:36:47Z states the load/hotspot identification, traffic shifting, capacity, and PR/webhook delays.",
+        "supported": true
+      },
+      "timeline[3]": {
+        "reason": "u4 at 15:58:38Z states audit log delays and signs of recovery of the platform.",
+        "supported": true
+      },
+      "timeline[4]": {
+        "reason": "u5 at 16:17:23Z states audit log and Actions status delays and PR/webhook recovery through backlogs.",
+        "supported": true
+      },
+      "timeline[5]": {
+        "reason": "u6 at 16:25:30Z states audit log delayed up to 100 minutes and Actions status extended delays.",
+        "supported": true
+      },
+      "timeline[6]": {
+        "reason": "u7 at 16:33:10Z states Pull Requests operating normally.",
+        "supported": true
+      },
+      "timeline[7]": {
+        "reason": "u8 at 16:34:49Z states PR recovered, Actions recovering, webhooks working through backlogs, audit log up to 110 minutes.",
+        "supported": true
+      },
+      "timeline[8]": {
+        "reason": "u9 at 16:57:42Z states Actions and Webhooks operating normally.",
+        "supported": true
+      },
+      "timeline[9]": {
+        "reason": "u10 at 16:59:45Z states Actions and webhooks recovered and audit log about 100 minutes delayed.",
+        "supported": true
+      },
+      "timeline[10]": {
+        "reason": "u11 at 17:09:35Z states PR, Actions, webhooks recovered and two to three hours of backlog remaining.",
+        "supported": true
+      },
+      "timeline[11]": {
+        "reason": "u12 at 18:18:11Z states delays below 90 minutes and reduced platform load.",
+        "supported": true
+      },
+      "timeline[12]": {
+        "reason": "u13 at 18:52:50Z states delays below 70 minutes, mitigations, and about 40 minutes to recovery.",
+        "supported": true
+      },
+      "timeline[13]": {
+        "reason": "u14 at 19:22:38Z states delays below 40 minutes within the healthy threshold.",
+        "supported": true
+      },
+      "timeline[14]": {
+        "reason": "u15 is titled resolved at 19:22:52Z; the item claims only the resolved status and time and acknowledges the text is withheld.",
+        "supported": true
+      },
+      "root_cause": {
+        "reason": "Rests on supported f2, f3, f7 and u3/u5; load causing hotspots and delayed event processing propagating to the named services follows from those updates, and it adds no cause of its own.",
+        "supported": true
+      },
+      "contributing_factors[0]": {
+        "reason": "Restates u3 via f2: hotspots and ongoing impact while traffic shifted and capacity added.",
+        "supported": true
+      },
+      "contributing_factors[1]": {
+        "reason": "Rests on f3, f4, f5 and u10/u11/u14, which state audit log backlog taking hours after other services recovered.",
+        "supported": true
+      }
+    },
+    "key_items": {
+      "attack": {
+        "run_items": [
+          "attack"
+        ],
+        "reason": "The run's verdict is 'cannot tell' against the key's 'not an attack'.",
+        "outcome": "abstained"
+      },
+      "root_cause": {
+        "run_items": [
+          "root_cause",
+          "findings[6]"
+        ],
+        "reason": "The run names overload of the event-streaming platform delaying event processing for the same four services, but not the memory-limit and reconnection-storm mechanism; it states part without the trigger.",
+        "outcome": "partial"
+      },
+      "contributing_factors/0": {
+        "run_items": [],
+        "reason": "No run item mentions memory limits or memory growing with client connections.",
+        "outcome": "missed"
+      },
+      "contributing_factors/1": {
+        "run_items": [],
+        "reason": "No run item states that removing overloaded servers shifted load and overloaded others, spreading the problem; cf[0] only notes traffic shifting with ongoing impact.",
+        "outcome": "missed"
+      },
+      "contributing_factors/2": {
+        "run_items": [],
+        "reason": "No run item mentions the audit log writer restarting on errors.",
+        "outcome": "missed"
+      },
+      "contributing_factors/3": {
+        "run_items": [
+          "contributing_factors[1]",
+          "timeline[10]"
+        ],
+        "reason": "cf[1] and timeline[10] state the audit log backlog took hours to clear after recovery began, but not the limited write rate that caused it.",
+        "outcome": "partial"
+      },
+      "timeline/0": {
+        "run_items": [
+          "timeline[0]"
+        ],
+        "reason": "timeline[0] places the start at 14:52:50Z with the same affected services.",
+        "outcome": "supported-hit"
+      },
+      "timeline/1": {
+        "run_items": [
+          "timeline[14]",
+          "timeline[13]"
+        ],
+        "reason": "timeline[14] marks resolution at 19:22:52Z and timeline[13] has audit log delays within the healthy threshold at 19:22:38Z, matching the key's 19:22.",
+        "outcome": "supported-hit"
+      },
+      "timeline/2": {
+        "run_items": [],
+        "reason": "No run item gives the 21:38 full catch-up of audit log events.",
+        "outcome": "missed"
+      }
+    }
+  },
+  "error": null,
+  "arm": "sealed-gpt-6-luna",
+  "run_sha256": "6d5a0bc1eec199a3ae99f26292e3c31fb1f81f2b04cc5a0d9864f3444fe768bc",
+  "code_commit": "587e14d4be4ddc20101a94faca7c6493736532d2",
+  "earlier_errors": []
+}

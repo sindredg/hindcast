@@ -1,0 +1,167 @@
+{
+  "run_id": "sealed/github-2026-11-04-pull-requests/gpt-6-luna/a1",
+  "case_id": "github-2026-11-04-pull-requests",
+  "kinds": {
+    "attack": "inference",
+    "findings[0]": "observation",
+    "findings[1]": "observation",
+    "findings[2]": "observation",
+    "findings[3]": "observation",
+    "findings[4]": "observation",
+    "findings[5]": "observation",
+    "findings[6]": "inference",
+    "timeline[0]": "observation",
+    "timeline[1]": "observation",
+    "timeline[2]": "observation",
+    "timeline[3]": "observation",
+    "timeline[4]": "observation",
+    "timeline[5]": "observation",
+    "timeline[6]": "observation",
+    "timeline[7]": "observation",
+    "timeline[8]": "observation",
+    "root_cause": "inference"
+  },
+  "code_unsupported": [],
+  "judge": {
+    "model": "claude-opus-5-5",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "9de219e1f08dd185277139c88c3957bc4f67a3a4cf94e90e7523281cfd202a22",
+    "input_sha256": "c0b27faa7e1104a30708acdf42f0b416f8499182ed5d280a9b94eca48b0f4de5",
+    "judged_at": "2026-11-15T19:08:39Z",
+    "request_id": "req_011Ch5EshTpMD1yWSQmsSFqj",
+    "response_model": "claude-opus-5-5"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 4347,
+    "output_tokens": 2144,
+    "cache_creation_input_tokens": 2429,
+    "cache_read_input_tokens": 0
+  },
+  "judgment": {
+    "run_items": {
+      "attack": {
+        "reason": "The verdict is 'cannot tell'. It follows from u4 and u6, which describe errors and mitigation but name no hostile cause.",
+        "supported": true
+      },
+      "findings[0]": {
+        "reason": "u1 states degraded performance for Git Operations, Issues and Pull Requests.",
+        "supported": true
+      },
+      "findings[1]": {
+        "reason": "u2 states that Actions is experiencing degraded performance.",
+        "supported": true
+      },
+      "findings[2]": {
+        "reason": "u4 states elevated errors and intermittent failures for Pull Requests, Git Operations and Issues, and u5 reports API Requests as degraded.",
+        "supported": true
+      },
+      "findings[3]": {
+        "reason": "u6 states that mitigation was underway and that some requests may fail or be delayed.",
+        "supported": true
+      },
+      "findings[4]": {
+        "reason": "u7 states the degradation was mitigated and that monitoring continued.",
+        "supported": true
+      },
+      "findings[5]": {
+        "reason": "u8 states the Actions degradation was mitigated, and u9's title shows resolved status.",
+        "supported": true
+      },
+      "findings[6]": {
+        "reason": "This follows from supported findings F1–F6: the updates show a multi-service impact and name no cause.",
+        "supported": true
+      },
+      "timeline[0]": {
+        "reason": "u1 at 09:49:55 reports the investigation into the degraded services.",
+        "supported": true
+      },
+      "timeline[1]": {
+        "reason": "u2 at 09:50:47 reports Actions as degraded.",
+        "supported": true
+      },
+      "timeline[2]": {
+        "reason": "u3 at 09:53:38 reports degraded availability for Pull Requests.",
+        "supported": true
+      },
+      "timeline[3]": {
+        "reason": "u4 at 10:38:49 states the elevated errors and intermittent failures.",
+        "supported": true
+      },
+      "timeline[4]": {
+        "reason": "u5 at 11:11:30 reports API Requests as degraded.",
+        "supported": true
+      },
+      "timeline[5]": {
+        "reason": "u6 at 11:17:52 states the mitigation work and the warning about failed or delayed requests.",
+        "supported": true
+      },
+      "timeline[6]": {
+        "reason": "u7 at 11:30:42 states the degradation was mitigated, with monitoring.",
+        "supported": true
+      },
+      "timeline[7]": {
+        "reason": "u8 at 11:43:52 states the Actions degradation was mitigated.",
+        "supported": true
+      },
+      "timeline[8]": {
+        "reason": "u9's title shows resolved status at 11:50:06, and the run correctly notes the text was withheld.",
+        "supported": true
+      },
+      "root_cause": {
+        "reason": "The abstention follows from supported findings F3–F7, since the updates give no technical mechanism.",
+        "supported": true
+      }
+    },
+    "key_items": {
+      "attack": {
+        "run_items": [
+          "attack"
+        ],
+        "reason": "The run's attack verdict is 'cannot tell', which counts as an abstention.",
+        "outcome": "abstained"
+      },
+      "root_cause": {
+        "run_items": [
+          "root_cause"
+        ],
+        "reason": "The run's root cause says the cause cannot be determined and names the missing technical mechanism. An open question asks what failure or dependency caused the errors.",
+        "outcome": "abstained"
+      },
+      "timeline/0": {
+        "run_items": [
+          "timeline[0]"
+        ],
+        "reason": "timeline[0] reports the degradation of Git Operations, Issues and Pull Requests at 09:49:55. That is within 30 minutes of the key's 09:35 onset and is the first report of the same event.",
+        "outcome": "supported-hit"
+      },
+      "timeline/1": {
+        "run_items": [
+          "timeline[6]"
+        ],
+        "reason": "timeline[6] reports mitigation of the main services at 11:30:42, within 30 minutes of the key's 11:24 start of recovery. The database host switch is not mentioned.",
+        "outcome": "supported-hit"
+      },
+      "timeline/2": {
+        "run_items": [
+          "timeline[7]"
+        ],
+        "reason": "timeline[7] reports the Actions mitigation at 11:43:52, matching the key's 11:43.",
+        "outcome": "supported-hit"
+      },
+      "timeline/3": {
+        "run_items": [
+          "timeline[8]"
+        ],
+        "reason": "timeline[8] reports resolved status at 11:50:06, matching the key's 11:50.",
+        "outcome": "supported-hit"
+      }
+    }
+  },
+  "error": null,
+  "arm": "sealed-gpt-6-luna",
+  "run_sha256": "e3ef087893865866513c4ced071ef74a68d64177261b3af70fb69aba646c97cc",
+  "code_commit": "587e14d4be4ddc20101a94faca7c6493736532d2",
+  "earlier_errors": []
+}

@@ -1,0 +1,172 @@
+{
+  "run_id": "sealed/github-2026-11-04-pull-requests/gpt-6.1-sol/a1",
+  "case_id": "github-2026-11-04-pull-requests",
+  "kinds": {
+    "attack": "inference",
+    "findings[0]": "observation",
+    "findings[1]": "observation",
+    "findings[2]": "observation",
+    "findings[3]": "observation",
+    "findings[4]": "inference",
+    "findings[5]": "inference",
+    "findings[6]": "inference",
+    "timeline[0]": "observation",
+    "timeline[1]": "observation",
+    "timeline[2]": "observation",
+    "timeline[3]": "observation",
+    "timeline[4]": "observation",
+    "timeline[5]": "observation",
+    "timeline[6]": "observation",
+    "timeline[7]": "observation",
+    "timeline[8]": "observation",
+    "root_cause": "inference"
+  },
+  "code_unsupported": [],
+  "judge": {
+    "model": "claude-fable-5-1",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "8d36cd062759056fd31693928c6bedd244f10de95598133849914874b7de718f",
+    "input_sha256": "72646cf37acc096a3b41faeb5253d17968cf4cc4fac83fc96d2e516c3ae70b60",
+    "judged_at": "2026-11-15T19:09:45Z",
+    "request_id": "req_011Ch5ExbCRt6Tt5gKR4eeEq",
+    "response_model": "claude-fable-5-1"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 5990,
+    "output_tokens": 3316,
+    "cache_creation_input_tokens": 2418,
+    "cache_read_input_tokens": 0
+  },
+  "judgment": {
+    "run_items": {
+      "attack": {
+        "reason": "Cites u4 and u6, which report elevated errors and intermittent failures with no cause stated; concluding that this neither establishes nor excludes hostile action is a general-knowledge step that follows.",
+        "supported": true
+      },
+      "findings[0]": {
+        "reason": "u1, u2, and u3 state the initial Git Operations/Issues/Pull Requests impact, the Actions degradation, and Pull Requests degraded availability.",
+        "supported": true
+      },
+      "findings[1]": {
+        "reason": "u4 and u6 state elevated errors and intermittent failures and that requests may fail or be delayed; u5 adds API Requests.",
+        "supported": true
+      },
+      "findings[2]": {
+        "reason": "u6 at 11:17:52 says GitHub is working on mitigating and names no specific intervention.",
+        "supported": true
+      },
+      "findings[3]": {
+        "reason": "u7 (11:30:42) and u8 (11:43:52) state mitigation of the named services and Actions respectively, both with stability monitoring.",
+        "supported": true
+      },
+      "findings[4]": {
+        "reason": "Rests on supported f4; the 13m10s gap is arithmetic on the u7 and u8 timestamps and the caution that this does not prove separate causes follows.",
+        "supported": true
+      },
+      "findings[5]": {
+        "reason": "Rests on f1 and f4 and cites u1 (09:49:55) and u9 (11:50:06 resolved); the 2h00m11s span is arithmetic and the caveat follows.",
+        "supported": true
+      },
+      "findings[6]": {
+        "reason": "The claim about this outage (mechanism unidentified from f1/f2 and u4/u6) rests on supported observations; the library items are described only as how earlier incidents went and are not applied as facts here.",
+        "supported": true
+      },
+      "timeline[0]": {
+        "reason": "u1 at 09:49:55 states the investigation into degraded performance for Git Operations, Issues and Pull Requests.",
+        "supported": true
+      },
+      "timeline[1]": {
+        "reason": "u2 at 09:50:47 states Actions is experiencing degraded performance.",
+        "supported": true
+      },
+      "timeline[2]": {
+        "reason": "u3 at 09:53:38 states Pull Requests degraded availability.",
+        "supported": true
+      },
+      "timeline[3]": {
+        "reason": "u4 at 10:38:49 states elevated errors and intermittent failures affecting Pull Requests, Git Operations, and Issues.",
+        "supported": true
+      },
+      "timeline[4]": {
+        "reason": "u5 at 11:11:30 states API Requests degraded performance.",
+        "supported": true
+      },
+      "timeline[5]": {
+        "reason": "u6 at 11:17:52 states mitigation work and that requests may fail or be delayed.",
+        "supported": true
+      },
+      "timeline[6]": {
+        "reason": "u7 at 11:30:42 states API Requests, Git Operations, Issues and Pull Requests mitigated with monitoring.",
+        "supported": true
+      },
+      "timeline[7]": {
+        "reason": "u8 at 11:43:52 states Actions mitigated with monitoring.",
+        "supported": true
+      },
+      "timeline[8]": {
+        "reason": "u9's title gives the 11:50:06 resolved status; the run correctly notes the text is withheld.",
+        "supported": true
+      },
+      "root_cause": {
+        "reason": "Rests on supported f1-f4 and f7 and cites u4, u6, u7, u8, which name no dependency, trigger, or recovery mechanism; concluding the cause is undetermined follows.",
+        "supported": true
+      }
+    },
+    "key_items": {
+      "attack": {
+        "run_items": [
+          "attack"
+        ],
+        "reason": "The run's verdict is 'cannot tell', not 'not an attack'; by the rubric that is an abstention on the attack verdict.",
+        "outcome": "abstained"
+      },
+      "root_cause": {
+        "run_items": [
+          "root_cause",
+          "findings[6]"
+        ],
+        "reason": "The run's root cause says the evidence cannot determine it, names the missing failed dependency/trigger/recovery mechanism, and open question 1 asks for the trigger and failed infrastructure; the shared database capacity cause is never stated.",
+        "outcome": "abstained"
+      },
+      "timeline/0": {
+        "run_items": [
+          "timeline[0]",
+          "findings[5]"
+        ],
+        "reason": "timeline[0] states the first reported degradation of Git Operations, Issues and Pull Requests at 09:49:55, within 30 minutes of the key's 09:35 onset; the run notes the true onset may be earlier but the event and time match within tolerance.",
+        "outcome": "supported-hit"
+      },
+      "timeline/1": {
+        "run_items": [
+          "timeline[6]",
+          "findings[3]"
+        ],
+        "reason": "timeline[6] states recovery (mitigation) of API Requests, Git Operations, Issues and Pull Requests at 11:30:42, within 30 minutes of the key's 11:24; the database host switch is not mentioned but the event and time match.",
+        "outcome": "supported-hit"
+      },
+      "timeline/2": {
+        "run_items": [
+          "timeline[7]",
+          "findings[3]"
+        ],
+        "reason": "timeline[7] states Actions mitigated at 11:43:52, matching the key's 11:43.",
+        "outcome": "supported-hit"
+      },
+      "timeline/3": {
+        "run_items": [
+          "timeline[8]",
+          "findings[5]"
+        ],
+        "reason": "timeline[8] states the incident resolved at 11:50:06, matching the key's 11:50.",
+        "outcome": "supported-hit"
+      }
+    }
+  },
+  "error": null,
+  "arm": "sealed-gpt-6.1-sol",
+  "run_sha256": "880bbfb1b1ba0192f5043c9f2b74e68c7a0eb52d44bde7c8fac1d6caccb51633",
+  "code_commit": "587e14d4be4ddc20101a94faca7c6493736532d2",
+  "earlier_errors": []
+}
