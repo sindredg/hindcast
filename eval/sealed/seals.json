@@ -50,7 +50,8 @@
       "file": "20261101T081804Z-v2.json",
       "sha256": "b15cedcba342793b40df186877aef28496ffac636fa208078bf51e6474db91bf",
       "blob": "sealed/github-2026-10-22/20261101T081804Z-v2.json",
-      "status": "complete"
+      "status": "complete",
+      "revealed": true
     },
     {
       "case_id": "cloudflare-2026-10-20",
@@ -102,7 +103,8 @@
       "file": "20261101T082043Z-v1.json",
       "sha256": "9795ff8ae8b9896990820b2541c44d3669536e1ae73725a7da0754415208d880",
       "blob": "sealed/github-2026-10-22/20261101T082043Z-v1.json",
-      "status": "complete"
+      "status": "complete",
+      "revealed": true
     },
     {
       "case_id": "cloudflare-2026-10-20",
@@ -154,7 +156,8 @@
       "file": "20261102T184548Z-v3.json",
       "sha256": "e7f9e23dcda16c696fe2d4cdb8d4da77801352c25052dcd5da8608ea9cedb1cf",
       "blob": "sealed/github-2026-10-22/20261102T184548Z-v3.json",
-      "status": "complete"
+      "status": "complete",
+      "revealed": true
     },
     {
       "case_id": "cloudflare-2026-10-20",
@@ -206,7 +209,8 @@
       "file": "20261102T184808Z-v2.json",
       "sha256": "332fbd06583c97b57701d4c15554742e462db3dca076db37fdc3762b950c0959",
       "blob": "sealed/github-2026-10-22/20261102T184808Z-v2.json",
-      "status": "complete"
+      "status": "complete",
+      "revealed": true
     },
     {
       "case_id": "github-2026-11-04-pull-requests",

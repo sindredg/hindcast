@@ -2,21 +2,22 @@
 
 The revealed sealed reconstructions: made before the provider published a cause, committed by hash, opened after the cause was published and the key and labels were frozen ([decisions 0017](../../../docs/decisions/0017-sealed-reconstructions.md), [0022](../../../docs/decisions/0022-sealed-drop-date-and-offline-reveal.md), and [0030](../../../docs/decisions/0030-close-evaluation-with-sealed-addenda.md)). Scored by the same judge, reviewer, and [rubric](../../rubric/rubric.md), version 3, as the [showcase runs](../showcase-v1/README.md), and reported apart.
 
-On this page: [How to read this result](#how-to-read-this-result) · [Status](#status) · [Results](#results) · [Error analysis](#error-analysis) · [Cost and spend](#cost-and-spend) · [Dataset](#dataset) · [Addendum, 2026-11-15](#addendum-2026-11-15-two-github-cases) · [Pending cases](#pending-cases) · [Limits](#limits) · [Files](#files)
+On this page: [How to read this result](#how-to-read-this-result) · [Status](#status) · [Results](#results) · [Error analysis](#error-analysis) · [Cost and spend](#cost-and-spend) · [Dataset](#dataset) · [Addendum, 2026-11-15](#addendum-2026-11-15-two-github-cases) · [Addendum, 2026-11-24](#addendum-2026-11-24-github-2026-10-22) · [Pending cases](#pending-cases) · [Limits](#limits) · [Files](#files)
 
 ## How to read this result
 
 **No run found a cause the evidence did not hold, and no run guessed one. Where the updates said nothing about the cause, the runs scored 1.00 by saying so. Where one update hinted at it, they scored 0.60: half the cause, and no verdict on whether it was an attack.**
 
-A sealed reconstruction is an investigation whose hash was committed before the provider published its cause. Revealing the file later and checking its hash shows that the answer was not changed after publication. Three outages are revealed, with eight runs between them.
+A sealed reconstruction is an investigation whose hash was committed before the provider published its cause. Revealing the file later and checking its hash shows that the answer was not changed after publication. Four outages are revealed, with twelve runs between them.
 
 | Case | Revealed | Runs | Primary score, every run |
 |---|---|---|---|
 | `github-2026-11-04-actions` | 2026-11-07 | 2 | 1.00 |
 | `github-2026-11-04-pull-requests` | 2026-11-15 ([addendum](#addendum-2026-11-15-two-github-cases)) | 2 | 1.00 |
 | `github-2026-10-21` | 2026-11-15 (same addendum) | 4 | 0.60 |
+| `github-2026-10-22` | 2026-11-24 ([addendum](#addendum-2026-11-24-github-2026-10-22)) | 4 | 1.00 |
 
-The sections up to the addendum describe the first reveal as it stood on 2026-11-07.
+The sections up to the addenda describe the first reveal as it stood on 2026-11-07.
 
 In the first reveal, each run earned full credit on four scorable answer-key items: two supported matches and two justified abstentions. Seven other items were excluded because they were not inferable from the available evidence and the runs did not state them. The timeline matching also has a known limitation, explained in [error analysis](#error-analysis).
 
@@ -25,7 +26,8 @@ This tests whether the models can stay within the evidence before the official a
 ## Status
 
 - **Revealed, verified on 2026-11-07:** `github-2026-11-04-actions`, both seals.
-- **Revealed, verified on 2026-11-15:** `github-2026-11-04-pull-requests` (two seals) and `github-2026-10-21` (four seals); evidence in the [addendum](#addendum-2026-11-15-two-github-cases). Two sealed cases have no published cause and are dropped on 2026-11-30 unless one appears ([pending cases](#pending-cases)).
+- **Revealed, verified on 2026-11-15:** `github-2026-11-04-pull-requests` (two seals) and `github-2026-10-21` (four seals); evidence in the [addendum](#addendum-2026-11-15-two-github-cases).
+- **Revealed, verified on 2026-11-24:** `github-2026-10-22` (four seals); evidence in the [addendum](#addendum-2026-11-24-github-2026-10-22). One sealed case has no published cause and is dropped on 2026-11-30 unless one appears ([pending cases](#pending-cases)).
 - **Frozen before the reveal:** key at 10:27:30Z (SHA-256 `4d3d4633…`), labels right after (`57274146…`), both approved by a person; leak check against the library snapshot at 10:27:51Z.
 - **Reveal, verified on 2026-11-07:** `python -m hindcast.reveal github-2026-11-04-actions` at 10:30:54Z; both files match their seals (`tests/test_sealed_reveal.py`, 4 passed). Run from an uncommitted tree; key, labels, and code committed minutes later ([worklog 05](../../../docs/worklogs/05-sealed-reconstructions.md#reveal-github-2026-11-04-actions-2026-11-07)).
 - **Judge and reviewer, verified on 2026-11-07:** judged 10:40:31Z to 10:41:00Z, reviewed 10:41:07Z to 10:42:00Z, from commit `ce12ac8`, no error; decisions applied at 10:42:01Z.
@@ -171,20 +173,87 @@ Claude API total for the addendum USD 2.25, no unpriced call; [`spend.json`](spe
 
 Both keys were drafted by hand from the postmortem and every quote checked in code; the labels were drafted from the evidence. Hashes are in [`eval/keys/frozen.json`](../../keys/frozen.json), [`eval/keys/labels/frozen.json`](../../keys/labels/frozen.json), and [`reveals.json`](../../sealed/reveals.json).
 
+## Addendum, 2026-11-24: github-2026-10-22
+
+GitHub wrote its cause into the incident's resolved update at 2026-11-16T16:28:44Z; its October availability report does not cover the incident. The case went through the [reveal procedure](../../../docs/runbooks/sealing.md#reveal-a-seal) on 2026-11-24, offline except the capture and the Claude API calls.
+
+### Status
+
+- **Cause published after every seal.** The resolved update was rewritten at 2026-11-16T16:28:44Z; the seals are of 2026-11-01 (library off) and 2026-11-02 (library on).
+- **Frozen before the reveal, tested:** key `05175cf8…`, labels `4742b6e1…`, committed in `1939158`. `python -m hindcast.keys check` gave 0 problems; with one quote changed by a word it gave 1 problem and exit 1.
+- **Leak check, tested:** 0 hits against the case's 267-chunk library snapshot; 1 hit with `--plant`.
+- **Reveal, tested:** `python -m hindcast.reveal github-2026-10-22` at 18:32:03Z from commit `1939158`; four files match their seals (`tests/test_sealed_reveal.py`, 5 passed). With one byte added to a revealed file, the same test failed with `does not match its seal`.
+- **Judge and reviewer, tested:** four runs judged and reviewed from commit `f0bca05`, no error; 46 queue decisions applied, none open.
+- **Scores, tested:** `python -m hindcast.evaluation.score --root eval/reconstruction/sealed-v1` wrote [`scores.json`](scores.json) with 12 runs.
+
+### Results
+
+| Run | Library search | Agent version | Primary | Scorable | Supported hits | Partial | Justified abstentions | Unsupported, guesses, wrong |
+|---|---|---|---|---|---|---|---|---|
+| `sealed/github-2026-10-22/gpt-6-luna-library-off/a1` | off | 2 | 1.00 | 3 | 1 | 0 | 2 | 0, 0, 0 |
+| `sealed/github-2026-10-22/gpt-6.1-sol-library-off/a1` | off | 1 | 1.00 | 3 | 1 | 0 | 2 | 0, 0, 0 |
+| `sealed/github-2026-10-22/gpt-6-luna/a1` | on | 3 | 1.00 | 3 | 1 | 0 | 2 | 0, 0, 0 |
+| `sealed/github-2026-10-22/gpt-6.1-sol/a1` | on | 2 | 1.00 | 3 | 1 | 0 | 2 | 0, 0, 0 |
+
+Model versions, judge, reviewer, and rubric are those of the first reveal. The seals ran from commits `c6a26d0` and `3162dfe` (2026-11-01) and `5fd90c0` (2026-11-02), recorded per run in [`attempts.json`](attempts.json).
+
+**Nothing about the cause in the updates, and all four runs said so.** GitHub's summary says the proxies that route requests to its search clusters ran out of CPU while setting up encrypted connections, and retried requests kept them overloaded. The updates report errors loading Issues, Pull Requests, and search results, and "recovery after adding capacity" (u8). None names the proxies, CPU, or encryption. Every run said the initiating cause could not be determined, asked for it as an open question, and answered "cannot tell" on the attack verdict: two justified abstentions each.
+
+- **The one stated event matched; the onset was out of reach.** All four runs matched the summary's recovery at 17:28 through u8 at 17:16, "recovery after adding capacity", within the 30-minute tolerance; two also cited u9 at 17:41. The onset at 14:55 is 33 minutes before the first update; no run dated it, a neutral miss.
+- **The library search changed nothing.** Same outcome on every key item with and without it, on both models.
+- **No unsupported item, no guess, nothing wrong** in any of the four runs.
+
+The score rests on three items, two of them abstentions. As in the first reveal, 1.00 says the runs stayed inside the evidence, not that they found the cause: the evidence did not hold it.
+
+### Judge and reviewer
+
+The reviewer agreed with the judge on all 46 queue items. Judging on its own, it differs on one key item outside the queue: `timeline/0` on the `gpt-6-luna` library-off run. The judge marks the 14:55 onset `missed`. The reviewer marks it `wrong`, reading the run's incident start at 15:28 as a stated onset 33 minutes late, outside the tolerance. The judge's verdict stands; by the reviewer alone the run scores 0.75. Over all twelve sealed runs the two agree on 88 of 90 match verdicts (97.8 percent, kappa 0.97).
+
+### Error analysis
+
+#### The summary covers part of the incident
+
+The incident is titled "Project updates delayed". After search recovered, its updates follow delayed GitHub Projects updates until u17 at 00:55 and the resolved update at 02:30 on 2026-10-23. GitHub's summary covers search from 14:55 to 17:28 and gives no cause for the Projects delays of the next seven hours. The key holds what the summary states, so the runs' events after 17:28 fall outside it: counted as supported items outside the key, not scored.
+
+#### Mitigation in the fixes
+
+The key lists the proxy capacity added during the outage as a fix, as the 2026-11-15 keys did with their mitigations, although the [field rule](../../keys/README.md#fields) puts mitigation during the outage in the timeline. Fixes are not scored, so the placement changes no score.
+
+### Cost and spend
+
+| Part | Count | Cost at list prices, USD | Source |
+|---|---|---|---|
+| Sealed runs on Azure | 4 runs | not recorded | Result files of 2026-11-01 and 2026-11-02 predate the cost field |
+| Judge (`claude-opus-5-5`) | 4 calls | 0.35 | [`spend.json`](spend.json), less the earlier reveals |
+| Reviewer (`claude-fable-5-1`) | 4 calls | 1.17 | same |
+
+Claude API total for this addendum USD 1.52, no unpriced call; [`spend.json`](spend.json) now totals USD 4.50 over all twelve runs. Prices are version 1 of `data/claude-prices.yaml`, read on 2026-11-04, not read again for this addendum.
+
+### Dataset
+
+| Part | `github-2026-10-22` |
+|---|---|
+| Evidence | `build/evidence/github-2026-10-22.json`, SHA-256 `9a3727f7…`; 18 updates |
+| Postmortem | GitHub's resolved update, captured 2026-11-24T18:28:23Z as `github-summary-2026-10-22`, SHA-256 `1d342554…` |
+| Key | [`github-2026-10-22.json`](../../keys/github-2026-10-22.json): root cause, one factor, two timeline events, four fixes |
+| Labels | [1 stated, 4 not inferable](../../keys/labels/github-2026-10-22.json) |
+| Library snapshot | 267 chunks |
+
+The key was drafted by hand from the summary and every quote checked in code; the labels were drafted from the evidence. Hashes are in [`eval/keys/frozen.json`](../../keys/frozen.json), [`eval/keys/labels/frozen.json`](../../keys/labels/frozen.json), and [`reveals.json`](../../sealed/reveals.json).
+
 ## Pending cases
 
-| Case | Provider | Sealed | State on 2026-11-15 |
+| Case | Provider | Sealed | State on 2026-11-24 |
 |---|---|---|---|
-| `cloudflare-2026-10-20` | Cloudflare | 2026-11-01 and 2026-11-02 | No cause published; resolved update reads "This incident has been resolved." |
-| `github-2026-10-22` | GitHub | 2026-11-01 and 2026-11-02 | No cause published; GitHub's October report does not cover it, and the resolved update still promises a root cause analysis |
+| `cloudflare-2026-10-20` | Cloudflare | 2026-11-01 and 2026-11-02 | No cause published; the resolved update reads "This incident has been resolved.", the incident has no postmortem, and the Cloudflare blog has no post on it |
 
-Each is revealed with the [sealing runbook](../../../docs/runbooks/sealing.md#reveal-a-seal) when its provider publishes, or dropped on 2026-11-30.
+It is revealed with the [sealing runbook](../../../docs/runbooks/sealing.md#reveal-a-seal) if Cloudflare publishes, or dropped on 2026-11-30.
 
 ## Limits
 
-- Three cases, one seal per model and library setting, no repeats: eight runs, not a model's average.
-- The four `github-2026-10-21` runs differ in more than the library setting: agent version and code commit changed between 2026-11-01 and 2026-11-02.
-- The addendum's keys and labels passed the quote check and the label checks and had no item-by-item second reading before the freeze.
+- Four cases, one seal per model and library setting, no repeats: twelve runs, not a model's average.
+- The four runs of `github-2026-10-21` and of `github-2026-10-22` differ in more than the library setting: agent version and code commit changed between 2026-11-01 and 2026-11-02.
+- The addenda's keys and labels passed the quote check and the label checks and had no item-by-item second reading before the freeze.
 - The first reveal's key was drafted by hand, not by Content Understanding like the showcase keys; the quote check and the review by a person are the same.
 - For `github-2026-11-04-actions`, the evidence ends at the resolved update at 17:01. GitHub's summary describes a second period of delays from 17:20 to 17:55, which no update covers.
 - The judge's system prompt was rebuilt from rubric version 2, the version its lock names; versions 2 and 3 differ in that prompt only in the title line.
@@ -200,4 +269,4 @@ Each is revealed with the [sealing runbook](../../../docs/runbooks/sealing.md#re
 | [`reviews/`](reviews/) | The reviewer's decisions on the queued items |
 | [`scores.json`](scores.json) | Scores per run and arm, agreement, second opinion |
 | [`spend.json`](spend.json) | Judge and reviewer Claude API usage at list prices |
-| [`../../investigations/`](../../investigations/) | The revealed result files, byte for byte as sealed: [`github-2026-11-04-actions/`](../../investigations/github-2026-11-04-actions/), [`github-2026-11-04-pull-requests/`](../../investigations/github-2026-11-04-pull-requests/), [`github-2026-10-21/`](../../investigations/github-2026-10-21/) |
+| [`../../investigations/`](../../investigations/) | The revealed result files, byte for byte as sealed: [`github-2026-11-04-actions/`](../../investigations/github-2026-11-04-actions/), [`github-2026-11-04-pull-requests/`](../../investigations/github-2026-11-04-pull-requests/), [`github-2026-10-21/`](../../investigations/github-2026-10-21/), [`github-2026-10-22/`](../../investigations/github-2026-10-22/) |

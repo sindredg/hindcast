@@ -1,9 +1,9 @@
 # Sealing: operator procedure
 
-Status: Written on 2026-11-01; the reveal validated on 2026-11-07 and again on 2026-11-15.
+Status: Written on 2026-11-01; the reveal validated on 2026-11-07, 2026-11-15, and 2026-11-24.
 
 - Steps 1 to 10 ran on 2026-11-01, first series (`library: false`); steps 7 to 10 again on 2026-11-02, second series (`library: true`, [worklog 05](../worklogs/05-sealed-reconstructions.md#second-seals-with-the-library-2026-11-02)); steps 1 to 10 again on 2026-11-04 for two GitHub outages, screens on, four seals `complete` on the first attempt ([worklog 05](../worklogs/05-sealed-reconstructions.md#third-seals-two-github-outages-of-2026-11-04)).
-- [Reveal a seal](#reveal-a-seal) ran on 2026-11-07 for `github-2026-11-04-actions`, steps 11 to 24, except step 18 (committed after the reveal; refused since). It ran again on 2026-11-15 for `github-2026-11-04-pull-requests` and `github-2026-10-21`, steps 11 to 24 ([worklog 05](../worklogs/05-sealed-reconstructions.md#reveal-two-github-cases-2026-11-15)). [Drop a seal](#drop-a-seal) is written, not run: its date is 2026-11-30.
+- [Reveal a seal](#reveal-a-seal) ran on 2026-11-07 for `github-2026-11-04-actions`, steps 11 to 24, except step 18 (committed after the reveal; refused since). It ran again on 2026-11-15 for `github-2026-11-04-pull-requests` and `github-2026-10-21`, steps 11 to 24 ([worklog 05](../worklogs/05-sealed-reconstructions.md#reveal-two-github-cases-2026-11-15)), and on 2026-11-24 for `github-2026-10-22` ([worklog 05](../worklogs/05-sealed-reconstructions.md#reveal-github-2026-10-22-2026-11-24)). [Drop a seal](#drop-a-seal) is written, not run: its date is 2026-11-30.
 - Since 2026-11-03 a seal runs with Prompt Shields, the PII check, spans, and a cost ([milestone 4, slice 3](../worklogs/04-investigator.md#slice-3-screens-pii-challenge-traces-and-cost)).
 
 One investigator run per deployment, the result's SHA-256 committed, the file in private storage until the postmortem is out ([decision 0017](../decisions/0017-sealed-reconstructions.md)). A seal makes at most 13 model calls plus, in the second series, the calls the [investigator runbook](investigator.md) describes.

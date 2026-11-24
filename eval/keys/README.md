@@ -6,7 +6,7 @@ On this page: [Status](#status) · [Files](#files) · [Fields](#fields) · [How 
 
 ## Status
 
-Four keys frozen on 2026-10-27 and `github-2026-10-07` on 2026-11-01, each before any scored run, with the prior-knowledge answers unread. A sealed case gets its key once its provider publishes a cause ([decision 0017](../../docs/decisions/0017-sealed-reconstructions.md)): `github-2026-11-04-actions` on 2026-11-07, then `github-2026-11-04-pull-requests` and `github-2026-10-21` on 2026-11-15. Each was drafted by hand from GitHub's summary or availability report and checked with `python -m hindcast.keys check` before its seals were opened ([sealed report](../reconstruction/sealed-v1/README.md)).
+Four keys frozen on 2026-10-27 and `github-2026-10-07` on 2026-11-01, each before any scored run, with the prior-knowledge answers unread. A sealed case gets its key once its provider publishes a cause ([decision 0017](../../docs/decisions/0017-sealed-reconstructions.md)): `github-2026-11-04-actions` on 2026-11-07, then `github-2026-11-04-pull-requests` and `github-2026-10-21` on 2026-11-15, and `github-2026-10-22` on 2026-11-24. Each was drafted by hand from GitHub's summary or availability report and checked with `python -m hindcast.keys check` before its seals were opened ([sealed report](../reconstruction/sealed-v1/README.md)).
 
 [`frozen.json`](frozen.json) records each key's SHA-256; `tests/test_keys.py` fails if a key file changes or a frozen key has no file. A changed key is a new review, not an edit.
 
@@ -21,6 +21,7 @@ Four keys frozen on 2026-10-27 and `github-2026-10-07` on 2026-11-01, each befor
 | [`github-2026-11-04-actions.json`](github-2026-11-04-actions.json) | Revealed sealed case, scored from its seals ([decision 0030](../../docs/decisions/0030-close-evaluation-with-sealed-addenda.md)) |
 | [`github-2026-11-04-pull-requests.json`](github-2026-11-04-pull-requests.json) | Revealed sealed case, scored from its seals |
 | [`github-2026-10-21.json`](github-2026-10-21.json) | Revealed sealed case, scored from its seals |
+| [`github-2026-10-22.json`](github-2026-10-22.json) | Revealed sealed case, scored from its seals |
 | [`cloudflare-2026-02-20.json`](cloudflare-2026-02-20.json) | Development case, not scored |
 | [`frozen.json`](frozen.json) | SHA-256 of each key |
 | [`labels/`](labels/README.md) | One label per scored key item: `stated`, `inferable`, or `not inferable`, frozen by hash before the first scored run |

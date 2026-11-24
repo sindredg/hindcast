@@ -1,0 +1,177 @@
+{
+  "run_id": "sealed/github-2026-10-22/gpt-6-luna-library-off/a1",
+  "case_id": "github-2026-10-22",
+  "kinds": {
+    "attack": "inference",
+    "findings[0]": "observation",
+    "findings[1]": "observation",
+    "findings[2]": "observation",
+    "findings[3]": "observation",
+    "findings[4]": "observation",
+    "findings[5]": "inference",
+    "timeline[0]": "observation",
+    "timeline[1]": "observation",
+    "timeline[2]": "observation",
+    "timeline[3]": "observation",
+    "timeline[4]": "observation",
+    "timeline[5]": "observation",
+    "timeline[6]": "observation",
+    "timeline[7]": "observation",
+    "timeline[8]": "observation",
+    "timeline[9]": "observation",
+    "timeline[10]": "observation",
+    "timeline[11]": "observation",
+    "root_cause": "inference",
+    "contributing_factors[0]": "inference"
+  },
+  "code_unsupported": [],
+  "judge": {
+    "model": "claude-fable-5-1",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "8d36cd062759056fd31693928c6bedd244f10de95598133849914874b7de718f",
+    "input_sha256": "8f7b9046fbfa2862e9d3b5ece496d1495bd19af072d64645dca1c7ade8ccc16a",
+    "judged_at": "2026-11-24T18:33:28Z",
+    "request_id": "req_011ChNEUWwEqqj3K7A9i74oQ",
+    "response_model": "claude-fable-5-1"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 5276,
+    "output_tokens": 4332,
+    "cache_creation_input_tokens": 2418,
+    "cache_read_input_tokens": 0
+  },
+  "judgment": {
+    "run_items": {
+      "attack": {
+        "reason": "u7, u8, and u14 describe errors, mitigation, added capacity, and processing interruptions with no mention of hostile activity; concluding the evidence cannot tell uses only those updates and adds no fact.",
+        "supported": true
+      },
+      "findings[0]": {
+        "reason": "u1 names degraded performance for Actions, Issues, Pull Requests and u2 names intermittent errors loading Issues, Pull Requests and search results.",
+        "supported": true
+      },
+      "findings[1]": {
+        "reason": "u4 and u5 report API Requests and Packages degraded; u7 names errors loading package listings.",
+        "supported": true
+      },
+      "findings[2]": {
+        "reason": "u8 says recovery was seen after adding capacity with errors decreasing.",
+        "supported": true
+      },
+      "findings[3]": {
+        "reason": "u11 says other services recovered while Projects was still investigated; u12 and u14 report delayed updates and identified interruptions in update processing.",
+        "supported": true
+      },
+      "findings[4]": {
+        "reason": "u15 says GitHub was adding more capacity to accelerate Projects recovery; u16 says processing improved but new items may still be delayed.",
+        "supported": true
+      },
+      "findings[5]": {
+        "reason": "Rests on supported f3, f4, f5; inferring a capacity or processing constraint from recovery following added capacity and reported processing interruptions is a general-knowledge step that adds no component or cause of its own.",
+        "supported": true
+      },
+      "timeline[0]": {
+        "reason": "u1 is the first update, posted at 15:28:04Z, one second from the stated start; the cited update effectively states the provider's listed incident start.",
+        "supported": true
+      },
+      "timeline[1]": {
+        "reason": "u1 at 15:28:04Z states investigation of degraded performance for Actions, Issues and Pull Requests.",
+        "supported": true
+      },
+      "timeline[2]": {
+        "reason": "u4 at 16:26:16Z states API Requests degraded.",
+        "supported": true
+      },
+      "timeline[3]": {
+        "reason": "u5 at 16:28:56Z states Packages degraded.",
+        "supported": true
+      },
+      "timeline[4]": {
+        "reason": "u6 at 16:35:07Z states API Requests operating normally.",
+        "supported": true
+      },
+      "timeline[5]": {
+        "reason": "u8 at 17:16:06Z states recovery after adding capacity, errors decreasing, some users still affected.",
+        "supported": true
+      },
+      "timeline[6]": {
+        "reason": "u9 at 17:41:38Z states Actions, Issues, Packages and Pull Requests operating normally.",
+        "supported": true
+      },
+      "timeline[7]": {
+        "reason": "u11 at 18:26:31Z states other services recovered and Projects still under investigation.",
+        "supported": true
+      },
+      "timeline[8]": {
+        "reason": "u14 at 20:46:26Z states remaining Projects delays and identified interruptions in update processing.",
+        "supported": true
+      },
+      "timeline[9]": {
+        "reason": "u15 at 22:07:36Z states some recovery and work to add more capacity.",
+        "supported": true
+      },
+      "timeline[10]": {
+        "reason": "u17 at 00:55:18Z states degradation mitigated and monitoring for stability.",
+        "supported": true
+      },
+      "timeline[11]": {
+        "reason": "u18 at 02:30:25Z carries the resolved status; the item correctly notes its text is withheld and claims nothing more.",
+        "supported": true
+      },
+      "root_cause": {
+        "reason": "Rests on supported f3, f4, f5; the hedged capacity-constraint explanation follows from recovery after added capacity (u8, u15) and it explicitly declines to name an initiating fault, adding nothing beyond the cited updates.",
+        "supported": true
+      },
+      "contributing_factors[0]": {
+        "reason": "Rests on supported f4; u11, u14 and u16 show Projects processing interruptions and delays continuing after other services recovered, so the conclusion that they prolonged impact follows directly.",
+        "supported": true
+      }
+    },
+    "key_items": {
+      "attack": {
+        "run_items": [
+          "attack"
+        ],
+        "reason": "The run's attack verdict is 'cannot tell', which is the abstain verdict for the attack item.",
+        "outcome": "abstained"
+      },
+      "root_cause": {
+        "run_items": [
+          "root_cause",
+          "findings[5]"
+        ],
+        "reason": "The run names only a generic capacity or processing constraint without the search proxies, CPU exhaustion, or encrypted connection setup, says the updates do not identify the initiating fault, and an open question asks for it.",
+        "outcome": "abstained"
+      },
+      "contributing_factors/0": {
+        "run_items": [],
+        "reason": "No run item mentions retries of timed-out requests adding load to the proxies; the run's only factor concerns Projects processing delays.",
+        "outcome": "missed"
+      },
+      "timeline/0": {
+        "run_items": [
+          "timeline[0]",
+          "timeline[1]"
+        ],
+        "reason": "The run states the incident start as 15:28:03Z per u1, but the key puts the onset of search degradation at 14:55, 33 minutes earlier and outside the 30-minute tolerance.",
+        "outcome": "wrong"
+      },
+      "timeline/1": {
+        "run_items": [
+          "timeline[5]",
+          "timeline[6]",
+          "findings[2]"
+        ],
+        "reason": "timeline[5] states recovery after adding capacity at 17:16 per u8 and timeline[6] states services operating normally at 17:41 per u9, both within 30 minutes of the key's 17:28 recovery.",
+        "outcome": "supported-hit"
+      }
+    }
+  },
+  "error": null,
+  "arm": "sealed-gpt-6-luna-library-off",
+  "run_sha256": "b15cedcba342793b40df186877aef28496ffac636fa208078bf51e6474db91bf",
+  "code_commit": "f0bca05fc6a619f85257a35ac76b631d1bd2ff60",
+  "earlier_errors": []
+}

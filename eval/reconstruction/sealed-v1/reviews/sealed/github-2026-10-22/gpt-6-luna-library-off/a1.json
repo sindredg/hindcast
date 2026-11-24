@@ -1,0 +1,138 @@
+{
+  "run_id": "sealed/github-2026-10-22/gpt-6-luna-library-off/a1",
+  "judgment_sha256": "d242550af3cc0cfaedc30230cdca45a4a9aac45fdd9691b44f37bc50cc45b150",
+  "decisions": [
+    {
+      "kind": "match",
+      "item": "timeline/1",
+      "proposal": "supported-hit",
+      "sampled": false,
+      "decision": "supported-hit",
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "d09179075a1b2fdeddbb43fbf8ea2fe0ef5e0201483bc655bb60da71b7e1a159"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "attack",
+      "proposal": true,
+      "sampled": false,
+      "decision": true,
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "d09179075a1b2fdeddbb43fbf8ea2fe0ef5e0201483bc655bb60da71b7e1a159"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "findings[5]",
+      "proposal": true,
+      "sampled": false,
+      "decision": true,
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "d09179075a1b2fdeddbb43fbf8ea2fe0ef5e0201483bc655bb60da71b7e1a159"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "root_cause",
+      "proposal": true,
+      "sampled": false,
+      "decision": true,
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "d09179075a1b2fdeddbb43fbf8ea2fe0ef5e0201483bc655bb60da71b7e1a159"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "contributing_factors[0]",
+      "proposal": true,
+      "sampled": false,
+      "decision": true,
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "d09179075a1b2fdeddbb43fbf8ea2fe0ef5e0201483bc655bb60da71b7e1a159"
+      }
+    },
+    {
+      "kind": "match",
+      "item": "attack",
+      "proposal": "abstained",
+      "sampled": true,
+      "decision": "abstained",
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "d09179075a1b2fdeddbb43fbf8ea2fe0ef5e0201483bc655bb60da71b7e1a159"
+      }
+    },
+    {
+      "kind": "match",
+      "item": "root_cause",
+      "proposal": "abstained",
+      "sampled": true,
+      "decision": "abstained",
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "d09179075a1b2fdeddbb43fbf8ea2fe0ef5e0201483bc655bb60da71b7e1a159"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "findings[1]",
+      "proposal": true,
+      "sampled": true,
+      "decision": true,
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "d09179075a1b2fdeddbb43fbf8ea2fe0ef5e0201483bc655bb60da71b7e1a159"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "findings[4]",
+      "proposal": true,
+      "sampled": true,
+      "decision": true,
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "d09179075a1b2fdeddbb43fbf8ea2fe0ef5e0201483bc655bb60da71b7e1a159"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "timeline[3]",
+      "proposal": true,
+      "sampled": true,
+      "decision": true,
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "d09179075a1b2fdeddbb43fbf8ea2fe0ef5e0201483bc655bb60da71b7e1a159"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "timeline[10]",
+      "proposal": true,
+      "sampled": true,
+      "decision": true,
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "d09179075a1b2fdeddbb43fbf8ea2fe0ef5e0201483bc655bb60da71b7e1a159"
+      }
+    }
+  ]
+}

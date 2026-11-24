@@ -1,6 +1,6 @@
 # Milestone 5, second part: Scoring the reconstructions
 
-Status: Verified on 2026-11-07 ([gate](#gate), [independent review](#independent-review), [milestone close review](#milestone-close-review)). One sealed case revealed and scored ([sealed report](../../eval/reconstruction/sealed-v1/README.md)); four remain, each an addendum or dropped on 2026-11-30 ([decision 0030](../decisions/0030-close-evaluation-with-sealed-addenda.md)). Milestone state: [roadmap](../roadmap.md#status).
+Status: Verified on 2026-11-07 ([gate](#gate), [independent review](#independent-review), [milestone close review](#milestone-close-review)). Four sealed cases revealed and scored by 2026-11-24 ([sealed report](../../eval/reconstruction/sealed-v1/README.md)); one remains, an addendum or dropped on 2026-11-30 ([decision 0030](../decisions/0030-close-evaluation-with-sealed-addenda.md)). Milestone state: [roadmap](../roadmap.md#status).
 
 On this page: [Scope](#scope) · [Work completed](#work-completed) · [Live runs](#live-runs) · [Checks](#checks) · [Gate](#gate) · [Independent review](#independent-review) · [Milestone close review](#milestone-close-review) · [Issues](#issues)
 
