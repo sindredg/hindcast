@@ -9,30 +9,30 @@
     {
       "stage": "judge, revealed seals",
       "model": "claude-opus-5-5",
-      "calls": 8,
+      "calls": 12,
       "unpriced_calls": 0,
       "usage": {
-        "input_tokens": 46630,
-        "cache_creation_input_tokens": 14574,
+        "input_tokens": 69953,
+        "cache_creation_input_tokens": 24290,
         "cache_read_input_tokens": 4858,
-        "output_tokens": 22572
+        "output_tokens": 33026
       },
-      "cost": 0.711802
+      "cost": 1.062754
     },
     {
       "stage": "reviewer, revealed seals",
       "model": "claude-fable-5-1",
-      "calls": 8,
+      "calls": 12,
       "unpriced_calls": 0,
       "usage": {
-        "input_tokens": 46630,
-        "cache_creation_input_tokens": 14508,
+        "input_tokens": 69953,
+        "cache_creation_input_tokens": 24180,
         "cache_read_input_tokens": 4836,
-        "output_tokens": 32366
+        "output_tokens": 48763
       },
-      "cost": 2.267159
+      "cost": 3.441139
     }
   ],
   "unpriced_calls": 0,
-  "total": 2.978961
+  "total": 4.503893
 }

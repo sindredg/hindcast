@@ -456,6 +456,223 @@
       ],
       "contradictions": [],
       "open_items": 0
+    },
+    {
+      "run_id": "sealed/github-2026-10-22/gpt-6-luna-library-off/a1",
+      "arm": "sealed-gpt-6-luna-library-off",
+      "case_id": "github-2026-10-22",
+      "outcomes": {
+        "attack": "abstained",
+        "root_cause": "abstained",
+        "contributing_factors/0": "missed",
+        "timeline/0": "missed",
+        "timeline/1": "supported-hit"
+      },
+      "credits": {
+        "attack": 1.0,
+        "root_cause": 1.0,
+        "contributing_factors/0": null,
+        "timeline/0": null,
+        "timeline/1": 1.0
+      },
+      "credited": 3.0,
+      "scorable": 3,
+      "primary": 1.0,
+      "neutral": [
+        "contributing_factors/0",
+        "timeline/0"
+      ],
+      "guesses": [],
+      "justified_abstentions": [
+        "attack",
+        "root_cause"
+      ],
+      "wrong": [],
+      "unsupported": [],
+      "extra_supported": [
+        "findings[0]",
+        "findings[1]",
+        "findings[3]",
+        "findings[4]",
+        "timeline[0]",
+        "timeline[1]",
+        "timeline[2]",
+        "timeline[3]",
+        "timeline[4]",
+        "timeline[7]",
+        "timeline[8]",
+        "timeline[9]",
+        "timeline[10]",
+        "timeline[11]",
+        "contributing_factors[0]"
+      ],
+      "contradictions": [],
+      "open_items": 0
+    },
+    {
+      "run_id": "sealed/github-2026-10-22/gpt-6.1-sol-library-off/a1",
+      "arm": "sealed-gpt-6.1-sol-library-off",
+      "case_id": "github-2026-10-22",
+      "outcomes": {
+        "attack": "abstained",
+        "root_cause": "abstained",
+        "contributing_factors/0": "missed",
+        "timeline/0": "missed",
+        "timeline/1": "supported-hit"
+      },
+      "credits": {
+        "attack": 1.0,
+        "root_cause": 1.0,
+        "contributing_factors/0": null,
+        "timeline/0": null,
+        "timeline/1": 1.0
+      },
+      "credited": 3.0,
+      "scorable": 3,
+      "primary": 1.0,
+      "neutral": [
+        "contributing_factors/0",
+        "timeline/0"
+      ],
+      "guesses": [],
+      "justified_abstentions": [
+        "attack",
+        "root_cause"
+      ],
+      "wrong": [],
+      "unsupported": [],
+      "extra_supported": [
+        "findings[0]",
+        "findings[1]",
+        "findings[2]",
+        "findings[3]",
+        "findings[4]",
+        "findings[5]",
+        "findings[6]",
+        "findings[7]",
+        "timeline[0]",
+        "timeline[1]",
+        "timeline[2]",
+        "timeline[3]",
+        "timeline[4]",
+        "timeline[7]",
+        "timeline[8]",
+        "timeline[9]",
+        "timeline[10]",
+        "timeline[11]",
+        "timeline[12]",
+        "contributing_factors[0]",
+        "contributing_factors[1]"
+      ],
+      "contradictions": [],
+      "open_items": 0
+    },
+    {
+      "run_id": "sealed/github-2026-10-22/gpt-6-luna/a1",
+      "arm": "sealed-gpt-6-luna",
+      "case_id": "github-2026-10-22",
+      "outcomes": {
+        "attack": "abstained",
+        "root_cause": "abstained",
+        "contributing_factors/0": "missed",
+        "timeline/0": "missed",
+        "timeline/1": "supported-hit"
+      },
+      "credits": {
+        "attack": 1.0,
+        "root_cause": 1.0,
+        "contributing_factors/0": null,
+        "timeline/0": null,
+        "timeline/1": 1.0
+      },
+      "credited": 3.0,
+      "scorable": 3,
+      "primary": 1.0,
+      "neutral": [
+        "contributing_factors/0",
+        "timeline/0"
+      ],
+      "guesses": [],
+      "justified_abstentions": [
+        "attack",
+        "root_cause"
+      ],
+      "wrong": [],
+      "unsupported": [],
+      "extra_supported": [
+        "findings[0]",
+        "findings[1]",
+        "findings[2]",
+        "findings[3]",
+        "findings[4]",
+        "timeline[0]",
+        "timeline[1]",
+        "timeline[4]",
+        "timeline[5]",
+        "timeline[6]",
+        "contributing_factors[0]",
+        "contributing_factors[1]"
+      ],
+      "contradictions": [],
+      "open_items": 0
+    },
+    {
+      "run_id": "sealed/github-2026-10-22/gpt-6.1-sol/a1",
+      "arm": "sealed-gpt-6.1-sol",
+      "case_id": "github-2026-10-22",
+      "outcomes": {
+        "attack": "abstained",
+        "root_cause": "abstained",
+        "contributing_factors/0": "missed",
+        "timeline/0": "missed",
+        "timeline/1": "supported-hit"
+      },
+      "credits": {
+        "attack": 1.0,
+        "root_cause": 1.0,
+        "contributing_factors/0": null,
+        "timeline/0": null,
+        "timeline/1": 1.0
+      },
+      "credited": 3.0,
+      "scorable": 3,
+      "primary": 1.0,
+      "neutral": [
+        "contributing_factors/0",
+        "timeline/0"
+      ],
+      "guesses": [],
+      "justified_abstentions": [
+        "attack",
+        "root_cause"
+      ],
+      "wrong": [],
+      "unsupported": [],
+      "extra_supported": [
+        "findings[0]",
+        "findings[1]",
+        "findings[2]",
+        "findings[3]",
+        "findings[4]",
+        "findings[5]",
+        "findings[6]",
+        "findings[7]",
+        "timeline[0]",
+        "timeline[1]",
+        "timeline[2]",
+        "timeline[3]",
+        "timeline[4]",
+        "timeline[7]",
+        "timeline[8]",
+        "timeline[9]",
+        "timeline[10]",
+        "timeline[11]",
+        "timeline[12]",
+        "contributing_factors[0]",
+        "contributing_factors[1]"
+      ],
+      "contradictions": [],
+      "open_items": 0
     }
   ],
   "tables": {
@@ -484,6 +701,31 @@
           "contradictions": 0,
           "failures": 0,
           "seconds_mean": 27.3,
+          "cost_total": null
+        },
+        "github-2026-10-22": {
+          "runs": 1,
+          "primary": {
+            "mean": 1.0,
+            "min": 1.0,
+            "max": 1.0
+          },
+          "outcomes": {
+            "supported-hit": 1,
+            "partial": 0,
+            "unsupported-hit": 0,
+            "unsupported-partial": 0,
+            "abstained": 2,
+            "missed": 2,
+            "wrong": 0
+          },
+          "guesses": 0,
+          "justified_abstentions": 2,
+          "unsupported_items": 0,
+          "extra_supported_items": 12,
+          "contradictions": 0,
+          "failures": 0,
+          "seconds_mean": 23.885,
           "cost_total": null
         },
         "github-2026-11-04-actions": {
@@ -562,6 +804,31 @@
           "failures": 0,
           "seconds_mean": 17.787,
           "cost_total": null
+        },
+        "github-2026-10-22": {
+          "runs": 1,
+          "primary": {
+            "mean": 1.0,
+            "min": 1.0,
+            "max": 1.0
+          },
+          "outcomes": {
+            "supported-hit": 1,
+            "partial": 0,
+            "unsupported-hit": 0,
+            "unsupported-partial": 0,
+            "abstained": 2,
+            "missed": 2,
+            "wrong": 0
+          },
+          "guesses": 0,
+          "justified_abstentions": 2,
+          "unsupported_items": 0,
+          "extra_supported_items": 15,
+          "contradictions": 0,
+          "failures": 0,
+          "seconds_mean": 17.596,
+          "cost_total": null
         }
       },
       "sealed-gpt-6.1-sol": {
@@ -588,6 +855,31 @@
           "contradictions": 0,
           "failures": 0,
           "seconds_mean": 40.221,
+          "cost_total": null
+        },
+        "github-2026-10-22": {
+          "runs": 1,
+          "primary": {
+            "mean": 1.0,
+            "min": 1.0,
+            "max": 1.0
+          },
+          "outcomes": {
+            "supported-hit": 1,
+            "partial": 0,
+            "unsupported-hit": 0,
+            "unsupported-partial": 0,
+            "abstained": 2,
+            "missed": 2,
+            "wrong": 0
+          },
+          "guesses": 0,
+          "justified_abstentions": 2,
+          "unsupported_items": 0,
+          "extra_supported_items": 21,
+          "contradictions": 0,
+          "failures": 0,
+          "seconds_mean": 41.314,
           "cost_total": null
         },
         "github-2026-11-04-actions": {
@@ -666,108 +958,133 @@
           "failures": 0,
           "seconds_mean": 35.823,
           "cost_total": null
+        },
+        "github-2026-10-22": {
+          "runs": 1,
+          "primary": {
+            "mean": 1.0,
+            "min": 1.0,
+            "max": 1.0
+          },
+          "outcomes": {
+            "supported-hit": 1,
+            "partial": 0,
+            "unsupported-hit": 0,
+            "unsupported-partial": 0,
+            "abstained": 2,
+            "missed": 2,
+            "wrong": 0
+          },
+          "guesses": 0,
+          "justified_abstentions": 2,
+          "unsupported_items": 0,
+          "extra_supported_items": 21,
+          "contradictions": 0,
+          "failures": 0,
+          "seconds_mean": 40.93,
+          "cost_total": null
         }
       }
     },
     "by_arm": {
       "sealed-gpt-6-luna": {
-        "runs": 3,
+        "runs": 4,
         "primary": {
-          "mean": 0.8666666666666667,
+          "mean": 0.9,
           "min": 0.6,
           "max": 1.0
         },
         "outcomes": {
-          "supported-hit": 8,
+          "supported-hit": 9,
           "partial": 2,
           "unsupported-hit": 0,
           "unsupported-partial": 0,
-          "abstained": 5,
-          "missed": 11,
+          "abstained": 7,
+          "missed": 13,
           "wrong": 0
         },
         "guesses": 0,
-        "justified_abstentions": 4,
+        "justified_abstentions": 6,
         "unsupported_items": 0,
-        "extra_supported_items": 40,
+        "extra_supported_items": 52,
         "contradictions": 0,
         "failures": 0,
-        "seconds_mean": 28.930333333333333,
+        "seconds_mean": 27.669,
         "cost_total": null
       },
       "sealed-gpt-6-luna-library-off": {
-        "runs": 1,
+        "runs": 2,
         "primary": {
-          "mean": 0.6,
-          "min": 0.6,
-          "max": 0.6
-        },
-        "outcomes": {
-          "supported-hit": 2,
-          "partial": 2,
-          "unsupported-hit": 0,
-          "unsupported-partial": 0,
-          "abstained": 1,
-          "missed": 4,
-          "wrong": 0
-        },
-        "guesses": 0,
-        "justified_abstentions": 0,
-        "unsupported_items": 0,
-        "extra_supported_items": 11,
-        "contradictions": 0,
-        "failures": 0,
-        "seconds_mean": 17.787,
-        "cost_total": null
-      },
-      "sealed-gpt-6.1-sol": {
-        "runs": 3,
-        "primary": {
-          "mean": 0.8666666666666667,
+          "mean": 0.8,
           "min": 0.6,
           "max": 1.0
         },
         "outcomes": {
-          "supported-hit": 8,
+          "supported-hit": 3,
           "partial": 2,
           "unsupported-hit": 0,
           "unsupported-partial": 0,
-          "abstained": 5,
-          "missed": 11,
+          "abstained": 3,
+          "missed": 6,
           "wrong": 0
         },
         "guesses": 0,
-        "justified_abstentions": 4,
+        "justified_abstentions": 2,
+        "unsupported_items": 0,
+        "extra_supported_items": 26,
+        "contradictions": 0,
+        "failures": 0,
+        "seconds_mean": 17.691499999999998,
+        "cost_total": null
+      },
+      "sealed-gpt-6.1-sol": {
+        "runs": 4,
+        "primary": {
+          "mean": 0.9,
+          "min": 0.6,
+          "max": 1.0
+        },
+        "outcomes": {
+          "supported-hit": 9,
+          "partial": 2,
+          "unsupported-hit": 0,
+          "unsupported-partial": 0,
+          "abstained": 7,
+          "missed": 13,
+          "wrong": 0
+        },
+        "guesses": 0,
+        "justified_abstentions": 6,
+        "unsupported_items": 0,
+        "extra_supported_items": 56,
+        "contradictions": 0,
+        "failures": 0,
+        "seconds_mean": 43.574749999999995,
+        "cost_total": null
+      },
+      "sealed-gpt-6.1-sol-library-off": {
+        "runs": 2,
+        "primary": {
+          "mean": 0.8,
+          "min": 0.6,
+          "max": 1.0
+        },
+        "outcomes": {
+          "supported-hit": 3,
+          "partial": 2,
+          "unsupported-hit": 0,
+          "unsupported-partial": 0,
+          "abstained": 3,
+          "missed": 6,
+          "wrong": 0
+        },
+        "guesses": 0,
+        "justified_abstentions": 2,
         "unsupported_items": 0,
         "extra_supported_items": 35,
         "contradictions": 0,
         "failures": 0,
-        "seconds_mean": 44.328333333333326,
-        "cost_total": null
-      },
-      "sealed-gpt-6.1-sol-library-off": {
-        "runs": 1,
-        "primary": {
-          "mean": 0.6,
-          "min": 0.6,
-          "max": 0.6
-        },
-        "outcomes": {
-          "supported-hit": 2,
-          "partial": 2,
-          "unsupported-hit": 0,
-          "unsupported-partial": 0,
-          "abstained": 1,
-          "missed": 4,
-          "wrong": 0
-        },
-        "guesses": 0,
-        "justified_abstentions": 0,
-        "unsupported_items": 0,
-        "extra_supported_items": 14,
-        "contradictions": 0,
-        "failures": 0,
-        "seconds_mean": 35.823,
+        "seconds_mean": 38.3765,
         "cost_total": null
       }
     },
@@ -775,17 +1092,17 @@
   },
   "agreement": {
     "all": {
-      "items": 108,
+      "items": 154,
       "percent": 100.0,
       "kappa": 1.0
     },
     "match": {
-      "items": 44,
+      "items": 54,
       "percent": 100.0,
       "kappa": 1.0
     },
     "support": {
-      "items": 64,
+      "items": 100,
       "percent": 100.0,
       "kappa": null
     }
@@ -793,12 +1110,12 @@
   "second_opinion": {
     "whole_agreement": {
       "match": {
-        "items": 70,
-        "percent": 98.6,
-        "kappa": 0.9794238683127573
+        "items": 90,
+        "percent": 97.8,
+        "kappa": 0.968242766407904
       },
       "support": {
-        "items": 162,
+        "items": 249,
         "percent": 100.0,
         "kappa": null
       }
@@ -806,24 +1123,24 @@
     "judge_alone": {
       "by_arm": {
         "sealed-gpt-6-luna": {
-          "mean": 0.8666666666666667,
+          "mean": 0.9,
           "min": 0.6,
           "max": 1.0
         },
         "sealed-gpt-6-luna-library-off": {
-          "mean": 0.6,
+          "mean": 0.8,
           "min": 0.6,
-          "max": 0.6
+          "max": 1.0
         },
         "sealed-gpt-6.1-sol": {
-          "mean": 0.8666666666666667,
+          "mean": 0.9,
           "min": 0.6,
           "max": 1.0
         },
         "sealed-gpt-6.1-sol-library-off": {
-          "mean": 0.6,
+          "mean": 0.8,
           "min": 0.6,
-          "max": 0.6
+          "max": 1.0
         }
       },
       "known_before_evidence": {}
@@ -831,24 +1148,24 @@
     "reviewer_alone": {
       "by_arm": {
         "sealed-gpt-6-luna": {
-          "mean": 0.8666666666666667,
+          "mean": 0.9,
           "min": 0.6,
           "max": 1.0
         },
         "sealed-gpt-6-luna-library-off": {
-          "mean": 0.6,
+          "mean": 0.675,
           "min": 0.6,
-          "max": 0.6
+          "max": 0.75
         },
         "sealed-gpt-6.1-sol": {
-          "mean": 0.8666666666666667,
+          "mean": 0.9,
           "min": 0.6,
           "max": 1.0
         },
         "sealed-gpt-6.1-sol-library-off": {
-          "mean": 0.6,
+          "mean": 0.8,
           "min": 0.6,
-          "max": 0.6
+          "max": 1.0
         }
       },
       "known_before_evidence": {}

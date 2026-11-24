@@ -1,0 +1,147 @@
+{
+  "run_id": "sealed/github-2026-10-22/gpt-6-luna/a1",
+  "case_id": "github-2026-10-22",
+  "kinds": {
+    "attack": "inference",
+    "findings[0]": "observation",
+    "findings[1]": "observation",
+    "findings[2]": "observation",
+    "findings[3]": "observation",
+    "findings[4]": "inference",
+    "timeline[0]": "observation",
+    "timeline[1]": "observation",
+    "timeline[2]": "observation",
+    "timeline[3]": "observation",
+    "timeline[4]": "observation",
+    "timeline[5]": "observation",
+    "timeline[6]": "observation",
+    "root_cause": "inference",
+    "contributing_factors[0]": "inference",
+    "contributing_factors[1]": "inference"
+  },
+  "code_unsupported": [],
+  "judge": {
+    "model": "claude-opus-5-5",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "9de219e1f08dd185277139c88c3957bc4f67a3a4cf94e90e7523281cfd202a22",
+    "input_sha256": "3962e60b4686017038a6690a9f7f9d8445ec5addaf34e43897bdf745c15a3607",
+    "judged_at": "2026-11-24T18:32:51Z",
+    "request_id": "req_011ChNERmSXfqXbdysvWaCE1",
+    "response_model": "claude-opus-5-5"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 4901,
+    "output_tokens": 2136,
+    "cache_creation_input_tokens": 2429,
+    "cache_read_input_tokens": 0
+  },
+  "judgment": {
+    "run_items": {
+      "attack": {
+        "reason": "The 'cannot tell' verdict follows from u1, u8 and u14, which describe degradation and mitigation but name no cause or hostile activity.",
+        "supported": true
+      },
+      "findings[0]": {
+        "reason": "u1, u2, u4, u5 and u7 directly report the listed degraded services and errors.",
+        "supported": true
+      },
+      "findings[1]": {
+        "reason": "u8 reports recovery after adding capacity with decreasing errors, and u9 says those services are operating normally.",
+        "supported": true
+      },
+      "findings[2]": {
+        "reason": "u10–u13 and u16 state that Projects was still recovering and that queued updates stayed delayed.",
+        "supported": true
+      },
+      "findings[3]": {
+        "reason": "u14 states that interruptions in update processing were identified, and u15 states that capacity was being added to accelerate recovery.",
+        "supported": true
+      },
+      "findings[4]": {
+        "reason": "This follows from f3 and f4: a distinct, prolonged Projects delay with no disclosed initiating cause.",
+        "supported": true
+      },
+      "timeline[0]": {
+        "reason": "u1 at 15:28:04 reports degraded performance for Actions, Issues and Pull Requests.",
+        "supported": true
+      },
+      "timeline[1]": {
+        "reason": "u4 at 16:26:16 reports API Requests as degraded.",
+        "supported": true
+      },
+      "timeline[2]": {
+        "reason": "u8 at 17:16:06 reports recovery after adding capacity, with errors decreasing.",
+        "supported": true
+      },
+      "timeline[3]": {
+        "reason": "u10 at 17:43:44 reports recovery while Projects was still processing queued updates.",
+        "supported": true
+      },
+      "timeline[4]": {
+        "reason": "u14 at 20:46:26 reports delayed Projects updates and identified interruptions.",
+        "supported": true
+      },
+      "timeline[5]": {
+        "reason": "u17 at 00:55:18 says the degradation was mitigated and is being monitored.",
+        "supported": true
+      },
+      "timeline[6]": {
+        "reason": "u18's title gives the resolved status at 02:30:25, and its text is shown as withheld.",
+        "supported": true
+      },
+      "root_cause": {
+        "reason": "Saying the cause cannot be determined follows from f1, f2, f4 and f5. The proximate interruptions and capacity work are stated in u14, u15 and u8.",
+        "supported": true
+      },
+      "contributing_factors[0]": {
+        "reason": "This follows from f2 and f3 (u10, u11): Projects stayed affected after the other services recovered.",
+        "supported": true
+      },
+      "contributing_factors[1]": {
+        "reason": "This follows from f4 and u15, which say capacity was being added to accelerate recovery, and it adds no new fact.",
+        "supported": true
+      }
+    },
+    "key_items": {
+      "attack": {
+        "run_items": [
+          "attack"
+        ],
+        "reason": "The run's verdict is 'cannot tell', and an open question asks about hostile activity.",
+        "outcome": "abstained"
+      },
+      "root_cause": {
+        "run_items": [
+          "root_cause"
+        ],
+        "reason": "The run says the initiating cause cannot be determined, notes the updates do not explain the broader degradation, and an open question asks what caused it. It never names the search proxy CPU exhaustion.",
+        "outcome": "abstained"
+      },
+      "contributing_factors/0": {
+        "run_items": [],
+        "reason": "No run item mentions retries of timed-out requests adding load to the proxies.",
+        "outcome": "missed"
+      },
+      "timeline/0": {
+        "run_items": [],
+        "reason": "The run only gives the 15:28 report time for the first degradation notice, not an onset of search degradation near 14:55.",
+        "outcome": "missed"
+      },
+      "timeline/1": {
+        "run_items": [
+          "timeline[2]",
+          "findings[1]"
+        ],
+        "reason": "timeline[2] (u8, 17:16) reports recovery after adding capacity, which is within 30 minutes of the key's 17:28 recovery after capacity was added.",
+        "outcome": "supported-hit"
+      }
+    }
+  },
+  "error": null,
+  "arm": "sealed-gpt-6-luna",
+  "run_sha256": "e7f9e23dcda16c696fe2d4cdb8d4da77801352c25052dcd5da8608ea9cedb1cf",
+  "code_commit": "f0bca05fc6a619f85257a35ac76b631d1bd2ff60",
+  "earlier_errors": []
+}

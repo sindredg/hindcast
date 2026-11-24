@@ -1,0 +1,162 @@
+{
+  "run_id": "sealed/github-2026-10-22/gpt-6.1-sol/a1",
+  "judgment_sha256": "cf9d005b5b87adfe65f57f0136618f2359152afc94ef0b30bd5990b316991a48",
+  "decisions": [
+    {
+      "kind": "match",
+      "item": "timeline/1",
+      "proposal": "supported-hit",
+      "sampled": false,
+      "decision": "supported-hit",
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "d05e7befbd28466ba9e8a17ea6afb93a47c23db24ff28b724107d29eefd45414"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "attack",
+      "proposal": true,
+      "sampled": false,
+      "decision": true,
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "d05e7befbd28466ba9e8a17ea6afb93a47c23db24ff28b724107d29eefd45414"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "findings[6]",
+      "proposal": true,
+      "sampled": false,
+      "decision": true,
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "d05e7befbd28466ba9e8a17ea6afb93a47c23db24ff28b724107d29eefd45414"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "findings[7]",
+      "proposal": true,
+      "sampled": false,
+      "decision": true,
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "d05e7befbd28466ba9e8a17ea6afb93a47c23db24ff28b724107d29eefd45414"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "root_cause",
+      "proposal": true,
+      "sampled": false,
+      "decision": true,
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "d05e7befbd28466ba9e8a17ea6afb93a47c23db24ff28b724107d29eefd45414"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "contributing_factors[0]",
+      "proposal": true,
+      "sampled": false,
+      "decision": true,
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "d05e7befbd28466ba9e8a17ea6afb93a47c23db24ff28b724107d29eefd45414"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "contributing_factors[1]",
+      "proposal": true,
+      "sampled": false,
+      "decision": true,
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "d05e7befbd28466ba9e8a17ea6afb93a47c23db24ff28b724107d29eefd45414"
+      }
+    },
+    {
+      "kind": "match",
+      "item": "attack",
+      "proposal": "abstained",
+      "sampled": true,
+      "decision": "abstained",
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "d05e7befbd28466ba9e8a17ea6afb93a47c23db24ff28b724107d29eefd45414"
+      }
+    },
+    {
+      "kind": "match",
+      "item": "timeline/0",
+      "proposal": "missed",
+      "sampled": true,
+      "decision": "missed",
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "d05e7befbd28466ba9e8a17ea6afb93a47c23db24ff28b724107d29eefd45414"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "findings[1]",
+      "proposal": true,
+      "sampled": true,
+      "decision": true,
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "d05e7befbd28466ba9e8a17ea6afb93a47c23db24ff28b724107d29eefd45414"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "findings[2]",
+      "proposal": true,
+      "sampled": true,
+      "decision": true,
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "d05e7befbd28466ba9e8a17ea6afb93a47c23db24ff28b724107d29eefd45414"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "findings[3]",
+      "proposal": true,
+      "sampled": true,
+      "decision": true,
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "d05e7befbd28466ba9e8a17ea6afb93a47c23db24ff28b724107d29eefd45414"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "timeline[7]",
+      "proposal": true,
+      "sampled": true,
+      "decision": true,
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "d05e7befbd28466ba9e8a17ea6afb93a47c23db24ff28b724107d29eefd45414"
+      }
+    }
+  ]
+}

@@ -1,0 +1,147 @@
+{
+  "run_id": "sealed/github-2026-10-22/gpt-6-luna/a1",
+  "case_id": "github-2026-10-22",
+  "kinds": {
+    "attack": "inference",
+    "findings[0]": "observation",
+    "findings[1]": "observation",
+    "findings[2]": "observation",
+    "findings[3]": "observation",
+    "findings[4]": "inference",
+    "timeline[0]": "observation",
+    "timeline[1]": "observation",
+    "timeline[2]": "observation",
+    "timeline[3]": "observation",
+    "timeline[4]": "observation",
+    "timeline[5]": "observation",
+    "timeline[6]": "observation",
+    "root_cause": "inference",
+    "contributing_factors[0]": "inference",
+    "contributing_factors[1]": "inference"
+  },
+  "code_unsupported": [],
+  "judge": {
+    "model": "claude-fable-5-1",
+    "effort": "high",
+    "max_tokens": 64000,
+    "system_sha256": "8d36cd062759056fd31693928c6bedd244f10de95598133849914874b7de718f",
+    "input_sha256": "3962e60b4686017038a6690a9f7f9d8445ec5addaf34e43897bdf745c15a3607",
+    "judged_at": "2026-11-24T18:33:28Z",
+    "request_id": "req_011ChNEUWvzMuuBT5XgyzofP",
+    "response_model": "claude-fable-5-1"
+  },
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 4901,
+    "output_tokens": 3695,
+    "cache_creation_input_tokens": 2418,
+    "cache_read_input_tokens": 0
+  },
+  "judgment": {
+    "run_items": {
+      "attack": {
+        "reason": "Cites u1, u8, u14, none of which name a cause or any hostile action; the step to 'cannot tell' uses only those updates and general knowledge.",
+        "supported": true
+      },
+      "findings[0]": {
+        "reason": "u1 names Actions, Issues, Pull Requests; u2 and u7 name search results; u4 names API Requests; u5 names Packages.",
+        "supported": true
+      },
+      "findings[1]": {
+        "reason": "u8 states recovery after adding capacity with errors decreasing; u9 states Actions, Issues, Packages and Pull Requests operating normally.",
+        "supported": true
+      },
+      "findings[2]": {
+        "reason": "u10 says Projects still recovering as queued updates are processed; u11, u12, u13, u16 say Projects updates remain delayed after other services recovered.",
+        "supported": true
+      },
+      "findings[3]": {
+        "reason": "u14 states identified interruptions in update processing; u15 states working to add more capacity to accelerate recovery.",
+        "supported": true
+      },
+      "findings[4]": {
+        "reason": "Rests on supported f3 and f4 and cited u14/u16; the conclusion that the updates show a prolonged Projects delay but no initiating cause follows directly from their text.",
+        "supported": true
+      },
+      "timeline[0]": {
+        "reason": "u1 is timestamped 15:28:04Z and reports degraded performance for Actions, Issues and Pull Requests.",
+        "supported": true
+      },
+      "timeline[1]": {
+        "reason": "u4 at 16:26:16Z states API Requests is experiencing degraded performance.",
+        "supported": true
+      },
+      "timeline[2]": {
+        "reason": "u8 at 17:16:06Z states recovery after adding capacity, errors decreasing, some users may still see errors.",
+        "supported": true
+      },
+      "timeline[3]": {
+        "reason": "u10 at 17:43:44Z states recovery across affected services and Projects still recovering as queued updates are processed.",
+        "supported": true
+      },
+      "timeline[4]": {
+        "reason": "u14 at 20:46:26Z states Projects updates remain delayed and interruptions in update processing were identified.",
+        "supported": true
+      },
+      "timeline[5]": {
+        "reason": "u17 at 00:55:18Z states degradation mitigated and monitoring for stability.",
+        "supported": true
+      },
+      "timeline[6]": {
+        "reason": "u18 at 02:30:25Z carries the resolved status with text withheld, which is exactly what the item states.",
+        "supported": true
+      },
+      "root_cause": {
+        "reason": "Rests on supported f1, f2, f4, f5 and cited u8, u14, u15; it adds no cause of its own and correctly concludes the updates do not identify the initiating cause.",
+        "supported": true
+      },
+      "contributing_factors[0]": {
+        "reason": "Rests on supported f2 and f3 and cited u10/u11, which state Projects queued updates were still processing after other services recovered; the extended-impact conclusion follows.",
+        "supported": true
+      },
+      "contributing_factors[1]": {
+        "reason": "Rests on supported f4 and f5 and cited u15, which states GitHub was adding capacity to accelerate recovery; it adds nothing beyond that and explicitly declines to claim capacity caused the incident.",
+        "supported": true
+      }
+    },
+    "key_items": {
+      "attack": {
+        "run_items": [
+          "attack"
+        ],
+        "reason": "The run's attack verdict is 'cannot tell' rather than 'not an attack'.",
+        "outcome": "abstained"
+      },
+      "root_cause": {
+        "run_items": [
+          "root_cause"
+        ],
+        "reason": "The run's root cause says the initiating cause cannot be determined, names the missing trigger for the degradation and Projects interruptions, and an open question asks for it; it never names search proxies, CPU exhaustion or encrypted connection setup.",
+        "outcome": "abstained"
+      },
+      "contributing_factors/0": {
+        "run_items": [],
+        "reason": "No run item mentions retries of timed-out requests adding load; the run's factors concern Projects queue backlog and capacity as mitigation.",
+        "outcome": "missed"
+      },
+      "timeline/0": {
+        "run_items": [],
+        "reason": "The key's event is the onset of search degradation at 14:55; the run's timeline[0] records only GitHub's first report at 15:28:04, a different event and 33 minutes later, so no run item states the onset.",
+        "outcome": "missed"
+      },
+      "timeline/1": {
+        "run_items": [
+          "timeline[2]",
+          "timeline[3]"
+        ],
+        "reason": "timeline[2] (17:16, from u8) states recovery after adding capacity with errors decreasing and timeline[3] (17:43, from u10) states recovery across affected services; both are supported and within 30 minutes of 17:28.",
+        "outcome": "supported-hit"
+      }
+    }
+  },
+  "error": null,
+  "arm": "sealed-gpt-6-luna",
+  "run_sha256": "e7f9e23dcda16c696fe2d4cdb8d4da77801352c25052dcd5da8608ea9cedb1cf",
+  "code_commit": "f0bca05fc6a619f85257a35ac76b631d1bd2ff60",
+  "earlier_errors": []
+}

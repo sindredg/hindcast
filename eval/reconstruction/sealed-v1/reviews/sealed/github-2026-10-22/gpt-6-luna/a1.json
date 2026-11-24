@@ -1,0 +1,126 @@
+{
+  "run_id": "sealed/github-2026-10-22/gpt-6-luna/a1",
+  "judgment_sha256": "2574be65a2dfdc7b64f8b08e0b8b2d27964ba4c05650ea8788388a52721eeda7",
+  "decisions": [
+    {
+      "kind": "match",
+      "item": "timeline/1",
+      "proposal": "supported-hit",
+      "sampled": false,
+      "decision": "supported-hit",
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "768832641499792883bde2b91f5c19f4214f0b57d0009d029d296272074c266f"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "attack",
+      "proposal": true,
+      "sampled": false,
+      "decision": true,
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "768832641499792883bde2b91f5c19f4214f0b57d0009d029d296272074c266f"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "findings[4]",
+      "proposal": true,
+      "sampled": false,
+      "decision": true,
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "768832641499792883bde2b91f5c19f4214f0b57d0009d029d296272074c266f"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "root_cause",
+      "proposal": true,
+      "sampled": false,
+      "decision": true,
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "768832641499792883bde2b91f5c19f4214f0b57d0009d029d296272074c266f"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "contributing_factors[0]",
+      "proposal": true,
+      "sampled": false,
+      "decision": true,
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "768832641499792883bde2b91f5c19f4214f0b57d0009d029d296272074c266f"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "contributing_factors[1]",
+      "proposal": true,
+      "sampled": false,
+      "decision": true,
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "768832641499792883bde2b91f5c19f4214f0b57d0009d029d296272074c266f"
+      }
+    },
+    {
+      "kind": "match",
+      "item": "contributing_factors/0",
+      "proposal": "missed",
+      "sampled": true,
+      "decision": "missed",
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "768832641499792883bde2b91f5c19f4214f0b57d0009d029d296272074c266f"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "findings[2]",
+      "proposal": true,
+      "sampled": true,
+      "decision": true,
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "768832641499792883bde2b91f5c19f4214f0b57d0009d029d296272074c266f"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "timeline[4]",
+      "proposal": true,
+      "sampled": true,
+      "decision": true,
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "768832641499792883bde2b91f5c19f4214f0b57d0009d029d296272074c266f"
+      }
+    },
+    {
+      "kind": "support",
+      "item": "timeline[6]",
+      "proposal": true,
+      "sampled": true,
+      "decision": true,
+      "decided_at": "2026-11-24T18:34:23Z",
+      "decided_by": {
+        "model": "claude-fable-5-1",
+        "judgment_sha256": "768832641499792883bde2b91f5c19f4214f0b57d0009d029d296272074c266f"
+      }
+    }
+  ]
+}
