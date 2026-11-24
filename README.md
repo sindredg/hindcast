@@ -65,15 +65,15 @@ All 60 showcase runs completed ([evaluation report](eval/reconstruction/showcase
 
 Five further outages were sealed before their providers published a cause ([decision 0017](docs/decisions/0017-sealed-reconstructions.md)). Four are revealed and scored ([sealed report](eval/reconstruction/sealed-v1/README.md)). The fifth stays hashed in [`seals.json`](eval/sealed/seals.json) until its provider publishes; without a cause on 2026-11-30 it is dropped ([decision 0022](docs/decisions/0022-sealed-drop-date-and-offline-reveal.md)).
 
-| Sealed case | Runs | Score, every run | What it shows |
+| Sealed case | Runs | Score | Result |
 | --- | --- | --- | --- |
-| [GitHub, 2026-11-04 (Actions)](eval/reconstruction/sealed-v1/README.md#results) | 2 | 1.00 | The cause was not in the updates, and both runs said so instead of guessing. |
-| [GitHub, 2026-11-04 (pull requests)](eval/reconstruction/sealed-v1/README.md#addendum-2026-11-15-two-github-cases) | 2 | 1.00 | Same: no update mentioned the database that reached capacity. |
-| [GitHub, 2026-10-22](eval/reconstruction/sealed-v1/README.md#addendum-2026-11-24-github-2026-10-22) | 4 | 1.00 | Same, on three scorable items, two of them abstentions. |
-| [GitHub, 2026-10-21](eval/reconstruction/sealed-v1/README.md#addendum-2026-11-15-two-github-cases) | 4 | 0.60 | One update hinted at the cause: every run found half of it, and none ruled out an attack, which the update's mention of load on an internal platform allowed. |
-| Cloudflare, 2026-10-20 | 4 sealed | Pending | No cause published yet ([cloudflarestatus.com](https://www.cloudflarestatus.com/incidents/0eqtn0khkz87)); dropped on 2026-11-30 without one. |
+| [GitHub, 2026-11-04, Actions](eval/reconstruction/sealed-v1/README.md#results) | 2 | 1.00 | Cause not in the updates; every run said so |
+| [GitHub, 2026-11-04, pull requests](eval/reconstruction/sealed-v1/README.md#addendum-2026-11-15-two-github-cases) | 2 | 1.00 | Cause not in the updates; every run said so |
+| [GitHub, 2026-10-22](eval/reconstruction/sealed-v1/README.md#addendum-2026-11-24-github-2026-10-22) | 4 | 1.00 | Cause not in the updates; every run said so |
+| [GitHub, 2026-10-21](eval/reconstruction/sealed-v1/README.md#addendum-2026-11-15-two-github-cases) | 4 | 0.60 | One update hinted at the cause; every run found half of it |
+| [Cloudflare, 2026-10-20](https://www.cloudflarestatus.com/incidents/0eqtn0khkz87) | 4 | Pending | No cause published; dropped on 2026-11-30 if none appears |
 
-A 1.00 here measures restraint, not discovery: the runs stayed inside evidence that did not hold the cause.
+A 1.00 means the runs stayed inside the evidence and did not guess, not that they found the cause.
 
 The reconstruction evaluation covers four outages and a 23-document library. None of those outages was an attack, so these scores do not establish attack-detection performance or broad retrieval quality. The [evaluation report](eval/reconstruction/showcase-v1/README.md#limits) explains the limitations.
 
