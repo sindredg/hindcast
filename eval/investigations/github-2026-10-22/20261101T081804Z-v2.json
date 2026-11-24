@@ -1,0 +1,363 @@
+{
+  "case_id": "github-2026-10-22",
+  "agent": {
+    "name": "hindcast-investigator-gpt-6-luna",
+    "version": "2"
+  },
+  "model": {
+    "deployment": "gpt-6-luna",
+    "name": "gpt-6-luna",
+    "version": "2026-09-22"
+  },
+  "provenance": {
+    "prompt": {
+      "blob": "a4c608c98477d8a78e8faf8a4ca3fae4f0dd9d13",
+      "dirty": false
+    },
+    "code": {
+      "commit": "c6a26d0bca305f690943de3f16037cbfac796532",
+      "dirty": false
+    },
+    "evidence_sha256": "9a3727f7013ab520f30351aa25ba097a2bdbec5c0f8af62efa669f8b4159d817"
+  },
+  "status": "complete",
+  "incomplete_reason": null,
+  "investigation": {
+    "attack": {
+      "verdict": "cannot tell",
+      "reasoning": "The public updates describe service degradation, mitigation, added capacity, and recovery, but do not say whether hostile activity caused the incident. The available evidence is insufficient to determine whether it was an attack.",
+      "citations": [
+        {
+          "source": "case",
+          "ref": "github-2026-10-22/u7"
+        },
+        {
+          "source": "case",
+          "ref": "github-2026-10-22/u8"
+        },
+        {
+          "source": "case",
+          "ref": "github-2026-10-22/u14"
+        }
+      ]
+    },
+    "findings": [
+      {
+        "id": "f1",
+        "kind": "observation",
+        "claim": "GitHub initially reported degraded performance affecting Actions, Issues, and Pull Requests; subsequent updates reported intermittent errors with Issues, Pull Requests, and search results.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-22/u1"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-22/u2"
+          }
+        ]
+      },
+      {
+        "id": "f2",
+        "kind": "observation",
+        "claim": "The reported impact broadened to API Requests and Packages, and later included errors with package listings.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-22/u4"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-22/u5"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-22/u7"
+          }
+        ]
+      },
+      {
+        "id": "f3",
+        "kind": "observation",
+        "claim": "GitHub said errors decreased and recovery followed adding capacity.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-22/u8"
+          }
+        ]
+      },
+      {
+        "id": "f4",
+        "kind": "observation",
+        "claim": "GitHub Projects remained affected after other services recovered: updates were delayed, and GitHub identified interruptions in update processing.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-22/u11"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-22/u12"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-22/u14"
+          }
+        ]
+      },
+      {
+        "id": "f5",
+        "kind": "observation",
+        "claim": "GitHub reported working to add more capacity to accelerate GitHub Projects recovery; later it said processing had improved, though newly added items might still be delayed.",
+        "rests_on": [],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-22/u15"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-22/u16"
+          }
+        ]
+      },
+      {
+        "id": "f6",
+        "kind": "inference",
+        "claim": "The incident appears to have involved a capacity or processing constraint: adding capacity coincided with recovery in the affected services, while capacity work and interrupted processing were also reported during the prolonged Projects delays. The updates do not establish the initiating technical fault.",
+        "rests_on": [
+          "f3",
+          "f4",
+          "f5"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-22/u8"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-22/u14"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-22/u15"
+          }
+        ]
+      }
+    ],
+    "timeline": [
+      {
+        "time": "2026-10-22T15:28:03Z",
+        "time_kind": "stated",
+        "event": "Incident start time listed by the provider.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-22/u1"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-22T15:28:04Z",
+        "time_kind": "stated",
+        "event": "GitHub began investigating degraded performance for Actions, Issues, and Pull Requests.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-22/u1"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-22T16:26:16Z",
+        "time_kind": "stated",
+        "event": "API Requests was reported as degraded.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-22/u4"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-22T16:28:56Z",
+        "time_kind": "stated",
+        "event": "Packages was reported as degraded.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-22/u5"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-22T16:35:07Z",
+        "time_kind": "stated",
+        "event": "API Requests was reported as operating normally.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-22/u6"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-22T17:16:06Z",
+        "time_kind": "stated",
+        "event": "GitHub reported recovery after adding capacity, with errors decreasing, while some users could still encounter errors.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-22/u8"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-22T17:41:38Z",
+        "time_kind": "stated",
+        "event": "Actions, Issues, Packages, and Pull Requests were reported as operating normally.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-22/u9"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-22T18:26:31Z",
+        "time_kind": "stated",
+        "event": "GitHub said the other affected services had recovered and continued investigating Projects.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-22/u11"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-22T20:46:26Z",
+        "time_kind": "stated",
+        "event": "GitHub reported remaining Projects delays and interruptions in update processing.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-22/u14"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-22T22:07:36Z",
+        "time_kind": "stated",
+        "event": "GitHub reported some Projects recovery and work to add capacity to accelerate it.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-22/u15"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-23T00:55:18Z",
+        "time_kind": "stated",
+        "event": "GitHub said the degradation had been mitigated and it was monitoring stability.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-22/u17"
+          }
+        ]
+      },
+      {
+        "time": "2026-10-23T02:30:25Z",
+        "time_kind": "stated",
+        "event": "The incident was marked resolved; the resolution update's text was withheld.",
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-22/u18"
+          }
+        ]
+      }
+    ],
+    "root_cause": {
+      "claim": "The best-supported proximate explanation is a capacity or processing constraint, with GitHub Projects update processing particularly affected for an extended period. The public updates do not identify the initiating technical fault or establish a more specific root cause.",
+      "rests_on": [
+        "f3",
+        "f4",
+        "f5"
+      ],
+      "citations": [
+        {
+          "source": "case",
+          "ref": "github-2026-10-22/u8"
+        },
+        {
+          "source": "case",
+          "ref": "github-2026-10-22/u14"
+        },
+        {
+          "source": "case",
+          "ref": "github-2026-10-22/u15"
+        }
+      ]
+    },
+    "contributing_factors": [
+      {
+        "claim": "GitHub Projects update processing interruptions and accumulated delays prolonged the impact after other affected services had recovered.",
+        "rests_on": [
+          "f4"
+        ],
+        "citations": [
+          {
+            "source": "case",
+            "ref": "github-2026-10-22/u11"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-22/u14"
+          },
+          {
+            "source": "case",
+            "ref": "github-2026-10-22/u16"
+          }
+        ]
+      }
+    ],
+    "open_questions": [
+      {
+        "question": "What specific technical fault initiated the degradation?",
+        "why_open": "The updates describe symptoms and mitigation but do not identify the initiating fault."
+      },
+      {
+        "question": "Did hostile activity contribute to the outage?",
+        "why_open": "The updates do not attribute the incident to an attack or rule one out."
+      },
+      {
+        "question": "What caused the interruptions in GitHub Projects update processing, and how much backlog accumulated?",
+        "why_open": "The updates confirm interruptions and delays but do not explain their mechanism or quantify the backlog."
+      },
+      {
+        "question": "What exact change or condition allowed the affected services to recover?",
+        "why_open": "The provider reports adding capacity and improvement, but does not give technical details about the recovery."
+      }
+    ]
+  },
+  "checks": {
+    "rejected_citations": [],
+    "unsupported": []
+  },
+  "usage": {
+    "model_calls": 2,
+    "tool_calls": 2,
+    "seconds": 17.596,
+    "input_tokens": 3573,
+    "cached_input_tokens": 2098,
+    "output_tokens": 2817
+  }
+}

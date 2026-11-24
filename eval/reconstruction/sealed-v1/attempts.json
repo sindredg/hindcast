@@ -303,6 +303,130 @@
         "version": "2026-09-29"
       },
       "code_commit": "5fd90c0feea522ec31e18615ba20e556adb41287"
+    },
+    {
+      "run_id": "sealed/github-2026-10-22/gpt-6-luna-library-off/a1",
+      "arm": "sealed-gpt-6-luna-library-off",
+      "case_id": "github-2026-10-22",
+      "repeat": 1,
+      "attempt": 1,
+      "started_at": "2026-11-01T08:18:04Z",
+      "status": "complete",
+      "reason": null,
+      "file": "github-2026-10-22/20261101T081804Z-v2.json",
+      "sha256": "b15cedcba342793b40df186877aef28496ffac636fa208078bf51e6474db91bf",
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 2,
+        "seconds": 17.596,
+        "input_tokens": 3573,
+        "cached_input_tokens": 2098,
+        "output_tokens": 2817
+      },
+      "cost": null,
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna",
+        "version": "2"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "c6a26d0bca305f690943de3f16037cbfac796532"
+    },
+    {
+      "run_id": "sealed/github-2026-10-22/gpt-6.1-sol-library-off/a1",
+      "arm": "sealed-gpt-6.1-sol-library-off",
+      "case_id": "github-2026-10-22",
+      "repeat": 1,
+      "attempt": 1,
+      "started_at": "2026-11-01T08:20:43Z",
+      "status": "complete",
+      "reason": null,
+      "file": "github-2026-10-22/20261101T082043Z-v1.json",
+      "sha256": "9795ff8ae8b9896990820b2541c44d3669536e1ae73725a7da0754415208d880",
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 2,
+        "seconds": 40.93,
+        "input_tokens": 3573,
+        "cached_input_tokens": 2098,
+        "output_tokens": 2997
+      },
+      "cost": null,
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-1-sol",
+        "version": "1"
+      },
+      "model": {
+        "deployment": "gpt-6.1-sol",
+        "name": "gpt-6.1-sol",
+        "version": "2026-09-29"
+      },
+      "code_commit": "3162dfebbba7e8aacf915e9a5babbfeb3fd968a8"
+    },
+    {
+      "run_id": "sealed/github-2026-10-22/gpt-6-luna/a1",
+      "arm": "sealed-gpt-6-luna",
+      "case_id": "github-2026-10-22",
+      "repeat": 1,
+      "attempt": 1,
+      "started_at": "2026-11-02T18:45:48Z",
+      "status": "complete",
+      "reason": null,
+      "file": "github-2026-10-22/20261102T184548Z-v3.json",
+      "sha256": "e7f9e23dcda16c696fe2d4cdb8d4da77801352c25052dcd5da8608ea9cedb1cf",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 23.885,
+        "input_tokens": 7952,
+        "cached_input_tokens": 5291,
+        "output_tokens": 2838
+      },
+      "cost": null,
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-luna",
+        "version": "3"
+      },
+      "model": {
+        "deployment": "gpt-6-luna",
+        "name": "gpt-6-luna",
+        "version": "2026-09-22"
+      },
+      "code_commit": "5fd90c0feea522ec31e18615ba20e556adb41287"
+    },
+    {
+      "run_id": "sealed/github-2026-10-22/gpt-6.1-sol/a1",
+      "arm": "sealed-gpt-6.1-sol",
+      "case_id": "github-2026-10-22",
+      "repeat": 1,
+      "attempt": 1,
+      "started_at": "2026-11-02T18:48:08Z",
+      "status": "complete",
+      "reason": null,
+      "file": "github-2026-10-22/20261102T184808Z-v2.json",
+      "sha256": "332fbd06583c97b57701d4c15554742e462db3dca076db37fdc3762b950c0959",
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "seconds": 41.314,
+        "input_tokens": 8485,
+        "cached_input_tokens": 5291,
+        "output_tokens": 2968
+      },
+      "cost": null,
+      "agent": {
+        "name": "hindcast-investigator-gpt-6-1-sol",
+        "version": "2"
+      },
+      "model": {
+        "deployment": "gpt-6.1-sol",
+        "name": "gpt-6.1-sol",
+        "version": "2026-09-29"
+      },
+      "code_commit": "5fd90c0feea522ec31e18615ba20e556adb41287"
     }
   ]
 }
