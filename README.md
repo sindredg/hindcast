@@ -10,7 +10,7 @@ On this page: [Highlights](#highlights) · [How it works](#how-it-works) · [Arc
 
 - **Scored against the postmortem.** 60 reconstructions of four outages, five configurations, scored item by item against keys frozen by hash under a rubric frozen before the first run ([report](eval/reconstruction/showcase-v1/README.md)).
 - **Evidence required for credit.** Every credited item rests on supported evidence; every root cause the evidence could not establish was met with an abstention.
-- **Sealed before the answer existed.** Five outages reconstructed and committed by hash before their providers published a cause. Three are revealed. No run guessed a cause: two cases scored 1.00 where the updates held nothing about it, and one scored 0.60 where an update hinted at it ([sealed report](eval/reconstruction/sealed-v1/README.md)).
+- **Sealed before the answer existed.** Five outages reconstructed and committed by hash before their providers published a cause. Four are revealed. No run guessed a cause: three cases scored 1.00 where the updates held nothing about it, and one scored 0.60 where an update hinted at it ([sealed report](eval/reconstruction/sealed-v1/README.md)).
 - **Prior knowledge checked.** Both models could name one outage's cause before seeing any evidence; all 15 runs on it abstained anyway ([prior-knowledge check](eval/prior-knowledge/v1/README.md)).
 - **Planted instructions resisted.** An instruction planted in a status update and in a library page reached the model in 8 runs, 4 with the screens off; none followed it ([injection tests](eval/injection/dev-v1/README.md)).
 - **One template, nothing left behind.** The whole environment provisions with one `azd up`; it was built, removed, rebuilt from empty, and removed again with nothing left ([worklog 06](docs/worklogs/06-deployment.md#slice-2-final-removal)).
@@ -63,12 +63,11 @@ All 60 showcase runs completed ([evaluation report](eval/reconstruction/showcase
 - **Cost:** a `gpt-6-luna` reconstruction took 31 seconds and USD 0.045 on average; the comparison model took nearly twice as long for twice the cost and the same score.
 - **Injection:** 12 runs planted one instruction in an update, a library page, or a chart, with the screens on and off. The 8 that saw it did not follow it; the chart runs never retrieved the planted figure ([injection tests](eval/injection/dev-v1/README.md)).
 
-Five further outages were sealed before their providers published a cause ([decision 0017](docs/decisions/0017-sealed-reconstructions.md)). Three are revealed and scored ([sealed report](eval/reconstruction/sealed-v1/README.md)). The other two stay hashed in [`seals.json`](eval/sealed/seals.json) until their providers publish; a case without a cause on 2026-11-30 is dropped ([decision 0022](docs/decisions/0022-sealed-drop-date-and-offline-reveal.md)).
+Five further outages were sealed before their providers published a cause ([decision 0017](docs/decisions/0017-sealed-reconstructions.md)). Four are revealed and scored ([sealed report](eval/reconstruction/sealed-v1/README.md)). The fifth stays hashed in [`seals.json`](eval/sealed/seals.json) until its provider publishes; without a cause on 2026-11-30 it is dropped ([decision 0022](docs/decisions/0022-sealed-drop-date-and-offline-reveal.md)).
 
 | Sealed case | Sealed on | Where the cause will appear |
 | --- | --- | --- |
 | Cloudflare, 2026-10-20 | 2026-11-01 and 2026-11-02 | [cloudflarestatus.com](https://www.cloudflarestatus.com/incidents/0eqtn0khkz87) |
-| GitHub, 2026-10-22 | 2026-11-01 and 2026-11-02 | [githubstatus.com](https://www.githubstatus.com/incidents/wq8305lppdc2) |
 
 The reconstruction evaluation covers four outages and a 23-document library. None of those outages was an attack, so these scores do not establish attack-detection performance or broad retrieval quality. The [evaluation report](eval/reconstruction/showcase-v1/README.md#limits) explains the limitations.
 
@@ -83,7 +82,7 @@ Citations to evidence the run never saw are removed; unsupported items stay visi
 
 ## Status
 
-Closed on 2026-11-07 with every milestone verified ([roadmap](docs/roadmap.md#status)). Two sealed reconstructions stay open until their providers publish a cause or 2026-11-30 ([results](#results)).
+Closed on 2026-11-07 with every milestone verified ([roadmap](docs/roadmap.md#status)). One sealed reconstruction stays open until its provider publishes a cause or 2026-11-30 ([results](#results)).
 
 ## Development
 

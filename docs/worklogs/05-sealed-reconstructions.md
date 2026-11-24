@@ -1,8 +1,8 @@
 # Milestone 5, first part: Sealed reconstructions and the October case
 
-Status: Verified on 2026-11-07 with milestone 5 ([gate](#gate), [independent review](#independent-review)). Two more cases revealed on 2026-11-15 ([below](#reveal-two-github-cases-2026-11-15)); two stay sealed. Drop date 2026-11-30 since 2026-11-03 ([decision 0022](../decisions/0022-sealed-drop-date-and-offline-reveal.md)). Milestone state: [roadmap](../roadmap.md#status).
+Status: Verified on 2026-11-07 with milestone 5 ([gate](#gate), [independent review](#independent-review)). Two more cases revealed on 2026-11-15 ([below](#reveal-two-github-cases-2026-11-15)) and one on 2026-11-24 ([below](#reveal-github-2026-10-22-2026-11-24)); one stays sealed. Drop date 2026-11-30 since 2026-11-03 ([decision 0022](../decisions/0022-sealed-drop-date-and-offline-reveal.md)). Milestone state: [roadmap](../roadmap.md#status).
 
-On this page: [Scope](#scope) · [Work completed](#work-completed) · [Checks](#checks) · [Live run](#live-run) · [Gate](#gate) · [Independent review](#independent-review) · [Issues opened](#issues-opened) · [Second seals, with the library (2026-11-02)](#second-seals-with-the-library-2026-11-02) · [Third seals: two GitHub outages of 2026-11-04](#third-seals-two-github-outages-of-2026-11-04) · [Reveal: github-2026-11-04-actions (2026-11-07)](#reveal-github-2026-11-04-actions-2026-11-07)
+On this page: [Scope](#scope) · [Work completed](#work-completed) · [Checks](#checks) · [Live run](#live-run) · [Gate](#gate) · [Independent review](#independent-review) · [Issues opened](#issues-opened) · [Second seals, with the library (2026-11-02)](#second-seals-with-the-library-2026-11-02) · [Third seals: two GitHub outages of 2026-11-04](#third-seals-two-github-outages-of-2026-11-04) · [Reveal: github-2026-11-04-actions (2026-11-07)](#reveal-github-2026-11-04-actions-2026-11-07) · [Reveal: two GitHub cases (2026-11-15)](#reveal-two-github-cases-2026-11-15) · [Reveal: github-2026-10-22 (2026-11-24)](#reveal-github-2026-10-22-2026-11-24)
 
 ## Scope
 
@@ -284,3 +284,39 @@ Each failed once on a broken input, 2026-11-15, locally:
 The seal and page tests used `github-2026-10-21` as their sealed case and now use `github-2026-10-22`.
 
 Test suite: `.venv/bin/python -m pytest -q` → 1075 passed, locally with the captured sources present; ruff and ruff format clean.
+
+## Reveal: github-2026-10-22 (2026-11-24)
+
+GitHub rewrote the incident's resolved update at 2026-11-16T16:28:44Z: the proxies that route requests to its search clusters ran out of CPU while setting up encrypted connections, and retried requests kept them overloaded. The October availability report does not cover the incident. `cloudflare-2026-10-20` still has no cause and stays sealed.
+
+Steps from the [sealing runbook](../runbooks/sealing.md#reveal-a-seal), locally.
+
+| Step | Command | Result |
+|---|---|---|
+| Check | Status API, resolved update | `2026-11-16T16:28:44.228Z 171 words` |
+| Capture | `hindcast.capture status --provider GitHub --incident wq8305lppdc2` | `retrieved_at` 2026-11-24T18:28:23Z, `sha256: 1d342554…`. Case set to `revealed`; `tests/test_cases.py` 35 passed |
+| Key | `hindcast.keys check github-2026-10-22`, then `freeze` | `0 problems`; frozen `05175cf8…` |
+| Labels | `hindcast.labels sheet github-2026-10-22`, then `freeze` | 5 labels (1 stated, 4 not inferable), `4742b6e1…` |
+| Leak check | `hindcast.leak github-2026-10-22 --snapshot build/sealed-library/github-2026-10-22.json` | `6 unstated items, 17 evidence sources, 267 library chunks, 0 hits` |
+| Commit | Registry, key, labels | `1939158` |
+| Reveal | `hindcast.reveal github-2026-10-22`, 18:32:03Z | `cause published 2026-11-16T16:28:44Z`, `revealed 4 files`; committed as `f0bca05` |
+| Judge | `hindcast.evaluation.judge run --root eval/reconstruction/sealed-v1` | `judged 4, errors 0, kept 8` |
+| Reviewer | `hindcast.evaluation.reviewer run` and `apply`, same root | `judged 4, errors 0, kept 8` and `runs 12, decisions 46, missing 0` |
+| Score | `hindcast.evaluation.score --root eval/reconstruction/sealed-v1` | `runs 12, open review items 0`; the four new runs 1.00 |
+| Spend | `hindcast.evaluation.spend --sealed` | judge USD 1.06, reviewer USD 3.44, total USD 4.50 over all twelve runs; USD 1.52 of it this reveal |
+
+Results: [sealed report, addendum](../../eval/reconstruction/sealed-v1/README.md#addendum-2026-11-24-github-2026-10-22).
+
+### Checks
+
+Each failed once on a broken input, 2026-11-24, locally:
+
+| Broken input | Failed test or refusal |
+|---|---|
+| One word changed in the contributing factor's quote in the key draft | `keys check`: `contributing_factors[0]: quote not found word for word in the postmortem`, exit 1 |
+| A chunk with the root cause planted in the library snapshot | `leak --plant`: `1 hits`, `root_cause in planted: 15 shared runs` |
+| One byte added to a revealed file | `tests/test_sealed_reveal.py`: `does not match its seal`, 1 failed |
+
+The seal and page tests used `github-2026-10-22` as their sealed case and now use `cloudflare-2026-10-20`.
+
+Test suite: `.venv/bin/python -m pytest -q` → 1076 passed, locally with the captured sources present; ruff and ruff format clean.

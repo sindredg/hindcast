@@ -16,7 +16,7 @@ On this page: [Status](#status) · [Architecture as built](#architecture-as-buil
 | 6. Deployment and release | Verified | 2026-11-06 | [gate](worklogs/06-deployment.md#slice-2-gate), [review](worklogs/06-deployment.md#slice-2-independent-review), [live run](worklogs/06-deployment.md#slice-2-live-run), [final removal](worklogs/06-deployment.md#slice-2-final-removal) | [0016](decisions/0016-sign-in-credential-image-build-and-resource-group.md), [0028](decisions/0028-full-environment-and-live-page.md), [0029](decisions/0029-push-the-tested-image.md) |
 | 7. Close | Verified | 2026-11-07 | [gate](worklogs/07-close.md#gate), [review](worklogs/07-close.md#independent-review), [teardown](worklogs/07-close.md#teardown) | |
 
-Accepted gap: two sealed cases without a published cause on 2026-11-15 (`cloudflare-2026-10-20`, `github-2026-10-22`), each revealed as an addendum to the [sealed report](../eval/reconstruction/sealed-v1/README.md) or dropped on 2026-11-30 ([decision 0030](decisions/0030-close-evaluation-with-sealed-addenda.md)).
+Accepted gap: one sealed case without a published cause on 2026-11-24 (`cloudflare-2026-10-20`), revealed as an addendum to the [sealed report](../eval/reconstruction/sealed-v1/README.md) or dropped on 2026-11-30 ([decision 0030](decisions/0030-close-evaluation-with-sealed-addenda.md)).
 
 Milestone 4's first slice ran before milestone 3 to de-risk the tool loop before AI Search started billing ([decision 0004](decisions/0004-retrieval.md)). Milestone 6's first slice deployed a page that renders one stored result, to prove sign-in, the image path, and telemetry before the app called a model ([decision 0016](decisions/0016-sign-in-credential-image-build-and-resource-group.md)).
 
