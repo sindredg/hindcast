@@ -291,10 +291,13 @@ cases:
         retrieved_at: "2026-11-15T14:12:19Z"
         kind: postmortem
 
+  # Revealed on 2026-11-24 (decision 0030): GitHub wrote its summary of the
+  # cause into the resolved update at 2026-11-16T16:28:44Z, captured again as
+  # the postmortem. The status-updates source stays the snapshot the seals used.
   - case_id: github-2026-10-22
     title: Project updates delayed
     provider: GitHub
-    role: sealed
+    role: revealed
     started_at: "2026-10-22T15:28:03Z"
     sources:
       - doc_id: github-status-2026-10-22
@@ -305,6 +308,14 @@ cases:
         sha256: 401dcc1087581ef13f27bcbfde93b685d6f0ce3a0ed15a3216aaa0bb7c506e40
         retrieved_at: "2026-11-01T08:15:51Z"
         kind: status-updates
+      - doc_id: github-summary-2026-10-22
+        filename: github-summary-2026-10-22.json
+        url: https://www.githubstatus.com/api/v2/incidents/wq8305lppdc2.json
+        licence: Copyright GitHub; not redistributed
+        attribution: GitHub status page, resolved update of incident wq8305lppdc2
+        sha256: 1d342554e626aab984ccf2aaec8026743a9d91cc4745f5e97f30cde01bd6dc93
+        retrieved_at: "2026-11-24T18:28:23Z"
+        kind: postmortem
   # Revealed on 2026-11-15 (decision 0030): GitHub wrote its summary of the
   # cause into the resolved update at 2026-11-13T16:48:58Z, captured again as
   # the postmortem. The status-updates source stays the snapshot the seals used.

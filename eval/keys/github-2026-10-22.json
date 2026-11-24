@@ -1,0 +1,56 @@
+{
+  "attack": "not an attack",
+  "attack_basis": "implied",
+  "attack_quote": "This was due to the proxies that route requests to our search clusters running out of CPU while setting up encrypted connections.",
+  "case_id": "github-2026-10-22",
+  "contributing_factors": [
+    {
+      "source_quote": "Requests that timed out were retried, which added more load and kept the proxies overloaded.",
+      "stated_during_incident": false,
+      "text": "Requests that timed out were retried, which added more load and kept the search proxies overloaded."
+    }
+  ],
+  "fixes": [
+    {
+      "source_quote": "We mitigated the incident by adding proxy capacity",
+      "stated_during_incident": true,
+      "text": "Mitigated the incident by adding proxy capacity."
+    },
+    {
+      "source_quote": "We have started reducing the CPU cost of these encrypted connections.",
+      "stated_during_incident": false,
+      "text": "Reduce the CPU cost of the encrypted connections."
+    },
+    {
+      "source_quote": "make search retries adjustable during an incident without a deployment",
+      "stated_during_incident": false,
+      "text": "Make search retries adjustable during an incident without a deployment."
+    },
+    {
+      "source_quote": "alert on search failures sooner",
+      "stated_during_incident": false,
+      "text": "Alert on search failures sooner."
+    }
+  ],
+  "root_cause": {
+    "source_quote": "This was due to the proxies that route requests to our search clusters running out of CPU while setting up encrypted connections.",
+    "stated_during_incident": false,
+    "text": "The proxies that route requests to GitHub's search clusters ran out of CPU while setting up encrypted connections, so search and the search-backed features in Issues, Pull Requests, Projects, Actions, Packages, and some REST API endpoints returned errors or incomplete results."
+  },
+  "timeline": [
+    {
+      "event": "Search on GitHub.com became degraded, with search-backed features returning errors or incomplete results.",
+      "source_quote": "between 14:55 and 17:28 UTC, search on GitHub.com was degraded",
+      "stated_during_incident": false,
+      "time": "2026-10-22T14:55Z",
+      "time_as_written": "14:55"
+    },
+    {
+      "event": "Search recovered after proxy capacity was added.",
+      "source_quote": "after which search recovered at 17:28 UTC",
+      "stated_during_incident": true,
+      "time": "2026-10-22T17:28Z",
+      "time_as_written": "17:28 UTC"
+    }
+  ]
+}

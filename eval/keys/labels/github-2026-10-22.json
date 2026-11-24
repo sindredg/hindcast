@@ -1,0 +1,45 @@
+{
+ "case_id": "github-2026-10-22",
+ "items": [
+  {
+   "item": "attack",
+   "label": "not inferable",
+   "reason": "No update names a cause or any hostile action; u8 reports recovery after adding capacity, which fits heavy legitimate load and attack traffic alike.",
+   "evidence": [
+    "github-2026-10-22/u8"
+   ]
+  },
+  {
+   "item": "root_cause",
+   "label": "not inferable",
+   "reason": "u2, u3, u7 and u8 report errors loading search results and u8 says capacity was added, but no update mentions the search proxies, CPU, or encrypted connections.",
+   "evidence": [
+    "github-2026-10-22/u2",
+    "github-2026-10-22/u8"
+   ]
+  },
+  {
+   "item": "contributing_factors/0",
+   "label": "not inferable",
+   "reason": "No update mentions retries or timed-out requests.",
+   "evidence": []
+  },
+  {
+   "item": "timeline/0",
+   "label": "not inferable",
+   "reason": "The first update, u1 at 15:28, reports degraded performance without a start time; the 14:55 start is 33 minutes earlier.",
+   "evidence": [
+    "github-2026-10-22/u1"
+   ]
+  },
+  {
+   "item": "timeline/1",
+   "label": "stated",
+   "reason": "u8 at 17:16 reports recovery after adding capacity with errors decreasing, and u9 at 17:41 says Actions, Issues, Packages and Pull Requests are operating normally.",
+   "evidence": [
+    "github-2026-10-22/u8",
+    "github-2026-10-22/u9"
+   ]
+  }
+ ]
+}

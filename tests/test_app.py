@@ -328,7 +328,7 @@ def test_start_run_refuses_a_scored_or_sealed_case(tmp_path, monkeypatch):
     prepared: list[str] = []
     monkeypatch.setattr(investigate, "prepare", lambda case: prepared.append(case.case_id))
     cases = load_cases()
-    for case_id in ("cloudflare-2025-11-18", "github-2026-10-22"):
+    for case_id in ("cloudflare-2025-11-18", "cloudflare-2026-10-20"):
         with pytest.raises(PermissionError):
             app.start_run(cases[case_id], root=tmp_path, client=None)
     assert prepared == []
@@ -906,7 +906,7 @@ def test_the_page_refuses_a_sealed_case_by_its_role_alone(tmp_path, monkeypatch)
     prepared: list[str] = []
     monkeypatch.setattr(investigate, "prepare", lambda case: prepared.append(case.case_id))
     with pytest.raises(PermissionError, match="sealed"):
-        app.start_run(load_cases()["github-2026-10-22"], root=tmp_path, client=None)
+        app.start_run(load_cases()["cloudflare-2026-10-20"], root=tmp_path, client=None)
     assert prepared == []
 
 
